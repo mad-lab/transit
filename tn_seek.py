@@ -1,22 +1,25 @@
 #importing wx files
 import wx
+import sys
 import os
+import time
+import datetime
 import ntpath
+import threading
+from math import *
+from wx.lib.pubsub import pub
 
 # trash view stuff
 import trash
- 
 #import the newly created GUI file
 import tn_seek_gui
 
- 
-#importing * : to enable writing sin(13) instead of math.sin(13)
-from math import *
-
-
+import fileDisplay
+#
 import gumbelMH
-import threading
-
+import hmm_geom
+import hmm_tools
+import resampling
 
 
 DEBUG = True
@@ -38,28 +41,117 @@ def get_wig_stats(path):
 
 
 
-class GumbelThread(Thread):
+class GumbelThread(threading.Thread):
     """Gumbel Worker Thread Class."""
  
     #----------------------------------------------------------------------
-    def __init__(self):
+    def __init__(self, readPath, annotationPath, min_read, samples, burnin, trim, output):
         """Init Worker Thread Class."""
-        Thread.__init__(self)
+
+        #parameters
+        self.readPath = readPath
+        self.annotationPath = annotationPath
+        self.min_read = min_read
+        self.samples = samples
+        self.burnin = burnin
+        self.trim = trim
+        self.output = output
+
+        #thread
+        threading.Thread.__init__(self)
         self.start()    # start the thread
  
     #----------------------------------------------------------------------
     def run(self):
         """Run Worker Thread."""
         # This is the code executing in the new thread.
-        for i in range(20):
-            time.sleep(1)
-            wx.CallAfter(pub.sendMessage, "update", msg="")
+
+        print "Running Gumbel Method for %d Samples" % (self.samples)
+        gumbelMH.runGumbel(self.readPath, self.annotationPath, self.min_read, self.samples, self.burnin, self.trim, self.output, wx, pub.sendMessage)
+        print "Finished Gumbel Method"
+        if not self.output.name.startswith("<"):
+            data = {"path":self.output.name, "type":"Gumbel", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+            print "Adding File:", self.output.name
+            wx.CallAfter(pub.sendMessage, "file", data=data)
+
+
+        wx.CallAfter(pub.sendMessage, "gumbel", msg="Finished!")
+
+
+class HMMThread(threading.Thread):
+    """HMM Worker Thread Class."""
+
+    #----------------------------------------------------------------------
+    def __init__(self, readPath, annotationPath, output):
+        """Init Worker Thread Class."""
+
+        #parameters
+        self.readPath = readPath
+        self.annotationPath = annotationPath
+        self.output = output
+
+        #thread
+        threading.Thread.__init__(self)
+        self.start()    # start the thread
+
+    #----------------------------------------------------------------------
+    def run(self):
+        """Run Worker Thread."""
+        # This is the code executing in the new thread.
+
+        print "Running HMM Method"
+        hmm_geom.runHMM(self.readPath, self.annotationPath, self.output, wx, pub.sendMessage)
+        print "Finished HMM Method"
+        if not self.output.name.startswith("<"):
+            data = {"path":self.output.name, "type":"HMM - Sites", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+            
+            print "Adding File:", self.output.name
+            wx.CallAfter(pub.sendMessage, "file", data=data)
+            
+            wx.CallAfter(pub.sendMessage, "hmm", msg="Creating HMM Sites output...")
+
+            genes_path = self.output.name.replace("_sites.", "_genes.")
+            hmm_tools.post_process_genes(self.output.name, self.annotationPath, output=open(genes_path,"w"))
+            data["path"] =  genes_path
+            data["type"] = "HMM - Genes"
+            print "Adding File:", genes_path
+            wx.CallAfter(pub.sendMessage, "file", data=data)
+
+            wx.CallAfter(pub.sendMessage, "hmm", msg="Finished!")
 
 
 
+class ResamplingThread(threading.Thread):
+    """HMM Worker Thread Class."""
 
+    #----------------------------------------------------------------------
+    def __init__(self, ctrlString, expString, annotationPath, output):
+        """Init Worker Thread Class."""
 
+        #parameters
+        self.ctrlString = ctrlString
+        self.expString = expString
+        self.annotationPath = annotationPath
+        self.output = output
 
+        #thread
+        threading.Thread.__init__(self)
+        self.start()    # start the thread
+
+    #----------------------------------------------------------------------
+    def run(self):
+        """Run Worker Thread."""
+        # This is the code executing in the new thread.
+
+        print "Running Resampling Method"
+        resampling.runResampling(self.ctrlString, self.expString, self.annotationPath, self.output, wx, pub.sendMessage)
+        print "Finished Resampling Method"
+        if not self.output.name.startswith("<"):
+            data = {"path":self.output.name, "type":"Resampling", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+            print "Adding File:", self.output.name
+            wx.CallAfter(pub.sendMessage, "file", data=data)
+
+        wx.CallAfter(pub.sendMessage, "resampling", msg="Finished!")
 
 
 
@@ -87,9 +179,93 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         self.list_exp.InsertColumn(4, 'Full Path',width=403)
 
 
+        self.index_file = 0
+        self.list_files.InsertColumn(0, 'Name', width=350)
+        self.list_files.InsertColumn(1, 'Type', width=100)
+        self.list_files.InsertColumn(2, 'Date', width=230)
+        self.list_files.InsertColumn(3, 'Full Path',width=403)
+
+
+
+        self.progress_count = 0
+        self.gumbel_count = 0
+        self.hmm_count = 0
+        self.resampling_count = 0
+        pub.subscribe(self.updateGumbel, "gumbel")
+        pub.subscribe(self.updateHMM, "hmm")
+        pub.subscribe(self.updateResampling, "resampling")
+        pub.subscribe(self.updateProgress, "update")
+        pub.subscribe(self.addFile, "file")
+   
+ 
+        self.outputDirPicker.SetPath(os.path.dirname(os.path.realpath(__file__)))
+
+        self.progress.Hide()
+        self.progressLabel.Hide()
         self.HideGumbelOptions()
         self.HideHMMOptions()
         self.HideResamplingOptions()
+
+
+
+    def updateGumbel(self, msg):
+        self.gumbel_count+=1
+        self.gumbelProgress.SetValue(self.gumbel_count)
+
+        X = self.methodChoice.GetCurrentSelection()
+        if X == 1: # if gumbel
+            if self.gumbel_count > self.gumbelProgress.GetRange(): msg = ""
+            self.statusBar.SetStatusText(msg)
+    
+    def updateHMM(self, msg):
+        self.hmm_count+=1
+        self.hmmProgress.SetValue(self.hmm_count)
+        
+        X = self.methodChoice.GetCurrentSelection()
+        if X == 2: # if hmm
+            if self.hmm_count > self.hmmProgress.GetRange(): msg = ""
+            self.statusBar.SetStatusText(msg)
+
+
+    def updateResampling(self, msg):
+        self.resampling_count+=1
+        self.resamplingProgress.SetValue(self.resampling_count)
+
+        X = self.methodChoice.GetCurrentSelection()
+        if X == 3: # if resampling
+            if self.resampling_count > self.resamplingProgress.GetRange(): msg = ""
+            self.statusBar.SetStatusText(msg)
+
+
+    def updateProgress(self, msg):
+        """"""
+        self.progress_count += 1
+        self.progress.SetValue(self.progress_count)
+        self.statusBar.SetStatusText(msg)
+        if self.progress_count > self.progress.GetRange():
+            self.statusBar.SetStatusText("Finished!")
+        #self.statusBar.SetStatusText("Running Gumbel Method... %2.0f%%" % (100.0*self.progress_count/self.progress.GetRange()))
+
+
+    def addFile(self, data):
+        fullpath = data["path"]
+        name = ntpath.basename(fullpath)
+        type = data["type"]
+        date = data["date"]
+        self.list_files.InsertStringItem(self.index_file, name)
+        self.list_files.SetStringItem(self.index_file, 1, "%s" % type)
+        self.list_files.SetStringItem(self.index_file, 2, "%s" % (date))
+        self.list_files.SetStringItem(self.index_file, 3, "%s" % (fullpath))
+        self.index_file+=1
+        
+
+
+    def ResetProgress(self):
+        self.progress_count = 0
+
+
+    def SetProgressRange(self, X):
+        self.progress.SetRange(X)
 
 
     def HideAllOptions(self):
@@ -97,54 +273,58 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         self.HideHMMOptions()
         self.HideResamplingOptions()
 
+
     def HideGumbelOptions(self):
         self.gumbelLabel.Hide()
         self.gumbelSampleLabel.Hide()
         self.gumbelSampleText.Hide()
+        self.gumbelBurninLabel.Hide()
+        self.gumbelBurninText.Hide()
+        self.gumbelTrimLabel.Hide()
+        self.gumbelTrimText.Hide()
         self.gumbelReadLabel.Hide()
         self.gumbelReadChoice.Hide()
         self.gumbelButton.Hide()
+        self.gumbelProgress.Hide()
+
 
     def ShowGumbelOptions(self):
         self.gumbelLabel.Show()
         self.gumbelSampleLabel.Show()
         self.gumbelSampleText.Show()
+        self.gumbelBurninLabel.Show()
+        self.gumbelBurninText.Show()
+        self.gumbelTrimLabel.Show()
+        self.gumbelTrimText.Show()
         self.gumbelReadLabel.Show()
         self.gumbelReadChoice.Show()
         self.gumbelButton.Show()
+        self.gumbelProgress.Show()
 
 
     def HideHMMOptions(self):
         self.hmmLabel.Hide()
         self.hmmButton.Hide()
+        self.hmmProgress.Hide()
+
     
     def ShowHMMOptions(self):
         self.hmmLabel.Show()
         self.hmmButton.Show()
+        self.hmmProgress.Show()
 
 
     def HideResamplingOptions(self):
         self.resamplingLabel.Hide()
         self.resamplingButton.Hide()
+        self.resamplingProgress.Hide()
     
 
     def ShowResamplingOptions(self):
         self.resamplingLabel.Show()
         self.resamplingButton.Show()
+        self.resamplingProgress.Show()
         
-
- 
-    #wx calls this function with and 'event' object
-    def solveFunc(self,event):
-        try:
-            #evaluate the string in 'text' and put the answer back
-            ans = eval(self.text.GetValue())
-            self.text.SetValue (str(ans))
-        except Exception:
-            print 'error'
-    #put a blank string in text when 'Clear' is clicked
-    def clearFunc(self,event):
-        self.text.SetValue(str(''))
 
 
     def loadCtrlFileFunc(self, event):
@@ -162,6 +342,7 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
             self.index_ctrl+=1
         except e:
             print "Error:", e
+
 
     def loadExpFileFunc(self, event):
         try:
@@ -204,8 +385,6 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
 
 
     def ctrlViewFunc(self, event):
-        #secondWindow = window2(None)
-        #secondWindow.Show()
         annotationpath = self.annotationFilePicker.GetPath()
         if DEBUG: print "Annotation path selected:", annotationpath
         if DEBUG: print "Focus:", self.FindFocus()
@@ -224,6 +403,7 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
             if DEBUG:
                 print "No annotation file selected"
 
+
     def annotationFileFunc(self, event):
         pass
         
@@ -232,8 +412,10 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         X = self.methodChoice.GetCurrentSelection()
 
 
+        self.progressLabel.Show()
         if X == 0:
             self.HideAllOptions()
+            self.progressLabel.Hide()
         elif X == 1:
             self.ShowGumbelOptions()
             self.HideHMMOptions()
@@ -253,26 +435,149 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
             print "Selected Method (%d): %s" % (X, self.methodChoice.GetString(X))
 
 
+    def displayFileFunc(self, event):
+        next = self.list_files.GetNextSelected(-1)
+        if next > -1:
+            dataset = self.list_files.GetItem(next, 3).GetText()
+            if DEBUG:
+                print "Displaying results:", self.list_files.GetItem(next, 0).GetText()
+
+            fileWindow = fileDisplay.FileFrame(self, dataset, self.list_files.GetItem(next, 1).GetText())
+            fileWindow.Show()
+        else:
+            if DEBUG:
+                print "No results selected to display!"
+
+
+
+    def tempFileFunc(self, event):
+        file1= "gumbel_H37Rv_Sassetti_glycerol_s100_b5_t1.dat"
+        type="Gumbel"
+        data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+        print "Adding File:", file1
+        wx.CallAfter(pub.sendMessage, "file", data=data)
+
+
+        file1= "hmm_H37Rv_Sassetti_glycerol_sites.dat"
+        type="HMM - Sites"
+        data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+        print "Adding File:", file1
+        wx.CallAfter(pub.sendMessage, "file", data=data)
+
+
+        file1= "hmm_H37Rv_Sassetti_glycerol_genes.dat"
+        type="HMM - Genes"
+        data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+        print "Adding File:", file1
+        wx.CallAfter(pub.sendMessage, "file", data=data)
+
+
+        file1= "resampling_results.dat"
+        type="Resampling"
+        data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+        print "Adding File:", file1
+        wx.CallAfter(pub.sendMessage, "file", data=data)
+
+
+
+
     def RunGumbelFunc(self, event):
         next = self.list_ctrl.GetNextSelected(-1)
-        readPath = self.list_ctrl.GetItem(next, 0).GetText()
+        readPath = self.list_ctrl.GetItem(next, 4).GetText()
+        name = ntpath.basename(readPath)
         annotationPath = self.annotationFilePicker.GetPath()
         min_read = int(self.gumbelReadChoice.GetString(self.gumbelReadChoice.GetCurrentSelection()))
         samples = int(self.gumbelSampleText.GetValue())
+        burnin = int(self.gumbelBurninText.GetValue())
+        trim = int(self.gumbelTrimText.GetValue())
+        
+        outputDir = self.outputDirPicker.GetPath()
         if DEBUG:
-            print "Running Gumbel Method for %d Samples" % (samples)
+            print "Dir:", outputDir
 
-        #gumbelMH.runGumbel(readPath, annotationPath, min_read, samples)
+        
+        if outputDir:
+            output = open(outputDir+"/gumbel_%s_s%d_b%d_t%d.dat" % (".".join(name.split(".")[:-1]), samples, burnin, trim), "w")
+        else:
+            output = sys.stdout
 
-        #t1 = threading.Thread(target=func1 args=(arg1, arg2))
-        #t1.start()
-        #t1.join()
-        t1 = threading.Thread(target=gumbelMH.runGumbel, args=(readPath, annotationPath, min_read, samples))
-        t1.start()
-        t1.join()
+        self.statusBar.SetStatusText("Running Gumbel Method")
+        self.gumbel_count = 0
+        self.gumbelProgress.SetRange(samples+burnin)
+
+        #GumbelThread(readPath, annotationPath, min_read, samples, burnin, trim, output)
+        X = GumbelThread(readPath, annotationPath, min_read, samples, burnin, trim, output)
+
+
+
+    def RunHMMFunc(self, event):
+        next = self.list_ctrl.GetNextSelected(-1)
+        readPath = self.list_ctrl.GetItem(next, 4).GetText()
+        name = ntpath.basename(readPath)
+        annotationPath = self.annotationFilePicker.GetPath()
+        outputDir = self.outputDirPicker.GetPath()
+        if DEBUG:
+            print "Dir:", outputDir
+
+        if outputDir:
+            output = open(outputDir+"/hmm_%s_sites.dat" % (".".join(name.split(".")[:-1])), "w")
+        else:
+            output = sys.stdout
+
+        self.statusBar.SetStatusText("Running HMM Method")
+        self.hmm_count = 0
+        T = len([1 for line in open(readPath).readlines() if not line.startswith("#")])
+        self.hmmProgress.SetRange(T+T-1+1)
+
+        HMMThread(readPath, annotationPath, output)
+
+
+    def RunResamplingFunc(self, event):
+        selected_ctrl = []
+        current = -1
+        while True:
+            next = self.list_ctrl.GetNextSelected(current)
+            if next == -1:
+                break
+            path = self.list_ctrl.GetItem(next, 4).GetText()
+            selected_ctrl.append(path)
+            current = next
+    
+        selected_exp = []
+        current = -1
+        while True:
+            next = self.list_exp.GetNextSelected(current)
+            if next == -1:
+                break
+            path = self.list_exp.GetItem(next, 4).GetText()
+            selected_exp.append(path)
+            current = next
+
+
+        annotationPath = self.annotationFilePicker.GetPath()
+        outputDir = self.outputDirPicker.GetPath()
 
         if DEBUG:
-            print "Finished Running Gumbel Method"
+            print "Dir:", outputDir
+        if outputDir:
+            output = open(outputDir+"/resampling_results.dat", "w")
+        else:
+            output = sys.stdout
+ 
+        ctrlString = ",".join(selected_ctrl)
+        expString = ",".join(selected_exp)
+
+        print "Control String:", ctrlString
+        print "Experim String:", expString
+        
+        self.statusBar.SetStatusText("Running Resampling Method")
+        self.resampling_count = 0
+        T = len([1 for line in open(annotationPath).readlines() if not line.startswith("geneID")])
+        print "T:", T
+        self.resamplingProgress.SetRange(T+1)
+
+        ResamplingThread(ctrlString, expString, annotationPath, output)
+
 
 if __name__ == "__main__":
     #mandatory in wx, create an app, False stands for not deteriction stdin/stdout

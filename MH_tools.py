@@ -183,6 +183,8 @@ def read_WIG_file(path, prot_path):
     for line in open(path):
         if line.startswith("#"): continue
         if line.startswith("variableStep"): continue
+        if line.startswith("location"): continue
+        
         tmp = line.split()
         pos = int(tmp[0])
         read = int(tmp[1])
@@ -284,7 +286,7 @@ def F_non(p, N, R):
 	total = numpy.log(scipy.stats.beta.pdf(p,ALPHA,BETA))
 	mu = numpy.log(N*q) / numpy.log(1/p)
 	sigma = 1/math.log(1/p);
-	total+= sum(numpy.log(scipy.stats.gumbel_r.pdf(R, mu, sigma)))
+	total+= numpy.sum(numpy.log(scipy.stats.gumbel_r.pdf(R, mu, sigma)))
 	return(total)
 	
 
