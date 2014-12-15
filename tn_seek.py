@@ -294,6 +294,7 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
 
     def HideGumbelOptions(self):
         self.gumbelLabel.Hide()
+        self.gumbelInstructions.Hide()
         self.gumbelSampleLabel.Hide()
         self.gumbelSampleText.Hide()
         self.gumbelBurninLabel.Hide()
@@ -308,6 +309,7 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
 
     def ShowGumbelOptions(self):
         self.gumbelLabel.Show()
+        self.gumbelInstructions.Show()
         self.gumbelSampleLabel.Show()
         self.gumbelSampleText.Show()
         self.gumbelBurninLabel.Show()
@@ -322,24 +324,28 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
 
     def HideHMMOptions(self):
         self.hmmLabel.Hide()
+        self.hmmInstructions.Hide()
         self.hmmButton.Hide()
         self.hmmProgress.Hide()
 
     
     def ShowHMMOptions(self):
         self.hmmLabel.Show()
+        self.hmmInstructions.Show()
         self.hmmButton.Show()
         self.hmmProgress.Show()
 
 
     def HideResamplingOptions(self):
         self.resamplingLabel.Hide()
+        self.resamplingInstructions.Hide()
         self.resamplingButton.Hide()
         self.resamplingProgress.Hide()
     
 
     def ShowResamplingOptions(self):
         self.resamplingLabel.Show()
+        self.resamplingInstructions.Show()
         self.resamplingButton.Show()
         self.resamplingProgress.Show()
  
@@ -360,7 +366,14 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         dlg.Destroy()
         return path
 
+    def ShowMessage(self, MSG=""):
+        wx.MessageBox(MSG, 'Info', 
+            wx.OK | wx.ICON_INFORMATION)
         
+    def ShowError(self, MSG=""):
+        dial = wx.MessageDialog(None, MSG, 'Error', 
+            wx.OK | wx.ICON_ERROR)
+        dial.ShowModal()
      
 
     def ctrlSelected(self, col=4):
@@ -403,8 +416,6 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
             if DEBUG:
                 print "Adding control item (%d): %s" % (self.index_ctrl, name)
             self.index_ctrl+=1
-            #self.ctrlFilePicker.SetPath("test.dat")
-            #self.ctrlFilePicker.SetLabel("test.dat")
         except e:
             print "Error:", e
 
@@ -555,7 +566,7 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         wx.CallAfter(pub.sendMessage, "file", data=data)
 
 
-        file1= "resampling_results.dat"
+        file1= "resampling_results_g0g1_g2g3.dat"
         type="Resampling"
         data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
         print "Adding File:", file1
@@ -568,9 +579,23 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
 
         #Get options
         next = self.list_ctrl.GetNextSelected(-1)
+        all_selected = self.ctrlSelected()
+        if len(all_selected) > 1:
+            self.ShowError("Error: More than one dataset selected.")
+            return
+        elif len(all_selected) ==0:
+            self.ShowError("Error: No dataset selected.")
+            return
+
+        annotationPath = self.annotationFilePicker.GetPath()
+        if not annotationPath:
+            self.ShowError("Error: No annotation file selected.")
+            return
+        
+        
+
         readPath = self.list_ctrl.GetItem(next, 4).GetText()
         name = ntpath.basename(readPath)
-        annotationPath = self.annotationFilePicker.GetPath()
         min_read = int(self.gumbelReadChoice.GetString(self.gumbelReadChoice.GetCurrentSelection()))
         samples = int(self.gumbelSampleText.GetValue())
         burnin = int(self.gumbelBurninText.GetValue())
@@ -579,6 +604,8 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
 
         #Get Default file name
         defaultFile = "gumbel_%s_s%d_b%d_t%d.dat" % (".".join(name.split(".")[:-1]), samples, burnin, trim)
+
+
 
         #Get Default directory
         defaultDir = os.path.dirname(os.path.realpath(__file__))
@@ -589,7 +616,6 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         if outputPath: 
             output = open(outputPath, "w")
         else:
-            #output = sys.stdout
             return
 
         self.statusBar.SetStatusText("Running Gumbel Method")
@@ -603,9 +629,22 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
 
     def RunHMMFunc(self, event):
         next = self.list_ctrl.GetNextSelected(-1)
+        annotationPath = self.annotationFilePicker.GetPath()
+        all_selected = self.ctrlSelected()
+        if len(all_selected) > 1:
+            self.ShowError("Error: More than one dataset selected.")
+            return
+        elif len(all_selected) == 0:
+            self.ShowError("Error: No dataset selected.")
+            return
+
+        if not annotationPath:
+            self.ShowError("Error: No annotation file selected.")
+            return
+
+
         readPath = self.list_ctrl.GetItem(next, 4).GetText()
         name = ntpath.basename(readPath)
-        annotationPath = self.annotationFilePicker.GetPath()
 
         #Get Default file name
         defaultFile = "hmm_%s_sites.dat" % (".".join(name.split(".")[:-1]))
@@ -619,7 +658,7 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         if outputPath:
             output = open(outputPath, "w")
         else:
-            output = sys.stdout
+            return
 
         self.statusBar.SetStatusText("Running HMM Method")
         self.hmm_count = 0
@@ -631,27 +670,25 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
 
 
     def RunResamplingFunc(self, event):
-        selected_ctrl = []
-        current = -1
-        while True:
-            next = self.list_ctrl.GetNextSelected(current)
-            if next == -1:
-                break
-            path = self.list_ctrl.GetItem(next, 4).GetText()
-            selected_ctrl.append(path)
-            current = next
-    
-        selected_exp = []
-        current = -1
-        while True:
-            next = self.list_exp.GetNextSelected(current)
-            if next == -1:
-                break
-            path = self.list_exp.GetItem(next, 4).GetText()
-            selected_exp.append(path)
-            current = next
+        selected_ctrl = self.ctrlSelected()
+        selected_exp = self.expSelected()
 
+        if len(selected_ctrl) == 0 and len(selected_exp) == 0:
+            self.ShowError("Error: No datasets selected.")
+            return
+
+        elif len(selected_ctrl) == 0:
+            self.ShowError("Error: No control datasets selected.")
+            return
+
+        elif len(selected_exp) == 0:
+            self.ShowError("Error: No experimental datasets selected.")
+            return
         annotationPath = self.annotationFilePicker.GetPath()
+        if not annotationPath:
+            self.ShowError("Error: No annotation file selected.")
+            return
+
 
         #Get Default file name
         defaultFile = "resampling_results.dat"
@@ -665,7 +702,7 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         if outputPath:
             output = open(outputPath, "w")
         else:
-            output = sys.stdout
+            return
  
         ctrlString = ",".join(selected_ctrl)
         expString = ",".join(selected_exp)
