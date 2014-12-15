@@ -6,6 +6,7 @@ import time
 import datetime
 import ntpath
 import threading
+import multiprocessing as mp
 from math import *
 from wx.lib.pubsub import pub
 
@@ -20,6 +21,9 @@ import gumbelMH
 import hmm_geom
 import hmm_tools
 import resampling
+
+wildcard = "Python source (*.py)|*.py|" \
+            "All files (*.*)|*.*"
 
 
 DEBUG = True
@@ -37,6 +41,8 @@ def get_wig_stats(path):
     return (sum([1 for rd in data if rd > 0])/float(len(data)),  sum(data)/float(len(data)), max(data)) 
 
 
+def fetch_name(filepath):
+    return os.path.splitext(ntpath.basename(filepath))[0]
 
 
 
@@ -74,8 +80,9 @@ class GumbelThread(threading.Thread):
             print "Adding File:", self.output.name
             wx.CallAfter(pub.sendMessage, "file", data=data)
 
-
         wx.CallAfter(pub.sendMessage, "gumbel", msg="Finished!")
+        wx.CallAfter(pub.sendMessage,"finish", msg="gumbel")
+
 
 
 class HMMThread(threading.Thread):
@@ -100,6 +107,7 @@ class HMMThread(threading.Thread):
         # This is the code executing in the new thread.
 
         print "Running HMM Method"
+
         hmm_geom.runHMM(self.readPath, self.annotationPath, self.output, wx, pub.sendMessage)
         print "Finished HMM Method"
         if not self.output.name.startswith("<"):
@@ -109,15 +117,14 @@ class HMMThread(threading.Thread):
             wx.CallAfter(pub.sendMessage, "file", data=data)
             
             wx.CallAfter(pub.sendMessage, "hmm", msg="Creating HMM Sites output...")
-
-            genes_path = self.output.name.replace("_sites.", "_genes.")
+            genes_path = ".".join(self.output.name.split(".")[:-1]) + "_genes." + self.output.name.split(".")[-1]
             hmm_tools.post_process_genes(self.output.name, self.annotationPath, output=open(genes_path,"w"))
             data["path"] =  genes_path
             data["type"] = "HMM - Genes"
             print "Adding File:", genes_path
             wx.CallAfter(pub.sendMessage, "file", data=data)
-
             wx.CallAfter(pub.sendMessage, "hmm", msg="Finished!")
+            wx.CallAfter(pub.sendMessage,"finish", msg="hmm")
 
 
 
@@ -152,6 +159,8 @@ class ResamplingThread(threading.Thread):
             wx.CallAfter(pub.sendMessage, "file", data=data)
 
         wx.CallAfter(pub.sendMessage, "resampling", msg="Finished!")
+        wx.CallAfter(pub.sendMessage,"finish", msg="resampling")
+
 
 
 
@@ -196,9 +205,10 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         pub.subscribe(self.updateResampling, "resampling")
         pub.subscribe(self.updateProgress, "update")
         pub.subscribe(self.addFile, "file")
+        pub.subscribe(self.finishRun, "finish")
    
  
-        self.outputDirPicker.SetPath(os.path.dirname(os.path.realpath(__file__)))
+        #self.outputDirPicker.SetPath(os.path.dirname(os.path.realpath(__file__)))
 
         self.progress.Hide()
         self.progressLabel.Hide()
@@ -258,6 +268,14 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         self.list_files.SetStringItem(self.index_file, 3, "%s" % (fullpath))
         self.index_file+=1
         
+
+    def finishRun(self,msg):
+        if msg == "gumbel":
+            self.gumbelButton.Enable()
+        elif msg == "hmm":
+            self.hmmButton.Enable()
+        elif msg == "resampling":
+            self.resamplingButton.Enable()
 
 
     def ResetProgress(self):
@@ -324,7 +342,52 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         self.resamplingLabel.Show()
         self.resamplingButton.Show()
         self.resamplingProgress.Show()
+ 
+
+    def SaveFile(self, DIR=".", FILE="", WC=""):
+        """
+        Create and show the Save FileDialog
+        """
+        path = ""
+        dlg = wx.FileDialog(
+            self, message="Save file as ...",
+            defaultDir=DIR,
+            defaultFile=FILE, wildcard=WC, style=wx.SAVE|wx.OVERWRITE_PROMPT
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            print "You chose the following output filename: %s" % path
+        dlg.Destroy()
+        return path
+
         
+     
+
+    def ctrlSelected(self, col=4):
+        selected_ctrl = []
+        current = -1
+        while True:
+            next = self.list_ctrl.GetNextSelected(current)
+            if next == -1:
+                break
+            path = self.list_ctrl.GetItem(next, col).GetText()
+            selected_ctrl.append(path)
+            current = next
+        return selected_ctrl
+
+
+    def expSelected(self, col=4):
+        selected_exp = []
+        current = -1
+        while True:
+            next = self.list_exp.GetNextSelected(current)
+            if next == -1:
+                break
+            path = self.list_exp.GetItem(next, col).GetText()
+            selected_exp.append(path)
+            current = next
+        return selected_exp
+
 
 
     def loadCtrlFileFunc(self, event):
@@ -340,8 +403,12 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
             if DEBUG:
                 print "Adding control item (%d): %s" % (self.index_ctrl, name)
             self.index_ctrl+=1
+            #self.ctrlFilePicker.SetPath("test.dat")
+            #self.ctrlFilePicker.SetLabel("test.dat")
         except e:
             print "Error:", e
+
+        
 
 
     def loadExpFileFunc(self, event):
@@ -386,17 +453,13 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
 
     def ctrlViewFunc(self, event):
         annotationpath = self.annotationFilePicker.GetPath()
-        if DEBUG: print "Annotation path selected:", annotationpath
-        if DEBUG: print "Focus:", self.FindFocus()
-
-        next = self.list_ctrl.GetNextSelected(-1)
-        if next > -1 and annotationpath:
-            dataset = self.list_ctrl.GetItem(next, 4).GetText()
+        datasets = self.ctrlSelected()
+        if datasets and annotationpath:
             if DEBUG:
-                print "Visualizing counts for:", self.list_ctrl.GetItem(next, 0).GetText()
-            viewWindow = trash.TrashFrame(self, dataset, annotationpath)
+                print "Visualizing counts for:", ", ".join(datasets)
+            viewWindow = trash.TrashFrame(self, datasets, annotationpath)
             viewWindow.Show()
-        elif next == -1:
+        elif not datasets:
             if DEBUG:
                 print "No datasets selected to visualize!"
         else:
@@ -404,8 +467,28 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
                 print "No annotation file selected"
 
 
+
+    def expViewFunc(self, event):
+        annotationpath = self.annotationFilePicker.GetPath()
+        datasets = self.expSelected()
+        if datasets and annotationpath:
+            if DEBUG:
+                print "Visualizing counts for:", ", ".join(datasets)
+            viewWindow = trash.TrashFrame(self, datasets, annotationpath)
+            viewWindow.Show()
+        elif not datasets:
+            if DEBUG:
+                print "No datasets selected to visualize!"
+        else:
+            if DEBUG:
+                print "No annotation file selected"
+
+
+
+
+
     def annotationFileFunc(self, event):
-        pass
+        print "Annotation File Selected:", self.annotationFilePicker.GetPath()
         
         
     def MethodSelectFunc(self, event):
@@ -482,6 +565,8 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
 
 
     def RunGumbelFunc(self, event):
+
+        #Get options
         next = self.list_ctrl.GetNextSelected(-1)
         readPath = self.list_ctrl.GetItem(next, 4).GetText()
         name = ntpath.basename(readPath)
@@ -491,21 +576,27 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         burnin = int(self.gumbelBurninText.GetValue())
         trim = int(self.gumbelTrimText.GetValue())
         
-        outputDir = self.outputDirPicker.GetPath()
-        if DEBUG:
-            print "Dir:", outputDir
 
+        #Get Default file name
+        defaultFile = "gumbel_%s_s%d_b%d_t%d.dat" % (".".join(name.split(".")[:-1]), samples, burnin, trim)
+
+        #Get Default directory
+        defaultDir = os.path.dirname(os.path.realpath(__file__))
+
+        #Ask user for output:        
+        outputPath = self.SaveFile(defaultDir, defaultFile)
         
-        if outputDir:
-            output = open(outputDir+"/gumbel_%s_s%d_b%d_t%d.dat" % (".".join(name.split(".")[:-1]), samples, burnin, trim), "w")
+        if outputPath: 
+            output = open(outputPath, "w")
         else:
-            output = sys.stdout
+            #output = sys.stdout
+            return
 
         self.statusBar.SetStatusText("Running Gumbel Method")
         self.gumbel_count = 0
         self.gumbelProgress.SetRange(samples+burnin)
 
-        #GumbelThread(readPath, annotationPath, min_read, samples, burnin, trim, output)
+        self.gumbelButton.Disable()
         X = GumbelThread(readPath, annotationPath, min_read, samples, burnin, trim, output)
 
 
@@ -515,12 +606,18 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         readPath = self.list_ctrl.GetItem(next, 4).GetText()
         name = ntpath.basename(readPath)
         annotationPath = self.annotationFilePicker.GetPath()
-        outputDir = self.outputDirPicker.GetPath()
-        if DEBUG:
-            print "Dir:", outputDir
 
-        if outputDir:
-            output = open(outputDir+"/hmm_%s_sites.dat" % (".".join(name.split(".")[:-1])), "w")
+        #Get Default file name
+        defaultFile = "hmm_%s_sites.dat" % (".".join(name.split(".")[:-1]))
+
+        #Get Default directory
+        defaultDir = os.path.dirname(os.path.realpath(__file__))
+
+        #Ask user for output:
+        outputPath = self.SaveFile(defaultDir, defaultFile)
+
+        if outputPath:
+            output = open(outputPath, "w")
         else:
             output = sys.stdout
 
@@ -529,6 +626,7 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         T = len([1 for line in open(readPath).readlines() if not line.startswith("#")])
         self.hmmProgress.SetRange(T+T-1+1)
 
+        self.hmmButton.Disable()
         HMMThread(readPath, annotationPath, output)
 
 
@@ -553,14 +651,19 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
             selected_exp.append(path)
             current = next
 
-
         annotationPath = self.annotationFilePicker.GetPath()
-        outputDir = self.outputDirPicker.GetPath()
 
-        if DEBUG:
-            print "Dir:", outputDir
-        if outputDir:
-            output = open(outputDir+"/resampling_results.dat", "w")
+        #Get Default file name
+        defaultFile = "resampling_results.dat"
+
+        #Get Default directory
+        defaultDir = os.path.dirname(os.path.realpath(__file__))
+
+        #Ask user for output:        
+        outputPath = self.SaveFile(defaultDir, defaultFile)
+
+        if outputPath:
+            output = open(outputPath, "w")
         else:
             output = sys.stdout
  
@@ -573,9 +676,9 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         self.statusBar.SetStatusText("Running Resampling Method")
         self.resampling_count = 0
         T = len([1 for line in open(annotationPath).readlines() if not line.startswith("geneID")])
-        print "T:", T
         self.resamplingProgress.SetRange(T+1)
 
+        self.resamplingButton.Disable()
         ResamplingThread(ctrlString, expString, annotationPath, output)
 
 

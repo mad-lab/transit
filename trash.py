@@ -1,213 +1,13 @@
 import wx
 import view_trash
+import draw_trash
 from math import *
 import os
+import ntpath
 import Image
 import ImageDraw
 import ImageFont
 
-
-
-def normalize(X, old_min, old_max, new_min, new_max):
-    old_range = (old_max - old_min)
-    new_range = (new_max - new_min)
-    if old_range == 0:
-        return new_min
-    else:
-        return (((X - old_min) * new_range) / old_range) + new_min
- 
-
-def read_prot_table(path):
-    orf2data = {}
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        orf2data[tmp[8]] = [int(tmp[1]), int(tmp[2]), tmp[3], tmp[7]]
-    return(orf2data)
-
-
-def hash_prot_genes(path):
-    hash = {}
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        start, end = int(tmp[1]), int(tmp[2])
-        for i in range(start,end+1):
-            #if i not in hash:
-            #    hash[i] = tmp[8]
-            hash[i] = tmp[8]
-    return hash
-
-
-
-
-def draw_canvas(start, end, min_read, max_read, data, hash, orf2data):
-
-    GENES = []
-    TA_SITES = []
-    READS = []
-    nc_count = 1
-    for pos,read in data:
-        if start <= pos <= end:
-            gene = hash.get(pos,"non-coding")
-            if gene == "non-coding" and len(GENES) > 0 and not GENES[-1].startswith("non-coding"):
-                gene+="_%d" % nc_count
-                nc_count +=1
-            if gene not in GENES: GENES.append(gene)
-            TA_SITES.append(pos)
-            READS.append(read)
-
-
-
-    #MAXREAD = 500
-    MAXREAD = max_read
-    canvas_h = 300
-    canvas_w = 700
-    drawBorder = False
-    VERBOSE = False
-    
-    ######### Variables ##########
-    fontpath="/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans-Bold.ttf"
-
-    #Genes
-    genebar_h = 30
-    genebar_w = 200
-
-
-    # Headings menu to left (i.e. read counts, genes, etc/)
-    heading_w = 100
-    heading_h = canvas_h
-    read_counts_w = 5
-    read_counts_h = 60
-    ta_sites_w = 5
-    ta_sites_h = 10
-    genes_w = 5
-    genes_h = 50
-    lwd =2
-
-
-    #Display
-    padding = 5
-    padding_r = 40
-    fontsize = 16
-
-
-
-    ######### Drawing #########
-    image = Image.new("RGB",(canvas_w, canvas_h),"white")
-    draw = ImageDraw.Draw(image)
-    font1 = ImageFont.truetype(fontpath,fontsize)
-
-    if drawBorder:
-        draw.line(((0,0),(0, canvas_h)), fill="black", width=4)
-        draw.line(((0,0),(canvas_w, 0)), fill="black", width=4)
-        draw.line(((canvas_w,canvas_h),(0, canvas_h)), fill="black", width=4)
-        draw.line(((canvas_w,canvas_h),(canvas_w, 0)), fill="black", width=4)
-
-    # READ COUNTS - Header
-    draw.text((read_counts_w, read_counts_h),'Read Counts', font=font1, fill="black")
-    read_text_w, read_text_h = draw.textsize('Read Counts', font=font1)
-    draw.line([(2*read_counts_w+read_text_w, 2*read_counts_h+read_text_h), (canvas_w, 2*read_counts_h+read_text_h)], width=lwd, fill="black")
-    draw.line([(2*read_counts_w+read_text_w, 0), (2*read_counts_w+read_text_w, heading_h)], width=lwd, fill="black")
-
-
-    #TA SITES - Header
-    read_counts_finish_h = 2*read_counts_h+read_text_h+lwd
-    ta_text_w, ta_text_h = draw.textsize('TA Sites', font=font1)
-    draw.text(( (2*read_counts_w+read_text_w - ta_text_w)/2.0, read_counts_finish_h +ta_sites_h),'TA Sites', font=font1, fill="black")
-    draw.line([(2*read_counts_w+read_text_w, read_counts_finish_h + 2*ta_sites_h + ta_text_h), (canvas_w, read_counts_finish_h + 2*ta_sites_h + ta_text_h)], width=lwd, fill="black")
-
-
-
-    #GENES - Header
-    ta_sites_finish_h = read_counts_finish_h + 2*ta_sites_h + ta_text_h + 2
-    gene_text_w, gene_text_h = draw.textsize('Genes', font=font1)
-    draw.text(((2*read_counts_w+read_text_w - gene_text_w)/2.0, ta_sites_finish_h +genes_h),'Genes', font=font1, fill="black")
-
-
-    #Reads
-    TRUNC_READS = [min(rd, MAXREAD) for rd in READS]
-    NORM_READS = [normalize(rd, 0, MAXREAD, 0, MAXREAD) for rd in TRUNC_READS]
-
-
-    new_min = 2*read_counts_w + read_text_w + lwd + padding
-    new_max = canvas_w - padding_r
-
-    new_min2 =  padding
-    new_max2 = 2*read_counts_h+read_text_h - padding
-
-    for i,TA in enumerate(TA_SITES):
-
-        TApos = normalize(TA, start, end, new_min, new_max)
-
-        #Draw TA line
-        draw.line([(TApos, 2*read_counts_h+read_text_h+5), (TApos, read_counts_finish_h + 2*ta_sites_h + ta_text_h-5)], width=lwd, fill="black")
-
-
-        if NORM_READS[i] == 0: continue
-        #Draw Read Line
-        read_h = normalize(NORM_READS[i], 0, MAXREAD, new_min2, new_max2)
-        draw.line([(TApos, 2*read_counts_h+read_text_h - padding), (TApos, read_counts_finish_h-padding-read_h)], width=lwd, fill=(255,0,0))
-
-
-
-    #SCALE:
-
-    MIDREAD = int(MAXREAD/2.0)
-    max_text_w, max_text_h = draw.textsize(str(MAXREAD), font=font1)
-    draw.text((canvas_w-max_text_w-5, 0+ padding), str(MAXREAD), font=font1, fill="black")
-
-    mid_text_w, mid_text_h = draw.textsize(str(MIDREAD), font=font1)
-    draw.text((canvas_w-mid_text_w-5, (0+ padding + 2*read_counts_h+read_text_h - padding-15)/2.0   ), str(MIDREAD), font=font1, fill="black")
-
-    draw.text((canvas_w-20, 2*read_counts_h+read_text_h - padding-15), "0", font=font1, fill="black")
-
-
-
-    #GENES
-    triangle_size = 10
-    for gene in GENES:
-
-
-        if gene not in orf2data: continue
-        gene_start = orf2data[gene][0]
-        gene_end = orf2data[gene][1]
-        strand = orf2data[gene][2]
-        name = orf2data[gene][3]
-
-        norm_start = normalize(max(orf2data[gene][0], start), start, end, new_min, new_max)
-        norm_end = normalize(min(orf2data[gene][1], end), start, end, new_min, new_max)
-
-
-        if VERBOSE:
-            print gene, name, start, end, strand
-
-        if strand == "-":
-
-            if gene_start >= start:
-                draw.rectangle(((norm_start+triangle_size,ta_sites_finish_h +genes_h),(norm_end,ta_sites_finish_h +genes_h+20)), fill="blue")
-                draw.polygon([(norm_start+triangle_size,ta_sites_finish_h +genes_h-5),(norm_start+triangle_size,ta_sites_finish_h +genes_h+20+5), (norm_start,ta_sites_finish_h +genes_h+10)], fill="blue" )
-
-            else:
-                draw.rectangle(((norm_start,ta_sites_finish_h +genes_h),(norm_end,ta_sites_finish_h +genes_h+20)), fill="blue")
-
-        else:
-            if gene_end <= end:
-                draw.rectangle(((norm_start,ta_sites_finish_h +genes_h),(norm_end-triangle_size,ta_sites_finish_h +genes_h+20)), fill="blue")
-                draw.polygon([(norm_end-triangle_size,ta_sites_finish_h +genes_h-5),(norm_end-triangle_size,ta_sites_finish_h +genes_h+20+5), (norm_end,ta_sites_finish_h +genes_h+10)], fill="blue" )
-            else:
-                draw.rectangle(((norm_start,ta_sites_finish_h +genes_h),(norm_end,ta_sites_finish_h +genes_h+20)), fill="blue")
-
-
-        if name == "-": name = gene
-        if not name.startswith("non-coding"):
-            name_text_w, name_text_h = draw.textsize(name, font=font1)
-            if abs(norm_start-norm_end) >= name_text_w:
-                draw.text(( norm_start + (abs(norm_start-norm_end) - name_text_w)/2.0 , ta_sites_finish_h +genes_h+20+10), name, font=font1, fill="black")
-
-
-
-    return(image)
 
 
 
@@ -231,85 +31,63 @@ def WxImageToWxBitmap( myWxImage ) :
     return myWxImage.ConvertToBitmap()
 
 
-#start = 1
-#end = 2000
-#wig_path = "H37Rv_Sassetti_glycerol.wig"
-#pt_path = "H37Rv.prot_table"
 
-#orf2data = read_prot_table(pt_path)
-#hash = hash_prot_genes(pt_path)
-#data = []
-#for line in open(wig_path):
-#    if line.startswith("#"): continue
-#    if line.startswith("variable"): continue
-#    tmp = line.split()
-#    pos = int(tmp[0])
-#    read = int(tmp[1])
-#    data.append((pos,read))
-
+def fetch_name(filepath):
+    return os.path.splitext(ntpath.basename(filepath))[0]
 
 
 
 #inherit from the MainFrame created in wxFowmBuilder and create CalcFrame
 class TrashFrame(view_trash.MainFrame):
     #constructor
-    def __init__(self,parent, dataset="H37Rv_Sassetti_glycerol.wig", annotation="H37Rv.prot_table"):
+    def __init__(self,parent, dataset_list=["H37Rv_Sassetti_glycerol.wig"], annotation="H37Rv.prot_table"):
 
 
 
+        self.size = wx.Size( 1500,800 )
         self.start = 1
-        self.end = 2000
-        #self.wig_path = "H37Rv_Sassetti_glycerol.wig"
-        #pt_path = "H37Rv.prot_table"
+        self.end = 10000
 
-        self.orf2data = read_prot_table(annotation)
-        self.hash = hash_prot_genes(annotation)
-        self.data = []
-        for line in open(dataset):
-            if line.startswith("#"): continue
-            if line.startswith("variable"): continue
-            if line.startswith("location"): continue
-            tmp = line.split()
-            pos = int(tmp[0])
-            read = int(tmp[1])
-            self.data.append((pos,read))
+        self.orf2data = draw_trash.read_prot_table(annotation)
+        self.hash = draw_trash.hash_prot_genes(annotation)
+
+
+        self.labels = [fetch_name(d) for d in dataset_list]
+
+
+        self.fulldata = []
+        for dataset in dataset_list:
+            temp = []
+            for line in open(dataset):
+                if line.startswith("#"): continue
+                if line.startswith("variable"): continue
+                if line.startswith("location"): continue
+                tmp = line.split()
+                pos = int(tmp[0])
+                read = int(tmp[1])
+                temp.append((pos,read))
+            self.fulldata.append(temp)
+            
 
 
         #initialize parent class
         view_trash.MainFrame.__init__(self,parent)
-        #self.startText.SetValue("1")
-        #self.endText.SetValue("2000")
 
-        self.updateFunc(parent)    
-        # pick an image file you have in the working folder
-        # you can load .jpg  .png  .bmp  or .gif files
-        #image_file = 'temp.png'
-        #bmp1 = wx.Image(image_file, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        # image's upper left corner anchors at panel coordinates (0, 0)
-        #self.m_bitmap1 = wx.StaticBitmap(self, -1, bmp1, (0, 0))
-
+        self.updateFunc(parent)   
+        self.Fit()
  
-    #what to when 'Solve' is clicked
-    #wx calls this function with and 'event' object
     def updateFunc(self,event):
         try:
-            #command = "python /pacific/HomeFrozen/michael.dejesus/MISC/draw_trash/draw_trash.py -f %s -pt %s -s %s -e %s -o temp.png" % (wig_path, pt_path, self.startText.GetValue(), self.endText.GetValue())
-
-            #os.system(command)
-
-            
-            #image_file = 'temp.png'
-            #bmp1 = wx.Image(image_file, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-            ## image's upper left corner anchors at panel coordinates (0, 0)
-            #self.m_bitmap1 = wx.StaticBitmap(self, -1, bmp1, (0, 0))
-
             start = int(self.startText.GetValue())
             end = int(self.endText.GetValue())
 
             min_read = int(self.minText.GetValue())
             max_read = int(self.maxText.GetValue())
 
-            image_pil = draw_canvas(start, end, min_read, max_read, self.data, self.hash, self.orf2data)
+    
+            image_pil = draw_trash.draw_canvas(self.fulldata, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
+
+            #image_pil = draw_trash.draw_canvas(start, end, min_read, max_read, self.data, self.hash, self.orf2data)
             #image_wxBit = PilImageToWxBitmap( image_pil )
             image_wxImg = PilImageToWxImage( image_pil )
             #self.m_bitmap1 = wx.StaticBitmap(self, -1, image_wxBit, (0, 0))
@@ -322,32 +100,99 @@ class TrashFrame(view_trash.MainFrame):
             print 'error', e
     #put a blank string in text when 'Clear' is clicked
 
-    def leftFunc(self, event):        
-        self.startText.SetValue(str(int(self.startText.GetValue())-500))
-        self.endText.SetValue(str(int(self.endText.GetValue())-500))
+    def leftFunc(self, event):
+        start = int(self.startText.GetValue())
+        end = int(self.endText.GetValue())
+        delta = end-start
+        new_start = int(start - delta*0.10)
+        new_end = int(end - delta*0.10)
+
+        #new_start = start - 500
+        #new_end = end - 500
+        
+        self.startText.SetValue(str(new_start))
+        self.endText.SetValue(str(new_end))
         self.updateFunc(event) 
 
+
     def rightFunc(self, event):
-        self.startText.SetValue(str(int(self.startText.GetValue())+500))
-        self.endText.SetValue(str(int(self.endText.GetValue())+500))
-        self.updateFunc(event)
-    
-    def zoomInFunc(self, event):
-        self.startText.SetValue(str(int(self.startText.GetValue())+500))
-        self.endText.SetValue(str(int(self.endText.GetValue())-500))
+        start = int(self.startText.GetValue())
+        end = int(self.endText.GetValue())
+        delta = end-start
+        new_start = int(start + delta*0.10)
+        new_end = int(end + delta*0.10)
+
+        #new_start = start + 500
+        #new_end = end + 500
+
+        self.startText.SetValue(str(new_start))
+        self.endText.SetValue(str(new_end))
         self.updateFunc(event)
 
+    
+    def zoomInFunc(self, event):
+        start = int(self.startText.GetValue())
+        end = int(self.endText.GetValue())
+        delta = end-start
+        new_start = int(start + delta*0.10)
+        new_end = int(end - delta*0.10)
+
+        #new_start = start + 500
+        #new_end = end - 500
+
+        self.startText.SetValue(str(new_start))
+        self.endText.SetValue(str(new_end))
+        self.updateFunc(event)
+
+
     def zoomOutFunc(self, event):
-        self.startText.SetValue(str(int(self.startText.GetValue())-500))
-        self.endText.SetValue(str(int(self.endText.GetValue())+500))
+        start = int(self.startText.GetValue())
+        end = int(self.endText.GetValue())
+        delta = end-start
+        new_start = int(start - delta*0.10)
+        new_end = int(end + delta*0.10)
+
+        #new_start = start - 500
+        #new_end = end + 500
+
+        self.startText.SetValue(str(new_start))
+        self.endText.SetValue(str(new_end))
         self.updateFunc(event)    
+
 
     def resetFunc(self, event):
         self.startText.SetValue("1")
-        self.endText.SetValue("2000")
+        self.endText.SetValue("10000")
         self.minText.SetValue("0")
         self.maxText.SetValue("150")
         self.updateFunc(event)
+
+
+    def saveImageFunc(self, event):
+        finished_image = self.m_bitmap1.GetBitmap()
+        output_path = self.SaveFile(DIR=".", FILE="reads_canvas.png")
+        if output_path:
+            finished_image.SaveFile(output_path, wx.BITMAP_TYPE_PNG)
+        
+
+
+    def SaveFile(self, DIR=".", FILE="", WC=""):
+        """
+        Create and show the Save FileDialog
+        """
+        path = ""
+        dlg = wx.FileDialog(
+            self, message="Save file as ...",
+            defaultDir=DIR,
+            defaultFile=FILE, wildcard=WC, style=wx.SAVE|wx.OVERWRITE_PROMPT
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            print "You chose the following output filename: %s" % path
+        dlg.Destroy()
+        return path
+
+
 
 #mandatory in wx, create an app, False stands for not deteriction stdin/stdout
 #refer manual for details

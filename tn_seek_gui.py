@@ -39,18 +39,6 @@ class MainFrame ( wx.Frame ):
 		
 		orgSizer.Add( bSizer10, 1, wx.EXPAND, 5 )
 		
-		bSizer11 = wx.BoxSizer( wx.HORIZONTAL )
-		
-		self.m_staticText7 = wx.StaticText( self, wx.ID_ANY, u"Output Directory:", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText7.Wrap( -1 )
-		bSizer11.Add( self.m_staticText7, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-		
-		self.outputDirPicker = wx.DirPickerCtrl( self, wx.ID_ANY, wx.EmptyString, u"Select a folder", wx.DefaultPosition, wx.DefaultSize, wx.DIRP_DEFAULT_STYLE )
-		bSizer11.Add( self.outputDirPicker, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-		
-		
-		orgSizer.Add( bSizer11, 1, wx.EXPAND, 5 )
-		
 		
 		bSizer4.Add( orgSizer, 0, wx.EXPAND, 5 )
 		

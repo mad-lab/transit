@@ -119,7 +119,7 @@ def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, output, 
     output.write("#FDR Corrected thresholds: %f, %f\n" % (ess_t, non_t))
     output.write("#Command used:\tpython %s\n" % (" ".join(sys.argv)))
     output.write("#MH Acceptance-Rate:\t%2.2f%%\n" % (100.0*acctot/count))
-    output.write("#Total Iterations Performed:\t%d" % count)
+    output.write("#Total Iterations Performed:\t%d\n" % count)
     output.write("#Sample Size:\t%d\n" % i)
     output.write("#phi estimate:\t%f\n" % numpy.average(phi_sample))
     output.write("#Time: %s\n" % (time.time() - start_time))
