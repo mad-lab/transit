@@ -261,6 +261,7 @@ def post_process_genes(path, annotationPath, output=sys.stdout):
         data.append(read)
 
 
+    output.write("#HMM - Genes\n")
     output.write("#Orf\tName\tDesc\tN\tn0\tn1\tn2\tn3\tAvg. Insertions\tAvg. Reads\tState Call\n")
 
     for gene, name, reads, states in gene2stats:
@@ -292,4 +293,6 @@ def post_process_genes(path, annotationPath, output=sys.stdout):
         else: S = max([(statedist.get(s, 0), s) for s in ["ES", "GD", "NE", "GA"]])[1]
 
         output.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%1.4f\t%1.1f\t%s\n" % (gene, name, orf2desc.get(gene,"-"), n, n0, n1, n2, n3, freq, avg_read_nz, S))
+
+    output.close()
 

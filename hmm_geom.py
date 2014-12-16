@@ -107,6 +107,7 @@ def runHMM(wigPath, protPath, output, wx, pubmsg):
         total+=1
 
 
+    output.write("#HMM - Sites\n")
     output.write("# Tn-HMM\n")
     output.write("# Command Used: python %s\n" % " ".join(sys.argv))
     output.write("# \n") 

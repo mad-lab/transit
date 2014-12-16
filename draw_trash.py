@@ -5,7 +5,7 @@ import os
 import Image
 import ImageDraw
 import ImageFont
-
+import platform
 
 
 def normalize(X, old_min, old_max, new_min, new_max):
@@ -39,12 +39,31 @@ def hash_prot_genes(path):
     return hash
 
 
+linuxFonts = []
+linuxFonts.append("/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans-Bold.ttf")
+linuxFonts.append("/usr/share/fonts/dejavu-lgc/DejaVuLGCSerifCondensed-Bold.ttf")
+linuxFonts.append("/usr/share/fonts/dejavu-lgc/DejaVuLGCSansCondensed-Bold.ttf")
 
+winFonts = []
+winFonts.append("consolab.ttf")
+winFonts.append("courb.ttf")
+winFonts.append("arial.ttf")
 fontsize = 16
-#fontpath="/usr/share/fonts/dejavu-lgc/DejaVuLGCSerifCondensed-Bold.ttf"
-#fontpath="/usr/share/fonts/dejavu-lgc/DejaVuLGCSansCondensed-Bold.ttf"
-fontpath="/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans-Bold.ttf"
-font = ImageFont.truetype(fontpath, fontsize)
+
+font = ImageFont.load_default()
+if platform.system() == "Linux":
+    for fontpath in linuxFonts:
+        if os.path.isfile(fontpath):
+            font = ImageFont.truetype(fontpath, fontsize)
+            break
+
+elif platform.system() == "Windows":
+    for fontpath in winFonts:
+        try:
+            font = ImageFont.truetype(fontpath, fontsize)
+            break    
+        except:
+            pass
 
 
 def draw_reads(draw, reads, ta_sites, start_x=0, start_y=0, width=400, height=100, start=0, end=500, min_read=0, max_read=500, lwd=2):
@@ -181,14 +200,6 @@ def draw_canvas(fulldata, hash, orf2data, labels=[], min_read=0, max_read=2000, 
     if not labels:
         labels= ["Read Counts"]*N
     
-
-    #Set Font
-    fontsize = 16
-    #fontpath="/usr/share/fonts/dejavu-lgc/DejaVuLGCSerifCondensed-Bold.ttf"
-    #fontpath="/usr/share/fonts/dejavu-lgc/DejaVuLGCSansCondensed-Bold.ttf"
-    fontpath="/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans-Bold.ttf"
-    font = ImageFont.truetype(fontpath, fontsize)
-
 
 
     #Get dynamic text widths

@@ -116,8 +116,9 @@ def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, output, 
     (ess_t, non_t) = fdr_post_prob(ZBAR)
 
     #Orf	k	n	r	s	zbar
-    output.write("#FDR Corrected thresholds: %f, %f\n" % (ess_t, non_t))
+    output.write("#Gumbel\n")
     output.write("#Command used:\tpython %s\n" % (" ".join(sys.argv)))
+    output.write("#FDR Corrected thresholds: %f, %f\n" % (ess_t, non_t))
     output.write("#MH Acceptance-Rate:\t%2.2f%%\n" % (100.0*acctot/count))
     output.write("#Total Iterations Performed:\t%d\n" % count)
     output.write("#Sample Size:\t%d\n" % i)

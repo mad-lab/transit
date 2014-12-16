@@ -246,6 +246,7 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
         self.list_data.InsertColumn(6, 'Avg. Read 2', width=100)
         self.list_data.InsertColumn(7, 'Delta Read', width=100)
         self.list_data.InsertColumn(8, 'p-value', width=75)
+        self.list_data.InsertColumn(9, 'q-value', width=75)
 
 
     def populateResampling(self, path):
@@ -266,10 +267,14 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
             count +=1
         
         text = """Results:
-    Significant Hits (p<0.05): %s
-    Significant Hits (p<0.01): %s
+    Significant Hits (q<0.05): %s
+    Significant Hits (q<0.01): %s
         """ % (de05, de01)
         self.headerText1.SetLabel(text)
+        text2 = """         Notes:
+            TAs Hit:   Number of TA sites with insertions combined across conditions.
+            Avg Reads: Average Read count, normalized with the Non-Zero Mean normalization method. """
+        self.headerText2.SetLabel(text2)
 
 
 #----------------------------------------------------------------------

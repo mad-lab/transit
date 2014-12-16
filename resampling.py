@@ -36,6 +36,24 @@ def comb_runs(reads, N1, N2):
     combined_col2 = [sum(row[N1:]) for row in reads]
     return (maxrun(combined_col1),  maxrun(combined_col2))
       
+def fdr_corrected_pval(X):
+    import numpy
+    n = len(X)
+    qvalues = numpy.zeros(n)
+    pvalues = numpy.array(X)
+    pvalues.sort()
+    pvalues = pvalues[::-1]
+
+    for i in xrange(n):
+        rank = n - i
+        qvalues[i] = n/float(rank) * pvalues[i]
+
+    for i in xrange(0, n-1):
+        if qvalues[i] < qvalues[i+1]:
+            qvalues[i+1] = qvalues[i]
+
+    p2qval = dict([(p,q) for (p,q) in zip(pvalues,qvalues)])
+    return numpy.array([p2qval[p] for p in X])
 
 
 
@@ -124,6 +142,7 @@ def runResampling(ctrlString, expString, annotationPath, output, wx, pubmsg, doN
     
     S = 10000
 
+    output.write("#Resampling\n")
     output.write("#Command: python %s\n" % " ".join(sys.argv))
     output.write("#Control Samples:  %s\n" % ", ".join(FILES1))
     output.write("#Experimental Samples:  %s\n" % ", ".join(FILES2))
@@ -135,6 +154,8 @@ def runResampling(ctrlString, expString, annotationPath, output, wx, pubmsg, doN
     output.write("#Orf\tN\tTAs Hit\tAvg Rd 1\tAvg Rd 2\tDelta Rd\tp-value\n")
     count = 0
     G = len(orf2reads)
+    orf2out = {}
+    pval=[]
     for orf in sorted(orf2reads):
     
         fullreads = orf2reads[orf]
@@ -162,11 +183,19 @@ def runResampling(ctrlString, expString, annotationPath, output, wx, pubmsg, doN
         pval_ltail = count_ltail/float(S)
         pval_2tail = count_2tail/float(S)
 
-        output.write("%s\t%s\t%s\t%d\t%d\t%1.1f\t%1.1f\t%1.1f\t%1.5f\n" % (orf, orf2data[orf][0], orf2data[orf][1],orf2TAs.get(orf,0), len(reads), sum1, sum2, sum2-sum1, pval_2tail))
+        orf2data[orf] = (orf, orf2data[orf][0], orf2data[orf][1],orf2TAs.get(orf,0), len(reads), sum1, sum2, sum2-sum1, pval_2tail)
+        pval.append(pval_2tail)
     
         count += 1
         wx.CallAfter(pubmsg, "resampling", msg="Running Resampling Method... %2.0f%%" % (100.0*(count+1)/(G)))
-    output.close()
 
+    qval = fdr_corrected_pval(pval)
+    count = 0
+    for orf in sorted(orf2reads):
+        output.write("%s\t%s\t%s\t%d\t%d\t%1.1f\t%1.1f\t%1.1f\t%1.5f" % orf2data[orf])
+        output.write("\t%1.5f\n" % qval[count])
+        count += 1
+
+    output.close()
 
 

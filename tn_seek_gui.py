@@ -93,10 +93,8 @@ class MainFrame ( wx.Frame ):
 		self.displayButton = wx.Button( self, wx.ID_ANY, u"Display", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer141.Add( self.displayButton, 0, wx.ALL, 5 )
 		
-		self.tempButton = wx.Button( self, wx.ID_ANY, u"Add Test Files", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.tempButton.Hide()
-		
-		bSizer141.Add( self.tempButton, 0, wx.ALL, 5 )
+		self.addFileButton = wx.Button( self, wx.ID_ANY, u"Add Results File", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer141.Add( self.addFileButton, 0, wx.ALL, 5 )
 		
 		
 		filesSizer.Add( bSizer141, 0, 0, 5 )
@@ -124,25 +122,13 @@ class MainFrame ( wx.Frame ):
 		self.methodChoice.SetSelection( 0 )
 		methodSizer.Add( self.methodChoice, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
-		self.progressLabel = wx.StaticText( self, wx.ID_ANY, u"Progress", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.progressLabel.Wrap( -1 )
-		methodSizer.Add( self.progressLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-		
 		self.progress = wx.Gauge( self, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
 		self.progress.SetValue( 0 ) 
 		methodSizer.Add( self.progress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
-		self.gumbelProgress = wx.Gauge( self, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
-		self.gumbelProgress.SetValue( 0 ) 
-		methodSizer.Add( self.gumbelProgress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-		
-		self.hmmProgress = wx.Gauge( self, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
-		self.hmmProgress.SetValue( 0 ) 
-		methodSizer.Add( self.hmmProgress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-		
-		self.resamplingProgress = wx.Gauge( self, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
-		self.resamplingProgress.SetValue( 0 ) 
-		methodSizer.Add( self.resamplingProgress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		self.mainInstructions = wx.StaticText( self, wx.ID_ANY, u"Instructions:\n\n1. Choose the annotation file (\"prot table\") that corresponds to the datasets to be analyzed.\n2. Add the desired Control and Experimental datasets.\n3. (Optional) If you wish to visualize their read counts, select the desired datasets and click on the \"View\" button.\n4. Select the desired analysis method from the dropdown menu on the top-right of the window, and follow its instructions.\n", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.mainInstructions.Wrap( 200 )
+		methodSizer.Add( self.mainInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		self.m_panel1 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		self.m_panel1.SetMinSize( wx.Size( 100,10 ) )
@@ -247,6 +233,22 @@ class MainFrame ( wx.Frame ):
 		
 		methodSizer.Add( resamplingSection, 0, 0, 5 )
 		
+		self.progressLabel = wx.StaticText( self, wx.ID_ANY, u"Progress", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.progressLabel.Wrap( -1 )
+		methodSizer.Add( self.progressLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.gumbelProgress = wx.Gauge( self, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
+		self.gumbelProgress.SetValue( 0 ) 
+		methodSizer.Add( self.gumbelProgress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.hmmProgress = wx.Gauge( self, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
+		self.hmmProgress.SetValue( 0 ) 
+		methodSizer.Add( self.hmmProgress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.resamplingProgress = wx.Gauge( self, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
+		self.resamplingProgress.SetValue( 0 ) 
+		methodSizer.Add( self.resamplingProgress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
 		
 		bSizer1.Add( methodSizer, 0, wx.EXPAND, 5 )
 		
@@ -260,13 +262,13 @@ class MainFrame ( wx.Frame ):
 		# Connect Events
 		self.annotationFilePicker.Bind( wx.EVT_FILEPICKER_CHANGED, self.annotationFileFunc )
 		self.ctrlRemoveButton.Bind( wx.EVT_BUTTON, self.ctrlRemoveFunc )
-		self.ctrlView.Bind( wx.EVT_BUTTON, self.ctrlViewFunc )
+		self.ctrlView.Bind( wx.EVT_BUTTON, self.allViewFunc )
 		self.ctrlFilePicker.Bind( wx.EVT_FILEPICKER_CHANGED, self.loadCtrlFileFunc )
 		self.expSizer.Bind( wx.EVT_BUTTON, self.expRemoveFunc )
-		self.expView.Bind( wx.EVT_BUTTON, self.expViewFunc )
+		self.expView.Bind( wx.EVT_BUTTON, self.allViewFunc )
 		self.expFilePicker.Bind( wx.EVT_FILEPICKER_CHANGED, self.loadExpFileFunc )
 		self.displayButton.Bind( wx.EVT_BUTTON, self.displayFileFunc )
-		self.tempButton.Bind( wx.EVT_BUTTON, self.tempFileFunc )
+		self.addFileButton.Bind( wx.EVT_BUTTON, self.addFileFunc )
 		self.methodChoice.Bind( wx.EVT_CHOICE, self.MethodSelectFunc )
 		self.gumbelButton.Bind( wx.EVT_BUTTON, self.RunGumbelFunc )
 		self.hmmButton.Bind( wx.EVT_BUTTON, self.RunHMMFunc )
@@ -283,7 +285,7 @@ class MainFrame ( wx.Frame ):
 	def ctrlRemoveFunc( self, event ):
 		event.Skip()
 	
-	def ctrlViewFunc( self, event ):
+	def allViewFunc( self, event ):
 		event.Skip()
 	
 	def loadCtrlFileFunc( self, event ):
@@ -292,8 +294,6 @@ class MainFrame ( wx.Frame ):
 	def expRemoveFunc( self, event ):
 		event.Skip()
 	
-	def expViewFunc( self, event ):
-		event.Skip()
 	
 	def loadExpFileFunc( self, event ):
 		event.Skip()
@@ -301,7 +301,7 @@ class MainFrame ( wx.Frame ):
 	def displayFileFunc( self, event ):
 		event.Skip()
 	
-	def tempFileFunc( self, event ):
+	def addFileFunc( self, event ):
 		event.Skip()
 	
 	def MethodSelectFunc( self, event ):

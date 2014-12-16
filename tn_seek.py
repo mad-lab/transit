@@ -38,7 +38,7 @@ def get_wig_stats(path):
         pos = int(tmp[0])
         rd = int(tmp[1])
         data.append(rd)
-    return (sum([1 for rd in data if rd > 0])/float(len(data)),  sum(data)/float(len(data)), max(data)) 
+    return (sum(data), sum([1 for rd in data if rd > 0])/float(len(data)),  sum(data)/float(len(data)), max(data)) 
 
 
 def fetch_name(filepath):
@@ -174,18 +174,20 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
 
         self.index_ctrl = 0
         self.list_ctrl.InsertColumn(0, 'File', width=210)
-        self.list_ctrl.InsertColumn(1, 'Density', width=85)
-        self.list_ctrl.InsertColumn(2, 'Mean Read', width=85)
-        self.list_ctrl.InsertColumn(3, 'Max Read', width=85)
-        self.list_ctrl.InsertColumn(4, 'Full Path', width=403)
+        self.list_ctrl.InsertColumn(1, 'Total Reads', width=85)
+        self.list_ctrl.InsertColumn(2, 'Density', width=85)
+        self.list_ctrl.InsertColumn(3, 'Mean Read', width=85)
+        self.list_ctrl.InsertColumn(4, 'Max Read', width=85)
+        self.list_ctrl.InsertColumn(5, 'Full Path', width=403)
 
 
         self.index_exp = 0
         self.list_exp.InsertColumn(0, 'File', width=210)
-        self.list_exp.InsertColumn(1, 'Density', width=85)
-        self.list_exp.InsertColumn(2, 'Mean Read', width=85)
-        self.list_exp.InsertColumn(3, 'Max Read', width=85)
-        self.list_exp.InsertColumn(4, 'Full Path',width=403)
+        self.list_exp.InsertColumn(1, 'Total Reads', width=85)
+        self.list_exp.InsertColumn(2, 'Density', width=85)
+        self.list_exp.InsertColumn(3, 'Mean Read', width=85)
+        self.list_exp.InsertColumn(4, 'Max Read', width=85)
+        self.list_exp.InsertColumn(5, 'Full Path',width=403)
 
 
         self.index_file = 0
@@ -366,6 +368,24 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         dlg.Destroy()
         return path
 
+    def OpenFile(self, DIR=".", FILE="", WC=""):
+        """
+        Create and show the Open FileDialog
+        """
+        path = ""
+        dlg = wx.FileDialog(
+            self, message="Save file as ...",
+            defaultDir=DIR,
+            defaultFile=FILE, wildcard=WC, style=wx.OPEN
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            print "You chose the following file: %s" % path
+        dlg.Destroy()
+        return path
+
+
+
     def ShowMessage(self, MSG=""):
         wx.MessageBox(MSG, 'Info', 
             wx.OK | wx.ICON_INFORMATION)
@@ -376,7 +396,7 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         dial.ShowModal()
      
 
-    def ctrlSelected(self, col=4):
+    def ctrlSelected(self, col=5):
         selected_ctrl = []
         current = -1
         while True:
@@ -389,7 +409,7 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         return selected_ctrl
 
 
-    def expSelected(self, col=4):
+    def expSelected(self, col=5):
         selected_exp = []
         current = -1
         while True:
@@ -407,12 +427,13 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         try:
             fullpath = self.ctrlFilePicker.GetPath()
             name = ntpath.basename(fullpath)
-            density,meanrd,maxrd = get_wig_stats(fullpath)
+            totalrd,density,meanrd,maxrd = get_wig_stats(fullpath)
             self.list_ctrl.InsertStringItem(self.index_ctrl, name)
-            self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%2.1f" % (density*100))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%1.1f" % (meanrd))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%d" % (maxrd))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%s" % (fullpath))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%d" % (totalrd))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
             if DEBUG:
                 print "Adding control item (%d): %s" % (self.index_ctrl, name)
             self.index_ctrl+=1
@@ -426,12 +447,13 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         try:
             fullpath = self.expFilePicker.GetPath()
             name = ntpath.basename(fullpath)
-            density,meanrd,maxrd = get_wig_stats(fullpath)
+            totalrd,density,meanrd,maxrd = get_wig_stats(fullpath)
             self.list_exp.InsertStringItem(self.index_exp, name)
-            self.list_exp.SetStringItem(self.index_exp, 1, "%2.1f" % (density*100))
-            self.list_exp.SetStringItem(self.index_exp, 2, "%1.1f" % (meanrd))
-            self.list_exp.SetStringItem(self.index_exp, 3, "%d" % (maxrd))
-            self.list_exp.SetStringItem(self.index_exp, 4, "%s" % (fullpath))
+            self.list_exp.SetStringItem(self.index_exp, 1, "%d" % (totalrd))
+            self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
+            self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
+            self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
+            self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
             if DEBUG:
                 print "Adding experimental item (%d): %s" % (self.index_exp, name)
             self.index_exp+=1
@@ -459,6 +481,26 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
             self.list_exp.DeleteItem(next)
             next = self.list_exp.GetNextSelected(-1)
             self.index_exp-=1
+
+
+    def allViewFunc(self, event):
+        
+        annotationpath = self.annotationFilePicker.GetPath()
+        datasets = self.ctrlSelected() + self.expSelected()
+
+        if datasets and annotationpath:
+            if DEBUG:
+                print "Visualizing counts for:", ", ".join(datasets)
+            viewWindow = trash.TrashFrame(self, datasets, annotationpath)
+            viewWindow.Show()
+        elif not datasets:
+            self.ShowError("Error: No datasets selected.")
+            return
+        else:
+            self.ShowError("Error: No annotation file selected.")
+            return
+
+
 
 
 
@@ -510,15 +552,19 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
         if X == 0:
             self.HideAllOptions()
             self.progressLabel.Hide()
+            self.mainInstructions.Show()
         elif X == 1:
+            self.mainInstructions.Hide()
             self.ShowGumbelOptions()
             self.HideHMMOptions()
             self.HideResamplingOptions()
         elif X == 2:
+            self.mainInstructions.Hide()
             self.ShowHMMOptions()
             self.HideGumbelOptions()
             self.HideResamplingOptions()
         elif X == 3:
+            self.mainInstructions.Hide()
             self.ShowResamplingOptions()
             self.HideGumbelOptions()
             self.HideHMMOptions()
@@ -536,8 +582,11 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
             if DEBUG:
                 print "Displaying results:", self.list_files.GetItem(next, 0).GetText()
 
-            fileWindow = fileDisplay.FileFrame(self, dataset, self.list_files.GetItem(next, 1).GetText())
-            fileWindow.Show()
+            try:
+                fileWindow = fileDisplay.FileFrame(self, dataset, self.list_files.GetItem(next, 1).GetText())
+                fileWindow.Show()
+            except:
+                print "Error occurred displaying file"
         else:
             if DEBUG:
                 print "No results selected to display!"
@@ -567,11 +616,42 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
 
 
         file1= "resampling_results_g0g1_g2g3.dat"
+        #file1= "resampling_results_qval_test.dat"
         type="Resampling"
         data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
         print "Adding File:", file1
         wx.CallAfter(pub.sendMessage, "file", data=data)
 
+
+    def addFileFunc(self, event):
+
+
+        try:
+            path = self.OpenFile(".", "")
+            line = open(path).readline()
+            if line.startswith("#Gumbel"):
+                type = "Gumbel"
+            elif line.startswith("#HMM - Sites"):
+                type = "HMM - Sites"
+            elif line.startswith("#HMM - Genes"):
+                type = "HMM - Genes"
+            elif line.startswith("#Resampling"):
+                type = "Resampling"
+            else:
+                msg = """Please make sure the file has one of the following headers specifying the type of output as its first line:
+    #Gumbel
+    #HMM - Sites
+    #HMM - Genes
+    #Resampling
+"""
+                self.ShowError(msg)
+                return
+            
+            data = {"path":path, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+            print "Adding File:", path
+            wx.CallAfter(pub.sendMessage, "file", data=data)
+        except:
+            pass
 
 
 
@@ -592,9 +672,9 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
             self.ShowError("Error: No annotation file selected.")
             return
         
-        
-
-        readPath = self.list_ctrl.GetItem(next, 4).GetText()
+ 
+        pathCol = self.list_ctrl.GetColumnCount() - 1
+        readPath = self.list_ctrl.GetItem(next, pathCol).GetText()
         name = ntpath.basename(readPath)
         min_read = int(self.gumbelReadChoice.GetString(self.gumbelReadChoice.GetCurrentSelection()))
         samples = int(self.gumbelSampleText.GetValue())
@@ -643,7 +723,8 @@ class TnSeekFrame(tn_seek_gui.MainFrame):
             return
 
 
-        readPath = self.list_ctrl.GetItem(next, 4).GetText()
+        pathCol = self.list_ctrl.GetColumnCount() - 1
+        readPath = self.list_ctrl.GetItem(next, pathCol).GetText()
         name = ntpath.basename(readPath)
 
         #Get Default file name
