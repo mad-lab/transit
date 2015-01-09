@@ -46,33 +46,50 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
 
         bSizer3 = wx.BoxSizer( wx.VERTICAL )
 
-        self.list_data = SortableListCtrl(self, size=(-1,100),
-                         style=wx.LC_REPORT
-                         |wx.BORDER_SUNKEN
-                         |wx.LC_SORT_ASCENDING
-                         )        
 
         self.index_data = 0
         if method == "Gumbel":
+            self.list_data = SortableListCtrl(self, size=(-1,100),
+                         style=wx.LC_REPORT
+                         |wx.BORDER_SUNKEN
+                         |wx.LC_SORT_ASCENDING
+                         )
             self.initializeGumbel()
             self.populateGumbel(filePath)
+            listmix.ColumnSorterMixin.__init__(self, len(self.itemDataMap[0]))
+            self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
 
         elif method == "HMM - Sites":
+            self.list_data = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
             self.initializeHMMSites()
             self.populateHMMSites(filePath)
 
         elif method == "HMM - Genes":
+            self.list_data = SortableListCtrl(self, size=(-1,100),
+                         style=wx.LC_REPORT
+                         |wx.BORDER_SUNKEN
+                         |wx.LC_SORT_ASCENDING
+                         )
             self.initializeHMMGenes()
             self.populateHMMGenes(filePath)
+            listmix.ColumnSorterMixin.__init__(self, len(self.itemDataMap[0]))
+            self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
 
         elif method == "Resampling":
-            self.initializeResampling()
-            self.populateResampling(filePath)
+            try:
+                self.list_data = SortableListCtrl(self, size=(-1,100),
+                         style=wx.LC_REPORT
+                         |wx.BORDER_SUNKEN
+                         |wx.LC_SORT_ASCENDING
+                         )
+                self.initializeResampling()
+                self.populateResampling(filePath)
+                listmix.ColumnSorterMixin.__init__(self, len(self.itemDataMap[0]))
+                self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
+            except Exception as e:
+                print "Error", e
 
 
-
-        listmix.ColumnSorterMixin.__init__(self, len(self.itemDataMap[0]))
-        self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
 
         #self.list_data = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
         #self.list_data = SortableListCtrl( self) #, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
@@ -126,17 +143,24 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
     def populateGumbel(self, path):
 
         self.itemDataMap = {}
-        ess=0; unc=0; non=0; short=0;
+        ess=0; unc=0; non=0; short=0
+        
+        data = []
         for line in open(path):
             if line.startswith("#"): continue
             tmp = line.strip().split("\t")
+            data.append([tmp[0].upper()]+tmp)
+            
+        data.sort()
+        
+        for tmp in data:
             if not tmp: continue
             if len(tmp) < 3: continue
-            self.list_data.InsertStringItem(self.index_data, tmp[0])
-            for i,cell in enumerate(tmp[1:]):
+            self.list_data.InsertStringItem(self.index_data, tmp[1])
+            for i,cell in enumerate(tmp[2:]):
                 self.list_data.SetStringItem(self.index_data, i+1, cell)
             self.list_data.SetItemData(self.index_data, self.index_data)
-            self.itemDataMap[self.index_data] = tmp
+            self.itemDataMap[self.index_data] = tmp[1:]
             self.index_data+=1
             if tmp[8] == "E": ess+=1
             if tmp[8] == "U": unc+=1
@@ -162,17 +186,21 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
 
 
     def populateHMMSites(self, path):
-        self.itemDataMap = {}
+        #self.itemDataMap = {}
         T = 0; es=0; gd=0; ne=0; ga=0;
         for line in open(path, "r"):
             if line.startswith("#"): continue
             tmp = line.strip().split()
             if not tmp: continue
+
+            n = len(tmp)
+            if n < 3:
+                tmp + [""] * (7-n)
             self.list_data.InsertStringItem(self.index_data, tmp[0])
             for i,cell in enumerate(tmp[1:]):
                 self.list_data.SetStringItem(self.index_data, i+1, cell)
-            self.list_data.SetItemData(self.index_data, self.index_data)
-            self.itemDataMap[self.index_data] = tmp
+            #self.list_data.SetItemData(self.index_data, self.index_data)
+            #self.itemDataMap[self.index_data] = tmp
             self.index_data+=1
 
             if len(tmp) < 5: continue
@@ -209,17 +237,20 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
 
         self.itemDataMap = {}
         es=0; gd=0; ne=0; ga=0;
+        data=[]
         for line in open(path):
             if line.startswith("#"): continue
             tmp = line.strip().split("\t")
-            if not tmp: continue
-            self.list_data.InsertStringItem(self.index_data, tmp[0])
-            for i,cell in enumerate(tmp[1:]):
+            data.append([tmp[0].upper()] + tmp)
+            
+        data.sort()
+        for tmp in data:
+            self.list_data.InsertStringItem(self.index_data, tmp[1])
+            for i,cell in enumerate(tmp[2:]):
                 self.list_data.SetStringItem(self.index_data, i+1, cell)
 
-
             self.list_data.SetItemData(self.index_data, self.index_data)
-            self.itemDataMap[self.index_data] = tmp
+            self.itemDataMap[self.index_data] = tmp[1:]
             self.index_data+=1
             if len(tmp) < 5: continue
             if tmp[-1] == "ES": es+=1
@@ -252,15 +283,20 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
     def populateResampling(self, path):
         self.itemDataMap = {}
         de05=0; de01 = 0; count = 0;
+        data=[]
         for line in open(path):
             if line.startswith("#"): continue
             tmp = line.strip().split("\t")
-            if not tmp: continue
-            self.list_data.InsertStringItem(self.index_data, tmp[0])
-            for i,cell in enumerate(tmp[1:]):
+            data.append([tmp[0].upper()] + tmp)
+            
+        data.sort()
+        
+        for tmp in data:
+            self.list_data.InsertStringItem(self.index_data, tmp[1])
+            for i,cell in enumerate(tmp[2:]):
                 self.list_data.SetStringItem(self.index_data, i+1, cell)
             self.list_data.SetItemData(self.index_data, self.index_data)
-            self.itemDataMap[self.index_data] = tmp
+            self.itemDataMap[self.index_data] = tmp[1:]
             self.index_data+=1
             if float(tmp[-1]) < 0.05: de05+=1
             if float(tmp[-1]) < 0.01: de01+=1

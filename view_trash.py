@@ -17,7 +17,7 @@ import wx.xrc
 class MainFrame ( wx.Frame ):
 	
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Trash View", pos = wx.DefaultPosition, size = wx.Size( 712,439 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Trash View", pos = wx.DefaultPosition, size = wx.Size( 1117,439 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
@@ -65,6 +65,16 @@ class MainFrame ( wx.Frame ):
 		self.startText = wx.TextCtrl( self, wx.ID_ANY, u"1", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer10.Add( self.startText, 0, wx.ALL, 5 )
 		
+		self.m_staticText3 = wx.StaticText( self, wx.ID_ANY, u"Search:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText3.Wrap( -1 )
+		bSizer10.Add( self.m_staticText3, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.searchText = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer10.Add( self.searchText, 0, wx.ALL, 5 )
+		
+		self.searchButton = wx.Button( self, wx.ID_ANY, u"Search", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer10.Add( self.searchButton, 0, wx.ALL, 5 )
+		
 		
 		sbSizer4.Add( bSizer10, 0, wx.EXPAND, 5 )
 		
@@ -78,6 +88,10 @@ class MainFrame ( wx.Frame ):
 		
 		self.endText = wx.TextCtrl( self, wx.ID_ANY, u"10000", wx.Point( 400,350 ), wx.DefaultSize, 0 )
 		bSizer11.Add( self.endText, 0, wx.ALL, 5 )
+		
+		self.normCheck = wx.CheckBox( self, wx.ID_ANY, u"Normalize Data", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.normCheck.SetValue(True) 
+		bSizer11.Add( self.normCheck, 0, wx.ALL, 5 )
 		
 		
 		sbSizer4.Add( bSizer11, 0, wx.EXPAND, 5 )
@@ -131,8 +145,10 @@ class MainFrame ( wx.Frame ):
 		self.saveButton.Bind( wx.EVT_BUTTON, self.saveImageFunc )
 		self.moveLeftButton.Bind( wx.EVT_BUTTON, self.leftFunc )
 		self.moveRightButton.Bind( wx.EVT_BUTTON, self.rightFunc )
+		self.searchButton.Bind( wx.EVT_BUTTON, self.searchFunc )
 		self.zoomOutButton.Bind( wx.EVT_BUTTON, self.zoomOutFunc )
 		self.zoomInButton.Bind( wx.EVT_BUTTON, self.zoomInFunc )
+		self.normCheck.Bind( wx.EVT_CHECKBOX, self.updateFunc )
 		self.maxText.Bind( wx.EVT_TEXT, self.updateFunc )
 	
 	def __del__( self ):
@@ -155,11 +171,15 @@ class MainFrame ( wx.Frame ):
 	def rightFunc( self, event ):
 		event.Skip()
 	
+	def searchFunc( self, event ):
+		event.Skip()
+	
 	def zoomOutFunc( self, event ):
 		event.Skip()
 	
 	def zoomInFunc( self, event ):
 		event.Skip()
+	
 	
 	
 

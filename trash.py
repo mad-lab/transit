@@ -48,8 +48,24 @@ class TrashFrame(view_trash.MainFrame):
         self.start = 1
         self.end = 10000
 
+
+
         self.orf2data = draw_trash.read_prot_table(annotation)
         self.hash = draw_trash.hash_prot_genes(annotation)
+
+
+        #Data to facilitate search
+        self.name2id = {}
+        for line in open(annotation):
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            name = tmp[7].lower()
+            orfid = tmp[8]
+            if name not in self.name2id: self.name2id[name] = []
+            self.name2id[name].append(orfid)
+
+        self.lowerid2id = dict([(x.lower(), x) for x in self.orf2data.keys()])
+      
 
 
         self.labels = [fetch_name(d) for d in dataset_list]
@@ -67,7 +83,26 @@ class TrashFrame(view_trash.MainFrame):
                 read = int(tmp[1])
                 temp.append((pos,read))
             self.fulldata.append(temp)
-            
+
+    
+        #Calculate stats to normalize data
+        N = len(self.fulldata)
+        total_hits = [sum([c for pos,c in X]) for X in self.fulldata]
+        TAs_hit = [sum([1 for pos,c in X if c > 0])  for X in self.fulldata]
+        mean_hits = [total_hits[i]/float(TAs_hit[i]) for i in range(N)]
+        grand_total = sum(mean_hits)
+        grand_mean = grand_total/float(N)
+        factors = [grand_mean/float(mean_hits[i]) for i in range(N)]
+
+        #Save normalized data
+        print "facotrs", factors
+        self.fulldata_norm = []
+        for j,data in enumerate(self.fulldata):
+            self.fulldata_norm.append([])
+            for i,x in enumerate(data):
+                self.fulldata_norm[j].append((x[0], x[1]*factors[j]))
+
+
 
 
         #initialize parent class
@@ -85,7 +120,10 @@ class TrashFrame(view_trash.MainFrame):
             max_read = int(self.maxText.GetValue())
 
     
-            image_pil = draw_trash.draw_canvas(self.fulldata, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
+            if self.normCheck.GetValue():
+                image_pil = draw_trash.draw_canvas(self.fulldata_norm, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
+            else:
+                image_pil = draw_trash.draw_canvas(self.fulldata, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
 
             #image_pil = draw_trash.draw_canvas(start, end, min_read, max_read, self.data, self.hash, self.orf2data)
             #image_wxBit = PilImageToWxBitmap( image_pil )
@@ -173,6 +211,65 @@ class TrashFrame(view_trash.MainFrame):
         output_path = self.SaveFile(DIR=".", FILE="reads_canvas.png")
         if output_path:
             finished_image.SaveFile(output_path, wx.BITMAP_TYPE_PNG)
+        
+    
+
+    def searchFunc(self, event):
+
+        query = self.searchText.GetValue()
+
+        print "Search query:", query
+        #check if query is name:
+        genes_match_name = self.name2id.get(query.lower(), [])
+        gene_match_orf = self.lowerid2id.get(query.lower(), None)
+        gene_match_orf_w_c = self.lowerid2id.get(query.lower()+"c", None)
+
+
+        print "Genes with matching name:", genes_match_name
+        print "Genes with matching IDs:", gene_match_orf
+        
+        if len(genes_match_name) == 1:      # Check if query is a name
+            orf_match = genes_match_name[0]
+        elif gene_match_orf:                # Check if query is an orf id
+            orf_match = gene_match_orf
+        elif gene_match_orf_w_c:            # Check if query is an orf id with missing "c" at end
+            orf_match = gene_match_orf_w_c
+        else:
+            return
+
+
+        start, end, strand, name = self.orf2data.get(orf_match, [0, 2000, "+", "-"])
+
+        print "Got the following data", start, end, strand, name
+       
+        try:
+
+            #Set the start and end coords with the new info
+            self.startText.SetValue(str(start))
+            self.endText.SetValue(str(end))
+
+            #Get min/max read info from text controls
+            min_read = int(self.minText.GetValue())
+            max_read = int(self.maxText.GetValue())
+
+            if self.normCheck.GetValue():
+                image_pil = draw_trash.draw_canvas(self.fulldata_norm, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
+            else:
+                image_pil = draw_trash.draw_canvas(self.fulldata, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
+
+
+            #image_pil = draw_trash.draw_canvas(start, end, min_read, max_read, self.data, self.hash, self.orf2data)
+            #image_wxBit = PilImageToWxBitmap( image_pil )
+            image_wxImg = PilImageToWxImage( image_pil )
+            #self.m_bitmap1 = wx.StaticBitmap(self, -1, image_wxBit, (0, 0))
+            self.m_bitmap1.SetBitmap(wx.BitmapFromImage(image_wxImg))
+            #self.m_bitmap1 = image_wxBit
+            self.Refresh()
+            image_pil = ""
+
+        except Exception, e:
+            print 'error', e
+ 
         
 
 

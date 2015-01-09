@@ -227,7 +227,7 @@ def post_process_genes(path, annotationPath, output=sys.stdout):
     orf2desc = {}
     for line in open(annotationPath):
         if line.startswith("#"): continue
-        tmp = line.split("\t")
+        tmp = line.strip().split("\t")
         orf2desc[tmp[8]] = tmp[0]
 
 

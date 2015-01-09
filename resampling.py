@@ -89,7 +89,7 @@ def runResampling(ctrlString, expString, annotationPath, output, wx, pubmsg, doN
     orf2data = {}
     for line in open(ANNOTATION):
         if line.startswith("#"): continue
-        tmp = line.split("\t")
+        tmp = line.strip().split("\t")
         orf = tmp[8]
         name = tmp[7]
         desc = tmp[0]
@@ -124,7 +124,7 @@ def runResampling(ctrlString, expString, annotationPath, output, wx, pubmsg, doN
     TAs_hit = [sum([1 for y in x if y > 0])  for x in data]
     mean_hits = [total_hits[i]/float(TAs_hit[i]) for i in range(N)]
     grand_total = sum(mean_hits)
-    grand_mean = grand_total/4.0
+    grand_mean = grand_total/float(N)
     factors = [grand_mean/float(mean_hits[i]) for i in range(N)]
 
 
@@ -151,7 +151,7 @@ def runResampling(ctrlString, expString, annotationPath, output, wx, pubmsg, doN
     else:
         output.write("#Not normalized\n")
 
-    output.write("#Orf\tN\tTAs Hit\tAvg Rd 1\tAvg Rd 2\tDelta Rd\tp-value\n")
+    output.write("#Orf\t%Name\tDescription\tN\tTAs Hit\tAvg Rd 1\tAvg Rd 2\tDelta Rd\tp-value\tp-adj\n")
     count = 0
     G = len(orf2reads)
     orf2out = {}
