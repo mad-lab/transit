@@ -1,6 +1,7 @@
 import sys
 import random
-
+import numpy
+import transit_tools
 
 def sum_reads(reads, N1, N2):
     sum1 = 0
@@ -57,95 +58,28 @@ def fdr_corrected_pval(X):
 
 
 
-def runResampling(ctrlString, expString, annotationPath, output, wx, pubmsg, doNormalize=True):
+def runResampling(ctrlString, expString, annotationPath, sampleSize, output, wx, pubmsg, doNormalize=True):
 
-    FILES1 = ctrlString.split(",")
-    FILES2 = expString.split(",")
-    ANNOTATION = annotationPath
+    ctrlList = ctrlString.split(",")
+    expList = expString.split(",")
 
-    orf2coords = {}
-    orf2reads = {}
-    #hash = {}
-    #for line in open(ANNOTATION):
-    #    if line.startswith("#"): continue
-    #    if line.startswith("geneID"): continue
-    #    tmp = line.strip().split("\t")
-    #    orf = tmp[0]
-    #    if orf == "intergenic": continue
-    #    start = int(tmp[1])
-    #    end = int(tmp[2])
-    #    strand = tmp[3]
-    #    TA_list = [int(ta) for ta in tmp[4:] if ta != "no TAs"]
-    #    for pos in TA_list:
-    #    #for pos in range(start+delta-2, end+1-delta):
-    #        if pos not in hash: hash[pos] = []
-    #        hash[pos].append(orf)
-    #    orf2reads[orf] = []
-    #    orf2coords[orf] = (start, end)
+    N1 = len(ctrlList)
+    N2 = len(expList)
 
+    orf2info = transit_tools.get_gene_info(annotationPath)
 
-    hash = {}
-    orf2reads = {}
-    orf2data = {}
-    for line in open(ANNOTATION):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        orf = tmp[8]
-        name = tmp[7]
-        desc = tmp[0]
-        start = int(tmp[1])
-        end = int(tmp[2])
-        for pos in range(start, end+1):
-            if pos not in hash: hash[pos] = []
-            hash[pos].append(orf)
-        orf2reads[orf] = []
-        orf2data[orf] = (name, desc)
-
-    data = []
-    position = []
-    for i,path in enumerate(FILES1+FILES2):
-        reads = []
-
-        for line in open(path):
-            if line.startswith("#"): continue
-            if line.startswith("location"): continue
-            if line.startswith("variable"): continue
-            tmp = line.split()
-            pos = int(tmp[0])
-            rd = float(tmp[1])
-            reads.append(rd)
-            if i == 0: position.append(pos)
-        data.append(reads)
-
-    N1 = len(FILES1)
-    N2 = len(FILES2)
-    N = len(data)
-    total_hits = [sum(x) for x in data]
-    TAs_hit = [sum([1 for y in x if y > 0])  for x in data]
-    mean_hits = [total_hits[i]/float(TAs_hit[i]) for i in range(N)]
-    grand_total = sum(mean_hits)
-    grand_mean = grand_total/float(N)
-    factors = [grand_mean/float(mean_hits[i]) for i in range(N)]
-
-
-    orf2TAs = {}
-    for i,pos in enumerate(position):
-        if pos not in hash: continue
-        for gene in hash[pos]:
-            if gene not in orf2TAs: orf2TAs[gene] = 0
-            orf2TAs[gene]+=1
-            if doNormalize:
-                row = [data[j][i]*factors[j] for j in range(N)] #NORMALIZED
-            else:
-                row = [data[j][i] for j in range(N)] #NOT NORMALIZED
-            orf2reads[gene].append(row)
+    hash = transit_tools.get_pos_hash(annotationPath)
+    (data, position) = transit_tools.get_data(ctrlList + expList)
+    factors = transit_tools.get_norm_factors(data)
+    norm_data = factors * data
+    orf2reads,orf2pos = transit_tools.get_gene_reads(hash, norm_data, position, orf2info, orf_list=orf2info.keys())
     
-    S = 10000
+    S = sampleSize
 
     output.write("#Resampling\n")
     output.write("#Command: python %s\n" % " ".join(sys.argv))
-    output.write("#Control Samples:  %s\n" % ", ".join(FILES1))
-    output.write("#Experimental Samples:  %s\n" % ", ".join(FILES2))
+    output.write("#Control Samples:  %s\n" % ", ".join(ctrlList))
+    output.write("#Experimental Samples:  %s\n" % ", ".join(expList))
     if doNormalize:
         output.write("#Normalization factors: %s\n" % "\t".join(["%1.4f" % f for f in factors]))
     else:
@@ -154,14 +88,17 @@ def runResampling(ctrlString, expString, annotationPath, output, wx, pubmsg, doN
     output.write("#Orf\t%Name\tDescription\tN\tTAs Hit\tAvg Rd 1\tAvg Rd 2\tDelta Rd\tp-value\tp-adj\n")
     count = 0
     G = len(orf2reads)
-    orf2out = {}
+    orf2out= {}
     pval=[]
     for orf in sorted(orf2reads):
-    
+        if orf == "non-coding": continue
+
         fullreads = orf2reads[orf]
-        reads = [row for row in fullreads if sum(row) > 0 ]
-        sum1,sum2 = sum_reads(reads, N1, N2)
-        run1,run2 = comb_runs(fullreads, N1, N2)
+        reads = numpy.array([row for row in fullreads if numpy.sum(row) > 0 ])
+        if len(reads) >0:
+            sum1,sum2 = numpy.sum(reads[:,:N1]), numpy.sum(reads[:,N1:])
+        else:
+            sum1 = 0; sum2 = 0
 
         count_utail = 0
         count_ltail = 0
@@ -169,10 +106,12 @@ def runResampling(ctrlString, expString, annotationPath, output, wx, pubmsg, doN
    
         for s in range(S):
             #Reads
-            flat_reads = [item for sublist in reads for item in sublist]
-            flat_perm = sorted(flat_reads, key=lambda k: random.random())
-            perm = [flat_perm[ii*(N1+N2):(ii+1)*(N1+N2)]    for ii in range(len(flat_perm)/(N1+N2))]
-            sumA,sumB = sum_reads(perm, N1, N2)
+            if len(reads) == 0: break
+            perm = numpy.random.permutation(reads.flatten()).reshape(reads.shape)
+            sumA,sumB = numpy.sum(perm[:,:N1]), numpy.sum(perm[:,N1:])
+
+            #all_perm=np.array((list(itertools.permutations([0,1,2,3]))))
+            #(reads.flatten()[(all_perm[numpy.random.randint(0,len(all_perm),size=100)]+3*np.arange(100)[...,numpy.newaxis]).flatten()]).reshape(reads.shape)
 
             if sumB-sumA >= sum2-sum1: count_utail+=1
             if sumB-sumA <= sum2-sum1: count_ltail+=1
@@ -183,7 +122,7 @@ def runResampling(ctrlString, expString, annotationPath, output, wx, pubmsg, doN
         pval_ltail = count_ltail/float(S)
         pval_2tail = count_2tail/float(S)
 
-        orf2data[orf] = (orf, orf2data[orf][0], orf2data[orf][1],orf2TAs.get(orf,0), len(reads), sum1, sum2, sum2-sum1, pval_2tail)
+        orf2out[orf] = (orf, orf2info[orf][0], orf2info[orf][1], len(fullreads), len(reads), sum1, sum2, sum2-sum1, pval_2tail)
         pval.append(pval_2tail)
     
         count += 1
@@ -191,8 +130,8 @@ def runResampling(ctrlString, expString, annotationPath, output, wx, pubmsg, doN
 
     qval = fdr_corrected_pval(pval)
     count = 0
-    for orf in sorted(orf2reads):
-        output.write("%s\t%s\t%s\t%d\t%d\t%1.1f\t%1.1f\t%1.1f\t%1.5f" % orf2data[orf])
+    for orf in sorted(orf2out):
+        output.write("%s\t%s\t%s\t%d\t%d\t%1.1f\t%1.1f\t%1.1f\t%1.5f" % orf2out[orf])
         output.write("\t%1.5f\n" % qval[count])
         count += 1
 

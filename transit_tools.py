@@ -59,13 +59,6 @@ def get_norm_factors(data):
     factors = numpy.zeros((K,1))
     factors[:,0] = grand_mean/mean_hits
 
-    print total_hits
-    print TAs_hit
-    print mean_hits
-    print grand_total
-    print grand_mean
-    print factors
-
     return factors
 
 def normalize_data(data):
@@ -80,16 +73,34 @@ def normalize_data(data):
     return factors * data
     
 
-def get_gene_reads(hash, data, position):
+def get_gene_reads(hash, data, position, orf2info, orf_list=set()):
     (K,N) = data.shape
-    orf2reads = {}
+
+    orf2reads = dict([(orf,[]) for orf in orf_list])
+    orf2pos = dict([(orf,[]) for ord in orf_list])
+
     for i in range(N):
         coord = position[i]
-        genes_with_coord = hash.get(coord, ["non-coding"])
+        genes_with_coord = hash.get(coord, [])
         for gene in genes_with_coord:
+
             if gene not in orf2reads: orf2reads[gene] = []
+            if gene not in orf2pos: orf2pos[gene] = []
+
+            start,end,strand = orf2info.get(gene, [0,0,0,0])[2:5]
+
+            if strand == "+":
+                #Ignore TAs at stop codon
+                if coord > end-3:
+                    continue
+            else:
+                #ignore TAs at stop codon
+                if coord < start + 3:
+                    continue
+
             orf2reads[gene].append(data[:,i])
-    return orf2reads
+            orf2pos[gene].append(position[i])
+    return (orf2reads, orf2pos)
     
 
 def get_gene_info(path):
@@ -100,7 +111,10 @@ def get_gene_info(path):
         orf = tmp[8]
         name = tmp[7]
         desc = tmp[0]
-        orf2info[orf] = (name, desc)
+        start = int(tmp[1])
+        end = int(tmp[2])
+        strand = tmp[3]
+        orf2info[orf] = (name, desc, start, end, strand)
     return orf2info
 
 

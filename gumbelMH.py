@@ -2,6 +2,7 @@ import sys
 import time
 #import trash_tools
 from MH_tools import *
+import transit_tools
 
 #def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, output, wx, pubmsg):
 #def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, wx, pubmsg):
@@ -24,29 +25,19 @@ def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, output, 
     #MINIMUM_READ = min_read
     #SAMPLE_SIZE = samples
     MID = False
-    #PATH = readpath
-    #PROT_PATH = annotationPath
-    IGV = False; WIG = False; TRASH = False;
-    
-    if PATH.endswith(".igv"):
-        IGV = True
-    elif PATH.endswith(".wig"):
-        WIG = True
-    elif PATH.endswith(".txt"):
-        WIG = True
 
-    if IGV:
-        orf_to_reads = read_IGV_file(PATH)
-    elif WIG:
-        orf_to_reads = read_WIG_file(PATH, PROT_PATH)
-    else:
-        orf_to_reads = read_TRASH_file(PATH, LANES, MINIMUM_READ)
+    orf2info = transit_tools.get_gene_info(PROT_PATH)
+    hash = transit_tools.get_pos_hash(PROT_PATH)
+    (data, position) = transit_tools.get_data([PATH])
+    orf2reads, orf2pos = transit_tools.get_gene_reads(hash, data, position, orf2info, orf_list=orf2info.keys())
+
 
     start_time = time.time()
-    (ORF_all, K_all, N_all, R_all, S_all, T_all) = get_orf_data(orf_to_reads, MINIMUM_READ, mid=MID, prot=PROT_PATH)
+    (ORF_all, K_all, N_all, R_all, S_all, T_all) = get_orf_data_transit(orf2reads, orf2pos, orf2info, MINIMUM_READ)
     bad_orf_set = set([ORF_all[g] for g in xrange(len(N_all)) if not good_orf(N_all[g], T_all[g])]);
     bad_orf_set.add("Rvnr01");
-    (ORF, K, N, R, S, T) = get_orf_data(orf_to_reads, MINIMUM_READ, mid=MID, prot=PROT_PATH, bad=bad_orf_set)
+    (ORF, K, N, R, S, T) = get_orf_data_transit(orf2reads, orf2pos, orf2info, MINIMUM_READ, bad=bad_orf_set)
+
 
     orf2name = {}; orf2desc = {}
     for line in open(PROT_PATH):

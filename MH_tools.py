@@ -241,10 +241,8 @@ def get_orf_data(reads, min_read, mid=False, prot="", bad=set()):
     K = numpy.zeros(G); N = numpy.zeros(G); R = numpy.zeros(G);
     S = numpy.zeros(G); T = numpy.zeros(G); ORF = [];
 
-    #print "PATH", prot
     rv2coords = {}
     if mid and prot !="": rv2coords = getCoords(prot)
-        
 
     for orf in sorted(reads):
         if orf in bad: continue
@@ -252,8 +250,6 @@ def get_orf_data(reads, min_read, mid=False, prot="", bad=set()):
         start = rv2coords.get(orf,[0,0])[0]; end = rv2coords.get(orf,[0,0])[1]; length = end-start
         cutstart = start + int(0.05*length)
         cutend = end - int(0.05*length)
-        #print start, end
-        #print cutstart, cutend
         for pos, rd in reads[orf]:
             n += 1
             if mid and prot:
@@ -279,6 +275,46 @@ def get_orf_data(reads, min_read, mid=False, prot="", bad=set()):
         ORF.append(orf)
         g+=1
     return((ORF,K,N,R,S,T))
+
+
+
+def get_orf_data_transit(orf2reads, orf2pos, orf2info, min_read, bad=set()):
+    G = len([orf for orf in orf2reads if orf not in bad]); g = 0;
+    K = numpy.zeros(G); N = numpy.zeros(G); R = numpy.zeros(G);
+    S = numpy.zeros(G); T = numpy.zeros(G); ORF = [];
+
+    for orf in sorted(orf2reads):
+        if orf in bad: continue
+        run = [0,0,0]; maxrun = [0,0,0]; k = 0; n = 0; s = 0;
+        start = orf2info.get(orf,[0,0,0,0])[2]; end = orf2info.get(orf,[0,0,0,0])[3]; length = end-start
+        for i,rd in enumerate(orf2reads[orf]):
+            pos = orf2pos[orf][i]
+            n += 1
+            if rd < min_read:
+                run[0] +=1
+                if run[0] == 1: run[1] = pos
+                run[2] = pos
+            else:
+                k += 1
+                maxrun = max(run,maxrun)
+                run = [0,0,0]
+        maxrun = max(run, maxrun)
+        r = maxrun[0]
+        if r > 0: s = maxrun[2] + 2  - maxrun[1]
+        else: s = 0
+        t = 0
+        if orf2reads[orf]:
+            t = max(orf2reads[orf])[0] + 2  - min(orf2reads[orf])[0]
+        K[g]=k; N[g]=n; R[g]=r; S[g]=s; T[g]=t;
+        ORF.append(orf)
+        g+=1
+    return((ORF,K,N,R,S,T))
+
+
+
+
+
+
 
 	
 def F_non(p, N, R):

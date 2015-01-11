@@ -240,6 +240,33 @@ class MainFrame ( wx.Frame ):
 		self.resamplingLabel.Wrap( -1 )
 		resamplingSection.Add( self.resamplingLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
+		bSizer142 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer151 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer161 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.resamplingSampleLabel = wx.StaticText( self, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.resamplingSampleLabel.Wrap( -1 )
+		bSizer161.Add( self.resamplingSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		
+		bSizer151.Add( bSizer161, 1, wx.EXPAND, 5 )
+		
+		bSizer171 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.resamplingSampleText = wx.TextCtrl( self, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer171.Add( self.resamplingSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+		
+		
+		bSizer151.Add( bSizer171, 1, wx.EXPAND, 5 )
+		
+		
+		bSizer142.Add( bSizer151, 1, wx.EXPAND, 5 )
+		
+		
+		resamplingSection.Add( bSizer142, 1, wx.EXPAND, 5 )
+		
 		self.resamplingButton = wx.Button( self, wx.ID_ANY, u"Run Resampling", wx.DefaultPosition, wx.DefaultSize, 0 )
 		resamplingSection.Add( self.resamplingButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
