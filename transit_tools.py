@@ -117,4 +117,23 @@ def get_gene_info(path):
         orf2info[orf] = (name, desc, start, end, strand)
     return orf2info
 
+def get_gene_name(path):
+    orf2info = {}
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.strip().split("\t")
+        orf = tmp[8]
+        name = tmp[7]
+        desc = tmp[0]
+        start = int(tmp[1])
+        end = int(tmp[2])
+        strand = tmp[3]
+        orf2info[orf] = name
+    return orf2info
+    
+
+
+
+
+
 

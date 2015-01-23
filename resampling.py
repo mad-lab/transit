@@ -98,7 +98,7 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, output, wx,
         if len(reads) >0:
             sum1,sum2 = numpy.sum(reads[:,:N1]), numpy.sum(reads[:,N1:])
         else:
-            sum1 = 0; sum2 = 0
+            sum1 = 0; sum2 = 0;
 
         count_utail = 0
         count_ltail = 0
@@ -106,9 +106,12 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, output, wx,
    
         for s in range(S):
             #Reads
-            if len(reads) == 0: break
-            perm = numpy.random.permutation(reads.flatten()).reshape(reads.shape)
-            sumA,sumB = numpy.sum(perm[:,:N1]), numpy.sum(perm[:,N1:])
+            #if len(reads) == 0: breaki
+            if len(reads) >0:
+                perm = numpy.random.permutation(reads.flatten()).reshape(reads.shape)
+                sumA,sumB = numpy.sum(perm[:,:N1]), numpy.sum(perm[:,N1:])
+            else:
+                 sumA = 0; sumB = 0;
 
             #all_perm=np.array((list(itertools.permutations([0,1,2,3]))))
             #(reads.flatten()[(all_perm[numpy.random.randint(0,len(all_perm),size=100)]+3*np.arange(100)[...,numpy.newaxis]).flatten()]).reshape(reads.shape)
