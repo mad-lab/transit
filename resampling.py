@@ -60,8 +60,9 @@ def fdr_corrected_pval(X):
 
 
 
-def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, output, wx, pubmsg, doNormalize=True):
+def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, output, wx, pubmsg, doNormalize=True):
 
+    arguments = locals().items()
     ctrlList = ctrlString.split(",")
     expList = expString.split(",")
 
@@ -81,7 +82,7 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, o
     S = sampleSize
 
     output.write("#Resampling\n")
-    output.write("#Command: python %s\n" % " ".join(sys.argv))
+    output.write("#Command: python %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in arguments]))
     output.write("#Control Samples:  %s\n" % ", ".join(ctrlList))
     output.write("#Experimental Samples:  %s\n" % ", ".join(expList))
     if doNormalize:
@@ -109,6 +110,7 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, o
         count_2tail = 0
    
         delta_sum_list = numpy.zeros(S)
+        s_performed = S
         for s in range(S):
             #Reads
             #if len(reads) == 0: breaki
@@ -117,7 +119,6 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, o
                 sumA,sumB = numpy.sum(perm[:,:N1]), numpy.sum(perm[:,N1:])
             else:
                  sumA = 0; sumB = 0;
-
             #all_perm=np.array((list(itertools.permutations([0,1,2,3]))))
             #(reads.flatten()[(all_perm[numpy.random.randint(0,len(all_perm),size=100)]+3*np.arange(100)[...,numpy.newaxis]).flatten()]).reshape(reads.shape)
 
@@ -126,10 +127,19 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, o
             if sumB-sumA <= sum2-sum1: count_ltail+=1
             if abs(sumB-sumA) >= abs(sum2-sum1): count_2tail+=1
 
+
+            if doAdaptive:
+                if s == 100 or s == 1000 or s == 10000:
+                    if count_2tail >=5:
+                        s_performed = s+1
+                        break
+            
+
+
         #Reads - pvalues
-        pval_utail = count_utail/float(S)
-        pval_ltail = count_ltail/float(S)
-        pval_2tail = count_2tail/float(S)
+        pval_utail = count_utail/float(s_performed)
+        pval_ltail = count_ltail/float(s_performed)
+        pval_2tail = count_2tail/float(s_performed)
 
         orf2out[orf] = (orf, orf2info[orf][0], orf2info[orf][1], len(fullreads), len(reads), sum1, sum2, sum2-sum1, pval_2tail)
         pval.append(pval_2tail)
@@ -140,12 +150,12 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, o
             n, bins, patches = plt.hist(delta_sum_list, normed=1, facecolor='c', alpha=0.75, bins=100)
             plt.xlabel('Delta Sum')
             plt.ylabel('Probability')
-            plt.title('Histogram of Delta Sum')
+            plt.title('%s - Histogram of Delta Sum' % orf)
             plt.axvline(sum2-sum1, color='r', linestyle='dashed', linewidth=3)
             plt.grid(True)
             #plt.show()
             genePath = os.path.join(histPath, orf +".png")
-            print genePath
+            #print genePath
             plt.savefig(genePath)
             plt.clf()
 

@@ -5,7 +5,7 @@ import ntpath
 import subprocess
 import os
 import sys
-
+import trash
 
 def fetch_name(filepath):
     return os.path.splitext(ntpath.basename(filepath))[0]
@@ -28,7 +28,15 @@ class SortableListCtrl(wx.ListCtrl):
 
 
 
-
+#########################################
+#menu_titles = [ "Display Histogram",
+#                "Display Tracks",]
+#
+#menu_title_by_id = {}
+#for title in menu_titles:
+#    menu_title_by_id[ wx.NewId() ] = title
+#
+##########################################
 
 
 class ImgFrame(wx.Frame):
@@ -97,7 +105,13 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
             self.initializeGumbel()
             self.populateGumbel(filePath)
             listmix.ColumnSorterMixin.__init__(self, len(self.itemDataMap[0]))
+            menu_titles = ["Display in Track View",]
+            self.menu_title_by_id = {}
+            for title in menu_titles:
+                self.menu_title_by_id[ wx.NewId() ] = title
+
             self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
+            self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick_gumbel, self.list_data)
 
         elif method == "HMM - Sites":
             self.list_data = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
@@ -113,7 +127,14 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
             self.initializeHMMGenes()
             self.populateHMMGenes(filePath)
             listmix.ColumnSorterMixin.__init__(self, len(self.itemDataMap[0]))
+
+            menu_titles = ["Display in Track View",]
+            self.menu_title_by_id = {}
+            for title in menu_titles:
+                self.menu_title_by_id[ wx.NewId() ] = title
+
             self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
+            self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick_hmm_genes, self.list_data)
 
         elif method == "Resampling":
             try:
@@ -125,8 +146,16 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
                 self.initializeResampling()
                 self.populateResampling(filePath)
                 listmix.ColumnSorterMixin.__init__(self, len(self.itemDataMap[0]))
+
+                menu_titles = [ "Display Histogram",
+                "Display in Track View",]
+                self.menu_title_by_id = {}
+                for title in menu_titles:
+                    self.menu_title_by_id[ wx.NewId() ] = title
+
                 self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
                 self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnDoubleClick_resampling, self.list_data)
+                self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick_resampling, self.list_data)
             except Exception as e:
                 print "Error", e
 
@@ -314,9 +343,9 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
         self.list_data.InsertColumn(2, 'Description', width=140)
         self.list_data.InsertColumn(3, 'N', width=85)
         self.list_data.InsertColumn(4, 'TAs Hit', width=100)
-        self.list_data.InsertColumn(5, 'Avg. Read 1', width=100)
-        self.list_data.InsertColumn(6, 'Avg. Read 2', width=100)
-        self.list_data.InsertColumn(7, 'Delta Read', width=100)
+        self.list_data.InsertColumn(5, 'Sum Read 1', width=100)
+        self.list_data.InsertColumn(6, 'Sum Read 2', width=100)
+        self.list_data.InsertColumn(7, 'Delta Sum', width=100)
         self.list_data.InsertColumn(8, 'p-value', width=75)
         self.list_data.InsertColumn(9, 'q-value', width=75)
 
@@ -350,7 +379,7 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
         self.headerText1.SetLabel(text)
         text2 = """         Notes:
             TAs Hit:   Number of TA sites with insertions combined across conditions.
-            Avg Reads: Average Read count, normalized with the Non-Zero Mean normalization method.
+            Sum Reads: Sum of read-counts normalized with the Non-Zero Mean normalization method.
             [Double click on a gene to display it's histogram, if available]"""
         self.headerText2.SetLabel(text2)
 
@@ -379,3 +408,99 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
             ShowError(MSG="Error Displaying File. Histogram image not found. Make sure results were obtained with the histogram option turned on.")
             print "Error Displaying File. Histogram image does not exist."
         
+
+    def OnRightClick_gumbel(self, event):
+
+        self.list_item_clicked = right_click_context = event.GetText()
+        menu = wx.Menu()
+        for (id,title) in self.menu_title_by_id.items():
+            ### 3. Launcher packs menu with Append. ###
+            menu.Append( id, title )
+            ### 4. Launcher registers menu handlers with EVT_MENU, on the menu. ###
+            wx.EVT_MENU( menu, id, self.MenuSelection_gumbel )
+
+        position = self.ScreenToClient(wx.GetMousePosition())
+        self.PopupMenu( menu, position )
+        menu.Destroy() # destroy to avoid mem leak
+
+
+    def MenuSelection_gumbel( self, event ):
+        # do something
+        operation = self.menu_title_by_id[ event.GetId() ]
+        target    = self.list_item_clicked
+        parent = self.GetParent()
+
+        if operation == "Display in Track View":
+            parent.allViewFunc(None,target)
+        else:
+            print "Menu choice not recognized"
+
+
+
+
+    def OnRightClick_hmm_genes(self, event):
+
+        self.list_item_clicked = right_click_context = event.GetText()
+        menu = wx.Menu()
+        for (id,title) in self.menu_title_by_id.items():
+            ### 3. Launcher packs menu with Append. ###
+            menu.Append( id, title )
+            ### 4. Launcher registers menu handlers with EVT_MENU, on the menu. ###
+            wx.EVT_MENU( menu, id, self.MenuSelection_hmm_genes )
+
+        position = self.ScreenToClient(wx.GetMousePosition())
+        self.PopupMenu( menu, position )
+        menu.Destroy() # destroy to avoid mem leak
+
+
+    def MenuSelection_hmm_genes( self, event ):
+        # do something
+        operation = self.menu_title_by_id[ event.GetId() ]
+        target    = self.list_item_clicked
+        parent = self.GetParent()
+
+        if operation == "Display in Track View":
+            parent.allViewFunc(None,target)
+        else:
+            print "Menu choice not recognized"
+
+
+
+
+
+    def OnRightClick_resampling(self, event):
+        
+        self.list_item_clicked = right_click_context = event.GetText()
+        menu = wx.Menu()
+        for (id,title) in self.menu_title_by_id.items():
+            ### 3. Launcher packs menu with Append. ###
+            menu.Append( id, title )
+            ### 4. Launcher registers menu handlers with EVT_MENU, on the menu. ###
+            wx.EVT_MENU( menu, id, self.MenuSelection_resampling )
+
+        position = self.ScreenToClient(wx.GetMousePosition())
+        self.PopupMenu( menu, position )
+        menu.Destroy() # destroy to avoid mem leak
+
+
+    def MenuSelection_resampling( self, event ):
+        # do something
+        operation = self.menu_title_by_id[ event.GetId() ]
+        target    = self.list_item_clicked
+        parent = self.GetParent()
+
+        if operation == "Display in Track View":
+            parent.allViewFunc(None,target)
+        elif operation == "Display Histogram":
+            filepath = os.path.join(ntpath.dirname(self.filePath), fetch_name(self.filePath))
+            filename = os.path.join(filepath, target+".png")
+            if os.path.exists(filename):
+                imgWindow = ImgFrame(None, filename)
+                imgWindow.Show()
+            else:
+                ShowError(MSG="Error Displaying File. Histogram image not found. Make sure results were obtained with the histogram option turned on.")
+                print "Error Displaying File. Histogram image does not exist."
+
+        else:
+            print "Menu choice not recognized"
+

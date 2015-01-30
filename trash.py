@@ -40,7 +40,7 @@ def fetch_name(filepath):
 #inherit from the MainFrame created in wxFowmBuilder and create CalcFrame
 class TrashFrame(view_trash.MainFrame):
     #constructor
-    def __init__(self,parent, dataset_list=["H37Rv_Sassetti_glycerol.wig"], annotation="H37Rv.prot_table"):
+    def __init__(self,parent, dataset_list=["H37Rv_Sassetti_glycerol.wig"], annotation="H37Rv.prot_table", gene=""):
 
 
 
@@ -95,7 +95,7 @@ class TrashFrame(view_trash.MainFrame):
         factors = [grand_mean/float(mean_hits[i]) for i in range(N)]
 
         #Save normalized data
-        print "facotrs", factors
+        print "Normalization factors", factors
         self.fulldata_norm = []
         for j,data in enumerate(self.fulldata):
             self.fulldata_norm.append([])
@@ -107,6 +107,11 @@ class TrashFrame(view_trash.MainFrame):
 
         #initialize parent class
         view_trash.MainFrame.__init__(self,parent)
+
+
+        if gene:
+            self.searchText.SetValue(gene)
+            self.searchFunc(gene)
 
         self.updateFunc(parent)   
         self.Fit()

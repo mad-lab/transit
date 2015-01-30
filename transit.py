@@ -151,7 +151,7 @@ class ResamplingThread(threading.Thread):
     """HMM Worker Thread Class."""
 
     #----------------------------------------------------------------------
-    def __init__(self, ctrlString, expString, annotationPath, sampleSize, histPath, output):
+    def __init__(self, ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, output):
         """Init Worker Thread Class."""
 
         #parameters
@@ -160,6 +160,7 @@ class ResamplingThread(threading.Thread):
         self.annotationPath = annotationPath
         self.sampleSize = sampleSize
         self.histPath = histPath
+        self.doAdaptive = doAdaptive
         self.output = output
 
         #thread
@@ -173,7 +174,7 @@ class ResamplingThread(threading.Thread):
         # This is the code executing in the new thread.
 
         print "Running Resampling Method"
-        resampling.runResampling(self.ctrlString, self.expString, self.annotationPath, self.sampleSize, self.histPath, self.output, wx, pub.sendMessage)
+        resampling.runResampling(self.ctrlString, self.expString, self.annotationPath, self.sampleSize, self.histPath, self.doAdaptive, self.output, wx, pub.sendMessage)
         print "Finished Resampling Method"
         if not self.output.name.startswith("<"):
             data = {"path":self.output.name, "type":"Resampling", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
@@ -380,6 +381,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.resamplingSampleLabel.Hide()
         self.resamplingSampleText.Hide()
         self.resamplingHistCheck.Hide()
+        self.resamplingAdaptiveCheck.Hide()
         self.resamplingButton.Hide()
         self.resamplingProgress.Hide()
     
@@ -390,6 +392,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.resamplingSampleLabel.Show()
         self.resamplingSampleText.Show()
         self.resamplingHistCheck.Show()
+        self.resamplingAdaptiveCheck.Show()
         self.resamplingButton.Show()
         self.resamplingProgress.Show()
  
@@ -525,7 +528,7 @@ class TnSeekFrame(transit_gui.MainFrame):
             self.index_exp-=1
 
 
-    def allViewFunc(self, event):
+    def allViewFunc(self, event, gene=""):
         
         annotationpath = self.annotationFilePicker.GetPath()
         datasets = self.ctrlSelected() + self.expSelected()
@@ -533,7 +536,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         if datasets and annotationpath:
             if DEBUG:
                 print "Visualizing counts for:", ", ".join(datasets)
-            viewWindow = trash.TrashFrame(self, datasets, annotationpath)
+            viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
             viewWindow.Show()
         elif not datasets:
             self.ShowError("Error: No datasets selected.")
@@ -546,13 +549,13 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
 
-    def ctrlViewFunc(self, event):
+    def ctrlViewFunc(self, event, gene=""):
         annotationpath = self.annotationFilePicker.GetPath()
         datasets = self.ctrlSelected()
         if datasets and annotationpath:
             if DEBUG:
                 print "Visualizing counts for:", ", ".join(datasets)
-            viewWindow = trash.TrashFrame(self, datasets, annotationpath)
+            viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
             viewWindow.Show()
         elif not datasets:
             if DEBUG:
@@ -563,13 +566,13 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
 
-    def expViewFunc(self, event):
+    def expViewFunc(self, event, gene=""):
         annotationpath = self.annotationFilePicker.GetPath()
         datasets = self.expSelected()
         if datasets and annotationpath:
             if DEBUG:
                 print "Visualizing counts for:", ", ".join(datasets)
-            viewWindow = trash.TrashFrame(self, datasets, annotationpath)
+            viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
             viewWindow.Show()
         elif not datasets:
             if DEBUG:
@@ -1022,6 +1025,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         else:
             histPath = ""
 
+        doAdaptive= self.resamplingAdaptiveCheck.GetValue()
 
         ctrlString = ",".join(selected_ctrl)
         expString = ",".join(selected_exp)
@@ -1040,7 +1044,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.resamplingProgress.SetRange(T+1)
 
         self.resamplingButton.Disable()
-        ResamplingThread(ctrlString, expString, annotationPath, sampleSize, histPath, output)
+        ResamplingThread(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, output)
 
 
 if __name__ == "__main__":
