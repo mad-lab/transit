@@ -8,8 +8,10 @@ import hmm_tools
 numpy.seterr(divide='ignore')
 
 
-def runHMM(wigPath, protPath, output, wx, pubmsg):
+def runHMM(wigPathList, protPath, repchoice, output, wx, pubmsg):
 
+
+    print "repchoice:", repchoice,"|"
 
     defaultStates = True
     defaultParameters = True
@@ -23,7 +25,7 @@ def runHMM(wigPath, protPath, output, wx, pubmsg):
         rv2name = hmm_tools.get_prot_names(protPath)
 
 
-
+    """
     # Read in read count data
     pos_list = []
     C = []
@@ -37,8 +39,34 @@ def runHMM(wigPath, protPath, output, wx, pubmsg):
         C.append(reads+1)
 
     O = numpy.array(C) # Reads
+    """
 
+    # Read in read count data
+    data = []
+    for wigPath in wigPathList:
+        pos_list = []
+        C = []
+        for line in open(wigPath):
+            if line.startswith("#"): continue
+            if line.startswith("variable"): continue
+            if line.startswith("location"): continue
+            tmp = line.split()
+            pos = int(tmp[0])
+            reads = int(tmp[1])
+            pos_list.append(int(pos))
+            C.append(reads)
+        data.append(numpy.array(C))
 
+    data = numpy.array(data)
+    if repchoice == "Sum":
+        O = numpy.sum(data,0)
+    elif repchoice == "Mean":
+        O = numpy.round(numpy.mean(data,0)) 
+    else:
+        O = data[0,:]
+
+    #Add 1 to work with numpy's geometric function x : [1, inf]
+    O = O + 1
 
     # If default states, set known labels
     if defaultStates:

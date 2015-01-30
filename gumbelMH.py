@@ -7,7 +7,8 @@ import transit_tools
 #def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, output, wx, pubmsg):
 #def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, wx, pubmsg):
 #def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, wx, pubmsg):
-def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, output, wx, pubmsg):
+def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, REPCHOICE, output, wx, pubmsg):
+
 
 
 
@@ -28,7 +29,9 @@ def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, output, 
 
     orf2info = transit_tools.get_gene_info(PROT_PATH)
     hash = transit_tools.get_pos_hash(PROT_PATH)
-    (data, position) = transit_tools.get_data([PATH])
+
+    print "PATH", PATH
+    (data, position) = transit_tools.get_data(PATH)
     orf2reads, orf2pos = transit_tools.get_gene_reads(hash, data, position, orf2info, orf_list=orf2info.keys())
 
 

@@ -8,7 +8,7 @@
 ^backup/.*
 ^listctrl_example/.*
 ^example/.*
-^source*/.*
+^source_
 .*\.pyc$
 .*\.swp$
 .*\.png$

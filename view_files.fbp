@@ -93,11 +93,11 @@
                 <property name="name">bSizer1</property>
                 <property name="orient">wxVERTICAL</property>
                 <property name="permission">none</property>
-                <object class="sizeritem" expanded="1">
+                <object class="sizeritem" expanded="0">
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">0</property>
-                    <object class="wxStaticBoxSizer" expanded="1">
+                    <object class="wxStaticBoxSizer" expanded="0">
                         <property name="id">wxID_ANY</property>
                         <property name="label">Stats</property>
                         <property name="minimum_size"></property>
@@ -188,11 +188,11 @@
                                 <event name="OnUpdateUI"></event>
                             </object>
                         </object>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL|wxEXPAND</property>
                             <property name="proportion">1</property>
-                            <object class="wxStaticText" expanded="1">
+                            <object class="wxStaticText" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -271,11 +271,11 @@
                                 <event name="OnUpdateUI"></event>
                             </object>
                         </object>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL</property>
                             <property name="proportion">1</property>
-                            <object class="wxStaticText" expanded="1">
+                            <object class="wxStaticText" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -356,7 +356,7 @@
                         </object>
                     </object>
                 </object>
-                <object class="sizeritem" expanded="1">
+                <object class="sizeritem" expanded="0">
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">1</property>
@@ -448,7 +448,7 @@
                                 <event name="OnListDeleteItem"></event>
                                 <event name="OnListEndLabelEdit"></event>
                                 <event name="OnListInsertItem"></event>
-                                <event name="OnListItemActivated"></event>
+                                <event name="OnListItemActivated">onDoubleClick</event>
                                 <event name="OnListItemDeselected"></event>
                                 <event name="OnListItemFocused"></event>
                                 <event name="OnListItemMiddleClick"></event>

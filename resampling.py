@@ -1,6 +1,8 @@
 import sys
+import os
 import random
 import numpy
+import matplotlib.pyplot as plt
 import transit_tools
 
 def sum_reads(reads, N1, N2):
@@ -58,7 +60,7 @@ def fdr_corrected_pval(X):
 
 
 
-def runResampling(ctrlString, expString, annotationPath, sampleSize, output, wx, pubmsg, doNormalize=True):
+def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, output, wx, pubmsg, doNormalize=True):
 
     ctrlList = ctrlString.split(",")
     expList = expString.split(",")
@@ -71,8 +73,10 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, output, wx,
     hash = transit_tools.get_pos_hash(annotationPath)
     (data, position) = transit_tools.get_data(ctrlList + expList)
     factors = transit_tools.get_norm_factors(data)
-    norm_data = factors * data
-    orf2reads,orf2pos = transit_tools.get_gene_reads(hash, norm_data, position, orf2info, orf_list=orf2info.keys())
+
+    if doNormalize:
+        data = factors * data
+    orf2reads,orf2pos = transit_tools.get_gene_reads(hash, data, position, orf2info, orf_list=orf2info.keys())
     
     S = sampleSize
 
@@ -104,6 +108,7 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, output, wx,
         count_ltail = 0
         count_2tail = 0
    
+        delta_sum_list = numpy.zeros(S)
         for s in range(S):
             #Reads
             #if len(reads) == 0: breaki
@@ -116,6 +121,7 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, output, wx,
             #all_perm=np.array((list(itertools.permutations([0,1,2,3]))))
             #(reads.flatten()[(all_perm[numpy.random.randint(0,len(all_perm),size=100)]+3*np.arange(100)[...,numpy.newaxis]).flatten()]).reshape(reads.shape)
 
+            delta_sum_list[s] = sumB-sumA
             if sumB-sumA >= sum2-sum1: count_utail+=1
             if sumB-sumA <= sum2-sum1: count_ltail+=1
             if abs(sumB-sumA) >= abs(sum2-sum1): count_2tail+=1
@@ -128,6 +134,22 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, output, wx,
         orf2out[orf] = (orf, orf2info[orf][0], orf2info[orf][1], len(fullreads), len(reads), sum1, sum2, sum2-sum1, pval_2tail)
         pval.append(pval_2tail)
     
+
+        # the histogram of the data
+        if histPath:
+            n, bins, patches = plt.hist(delta_sum_list, normed=1, facecolor='c', alpha=0.75, bins=100)
+            plt.xlabel('Delta Sum')
+            plt.ylabel('Probability')
+            plt.title('Histogram of Delta Sum')
+            plt.axvline(sum2-sum1, color='r', linestyle='dashed', linewidth=3)
+            plt.grid(True)
+            #plt.show()
+            genePath = os.path.join(histPath, orf +".png")
+            print genePath
+            plt.savefig(genePath)
+            plt.clf()
+
+
         count += 1
         wx.CallAfter(pubmsg, "resampling", msg="Running Resampling Method... %2.0f%%" % (100.0*(count+1)/(G)))
 

@@ -77,7 +77,7 @@ def get_gene_reads(hash, data, position, orf2info, orf_list=set()):
     (K,N) = data.shape
 
     orf2reads = dict([(orf,[]) for orf in orf_list])
-    orf2pos = dict([(orf,[]) for ord in orf_list])
+    orf2pos = dict([(orf,[]) for orf in orf_list])
 
     for i in range(N):
         coord = position[i]

@@ -2,6 +2,21 @@ import wx
 import wx.xrc
 import wx.lib.mixins.listctrl as listmix
 import ntpath
+import subprocess
+import os
+import sys
+
+
+def fetch_name(filepath):
+    return os.path.splitext(ntpath.basename(filepath))[0]
+
+
+def ShowError(MSG=""):
+        dial = wx.MessageDialog(None, MSG, 'Error',
+            wx.OK | wx.ICON_ERROR)
+        dial.ShowModal()
+
+
 
 ########################################################################
 class SortableListCtrl(wx.ListCtrl):
@@ -11,6 +26,30 @@ class SortableListCtrl(wx.ListCtrl):
                  size=wx.DefaultSize, style=0):
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
 
+
+
+
+
+
+class ImgFrame(wx.Frame):
+
+    def __init__(self, parent, filePath):
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = "%s" % (filePath), pos = wx.DefaultPosition, size = wx.Size( 1019,740 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+        bSizer1 = wx.BoxSizer( wx.VERTICAL )
+       
+        self.m_bitmap1 = wx.StaticBitmap( self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer1.Add( self.m_bitmap1, 1, wx.ALL|wx.EXPAND, 5 )
+        self.SetSizer( bSizer1 )
+        self.Layout()
+        self.Centre( wx.BOTH )
+
+        img = wx.Image(filePath, wx.BITMAP_TYPE_ANY)
+        self.m_bitmap1.SetBitmap(wx.BitmapFromImage(img))
+        
+        self.Refresh()
+        self.Fit()
+ 
 
 
 
@@ -46,6 +85,7 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
 
         bSizer3 = wx.BoxSizer( wx.VERTICAL )
 
+        self.filePath = filePath
 
         self.index_data = 0
         if method == "Gumbel":
@@ -86,6 +126,7 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
                 self.populateResampling(filePath)
                 listmix.ColumnSorterMixin.__init__(self, len(self.itemDataMap[0]))
                 self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
+                self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnDoubleClick_resampling, self.list_data)
             except Exception as e:
                 print "Error", e
 
@@ -162,10 +203,10 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
             self.list_data.SetItemData(self.index_data, self.index_data)
             self.itemDataMap[self.index_data] = tmp[1:]
             self.index_data+=1
-            if tmp[8] == "E": ess+=1
-            if tmp[8] == "U": unc+=1
-            if tmp[8] == "NE": non+=1
-            if tmp[8] == "S": short+=1
+            if tmp[-1] == "E": ess+=1
+            if tmp[-1] == "U": unc+=1
+            if tmp[-1] == "NE": non+=1
+            if tmp[-1] == "S": short+=1
 
         text = """Results:
     Essentials: %s
@@ -309,7 +350,8 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
         self.headerText1.SetLabel(text)
         text2 = """         Notes:
             TAs Hit:   Number of TA sites with insertions combined across conditions.
-            Avg Reads: Average Read count, normalized with the Non-Zero Mean normalization method. """
+            Avg Reads: Average Read count, normalized with the Non-Zero Mean normalization method.
+            [Double click on a gene to display it's histogram, if available]"""
         self.headerText2.SetLabel(text2)
 
 
@@ -324,3 +366,16 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
         #print "column clicked event:", event
         event.Skip()
  
+    ########
+    def OnDoubleClick_resampling(self, event):
+
+        
+        filepath = os.path.join(ntpath.dirname(self.filePath), fetch_name(self.filePath))
+        filename = os.path.join(filepath, event.GetText()+".png")
+        if os.path.exists(filename):
+            imgWindow = ImgFrame(None, filename)
+            imgWindow.Show()
+        else:
+            ShowError(MSG="Error Displaying File. Histogram image not found. Make sure results were obtained with the histogram option turned on.")
+            print "Error Displaying File. Histogram image does not exist."
+        

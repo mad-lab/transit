@@ -278,7 +278,7 @@ def get_orf_data(reads, min_read, mid=False, prot="", bad=set()):
 
 
 
-def get_orf_data_transit(orf2reads, orf2pos, orf2info, min_read, bad=set()):
+def get_orf_data_transit(orf2reads, orf2pos, orf2info, min_read, repchoice="Sum", bad=set()):
     G = len([orf for orf in orf2reads if orf not in bad]); g = 0;
     K = numpy.zeros(G); N = numpy.zeros(G); R = numpy.zeros(G);
     S = numpy.zeros(G); T = numpy.zeros(G); ORF = [];
@@ -287,8 +287,15 @@ def get_orf_data_transit(orf2reads, orf2pos, orf2info, min_read, bad=set()):
         if orf in bad: continue
         run = [0,0,0]; maxrun = [0,0,0]; k = 0; n = 0; s = 0;
         start = orf2info.get(orf,[0,0,0,0])[2]; end = orf2info.get(orf,[0,0,0,0])[3]; length = end-start
-        for i,rd in enumerate(orf2reads[orf]):
+        for i,rdrow in enumerate(orf2reads[orf]):
             pos = orf2pos[orf][i]
+            if repchoice == "Sum":
+                rd = numpy.sum(rdrow)
+            elif repchoice == "Mean":
+                rd = numpy.mean(rdrow)
+            else:
+                rd = rdrow[0]
+ 
             n += 1
             if rd < min_read:
                 run[0] +=1
@@ -304,7 +311,8 @@ def get_orf_data_transit(orf2reads, orf2pos, orf2info, min_read, bad=set()):
         else: s = 0
         t = 0
         if orf2reads[orf]:
-            t = max(orf2reads[orf])[0] + 2  - min(orf2reads[orf])[0]
+            t = max(orf2pos[orf]) + 2  - min(orf2pos[orf])
+
         K[g]=k; N[g]=n; R[g]=r; S[g]=s; T[g]=t;
         ORF.append(orf)
         g+=1

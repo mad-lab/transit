@@ -17,7 +17,7 @@ import wx.xrc
 class MainFrame ( wx.Frame ):
 	
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"TRANSIT", pos = wx.DefaultPosition, size = wx.Size( 1092,852 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"TRANSIT", pos = wx.DefaultPosition, size = wx.Size( 1150,852 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
@@ -42,14 +42,14 @@ class MainFrame ( wx.Frame ):
 		
 		bSizer4.Add( orgSizer, 0, wx.EXPAND, 5 )
 		
-		ctrlSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Control Samples" ), wx.VERTICAL )
+		ctrlSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Control Samples to IGV" ), wx.VERTICAL )
 		
 		bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
 		
 		self.ctrlRemoveButton = wx.Button( self, wx.ID_ANY, u"Remove", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer2.Add( self.ctrlRemoveButton, 0, wx.ALL, 5 )
 		
-		self.ctrlView = wx.Button( self, wx.ID_ANY, u"View Reads", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.ctrlView = wx.Button( self, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer2.Add( self.ctrlView, 0, wx.ALL, 5 )
 		
 		self.ctrlScatter = wx.Button( self, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -74,7 +74,7 @@ class MainFrame ( wx.Frame ):
 		self.expSizer = wx.Button( self, wx.ID_ANY, u"Remove", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer3.Add( self.expSizer, 0, wx.ALL, 5 )
 		
-		self.expView = wx.Button( self, wx.ID_ANY, u"View Reads", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.expView = wx.Button( self, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer3.Add( self.expView, 0, wx.ALL, 5 )
 		
 		self.expScatter = wx.Button( self, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -119,7 +119,7 @@ class MainFrame ( wx.Frame ):
 		
 		methodSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Methods" ), wx.VERTICAL )
 		
-		methodSizer.SetMinSize( wx.Size( 200,-1 ) ) 
+		methodSizer.SetMinSize( wx.Size( 250,-1 ) ) 
 		self.m_staticText13 = wx.StaticText( self, wx.ID_ANY, u"Tn-Seq\nAnalysis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText13.Wrap( -1 )
 		self.m_staticText13.SetFont( wx.Font( 20, 74, 90, 92, False, "Sans" ) )
@@ -129,6 +129,12 @@ class MainFrame ( wx.Frame ):
 		
 		self.logoImg = wx.StaticBitmap( self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
 		methodSizer.Add( self.logoImg, 0, wx.ALL, 5 )
+		
+		self.versionLabel = wx.StaticText( self, wx.ID_ANY, u"v0.97", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
+		self.versionLabel.Wrap( -1 )
+		self.versionLabel.SetFont( wx.Font( 10, 74, 90, 92, False, "Sans" ) )
+		
+		methodSizer.Add( self.versionLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		methodChoiceChoices = [ u"[Choose Method]", u"Gumbel", u"HMM", u"Resampling" ]
 		self.methodChoice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, methodChoiceChoices, 0 )
@@ -140,19 +146,19 @@ class MainFrame ( wx.Frame ):
 		methodSizer.Add( self.progress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		self.mainInstructions = wx.StaticText( self, wx.ID_ANY, u"Instructions:\n\n1. Choose the annotation file (\"prot table\") that corresponds to the datasets to be analyzed.\n2. Add the desired Control and Experimental datasets.\n3. (Optional) If you wish to visualize their read counts, select the desired datasets and click on the \"View\" button.\n4. Select the desired analysis method from the dropdown menu on the top-right of the window, and follow its instructions.\n", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.mainInstructions.Wrap( 200 )
+		self.mainInstructions.Wrap( 250 )
 		methodSizer.Add( self.mainInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		self.m_panel1 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		self.m_panel1.SetMinSize( wx.Size( 100,10 ) )
+		self.m_panel1.SetMinSize( wx.Size( 50,1 ) )
 		
 		methodSizer.Add( self.m_panel1, 0, wx.ALL, 5 )
 		
 		gumbelSection = wx.BoxSizer( wx.VERTICAL )
 		
-		self.gumbelInstructions = wx.StaticText( self, wx.ID_ANY, u"Instructions:\n\n1. Make sure you have one control sample selected.\n2. Modify the options as desired.\n3. Click on the \"Run Gumbel\" button.\n4. Choose a name for the output file.\n5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.\n\n\n", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.gumbelInstructions.Wrap( 200 )
-		gumbelSection.Add( self.gumbelInstructions, 0, wx.ALL, 5 )
+		self.gumbelInstructions = wx.StaticText( self, wx.ID_ANY, u"Instructions:\n\n1. Make sure you have one control sample selected.\n2. Modify the options as desired.\n3. Click on the \"Run Gumbel\" button.\n4. Choose a name for the output file.\n5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.gumbelInstructions.Wrap( 250 )
+		gumbelSection.Add( self.gumbelInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		self.gumbelLabel = wx.StaticText( self, wx.ID_ANY, u"Gumbel Options", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.gumbelLabel.Wrap( -1 )
@@ -180,6 +186,10 @@ class MainFrame ( wx.Frame ):
 		self.gumbelReadLabel.Wrap( -1 )
 		bSizer16.Add( self.gumbelReadLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
+		self.gumbelRepLabel = wx.StaticText( self, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.gumbelRepLabel.Wrap( -1 )
+		bSizer16.Add( self.gumbelRepLabel, 1, wx.ALL, 5 )
+		
 		
 		bSizer15.Add( bSizer16, 1, wx.EXPAND, 5 )
 		
@@ -199,6 +209,11 @@ class MainFrame ( wx.Frame ):
 		self.gumbelReadChoice.SetSelection( 0 )
 		bSizer17.Add( self.gumbelReadChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 		
+		gumbelRepChoiceChoices = [ u"Sum", u"Mean" ]
+		self.gumbelRepChoice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, gumbelRepChoiceChoices, 0 )
+		self.gumbelRepChoice.SetSelection( 0 )
+		bSizer17.Add( self.gumbelRepChoice, 0, wx.ALL|wx.EXPAND, 5 )
+		
 		
 		bSizer15.Add( bSizer17, 1, wx.EXPAND, 5 )
 		
@@ -212,29 +227,58 @@ class MainFrame ( wx.Frame ):
 		gumbelSection.Add( self.gumbelButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		
-		methodSizer.Add( gumbelSection, 0, 0, 5 )
+		methodSizer.Add( gumbelSection, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		hmmSection = wx.BoxSizer( wx.VERTICAL )
 		
 		self.hmmInstructions = wx.StaticText( self, wx.ID_ANY, u"Instructions:\n\n1. Make sure you have one control sample selected.\n2. Click on the \"Run HMM\" button.\n3. Choose a name for the output file. Note: An additional file with the gene-level analysis will also be created.\n4. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.\n\n\n", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.hmmInstructions.Wrap( 200 )
-		hmmSection.Add( self.hmmInstructions, 0, wx.ALL, 5 )
+		self.hmmInstructions.Wrap( 250 )
+		hmmSection.Add( self.hmmInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		self.hmmLabel = wx.StaticText( self, wx.ID_ANY, u"HMM Options", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.hmmLabel.Wrap( -1 )
 		hmmSection.Add( self.hmmLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
+		bSizer143 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer152 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer162 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.hmmRepLabel = wx.StaticText( self, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.hmmRepLabel.Wrap( -1 )
+		bSizer162.Add( self.hmmRepLabel, 1, wx.ALL, 5 )
+		
+		
+		bSizer152.Add( bSizer162, 1, wx.EXPAND, 5 )
+		
+		bSizer172 = wx.BoxSizer( wx.VERTICAL )
+		
+		hmmRepChoiceChoices = [ u"Sum", u"Mean" ]
+		self.hmmRepChoice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, hmmRepChoiceChoices, 0 )
+		self.hmmRepChoice.SetSelection( 0 )
+		bSizer172.Add( self.hmmRepChoice, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		
+		bSizer152.Add( bSizer172, 1, wx.EXPAND, 5 )
+		
+		
+		bSizer143.Add( bSizer152, 1, wx.EXPAND, 5 )
+		
+		
+		hmmSection.Add( bSizer143, 1, wx.EXPAND, 5 )
+		
 		self.hmmButton = wx.Button( self, wx.ID_ANY, u"Run HMM", wx.DefaultPosition, wx.DefaultSize, 0 )
 		hmmSection.Add( self.hmmButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		
-		methodSizer.Add( hmmSection, 0, 0, 5 )
+		methodSizer.Add( hmmSection, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		resamplingSection = wx.BoxSizer( wx.VERTICAL )
 		
 		self.resamplingInstructions = wx.StaticText( self, wx.ID_ANY, u"Instructions:\n\n1. Make sure you have selected at least one control sample and one experimental sample.\n2. Click on the \"Run Resampling\" button.\n3. Choose a name for the output file.\n4. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.\n\n\n", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.resamplingInstructions.Wrap( 200 )
-		resamplingSection.Add( self.resamplingInstructions, 0, wx.ALL, 5 )
+		self.resamplingInstructions.Wrap( 250 )
+		resamplingSection.Add( self.resamplingInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		self.resamplingLabel = wx.StaticText( self, wx.ID_ANY, u"Resampling Options", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.resamplingLabel.Wrap( -1 )
@@ -267,11 +311,15 @@ class MainFrame ( wx.Frame ):
 		
 		resamplingSection.Add( bSizer142, 1, wx.EXPAND, 5 )
 		
+		self.resamplingHistCheck = wx.CheckBox( self, wx.ID_ANY, u"Output Histograms", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.resamplingHistCheck.SetValue(True) 
+		resamplingSection.Add( self.resamplingHistCheck, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
 		self.resamplingButton = wx.Button( self, wx.ID_ANY, u"Run Resampling", wx.DefaultPosition, wx.DefaultSize, 0 )
 		resamplingSection.Add( self.resamplingButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		
-		methodSizer.Add( resamplingSection, 0, 0, 5 )
+		methodSizer.Add( resamplingSection, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		self.progressLabel = wx.StaticText( self, wx.ID_ANY, u"Progress", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.progressLabel.Wrap( -1 )
@@ -295,6 +343,42 @@ class MainFrame ( wx.Frame ):
 		
 		self.SetSizer( bSizer1 )
 		self.Layout()
+		self.m_menubar1 = wx.MenuBar( 0 )
+		self.fileMenuItem = wx.Menu()
+		self.exportMenuItem = wx.Menu()
+		self.ctrlExportMenuItem = wx.Menu()
+		self.ctrlExportIGVMenuItem = wx.MenuItem( self.ctrlExportMenuItem, wx.ID_ANY, u"to IGV", wx.EmptyString, wx.ITEM_NORMAL )
+		self.ctrlExportMenuItem.AppendItem( self.ctrlExportIGVMenuItem )
+		
+		self.exportMenuItem.AppendSubMenu( self.ctrlExportMenuItem, u"Control Samples" )
+		
+		self.expExportMenuItem = wx.Menu()
+		self.expExportIGVMenuItem = wx.MenuItem( self.expExportMenuItem, wx.ID_ANY, u"to IGV", wx.EmptyString, wx.ITEM_NORMAL )
+		self.expExportMenuItem.AppendItem( self.expExportIGVMenuItem )
+		
+		self.exportMenuItem.AppendSubMenu( self.expExportMenuItem, u"Experimental Samples" )
+		
+		self.allExportMenuItem = wx.Menu()
+		self.allExportIGVMenuItem = wx.MenuItem( self.allExportMenuItem, wx.ID_ANY, u"to IGV", wx.EmptyString, wx.ITEM_NORMAL )
+		self.allExportMenuItem.AppendItem( self.allExportIGVMenuItem )
+		
+		self.exportMenuItem.AppendSubMenu( self.allExportMenuItem, u"All Samples" )
+		
+		self.annotationExportMenuItem = wx.Menu()
+		self.annotationExportGFFMenuItem = wx.MenuItem( self.annotationExportMenuItem, wx.ID_ANY, u"to GFF3", wx.EmptyString, wx.ITEM_NORMAL )
+		self.annotationExportMenuItem.AppendItem( self.annotationExportGFFMenuItem )
+		
+		self.exportMenuItem.AppendSubMenu( self.annotationExportMenuItem, u"Annotation" )
+		
+		self.fileMenuItem.AppendSubMenu( self.exportMenuItem, u"Export" )
+		
+		self.fileExitMenuItem = wx.MenuItem( self.fileMenuItem, wx.ID_ANY, u"Exit", wx.EmptyString, wx.ITEM_NORMAL )
+		self.fileMenuItem.AppendItem( self.fileExitMenuItem )
+		
+		self.m_menubar1.Append( self.fileMenuItem, u"File" ) 
+		
+		self.SetMenuBar( self.m_menubar1 )
+		
 		self.statusBar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
 		
 		self.Centre( wx.BOTH )
@@ -316,6 +400,11 @@ class MainFrame ( wx.Frame ):
 		self.gumbelButton.Bind( wx.EVT_BUTTON, self.RunGumbelFunc )
 		self.hmmButton.Bind( wx.EVT_BUTTON, self.RunHMMFunc )
 		self.resamplingButton.Bind( wx.EVT_BUTTON, self.RunResamplingFunc )
+		self.Bind( wx.EVT_MENU, self.ctrlToIGV, id = self.ctrlExportIGVMenuItem.GetId() )
+		self.Bind( wx.EVT_MENU, self.expToIGV, id = self.expExportIGVMenuItem.GetId() )
+		self.Bind( wx.EVT_MENU, self.allToIGV, id = self.allExportIGVMenuItem.GetId() )
+		self.Bind( wx.EVT_MENU, self.annotationToGFF3, id = self.annotationExportGFFMenuItem.GetId() )
+		self.Bind( wx.EVT_MENU, self.Exit, id = self.fileExitMenuItem.GetId() )
 	
 	def __del__( self ):
 		pass
@@ -364,6 +453,21 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def RunResamplingFunc( self, event ):
+		event.Skip()
+	
+	def ctrlToIGV( self, event ):
+		event.Skip()
+	
+	def expToIGV( self, event ):
+		event.Skip()
+	
+	def allToIGV( self, event ):
+		event.Skip()
+	
+	def annotationToGFF3( self, event ):
+		event.Skip()
+	
+	def Exit( self, event ):
 		event.Skip()
 	
 
