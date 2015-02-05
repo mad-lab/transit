@@ -13,11 +13,10 @@ from wx.lib.pubsub import pub
 
 # trash view stuff
 import trash
-#import the newly created GUI file
 import transit_gui
-
+import transit_tools
 import fileDisplay
-#
+
 import gumbelMH
 import hmm_geom
 import hmm_tools
@@ -28,39 +27,7 @@ import imgTRANSIT
 
 wildcard = "Python source (*.py)|*.py|" \
             "All files (*.*)|*.*"
-
-
 DEBUG = True
-
-def get_wig_stats(path):
-    data = []
-    for line in open(path):
-        if line.startswith("#"): continue
-        if line.startswith("variable"): continue
-        if line.startswith("location"): continue
-        tmp = line.split()
-        pos = int(tmp[0])
-        rd = int(tmp[1])
-        data.append(rd)
-    return (sum(data), sum([1 for rd in data if rd > 0])/float(len(data)),  sum(data)/float(len(data)), max(data)) 
-
-
-def get_reads(path):
-    data = []
-    for line in open(path):
-        if line.startswith("#"): continue
-        if line.startswith("variable"): continue
-        if line.startswith("location"): continue
-        tmp = line.split()
-        rd = int(tmp[1])
-        data.append(rd)
-    return data
-
-def fetch_name(filepath):
-    return os.path.splitext(ntpath.basename(filepath))[0]
-
-
-
 
 class GumbelThread(threading.Thread):
     """Gumbel Worker Thread Class."""
@@ -467,12 +434,25 @@ class TnSeekFrame(transit_gui.MainFrame):
         return selected_exp
 
 
+    def ctrlAll(self, col=5):
+        all_ctrl = []
+        for i in range(self.list_ctrl.GetItemCount()):
+            all_ctrl.append(self.list_ctrl.GetItem(i, col).GetText())
+        return all_ctrl
+
+
+    def expAll(self, col=5):
+        all_exp = []
+        for i in range(self.list_exp.GetItemCount()):
+            all_exp.append(self.list_exp.GetItem(i, col).GetText())
+        return all_exp
+
 
     def loadCtrlFileFunc(self, event):
         try:
             fullpath = self.ctrlFilePicker.GetPath()
             name = ntpath.basename(fullpath)
-            totalrd,density,meanrd,maxrd = get_wig_stats(fullpath)
+            totalrd,density,meanrd,maxrd = transit_tools.get_wig_stats(fullpath)
             self.list_ctrl.InsertStringItem(self.index_ctrl, name)
             self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%d" % (totalrd))
             self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
@@ -492,7 +472,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         try:
             fullpath = self.expFilePicker.GetPath()
             name = ntpath.basename(fullpath)
-            totalrd,density,meanrd,maxrd = get_wig_stats(fullpath)
+            totalrd,density,meanrd,maxrd = transit_tools.get_wig_stats(fullpath)
             self.list_exp.InsertStringItem(self.index_exp, name)
             self.list_exp.SetStringItem(self.index_exp, 1, "%d" % (totalrd))
             self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
@@ -585,23 +565,21 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def scatterFunc(self, event):
         """ """
-        annotationpath = self.annotationFilePicker.GetPath()
+        #annotationpath = self.annotationFilePicker.GetPath()
         datasets = self.ctrlSelected() + self.expSelected()
-        if len(datasets) == 2 and annotationpath:
+        if len(datasets) == 2:
             if DEBUG:
                 print "Showing scatter plot for:", ", ".join(datasets)
-            X = get_reads(datasets[0])
-            Y = get_reads(datasets[1])
-       
+            (data, position) = transit_tools.get_data(datasets)
+            X = data[0,:]
+            Y = data[1,:]
+
             plt.plot(X,Y, "bo")
             plt.title('Scatter plot - Reads at TA sites')
-            plt.xlabel(fetch_name(datasets[0]))
-            plt.ylabel(fetch_name(datasets[1])) 
+            plt.xlabel(transit_tools.fetch_name(datasets[0]))
+            plt.ylabel(transit_tools.fetch_name(datasets[1])) 
             plt.show()
-
-        elif not annotationpath:
-            self.ShowError(MSG="No annotation file selected.")
-        elif len(datasets) != 2:
+        else:
             self.ShowError(MSG="Please make sure only two datasets are selected (across control and experimental datasets).")
 
 
@@ -799,18 +777,11 @@ class TnSeekFrame(transit_gui.MainFrame):
             fulldata.append(temp)
                 
 
-        # raw2igv.pl Wed Oct  8 22:57:31 2014
-        # G30450_raw_templates.txt G30451_raw_templates.txt G30452_raw_templates.txt G30453_raw_templates.txt
-        #Chromosome  Start   End Feature counts_G30450_raw_templates.txt counts_G30451_raw_templates.txt counts_G30452_raw_templates.txt counts_G30453_raw_templates.txt TAs
-        #NC_018143.1 60  61  TA60    0   0   0   0   1
-        #NC_018143.1 72  73  TA72    0   0   0   0   1
-        #NC_018143.1 102 103 TA102   0   0   0   0   1
-        #NC_018143.1 188 189 TA188   0   0   0   0   1
         output = open(path, "w")
         output.write("#Converted to IGV with TRANSIT.\n")
         output.write("#Files:\n#%s\n" % "\n#".join(dataset_list))
-        output.write("#Chromosome\tStart\tEnd\tFeature\t%s\tTAs\n" % ("\t".join([fetch_name(D) for D in dataset_list])))
-        chrom = fetch_name(annotationPath)
+        output.write("#Chromosome\tStart\tEnd\tFeature\t%s\tTAs\n" % ("\t".join([transit_tools.fetch_name(D) for D in dataset_list])))
+        chrom = transit_tools.fetch_name(annotationPath)
 
         for i,pos in enumerate(position):
             output.write("%s\t%s\t%s\tTA%s\t%s\t1\n" % (chrom, position[i], position[i]+1, position[i], "\t".join(["%s" % fulldata[j][i] for j in range(len(fulldata))])))
@@ -888,9 +859,82 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
         
-        
-        
-        
+    def annotationToGFF3(self, event):
+        annotationpath = self.annotationFilePicker.GetPath()
+        defaultFile = transit_tools.fetch_name(annotationpath) + ".gff3"
+        defaultDir = os.path.dirname(os.path.realpath(__file__))
+        outputPath = self.SaveFile(defaultDir, defaultFile)
+
+        ORGANISM = transit_tools.fetch_name(annotationpath)
+        if not annotationpath:
+            self.ShowError("Error: No annotation file selected.")
+
+        elif outputPath:
+            print "Converting annotation file to GFF3"
+            year = time.localtime().tm_year
+            month = time.localtime().tm_mon
+            day = time.localtime().tm_mday
+            
+            output = open(outputPath, "w")
+            output.write("##gff-version 3\n")
+            output.write("##converted to IGV with TRANSIT.\n")
+            output.write("##date %d-%d-%d\n" % (year, month, day))
+            output.write("##Type DNA %s\n" % ORGANISM)
+            
+            for line in open(annotationpath):
+                if line.startswith("#"): continue
+                tmp = line.strip().split("\t")
+                desc = tmp[0]; start = int(tmp[1]); end = int(tmp[2]); strand = tmp[3];
+                length = tmp[4]; name = tmp[7]; orf = tmp[8];
+                ID = name
+                desc.replace("%", "%25").replace(";", "%3B").replace("=","%3D").replace(",","%2C")
+                output.write("%s\tRefSeq\tgene\t%d\t%d\t.\t%s\t.\tID=%s;Name=%s;Alias=%s;locus_tag=%s;desc=%s\n" % (ORGANISM, start, end, strand, orf,ID, orf, orf,desc))
+                
+            output.close() 
+            print "Finished conversion"        
+       
+
+
+
+    def annotationToPTT(self, event):
+ 
+        annotationpath = self.annotationFilePicker.GetPath()
+        defaultFile = transit_tools.fetch_name(annotationpath) + ".ptt.table"
+        defaultDir = os.path.dirname(os.path.realpath(__file__))
+
+        datasets = self.ctrlSelected() + self.expSelected()
+        if not annotationpath:
+            self.ShowError("Error: No annotation file selected.")
+        elif not datasets:
+            self.ShowError("Error: Please add a .wig dataset, to determine TA sites.")            
+        else:
+            
+            outputPath = self.SaveFile(defaultDir, defaultFile)
+            if not outputPath: return
+            print "Converting annotation file to PTT"
+            (data, position) = transit_tools.get_data(datasets)
+            orf2info = transit_tools.get_gene_info(annotationpath)
+            hash = transit_tools.get_pos_hash(annotationpath)
+            (orf2reads, orf2pos) = transit_tools.get_gene_reads(hash, data, position, orf2info)
+
+            output = open(outputPath, "w")
+            output.write("geneID\tstart\tend\tstrand\tTA coordinates\n")
+            for line in open(annotationpath):
+                if line.startswith("#"): continue
+                tmp = line.strip().split("\t")
+                orf = tmp[8]
+                name = tmp[7]
+                desc = tmp[0]
+                start = int(tmp[1])
+                end = int(tmp[2])
+                strand = tmp[3]
+                ta_str = "no TAs"
+                if orf in orf2pos: ta_str = "\t".join([str(int(ta)) for ta in orf2pos[orf]])
+                output.write("%s\t%s\t%s\t%s\t%s\n" % (orf, start, end, strand, ta_str))
+            output.close()
+            print "Finished conversion"
+                
+                
     def RunGumbelFunc(self, event):
 
         #Get options
@@ -918,7 +962,6 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         #Get Default file name
         defaultFile = "gumbel_%s_s%d_b%d_t%d.dat" % (".".join(name.split(".")[:-1]), samples, burnin, trim)
-
 
 
         #Get Default directory
@@ -1019,7 +1062,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         #Check if user wants individual histograms
         #/pacific/home/mdejesus/transitresampling_results.dat
         if self.resamplingHistCheck.GetValue():
-            histPath = os.path.join(ntpath.dirname(outputPath), fetch_name(outputPath))
+            histPath = os.path.join(ntpath.dirname(outputPath), transit_tools.fetch_name(outputPath))
             if not os.path.isdir(histPath):
                 os.makedirs(histPath)
         else:
@@ -1048,7 +1091,6 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
 if __name__ == "__main__":
-    #mandatory in wx, create an app, False stands for not deteriction stdin/stdout
     #refer manual for details
     app = wx.App(False)
      

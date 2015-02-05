@@ -1869,7 +1869,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">v0.97</property>
+                                <property name="label">v1.00</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
                                 <property name="maximum_size"></property>
@@ -4917,7 +4917,7 @@
                     </object>
                 </object>
             </object>
-            <object class="wxMenuBar" expanded="0">
+            <object class="wxMenuBar" expanded="1">
                 <property name="bg"></property>
                 <property name="context_help"></property>
                 <property name="context_menu">1</property>
@@ -4962,11 +4962,11 @@
                 <event name="OnSetFocus"></event>
                 <event name="OnSize"></event>
                 <event name="OnUpdateUI"></event>
-                <object class="wxMenu" expanded="0">
+                <object class="wxMenu" expanded="1">
                     <property name="label">File</property>
                     <property name="name">fileMenuItem</property>
                     <property name="permission">protected</property>
-                    <object class="submenu" expanded="0">
+                    <object class="submenu" expanded="1">
                         <property name="bitmap"></property>
                         <property name="label">Export</property>
                         <property name="name">exportMenuItem</property>
@@ -5034,7 +5034,7 @@
                                 <event name="OnUpdateUI"></event>
                             </object>
                         </object>
-                        <object class="submenu" expanded="0">
+                        <object class="submenu" expanded="1">
                             <property name="bitmap"></property>
                             <property name="label">Annotation</property>
                             <property name="name">annotationExportMenuItem</property>
@@ -5052,6 +5052,21 @@
                                 <property name="shortcut"></property>
                                 <property name="unchecked_bitmap"></property>
                                 <event name="OnMenuSelection">annotationToGFF3</event>
+                                <event name="OnUpdateUI"></event>
+                            </object>
+                            <object class="wxMenuItem" expanded="1">
+                                <property name="bitmap"></property>
+                                <property name="checked">0</property>
+                                <property name="enabled">1</property>
+                                <property name="help"></property>
+                                <property name="id">wxID_ANY</property>
+                                <property name="kind">wxITEM_NORMAL</property>
+                                <property name="label">to PTT</property>
+                                <property name="name">annotationExportPTTMenuItem</property>
+                                <property name="permission">none</property>
+                                <property name="shortcut"></property>
+                                <property name="unchecked_bitmap"></property>
+                                <event name="OnMenuSelection">annotationToPTT</event>
                                 <event name="OnUpdateUI"></event>
                             </object>
                         </object>

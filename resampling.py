@@ -130,7 +130,7 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, d
 
             if doAdaptive:
                 if s == 100 or s == 1000 or s == 10000:
-                    if count_2tail >=5:
+                    if count_2tail >=10:
                         s_performed = s+1
                         break
             

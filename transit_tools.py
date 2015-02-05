@@ -1,7 +1,49 @@
 import sys
+import os
 import math
+import ntpath
 import numpy
 
+
+def aton(aa):
+    return(((aa-1)*3)+1)
+
+def parseCoords(strand, aa_start, aa_end, start, end):
+    if strand == "+":
+        return((aton(aa_start) + start,  aton(aa_end) + start))
+    # Coordinates are Reversed... to match with Trash FILE TA coordinates
+    if strand == "-":
+        return((end - aton(aa_end), end - aton(aa_start)))
+
+
+
+def get_wig_stats(path):
+    data = []
+    for line in open(path):
+        if line.startswith("#"): continue
+        if line.startswith("variable"): continue
+        if line.startswith("location"): continue
+        tmp = line.split()
+        pos = int(tmp[0])
+        rd = int(tmp[1])
+        data.append(rd)
+    return (sum(data), sum([1 for rd in data if rd > 0])/float(len(data)),  sum(data)/float(len(data)), max(data))
+
+
+def get_reads(path):
+    data = []
+    for line in open(path):
+        if line.startswith("#"): continue
+        if line.startswith("variable"): continue
+        if line.startswith("location"): continue
+        tmp = line.split()
+        rd = int(tmp[1])
+        data.append(rd)
+    return data
+
+
+def fetch_name(filepath):
+    return os.path.splitext(ntpath.basename(filepath))[0]
 
 
 

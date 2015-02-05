@@ -2,10 +2,16 @@ import wx
 import view_trash
 from math import *
 import os
-import Image
-import ImageDraw
-import ImageFont
 import platform
+
+try:
+    import Image
+    import ImageDraw
+    import ImageFont
+except ImportError:
+    import PIL.Image as Image
+    import PIL.ImageDraw as ImageDraw
+    import PIL.ImageFont as ImageFont
 
 
 def normalize(X, old_min, old_max, new_min, new_max):
@@ -144,8 +150,8 @@ def draw_genes(draw, GENES, orf2data, start, end, start_x, start_y, width, heigh
         norm_end = normalize(min(orf2data[gene][1], end), start, end, new_min, new_max)
 
 
-        if True:
-            print gene, name, gene_start, gene_end, strand #, norm_start, norm_end
+        #if True:
+        #    print gene, name, gene_start, gene_end, strand #, norm_start, norm_end
 
         if strand == "-":
     

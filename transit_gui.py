@@ -130,7 +130,7 @@ class MainFrame ( wx.Frame ):
 		self.logoImg = wx.StaticBitmap( self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
 		methodSizer.Add( self.logoImg, 0, wx.ALL, 5 )
 		
-		self.versionLabel = wx.StaticText( self, wx.ID_ANY, u"v0.97", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
+		self.versionLabel = wx.StaticText( self, wx.ID_ANY, u"v1.00", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
 		self.versionLabel.Wrap( -1 )
 		self.versionLabel.SetFont( wx.Font( 10, 74, 90, 92, False, "Sans" ) )
 		
@@ -371,6 +371,9 @@ class MainFrame ( wx.Frame ):
 		self.annotationExportGFFMenuItem = wx.MenuItem( self.annotationExportMenuItem, wx.ID_ANY, u"to GFF3", wx.EmptyString, wx.ITEM_NORMAL )
 		self.annotationExportMenuItem.AppendItem( self.annotationExportGFFMenuItem )
 		
+		self.annotationExportPTTMenuItem = wx.MenuItem( self.annotationExportMenuItem, wx.ID_ANY, u"to PTT", wx.EmptyString, wx.ITEM_NORMAL )
+		self.annotationExportMenuItem.AppendItem( self.annotationExportPTTMenuItem )
+		
 		self.exportMenuItem.AppendSubMenu( self.annotationExportMenuItem, u"Annotation" )
 		
 		self.fileMenuItem.AppendSubMenu( self.exportMenuItem, u"Export" )
@@ -407,6 +410,7 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.expToIGV, id = self.expExportIGVMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.allToIGV, id = self.allExportIGVMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.annotationToGFF3, id = self.annotationExportGFFMenuItem.GetId() )
+		self.Bind( wx.EVT_MENU, self.annotationToPTT, id = self.annotationExportPTTMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.Exit, id = self.fileExitMenuItem.GetId() )
 	
 	def __del__( self ):
@@ -468,6 +472,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def annotationToGFF3( self, event ):
+		event.Skip()
+	
+	def annotationToPTT( self, event ):
 		event.Skip()
 	
 	def Exit( self, event ):

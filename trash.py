@@ -4,9 +4,15 @@ import draw_trash
 from math import *
 import os
 import ntpath
-import Image
-import ImageDraw
-import ImageFont
+
+try:
+    import Image
+    import ImageDraw
+    import ImageFont
+except ImportError:
+    import PIL.Image as Image
+    import PIL.ImageDraw as ImageDraw
+    import PIL.ImageFont as ImageFont
 
 
 
@@ -48,8 +54,6 @@ class TrashFrame(view_trash.MainFrame):
         self.start = 1
         self.end = 10000
 
-
-
         self.orf2data = draw_trash.read_prot_table(annotation)
         self.hash = draw_trash.hash_prot_genes(annotation)
 
@@ -65,11 +69,8 @@ class TrashFrame(view_trash.MainFrame):
             self.name2id[name].append(orfid)
 
         self.lowerid2id = dict([(x.lower(), x) for x in self.orf2data.keys()])
-      
-
 
         self.labels = [fetch_name(d) for d in dataset_list]
-
 
         self.fulldata = []
         for dataset in dataset_list:
@@ -80,7 +81,7 @@ class TrashFrame(view_trash.MainFrame):
                 if line.startswith("location"): continue
                 tmp = line.split()
                 pos = int(tmp[0])
-                read = int(tmp[1])
+                read = float(tmp[1])
                 temp.append((pos,read))
             self.fulldata.append(temp)
 
@@ -103,18 +104,18 @@ class TrashFrame(view_trash.MainFrame):
                 self.fulldata_norm[j].append((x[0], x[1]*factors[j]))
 
 
-
-
         #initialize parent class
         view_trash.MainFrame.__init__(self,parent)
-
 
         if gene:
             self.searchText.SetValue(gene)
             self.searchFunc(gene)
 
-        self.updateFunc(parent)   
+        self.updateFunc(parent)
         self.Fit()
+
+
+
  
     def updateFunc(self,event):
         try:
