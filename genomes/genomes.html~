@@ -1,0 +1,36 @@
+<HTML>
+
+<table border=1>
+
+<TD><A HREF="H37Rv.fna">H37Rv.fna</A>
+<TD><A HREF="H37Rv.prot_table">H37Rv.prot_table</A>
+<TD>Stewart Cole's reference <I>M. tuberculosis</I> sequence (NC_000962.2)<TR>
+
+
+<TD><A HREF="H37RvMA2.fna">H37RvMA2.fna</A>
+<TD><A HREF="H37RvMA2.prot_table">H37RvMA2.prot_table</A>
+<TD>Sequenced strain from the Sassetti lab, with
+          sequencing errors fixed (Ioerger et al. 2010;
+          http://www.ncbi.nlm.nih.gov/pubmed/20472797).<TR>
+
+<TD><A HREF="H37RvBD.fna">H37RvBD.fna</A>
+<TD><A HREF="H37RvBD.prot_table">H37RvBD.prot_table</A>
+<TD>Sequenced by the Broad Institute (NC_018143.2)<TR>
+
+<TD><A HREF="BCG.fna">BCG.fna</A>
+<TD><A HREF="BCG.prot_table">BCG.prot_table</A>
+<TD>Reference genome for <I>M. bovis</I> BCG (NC_008769.1)<TR>
+
+<TD><A HREF="mc2_155_tamu.fna">mc2_155_tamu.fna</A>
+<TD><A HREF="mc2_155_tamu.prot_table">mc2_155_tamu.prot_table</A>
+<TD><I>M. smegmattis</> mc2 155 sequenced at TAMU<TR>
+
+<TD><TD>
+<A HREF="H37RvBD_mod3.prot_table">H37RvBD_mod3.prot_table</A>
+<TD>Annotation adjusted for an indel in the version of
+          the H37Rv Broad sequence used in the Sassetti lab (for
+          analyzing old datasets that have been previously processed
+          using this sequence).
+<TR>
+
+</table>
