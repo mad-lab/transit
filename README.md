@@ -11,6 +11,16 @@ For genomes and annotation files to use with TRANSIT, see
 
 File directory:
 
+
+* /  - Contains the TRANSIT python files
+
+    - transit.py - main transit code.
+    - transit_tools.py - global tools for reading files/data. Should be used by all methods.
+    - gumbelMH.py - Gumbel method code.
+    - MH_tools.py - tools used by gumbel method
+
+
+
 * doc/ - Contains documentation (html format) for TRANSIT and TPP tools.
     - transit.html
 
@@ -24,3 +34,7 @@ File directory:
 
     - Also contains represenative output files for the different
       analyses offered by TRANSIT.
+
+* genomes/
+
+    - Contains .fna and .prot_table files for 4 Mycobacterial organisms.
