@@ -1,12 +1,8 @@
-This archive contains the files necessary to run the TRANSIT analysis
-tool. The directory hierarchy is explained below.
+This repository contains the code and files necessary to run TRANIST and TPP. For more information see:
 
+http://saclab.tamu.edu/essentiality/transit/transit.html
 
-For information and installation instructions, see
-the manual by opening doc/transit.html in your browser.
-
-For genomes and annotation files to use with TRANSIT, see
- http://saclab.tamu.edu/essentiality/transit/genomes/genomes.html
+http://saclab.tamu.edu/tom/TPP.html
 
 
 File directory:
