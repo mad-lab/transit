@@ -16,7 +16,7 @@ File directory:
 
     - TPP.html
 
-data/
+* data/
 
     - Contains 5 input files (.wig format) from Griffin et al. 2011
       paper (http://www.ncbi.nlm.nih.gov/pubmed/21980284) on H37Rv
@@ -24,4 +24,3 @@ data/
 
     - Also contains represenative output files for the different
       analyses offered by TRANSIT.
-
