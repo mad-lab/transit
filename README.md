@@ -12,8 +12,9 @@ For genomes and annotation files to use with TRANSIT, see
 File directory:
 
 * doc/ - Contains documentation (html format) for TRANSIT and TPP tools.
-**transit.html
-**TPP.html
+    - transit.html
+
+    - TPP.html
 
 data/
 
@@ -24,4 +25,3 @@ data/
     - Also contains represenative output files for the different
       analyses offered by TRANSIT.
 
-~                                             
