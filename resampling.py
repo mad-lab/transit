@@ -60,7 +60,7 @@ def fdr_corrected_pval(X):
 
 
 
-def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, output, wx, pubmsg, doNormalize=True):
+def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output, wx, pubmsg, doNormalize=True):
 
     arguments = locals().items()
     ctrlList = ctrlString.split(",")
@@ -77,7 +77,7 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, d
 
     if doNormalize:
         data = factors * data
-    orf2reads,orf2pos = transit_tools.get_gene_reads(hash, data, position, orf2info, orf_list=orf2info.keys())
+    orf2reads,orf2pos = transit_tools.get_gene_reads(hash, data, position, orf2info, ignoreCodon=ignoreCodon, ignoreNTerm=ignoreNTerm, ignoreCTerm=ignoreCTerm, orf_list=orf2info.keys())
     
     S = sampleSize
 

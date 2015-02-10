@@ -115,7 +115,7 @@ def normalize_data(data):
     return factors * data
     
 
-def get_gene_reads(hash, data, position, orf2info, orf_list=set()):
+def get_gene_reads(hash, data, position, orf2info, ignoreCodon=True, ignoreNTerm=5, ignoreCTerm=95, orf_list=set()):
     (K,N) = data.shape
 
     orf2reads = dict([(orf,[]) for orf in orf_list])
@@ -133,12 +133,25 @@ def get_gene_reads(hash, data, position, orf2info, orf_list=set()):
 
             if strand == "+":
                 #Ignore TAs at stop codon
-                if coord > end-3:
+                if ignoreCodon and coord > end-3:
                     continue
+
             else:
                 #ignore TAs at stop codon
-                if coord < start + 3:
+                if ignoreCodon and coord < start + 3:
                     continue
+
+
+            #Ignore TAs at beginning 5%
+            if (coord-start)/float(end-start) <= (ignoreNTerm/100.0):
+                #print "Ignoring", coord, "from gene", gene, "with", (coord-start)/float(end-start), "perc and NTerm", ignoreNTerm/100.0
+                continue
+            
+            #Ignore TAs at end 5%
+            if (coord-start)/float(end-start) >= ((100-ignoreCTerm)/100.0):
+                #print "Ignoring", coord, "from gene", gene, "with", (coord-start)/float(end-start), "perc and Cterm", ignoreCTerm/100.0
+                continue
+
 
             orf2reads[gene].append(data[:,i])
             orf2pos[gene].append(position[i])

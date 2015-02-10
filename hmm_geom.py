@@ -3,6 +3,7 @@ import numpy
 import scipy.stats
 import math
 import hmm_tools
+import transit_tools
 
 # Ignores Divide by Zero warnings caused by calculations in log-space.
 numpy.seterr(divide='ignore')
@@ -21,8 +22,10 @@ def runHMM(wigPathList, protPath, repchoice, output, wx, pubmsg):
     # Get Gene Annotation from Prot Table File
     hash = {}; rv2name = {}
     if protPath:
-        hash = hmm_tools.hash_prot_genes(protPath)
-        rv2name = hmm_tools.get_prot_names(protPath)
+        #hash = hmm_tools.hash_prot_genes(protPath)
+        #rv2name = hmm_tools.get_prot_names(protPath)
+        hash = transit_tools.get_pos_hash(protPath)
+        rv2name = transit_tools.get_gene_name(protPath)
 
 
     """
@@ -125,6 +128,16 @@ def runHMM(wigPathList, protPath, repchoice, output, wx, pubmsg):
     (Q_opt, delta, Q) = hmm_tools.viterbi(A, B, PI, O, wx, pubmsg, scaling=True, discrete=False)
     ###############
 
+
+    ##################
+    ### ALPHA PASS ###
+    (log_Prob_Obs, alpha, C) = hmm_tools.forward_procedure(numpy.exp(A), B, PI, O, wx, pubmsg)
+
+    #################
+    ### BETA PASS ###
+    beta = hmm_tools.backward_procedure(numpy.exp(A), B, PI, O, wx, pubmsg, C)
+
+
     
 
     wx.CallAfter(pubmsg, "hmm", msg="Creating HMM Sites output...")
@@ -152,6 +165,7 @@ def runHMM(wigPathList, protPath, repchoice, output, wx, pubmsg):
     output.write("#    %s\n" % "   ".join(["%s: %2.2f%%" % (label[i], state2count[i]*100.0/total) for i in range(N)]))
 
 
+    """"
     T = len(O)
     last_orf = ""
     if not protPath: output.write("\n")
@@ -164,6 +178,19 @@ def runHMM(wigPathList, protPath, repchoice, output, wx, pubmsg):
     
         output.write( "%-7d %-7d %-4s  %-4s\n" % (pos_list[t], O[t]-1, "   ".join( "%-9.2e" % B[i](O[t]) for i in range(N)), label.get(int(Q_opt[t]), "Unknown State")))
 
+    """
+
+    T = len(O)
+    last_orf = ""
+    for t in xrange(T):
+        s_lab = label.get(int(Q_opt[t]), "Unknown State")
+        gamma_t = (alpha[:,t] * beta[:,t])/numpy.sum(alpha[:,t] * beta[:,t])
+        genes_at_site = hash.get(pos_list[t], [""])
+        genestr = ""
+        if not (len(genes_at_site) == 1 and not genes_at_site[0]):
+            genestr = ",".join(["%s_(%s)" % (g,rv2name.get(g, "-")) for g in genes_at_site])
+
+        output.write("%s\t%s\t%s\t%s\t%s\n" % (int(pos_list[t]), int(O[t])-1, "\t".join(["%-9.2e" % g for g in gamma_t]), s_lab, genestr))
 
 
     output.close()

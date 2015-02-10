@@ -33,7 +33,7 @@ class GumbelThread(threading.Thread):
     """Gumbel Worker Thread Class."""
  
     #----------------------------------------------------------------------
-    def __init__(self, readPath, annotationPath, min_read, samples, burnin, trim, repchoice, output):
+    def __init__(self, readPath, annotationPath, min_read, samples, burnin, trim, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output):
         """Init Worker Thread Class."""
 
         #parameters
@@ -44,6 +44,9 @@ class GumbelThread(threading.Thread):
         self.burnin = burnin
         self.trim = trim
         self.repchoice = repchoice
+        self.ignoreCodon = ignoreCodon
+        self.ignoreNTerm = ignoreNTerm
+        self.ignoreCTerm = ignoreCTerm
         self.output = output
 
         #thread
@@ -57,7 +60,7 @@ class GumbelThread(threading.Thread):
         # This is the code executing in the new thread.
 
         print "Running Gumbel Method for %d Samples" % (self.samples)
-        gumbelMH.runGumbel(self.readPath, self.annotationPath, self.min_read, self.samples, self.burnin, self.trim, self.repchoice, self.output, wx, pub.sendMessage)
+        gumbelMH.runGumbel(self.readPath, self.annotationPath, self.min_read, self.samples, self.burnin, self.trim, self.repchoice, self.ignoreCodon, self.ignoreNTerm, self.ignoreCTerm, self.output, wx, pub.sendMessage)
         print "Finished Gumbel Method"
         if not self.output.name.startswith("<"):
             data = {"path":self.output.name, "type":"Gumbel", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
@@ -73,13 +76,16 @@ class HMMThread(threading.Thread):
     """HMM Worker Thread Class."""
 
     #----------------------------------------------------------------------
-    def __init__(self, readPathList, annotationPath, repchoice, output):
+    def __init__(self, readPathList, annotationPath, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output):
         """Init Worker Thread Class."""
 
         #parameters
         self.readPathList = readPathList
         self.annotationPath = annotationPath
         self.repchoice = repchoice
+        self.ignoreCodon = ignoreCodon
+        self.ignoreNTerm = ignoreNTerm
+        self.ignoreCTerm = ignoreCTerm
         self.output = output
 
         #thread
@@ -93,9 +99,9 @@ class HMMThread(threading.Thread):
         # This is the code executing in the new thread.
 
         print "Running HMM Method"
-
         hmm_geom.runHMM(self.readPathList, self.annotationPath, self.repchoice, self.output, wx, pub.sendMessage)
         print "Finished HMM Method"
+
         if not self.output.name.startswith("<"):
             data = {"path":self.output.name, "type":"HMM - Sites", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
             
@@ -104,7 +110,7 @@ class HMMThread(threading.Thread):
             
             wx.CallAfter(pub.sendMessage, "hmm", msg="Creating HMM Sites output...")
             genes_path = ".".join(self.output.name.split(".")[:-1]) + "_genes." + self.output.name.split(".")[-1]
-            hmm_tools.post_process_genes(self.output.name, self.annotationPath, output=open(genes_path,"w"))
+            hmm_tools.post_process_genes(self.output.name, self.annotationPath, self.ignoreCodon, self.ignoreNTerm, self.ignoreCTerm, output=open(genes_path,"w"))
             data["path"] =  genes_path
             data["type"] = "HMM - Genes"
             print "Adding File:", genes_path
@@ -118,7 +124,7 @@ class ResamplingThread(threading.Thread):
     """HMM Worker Thread Class."""
 
     #----------------------------------------------------------------------
-    def __init__(self, ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, output):
+    def __init__(self, ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output):
         """Init Worker Thread Class."""
 
         #parameters
@@ -128,6 +134,9 @@ class ResamplingThread(threading.Thread):
         self.sampleSize = sampleSize
         self.histPath = histPath
         self.doAdaptive = doAdaptive
+        self.ignoreCodon = ignoreCodon
+        self.ignoreNTerm = ignoreNTerm
+        self.ignoreCTerm = ignoreCTerm
         self.output = output
 
         #thread
@@ -141,7 +150,7 @@ class ResamplingThread(threading.Thread):
         # This is the code executing in the new thread.
 
         print "Running Resampling Method"
-        resampling.runResampling(self.ctrlString, self.expString, self.annotationPath, self.sampleSize, self.histPath, self.doAdaptive, self.output, wx, pub.sendMessage)
+        resampling.runResampling(self.ctrlString, self.expString, self.annotationPath, self.sampleSize, self.histPath, self.doAdaptive, self.ignoreCodon, self.ignoreNTerm, self.ignoreCTerm, self.output, wx, pub.sendMessage)
         print "Finished Resampling Method"
         if not self.output.name.startswith("<"):
             data = {"path":self.output.name, "type":"Resampling", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
@@ -206,6 +215,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         self.progress.Hide()
         self.progressLabel.Hide()
+        self.HideGlobalOptions()
         self.HideGumbelOptions()
         self.HideHMMOptions()
         self.HideResamplingOptions()
@@ -285,9 +295,26 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
     def HideAllOptions(self):
+
+        self.HideGlobalOptions()
         self.HideGumbelOptions()
         self.HideHMMOptions()
         self.HideResamplingOptions()
+
+    def HideGlobalOptions(self):
+        self.globalLabel.Hide()
+        self.globalNTerminusLabel.Hide()
+        self.globalCTerminusLabel.Hide()
+        self.globalNTerminusText.Hide()
+        self.globalCTerminusText.Hide()
+
+
+    def ShowGlobalOptions(self):
+        self.globalLabel.Show()
+        self.globalNTerminusLabel.Show()
+        self.globalCTerminusLabel.Show()
+        self.globalNTerminusText.Show()
+        self.globalCTerminusText.Show()
 
 
     def HideGumbelOptions(self):
@@ -347,6 +374,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.resamplingInstructions.Hide()
         self.resamplingSampleLabel.Hide()
         self.resamplingSampleText.Hide()
+        self.resamplingNormLabel.Hide()
+        self.resamplingNormChoice.Hide()
         self.resamplingHistCheck.Hide()
         self.resamplingAdaptiveCheck.Hide()
         self.resamplingButton.Hide()
@@ -358,6 +387,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.resamplingInstructions.Show()
         self.resamplingSampleLabel.Show()
         self.resamplingSampleText.Show()
+        self.resamplingNormLabel.Show()
+        self.resamplingNormChoice.Show()
         self.resamplingHistCheck.Show()
         self.resamplingAdaptiveCheck.Show()
         self.resamplingButton.Show()
@@ -515,7 +546,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         if datasets and annotationpath:
             if DEBUG:
-                print "Visualizing counts for:", ", ".join(datasets)
+                print "Visualizing counts for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
             viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
             viewWindow.Show()
         elif not datasets:
@@ -534,7 +565,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         datasets = self.ctrlSelected()
         if datasets and annotationpath:
             if DEBUG:
-                print "Visualizing counts for:", ", ".join(datasets)
+                print "Visualizing counts for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
             viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
             viewWindow.Show()
         elif not datasets:
@@ -551,7 +582,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         datasets = self.expSelected()
         if datasets and annotationpath:
             if DEBUG:
-                print "Visualizing counts for:", ", ".join(datasets)
+                print "Visualizing counts for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
             viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
             viewWindow.Show()
         elif not datasets:
@@ -569,7 +600,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         datasets = self.ctrlSelected() + self.expSelected()
         if len(datasets) == 2:
             if DEBUG:
-                print "Showing scatter plot for:", ", ".join(datasets)
+                print "Showing scatter plot for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
             (data, position) = transit_tools.get_data(datasets)
             X = data[0,:]
             Y = data[1,:]
@@ -599,16 +630,19 @@ class TnSeekFrame(transit_gui.MainFrame):
             self.mainInstructions.Show()
         elif X == 1:
             self.mainInstructions.Hide()
+            self.ShowGlobalOptions()
             self.ShowGumbelOptions()
             self.HideHMMOptions()
             self.HideResamplingOptions()
         elif X == 2:
             self.mainInstructions.Hide()
+            self.ShowGlobalOptions()
             self.ShowHMMOptions()
             self.HideGumbelOptions()
             self.HideResamplingOptions()
         elif X == 3:
             self.mainInstructions.Hide()
+            self.ShowGlobalOptions()
             self.ShowResamplingOptions()
             self.HideGumbelOptions()
             self.HideHMMOptions()
@@ -791,69 +825,69 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
     def ctrlToIGV(self, event):
-        annotationpath = self.annotationFilePicker.GetPath()
+        annotationPath = self.annotationFilePicker.GetPath()
         datasets = self.ctrlSelected()
         defaultFile = "read_counts.igv"
         #Get Default directory
         defaultDir = os.path.dirname(os.path.realpath(__file__))
         outputPath = self.SaveFile(defaultDir, defaultFile)
-        if datasets and annotationpath and outputPath:
+        if datasets and annotationPath and outputPath:
             if DEBUG:
-                print "Converting the following datasets to IGV format:", ", ".join(datasets)
-                self.convertToIGV(datasets, annotationpath, outputPath)
+                print "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+                self.convertToIGV(datasets, annotationPath, outputPath)
                 print "Finished conversion"
         elif not datasets:
             if DEBUG:
-                print "No datasets selected to convert!"
+                self.ShowError("Error: No datasets selected to convert!")
         elif not annotationPath:
             if DEBUG:
-                print "No annotation file selected"
+                self.ShowError("Error: No annotation file selected.")
         else:
             pass
         
         
 
     def expToIGV(self, event):
-        annotationpath = self.annotationFilePicker.GetPath()
+        annotationPath = self.annotationFilePicker.GetPath()
         datasets = self.expSelected()
         defaultFile = "read_counts.igv"
         #Get Default directory
         defaultDir = os.path.dirname(os.path.realpath(__file__))
         outputPath = self.SaveFile(defaultDir, defaultFile)
-        if datasets and annotationpath and outputPath:
+        if datasets and annotationPath and outputPath:
             if DEBUG:
-                print "Converting the following datasets to IGV format:", ", ".join(datasets)
-                self.convertToIGV(datasets, annotationpath, outputPath)
+                print "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+                self.convertToIGV(datasets, annotationPath, outputPath)
                 print "Finished conversion"
         elif not datasets:
             if DEBUG:
-                print "No datasets selected to convert!"
+                self.ShowError("Error: No datasets selected to convert!")
         elif not annotationPath:
             if DEBUG:
-                print "No annotation file selected"
+                self.ShowError("Error: No annotation file selected.")
         else:
             pass
        
  
 
     def allToIGV(self, event):
-        annotationpath = self.annotationFilePicker.GetPath()
+        annotationPath = self.annotationFilePicker.GetPath()
         datasets = self.ctrlSelected() + self.expSelected()
         defaultFile = "read_counts.igv"
         #Get Default directory
         defaultDir = os.path.dirname(os.path.realpath(__file__))
         outputPath = self.SaveFile(defaultDir, defaultFile)
-        if datasets and annotationpath and outputPath:
+        if datasets and annotationPath and outputPath:
             if DEBUG:
-                print "Converting the following datasets to IGV format:", ", ".join(datasets)
-                self.convertToIGV(datasets, annotationpath, outputPath)
+                print "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+                self.convertToIGV(datasets, annotationPath, outputPath)
                 print "Finished conversion"
         elif not datasets:
             if DEBUG:
-                print "No datasets selected to convert!"
+                self.ShowError("Error: No datasets selected to convert!")
         elif not annotationPath:
             if DEBUG:
-                print "No annotation file selected"
+                self.ShowError("Error: No annotation file selected.")
         else:
             pass
 
@@ -960,6 +994,15 @@ class TnSeekFrame(transit_gui.MainFrame):
         trim = int(self.gumbelTrimText.GetValue())
         repchoice = self.gumbelRepChoice.GetString(self.gumbelRepChoice.GetCurrentSelection())
 
+
+        #ignoreCodon = self.ignoreCodonMenuItem.IsChecked()
+        #ignoreNC = self.ignoreNCMenuItem.IsChecked()
+
+        ignoreCodon = True
+        ignoreNTerm = float(self.globalNTerminusText.GetValue())
+        ignoreCTerm = float(self.globalCTerminusText.GetValue())
+
+
         #Get Default file name
         defaultFile = "gumbel_%s_s%d_b%d_t%d.dat" % (".".join(name.split(".")[:-1]), samples, burnin, trim)
 
@@ -980,7 +1023,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.gumbelProgress.SetRange(samples+burnin)
 
         self.gumbelButton.Disable()
-        X = GumbelThread(readPathList, annotationPath, min_read, samples, burnin, trim, repchoice, output)
+        X = GumbelThread(readPathList, annotationPath, min_read, samples, burnin, trim, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
 
 
 
@@ -1001,6 +1044,14 @@ class TnSeekFrame(transit_gui.MainFrame):
         name = ntpath.basename(readPath)
         repchoice = self.hmmRepChoice.GetString(self.hmmRepChoice.GetCurrentSelection())
 
+        #ignoreCodon = self.ignoreCodonMenuItem.IsChecked()
+        #ignoreNC = self.ignoreNCMenuItem.IsChecked()
+
+        ignoreCodon = True
+        ignoreNTerm = float(self.globalNTerminusText.GetValue())
+        ignoreCTerm = float(self.globalCTerminusText.GetValue())
+
+
         #Get Default file name
         defaultFile = "hmm_%s_sites.dat" % (".".join(name.split(".")[:-1]))
 
@@ -1018,10 +1069,10 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.statusBar.SetStatusText("Running HMM Method")
         self.hmm_count = 0
         T = len([1 for line in open(readPath).readlines() if not line.startswith("#")])
-        self.hmmProgress.SetRange(T+T-1+1)
+        self.hmmProgress.SetRange(T*4 +1)
 
         self.hmmButton.Disable()
-        HMMThread(readPathList, annotationPath, repchoice, output)
+        HMMThread(readPathList, annotationPath, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
 
 
     def RunResamplingFunc(self, event):
@@ -1069,6 +1120,14 @@ class TnSeekFrame(transit_gui.MainFrame):
             histPath = ""
 
         doAdaptive= self.resamplingAdaptiveCheck.GetValue()
+        
+        #ignoreCodon = self.ignoreCodonMenuItem.IsChecked()
+        #ignoreNC = self.ignoreNCMenuItem.IsChecked()
+
+        ignoreCodon = True
+        ignoreNTerm = float(self.globalNTerminusText.GetValue())
+        ignoreCTerm = float(self.globalCTerminusText.GetValue())
+
 
         ctrlString = ",".join(selected_ctrl)
         expString = ",".join(selected_exp)
@@ -1087,7 +1146,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.resamplingProgress.SetRange(T+1)
 
         self.resamplingButton.Disable()
-        ResamplingThread(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, output)
+        ResamplingThread(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
 
 
 if __name__ == "__main__":

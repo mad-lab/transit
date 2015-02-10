@@ -42,7 +42,7 @@ class MainFrame ( wx.Frame ):
 		
 		bSizer4.Add( orgSizer, 0, wx.EXPAND, 5 )
 		
-		ctrlSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Control Samples to IGV" ), wx.VERTICAL )
+		ctrlSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Control Samples" ), wx.VERTICAL )
 		
 		bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
 		
@@ -50,9 +50,13 @@ class MainFrame ( wx.Frame ):
 		bSizer2.Add( self.ctrlRemoveButton, 0, wx.ALL, 5 )
 		
 		self.ctrlView = wx.Button( self, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.ctrlView.Hide()
+		
 		bSizer2.Add( self.ctrlView, 0, wx.ALL, 5 )
 		
 		self.ctrlScatter = wx.Button( self, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.ctrlScatter.Hide()
+		
 		bSizer2.Add( self.ctrlScatter, 0, wx.ALL, 5 )
 		
 		self.ctrlFilePicker = wx.FilePickerCtrl( self, wx.ID_ANY, wx.EmptyString, u"Select a file", u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
@@ -75,9 +79,13 @@ class MainFrame ( wx.Frame ):
 		bSizer3.Add( self.expSizer, 0, wx.ALL, 5 )
 		
 		self.expView = wx.Button( self, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.expView.Hide()
+		
 		bSizer3.Add( self.expView, 0, wx.ALL, 5 )
 		
 		self.expScatter = wx.Button( self, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.expScatter.Hide()
+		
 		bSizer3.Add( self.expScatter, 0, wx.ALL, 5 )
 		
 		self.expFilePicker = wx.FilePickerCtrl( self, wx.ID_ANY, wx.EmptyString, u"Select a .wig file", u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
@@ -92,7 +100,7 @@ class MainFrame ( wx.Frame ):
 		
 		bSizer4.Add( expSizer, 1, wx.EXPAND, 5 )
 		
-		filesSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Files" ), wx.VERTICAL )
+		filesSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Results Files" ), wx.VERTICAL )
 		
 		bSizer141 = wx.BoxSizer( wx.HORIZONTAL )
 		
@@ -154,11 +162,57 @@ class MainFrame ( wx.Frame ):
 		
 		methodSizer.Add( self.m_panel1, 0, wx.ALL, 5 )
 		
-		gumbelSection = wx.BoxSizer( wx.VERTICAL )
+		self.resamplingInstructions = wx.StaticText( self, wx.ID_ANY, u"Instructions:\n\n1. Make sure you have selected at least one control sample and one experimental sample.\n2. Click on the \"Run Resampling\" button.\n3. Choose a name for the output file.\n4. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.\n", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.resamplingInstructions.Wrap( 250 )
+		methodSizer.Add( self.resamplingInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.hmmInstructions = wx.StaticText( self, wx.ID_ANY, u"Instructions:\n\n1. Make sure you have one control sample selected.\n2. Click on the \"Run HMM\" button.\n3. Choose a name for the output file. Note: An additional file with the gene-level analysis will also be created.\n4. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.\n\n\n", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.hmmInstructions.Wrap( 250 )
+		methodSizer.Add( self.hmmInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		self.gumbelInstructions = wx.StaticText( self, wx.ID_ANY, u"Instructions:\n\n1. Make sure you have one control sample selected.\n2. Modify the options as desired.\n3. Click on the \"Run Gumbel\" button.\n4. Choose a name for the output file.\n5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.gumbelInstructions.Wrap( 250 )
-		gumbelSection.Add( self.gumbelInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		methodSizer.Add( self.gumbelInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.globalLabel = wx.StaticText( self, wx.ID_ANY, u"Global Options", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.globalLabel.Wrap( -1 )
+		methodSizer.Add( self.globalLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		bSizer1431 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer1521 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer1621 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.globalNTerminusLabel = wx.StaticText( self, wx.ID_ANY, u"Ignore N-Terminus %:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.globalNTerminusLabel.Wrap( -1 )
+		bSizer1621.Add( self.globalNTerminusLabel, 0, wx.ALL, 5 )
+		
+		self.globalCTerminusLabel = wx.StaticText( self, wx.ID_ANY, u"Ignore C-Terminus %:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.globalCTerminusLabel.Wrap( -1 )
+		bSizer1621.Add( self.globalCTerminusLabel, 0, wx.ALL, 5 )
+		
+		
+		bSizer1521.Add( bSizer1621, 1, wx.EXPAND, 5 )
+		
+		bSizer1721 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.globalNTerminusText = wx.TextCtrl( self, wx.ID_ANY, u"5", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer1721.Add( self.globalNTerminusText, 0, wx.ALL, 5 )
+		
+		self.globalCTerminusText = wx.TextCtrl( self, wx.ID_ANY, u"5", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer1721.Add( self.globalCTerminusText, 0, wx.ALL, 5 )
+		
+		
+		bSizer1521.Add( bSizer1721, 1, wx.EXPAND, 5 )
+		
+		
+		bSizer1431.Add( bSizer1521, 1, wx.EXPAND, 5 )
+		
+		
+		methodSizer.Add( bSizer1431, 0, 0, 5 )
+		
+		gumbelSection = wx.BoxSizer( wx.VERTICAL )
 		
 		self.gumbelLabel = wx.StaticText( self, wx.ID_ANY, u"Gumbel Options", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.gumbelLabel.Wrap( -1 )
@@ -231,10 +285,6 @@ class MainFrame ( wx.Frame ):
 		
 		hmmSection = wx.BoxSizer( wx.VERTICAL )
 		
-		self.hmmInstructions = wx.StaticText( self, wx.ID_ANY, u"Instructions:\n\n1. Make sure you have one control sample selected.\n2. Click on the \"Run HMM\" button.\n3. Choose a name for the output file. Note: An additional file with the gene-level analysis will also be created.\n4. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.\n\n\n", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.hmmInstructions.Wrap( 250 )
-		hmmSection.Add( self.hmmInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-		
 		self.hmmLabel = wx.StaticText( self, wx.ID_ANY, u"HMM Options", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.hmmLabel.Wrap( -1 )
 		hmmSection.Add( self.hmmLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
@@ -276,10 +326,6 @@ class MainFrame ( wx.Frame ):
 		
 		resamplingSection = wx.BoxSizer( wx.VERTICAL )
 		
-		self.resamplingInstructions = wx.StaticText( self, wx.ID_ANY, u"Instructions:\n\n1. Make sure you have selected at least one control sample and one experimental sample.\n2. Click on the \"Run Resampling\" button.\n3. Choose a name for the output file.\n4. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.\n\n\n", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.resamplingInstructions.Wrap( 250 )
-		resamplingSection.Add( self.resamplingInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-		
 		self.resamplingLabel = wx.StaticText( self, wx.ID_ANY, u"Resampling Options", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.resamplingLabel.Wrap( -1 )
 		resamplingSection.Add( self.resamplingLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
@@ -294,6 +340,10 @@ class MainFrame ( wx.Frame ):
 		self.resamplingSampleLabel.Wrap( -1 )
 		bSizer161.Add( self.resamplingSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
+		self.resamplingNormLabel = wx.StaticText( self, wx.ID_ANY, u"Normalization", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.resamplingNormLabel.Wrap( -1 )
+		bSizer161.Add( self.resamplingNormLabel, 0, wx.ALL, 5 )
+		
 		
 		bSizer151.Add( bSizer161, 1, wx.EXPAND, 5 )
 		
@@ -301,6 +351,11 @@ class MainFrame ( wx.Frame ):
 		
 		self.resamplingSampleText = wx.TextCtrl( self, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer171.Add( self.resamplingSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+		
+		resamplingNormChoiceChoices = [ u"NZ Mean" ]
+		self.resamplingNormChoice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, resamplingNormChoiceChoices, 0 )
+		self.resamplingNormChoice.SetSelection( 0 )
+		bSizer171.Add( self.resamplingNormChoice, 0, wx.ALL, 5 )
 		
 		
 		bSizer151.Add( bSizer171, 1, wx.EXPAND, 5 )
@@ -383,6 +438,15 @@ class MainFrame ( wx.Frame ):
 		
 		self.m_menubar1.Append( self.fileMenuItem, u"File" ) 
 		
+		self.viewMenuItem = wx.Menu()
+		self.scatterMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"Scatter Plot", wx.EmptyString, wx.ITEM_NORMAL )
+		self.viewMenuItem.AppendItem( self.scatterMenuItem )
+		
+		self.trackMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"Track View", wx.EmptyString, wx.ITEM_NORMAL )
+		self.viewMenuItem.AppendItem( self.trackMenuItem )
+		
+		self.m_menubar1.Append( self.viewMenuItem, u"View" ) 
+		
 		self.SetMenuBar( self.m_menubar1 )
 		
 		self.statusBar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
@@ -412,6 +476,8 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.annotationToGFF3, id = self.annotationExportGFFMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.annotationToPTT, id = self.annotationExportPTTMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.Exit, id = self.fileExitMenuItem.GetId() )
+		self.Bind( wx.EVT_MENU, self.scatterFunc, id = self.scatterMenuItem.GetId() )
+		self.Bind( wx.EVT_MENU, self.allViewFunc, id = self.trackMenuItem.GetId() )
 	
 	def __del__( self ):
 		pass
@@ -479,5 +545,7 @@ class MainFrame ( wx.Frame ):
 	
 	def Exit( self, event ):
 		event.Skip()
+	
+	
 	
 

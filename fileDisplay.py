@@ -248,11 +248,12 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
     def initializeHMMSites(self):
         self.list_data.InsertColumn(0, 'Location', width=100)
         self.list_data.InsertColumn(1, 'Read', width=85)
-        self.list_data.InsertColumn(2, 'Likelihood - ES', width=120)
-        self.list_data.InsertColumn(3, 'Likelihood - GD', width=120)
-        self.list_data.InsertColumn(4, 'Likelihood - NE', width=120)
-        self.list_data.InsertColumn(5, 'Likelihood - GA', width=120)
+        self.list_data.InsertColumn(2, 'Probability - ES', width=120)
+        self.list_data.InsertColumn(3, 'Probability - GD', width=120)
+        self.list_data.InsertColumn(4, 'Probability - NE', width=120)
+        self.list_data.InsertColumn(5, 'Probability - GA', width=120)
         self.list_data.InsertColumn(6, 'State', width=75)
+        self.list_data.InsertColumn(7, 'Gene', width=75)
 
 
     def populateHMMSites(self, path):
@@ -260,12 +261,14 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
         T = 0; es=0; gd=0; ne=0; ga=0;
         for line in open(path, "r"):
             if line.startswith("#"): continue
-            tmp = line.strip().split()
-            if not tmp: continue
+            tmp = line.split("\t")
+            tmp[-1] = tmp[-1].strip()
+
+            #print tmp
+
+            if not tmp: continue        
 
             n = len(tmp)
-            if n < 3:
-                tmp + [""] * (7-n)
             self.list_data.InsertStringItem(self.index_data, tmp[0])
             for i,cell in enumerate(tmp[1:]):
                 self.list_data.SetStringItem(self.index_data, i+1, cell)
