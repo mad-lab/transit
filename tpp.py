@@ -60,7 +60,8 @@ class MyForm(wx.Frame):
         sizer0 = wx.BoxSizer(wx.HORIZONTAL)
         label0 = wx.StaticText(panel, label='BWA executable:',size=(350,-1))
         sizer0.Add(label0,0,0,0)
-        self.picker0 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="path to BWA",size=(400,30),path=os.path.abspath(vars.bwa))
+        print vars.bwa
+        self.picker0 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="path to BWA",size=(400,30),path="/pacific/home/cambadipudi")#os.path.abspath(vars.bwa))
         sizer0.Add(self.picker0, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer0,0,wx.EXPAND,0)
 
@@ -565,6 +566,7 @@ def generate_output(vars):
   output.close()
 
   tot_tgtta,mapped = 0,0
+  r1,r2=0,0
   for line in open(vars.sam):
     if line[0]=='@': continue
     else:
@@ -572,6 +574,10 @@ def generate_output(vars):
       if int(w[1])>=128: tot_tgtta += 1 # just count read1's
       if w[1]=="99" or w[1]=="83":
         mapped += 1
+      bin_str = bin(int(w[1]))[2:].zfill(8)[::-1]
+      if bin_str[2]=='0' and bin_str[6]=='1': r1 +=1
+      if bin_str[2]=='0' and bin_str[7]=='1': r2 +=1
+      
 
   primer = "CTAGAGGGCCCAATTCGCCCTATAGTGAGT"
   vector = "CTAGACCGTCCAGTCTGGCAGGCCGGAAAC"
@@ -614,6 +620,8 @@ def generate_output(vars):
   output.write("# total_reads %s (read pairs)\n" % tot_reads)
   output.write("# TGTTA_reads %s (reads with valid Tn prefix)\n" % tot_tgtta)
   output.write("# mapped_reads %s (both R1 and R2 map into genome)\n" % mapped)
+  output.write("# reads1_mapped %s\n" % r1)
+  output.write("# reads2_mapped %s\n" %r2)
 
   output.write("# read_count %s (TA sites only)\n" % rc)
   output.write("# template_count %s\n" % tc)
@@ -631,7 +639,7 @@ def generate_output(vars):
   output.write("# vector_matches: %s reads contain %s\n" % (nvector,vector))
   #output.write("# most_abundant_prefix: %s reads start with %s\n" % (temp[0][1],temp[0][0]))
   # since these are reads (within Tn prefix stripped off), I expect ~1/4 to match Tn prefix
-  vals = [vars.fq1,vars.fq2,tot_reads,tot_tgtta,mapped,rc,tc,ratio,ta_sites,tas_hit,max_tc,max_coord,NZmean,FR_corr,BC_corr,nprimer,nvector]
+  vals = [vars.fq1,vars.fq2,tot_reads,tot_tgtta,mapped,r1,r2,rc,tc,ratio,ta_sites,tas_hit,max_tc,max_coord,NZmean,FR_corr,BC_corr,nprimer,nvector]
   output.write('\t'.join([str(x) for x in vals]))
   output.close()
 
