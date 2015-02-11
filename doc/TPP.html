@@ -1,14 +1,334 @@
-<!DOCTYPE HTML>
-<html lang="en-US">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="refresh" content="1;url=http://saclab.tamu.edu/tom/TPP.html">
-        <script type="text/javascript">
-            window.location.href = "http://saclab.tamu.edu/tom/TPP.html"
-        </script>
-        <title>Redirecting to TPP</title>
-    </head>
-    <body>
-        If you are not redirected automatically, follow the <a href='http://saclab.tamu.edu/tom/TPP.html'>link to the TPP site.</a>
-    </body>
-</html>
+<HTML>
+<HEAD>
+<TITLE>TPP Documentation</TITLE>
+</HEAD>
+
+<Body>
+
+<H2>Tn-Seq Pre-Processor (TPP, v1.4) Documentation</H2>
+
+<h3>Overview</H3>
+
+TPP is a software tool for processing raw reads (e.g. .fastq files) from an
+Tn-Seq experiment, extracting counts of transposon insertions at individual TA
+dinucleotides sites in a genome ("read counts", or more specifically "template
+counts", see below), and writing this information out in <A
+HREF="http://genome.ucsc.edu/goldenpath/help/wiggle.html">.wig</A> format
+suitable for input to <A HREF="">TRANSIT</A> (add link?).  In addition, TPP
+calculates some useful statistics and diagnostics on the dataset.
+
+<P>
+
+There are many way to do pre-processing of Tn-Seq datasets, and it can depend
+on the the protocol used for Tn-Seq, the conventions used by the sequencing
+center, etc.  However, TPP is written to accommodate the most common situation
+among our collaborating labs.  In particular, it is oriented toward the Tn-Seq
+protocol developed in the Sassetti lab and described in <A
+HREF="http://www.springer.com/biomed/human+genetics/book/978-1-4939-2397-7">(Long
+et al, 2015)</A>, which uses a barcoding system to uniquely identifying reads
+from distinct transposon-junction DNA fragments.  This allows raw read counts
+to be reduced to unique <B>template counts</B>, eliminating effects of PCR
+bias.  The sequencing must be done in paired-end (PE) mode (with a minimum
+read-length of around 50 bp).  The transposon terminus appears in the prefix
+of read1 reads, and barcodes are embedded in read2 reads.
+
+<P> The suffixes of read1 and read2 contain nucleotides from the genomic
+region adjacent to the transpsoson insertion.  These subsequences must be
+mapped into the genome.  TPP uses <A
+HREF="http://bio-bwa.sourceforge.net/">BWA</A> (Burroughs-Wheeler Aligner) to
+do this mapping.  It is a widely-used tool, but you will have to install it on
+your system.  Mapping large datasets takes time, on the order of 15 minutes
+(depending on many factors), so you will have to be patient.
+
+<P>Subsequent to the BWA mapping step, TPP does a bunch of post-processing
+steps.  Primarily, it tabulates raw read counts at each TA site in the
+reference genome, reduces them to template counts, and writes this out 
+in .wig format (as input for TRANSIT).  It also calculates and reports 
+some statistics on the dataset which a useful for diagnostic purposes.
+These are saved in local file caled ".tn_stats".  The GUI automatically
+reads all the .tn_stats files from previously processed datasets in a
+directory and displays them in a table.
+
+<P>The GUI interface is set-up basically as a graphical front-end that
+allows you to specify input files and parameters to get a job started.
+Once you press START, the graphical window goes away, and the pre-processing
+begins, printing out status messages in the original terminal window.  You
+can also run TPP directly from the command-line with the GUI, 
+by providing all the inputs via command-line arguments.
+
+<P> TPP has a few optional parameters in the interface.  We intend to add
+other options in the future, so if you have suggestions, let us know.  In
+particular, if you have some datasets that requires special processing (such
+as if different primer sequences were used for PCR amplification, or a
+different barcoding system, or different contaminant sequences to search for,
+etc.), we might be able to add some options to deal with this.
+
+<h3>Installation</H3>
+
+TPP should work equivalently on Macs, PCs running Windows, or Unix machines.
+TPP is fundamentally a python script that has a graphical user interface (GUI)
+written in wxPython.  Its major dependency is that it calls BWA to map reads.
+TPP has the following requirements.  If these are not already on your system,
+you will have to install them manually.
+
+<P>
+
+Requirements:
+
+<UL>
+<LI> <A HREF="http://www.python.org/">python version 2.7</A>
+<LI> <A HREF="http://www.wxpython.org/">wxPython 3.0.1</A> (the 'cocoa' version)
+<LI> <A HREF="http://bio-bwa.sourceforge.net/">BWA version 0.7.12 </A> (<A HREF="http://bow.codeplex.com/releases/view/89887">precompiled executable for Windows</A>)
+</UL>
+
+Since TPP is a python script, there is nothing to compile or 'make'.
+
+
+<h3>Running TPP</H3>
+
+TPP may be run from the command line (e.g. of a terminal window or shell)
+by typing:
+
+<PRE>
+python tpp.pyc
+</PRE>
+
+This should pop up the GUI window, looking like this...
+
+<P>
+<IMG SRC="Screenshot-TPP.png" width="80%"></IMG>
+<P>
+
+The main fields to fill out in the GUI are...
+
+<UL>
+<LI>bwa executable - you'll have to find the path to where the executable is installed
+<LI>reference genome - this is the sequence in Fasta format against which the
+reads will be mapped
+
+<LI>reads1 file - this should be the raw reads file for read1 in <A
+HREF="http://en.wikipedia.org/wiki/FASTQ_format">FASTQ</A> or <A
+HREF="http://en.wikipedia.org/wiki/FASTA">FASTA</A> format,
+e.g. DATASET_NAME_R1.fastq
+
+<LI>reads2 file - this should be the raw reads file for read2 in Fastq or
+Fasta format, e.g. DATASET_NAME_R2.fastq
+
+<LI>max reads - Normally, leave this blank by default, and TPP will process
+all reads.  However, if you want to do a quick run on a subset of the data,
+you can select a smaller number.  This is mainly for testing purposes.
+
+
+
+</UL>
+
+Once you have filled all these fields out, you can press START (or QUIT).  At
+this point the GUI window will disappear, and the data processing commences in the
+original terminal/shell windows.  It prints out a lot of information to let
+you know what it is doing (and error messages, if anything goes wrong).  Many
+intermediate files get generated.  It takes awhile (like on the order of 15
+minutes), most of which is taken up by the mapping-reads step by BWA.
+
+<P>
+
+Subsequent to the BWA mapping step, TPP does a bunch of
+post-processing steps.  Primarily, it tabulates raw read counts at each TA
+site in the reference genome, reduces them to template counts, and writes this
+out in .wig format (as input for essentiality analysis in TRANSIT).  It also
+calculates and reports some statistics on the dataset which a useful for
+diagnostic purposes.  These are saved in local file caled "<B>.tn_stats</B>".
+The GUI automatically reads all the .tn_stats files from previously processed
+datasets in a directory and displays them in a table.
+
+<P>
+
+TPP uses a local config file called "<B>tpp.cfg</B>" to rememeber parameter
+settings from run to run.  This makes it convenient so that you don't have
+to type in things like the path to the BWA executable or reference genome
+over and over again.  You just have to do it once, and TPP will remember.
+
+<P>
+
+<B>Command-line mode:</B> TPP may be run on a dataset directly from the
+command-line without invoking the user interface (GUI) by providing it
+filenames and parameters as command-line arguments.
+
+<PRE>
+usage: python tpp.pyc -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE -reads2 PATH_TO_FASTQ_OR_FASTA_FILE -prefix OUTPUT_BASE_FILENAME [-maxreads N]
+
+</PRE>
+
+The input arguments and file types are as follows:
+
+<TABLE border=1>
+<TD>-bwa<TD> path executable<TD><TR>
+<TD>-ref<TD> reference genome sequence <TD>FASTA file<TR>
+<TD>-reads1<TD> file of read 1 of paired reads<TD>FASTA or FASTQ format<TR>
+<TD>-reads2<TD> file of read 2 of paired reads<TD>FASTA or FASTQ format<TR>
+<TD>-prefix<TD> base filename to use for output files<TR>
+<TD>-maxreads<TD>subset of reads to process (optional); if blank, use all<TR>
+</TABLE>
+
+<P>
+
+(Note: if you have already run TPP once, the you can leave out the
+specification of the path for BWA, and it will automatically take the path
+stored in the config file, tpp.cfg.  Same for ref, if you always use the
+same reference sequence.)
+
+
+
+<h3>Overview of Data Processing Procedure</H3>
+
+Here is a brief summary of the steps performed in converting raw reads (.fastq
+files) into template counts:
+
+<OL>
+
+<LI>Convert .fastq files to .fasta format (.reads).
+
+<P><LI>Identify reads with transposon prefix.  The sequence searched for is
+ACTTATCAGCCAACCTGTTA, which must start between cycles 5 and 10 (inclusive).
+(Note that this ends in the canonical terminus of the Himar1 transposon,
+TGTTA.) The "staggered" position of this sequence is due to insertion a few
+nucleotides of variable length in the primers used in the Tn-Seq sample prep
+protocol (e.g. 4 variants of Sol_AP1_57, etc.).
+
+<P><LI>Extract barcodes from cycles 22-30 in read 2.
+
+<P><LI>Extract genomic suffixes of reads 1 and 2.
+
+<P><LI>Map reads into the genome using BWA.  Mismatches are allowed, but indels
+are ignored.  No trimming is performed.  BWA is run in 'sampe' mode (treating
+reads as pairs).  Both reads of a pair must map (on opposite strands) to be
+counted.
+
+<P><LI>Count the reads mapping to each TA site in the reference genome.
+
+<P><LI>Reduce raw read counts to unique template counts.  Group reads by barcode
+AND mapping location (or coordinate) of read 2 (aka "endpoints").
+
+<P><LI>Output template counts at each TA site in a .wig file.
+
+<P><LI>Calculate statistics like insertion_density and NZ_mean.  Look for the 
+site with the max template count.  Look for reads matching the primer
+or vector sequences.
+
+</OL>
+
+<P><B>Statistics</B><P>
+
+Here is an explanation of the statistics that are saved in the .tn_stats file
+and displayed in the table in the GUI.  For convenience, all the statistics
+are written out on one line with tab-separation at the of the .tn_stats file,
+to make it easy to add it as a row in a spreadsheet, as some people like to do
+to track multiple datasets.
+
+
+<P>
+
+<TABLE border=1>
+
+<TD>total_reads<TD>total number of reads in the original .fastq/.fasta files<TR>
+
+<TD>TGTTA_reads<TD>number of reads with a proper transposon prefix (ending in
+TGTTA in read1)</TR>
+
+<TD><B>mapped_reads</B><TD>number of reads which mapped into the genome
+(requiring both read1 and read2 to map)<TR>
+
+<TD>read_count<TD> total reads mapping to TA sites (mapped reads excluding
+those mapping to non-TA sites)<TR>
+
+<TD>template_count<TD> reduction of mapped reads to unique templates using barcodes<TR>
+
+<TD>template_ratio<TD> read_count / template_count<TR>
+
+<TD>TA_sites<TD> total number of TA dinucleotides in the genome<TR>
+
+<TD>TAs_hit<TD> number of TA sites with at least 1 insertion<TR>
+
+<TD><B>insertion_density</B><TD> TAs_hit / TA_sites<TR>
+
+<TD>max_count<TD>the maximum number of templates observed at any TA site<TR>
+
+<TD>max_site<TD> the coordinate of the site where the max count occurs<TR>
+
+<TD><B>NZ_mean</B><TD> mean template count over non-zero TA sites<TR>
+
+<TD>FR_corr<TD> correlation between template counts on Fwd strand versus Rev strand<TR>
+
+<TD>BC_corr<TD> correlation between read counts and template counts over
+non-zero sites<TR>
+
+<TD>primer_matches<TD>how many reads match the primer sequence (primer-dimer
+problem in sample prep)<TR>
+
+<TD>vector_matches<TD>how many reads match the phage 
+sequence (transposon vector) used in Tn mutant library construction<TR>
+
+</table>
+
+<P>Here is an example of a .tn_stats file:
+
+<PRE>
+# title: Tn-Seq Pre-Processor, version 1.3
+# date: 02/07/2015 14:54:13
+# command: python tpp.pyc -reads1 temp.BCGcov_R1.fastq -reads2 temp.BCGcov_R2.fastq -prefix temp3
+# read1: temp.BCGcov_R1.fastq
+# read2: temp.BCGcov_R2.fastq
+# ref_genome: BCG.fna
+# total_reads 150000 (read pairs)
+# TGTTA_reads 140878 (reads with valid Tn prefix)
+# mapped_reads 87063 (both R1 and R2 map into genome)
+# read_count 86821 (TA sites only)
+# template_count 85802
+# template_ratio 1.01 (reads per template)
+# TA_sites 73920
+# TAs_hit 32759
+# density 0.443
+# max_count 27 (among templates)
+# max_site 3882571 (coordinate)
+# NZ_mean 2.6 (among templates)
+# FR_corr 0.476 (Fwd templates vs. Rev templates)
+# BC_corr 0.996 (reads vs. templates, summed over both strands)
+# primer_matches: 28 reads contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT
+# vector_matches: 53 reads contain CTAGACCGTCCAGTCTGGCAGGCCGGAAAC
+temp.BCGcov_R1.fastq	temp.BCGcov_R2.fastq	150000	140878	87063	86821	85802	1.01187618004	73920	32759	27	3882571	2.61918861992	0.475899604942	0.99616512292	28	53
+</PRE>
+
+<B>Interpretation:</B>
+
+To assess the quality of a dataset, I would recommend starting by looking at 3
+primary statistics: 
+
+<OL>
+
+<LI><B>mapped reads</B> (should be on the order of several million)
+
+<LI><B>insertion density</B> (good libraries should have insertions at &ge; ~35% of TA
+sites for statistical analysis)
+
+<LI><B>NZ_mean</B> (good datasets should have a mean of around 50 templates per site
+for sufficient dynamic range)
+
+</OL>
+
+If something doesn't look right, the other statistics might be helpful in
+figuring out what went wrong.  If you see a significant reduction in reads, it
+could be due to some poor sequencing cycles, or using the wrong reference
+genome, or a contaminant of some type.  Some attrition is to be expected (loss
+of maybe 10-40% of the reads).  The last 2 statistics indicate 2 common cases:
+how many reads match the primer or vector sequences.  Hopefully these counts
+will be low, but if they represent a large fraction of your reads, it could
+mean you have a problem with your sample prep protocol or Tn mutant library,
+respectively.
+
+<H3>Comments or Questions?</H3>
+
+TPP was developed by <A HREF="http://faculty.cse.tamu.edu/ioerger/">Thomas
+R. Ioerger</A> at Texas A&M University.  If you have any comments or
+questions, please feel free to send me an email at:
+<tt>ioerger@cs.tamu.edu</tt>
+
+<P>
