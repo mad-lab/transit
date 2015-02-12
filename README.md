@@ -10,11 +10,21 @@ http://saclab.tamu.edu/tom/TPP.html
 
 
 
-# Mercurial Workflow
+# Typical Mercurial Workflow
     1. Do some work until you are ready to commit or need another's changes.
     2. hg pull
     3. hg update (Note: During hg update, your uncommitted changes will be merged with the new tip of your current branch.)
     4. hg commit when ready.
+
+
+    OR
+
+    1. Do some work.
+    2. hg commit (repeat 1 & 2 as necessary until ready to push to repository)
+    2. hg pull
+    3. hg merge
+    4. hg commit -m "Merge"  [You will be comitting twice; you can leave the message of the second commit as "Merge"]
+
 
 
 # File directory:
