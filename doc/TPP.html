@@ -5,11 +5,11 @@
 
 <Body>
 
-<H2>Tn-Seq Pre-Processor (TPP, v1.4) Documentation</H2>
+<H2>Tn-Seq Pre-Processor (TPP) Documentation</H2>
 
 <h3>Overview</H3>
 
-TPP is a software tool for processing raw reads (e.g. .fastq files) from an
+TPP is a software tool for processing raw reads (e.g. .fastq files, <I>untrimmed</I>) from an
 Tn-Seq experiment, extracting counts of transposon insertions at individual TA
 dinucleotides sites in a genome ("read counts", or more specifically "template
 counts", see below), and writing this information out in <A
@@ -78,7 +78,7 @@ Requirements:
 <UL>
 <LI> <A HREF="http://www.python.org/">python version 2.7</A>
 <LI> <A HREF="http://www.wxpython.org/">wxPython 3.0.1</A> (the 'cocoa' version)
-<LI> <A HREF="http://bio-bwa.sourceforge.net/">BWA version 0.7.12 </A> (<A HREF="http://bow.codeplex.com/releases/view/89887">precompiled executable for Windows</A>)
+<LI> <A HREF="http://bio-bwa.sourceforge.net/">BWA version 0.7.12 </A> (can put this directory anywhere; be sure to run 'make' to build bwa executable)
 </UL>
 
 Since TPP is a python script, there is nothing to compile or 'make'.
@@ -106,12 +106,12 @@ The main fields to fill out in the GUI are...
 <LI>reference genome - this is the sequence in Fasta format against which the
 reads will be mapped
 
-<LI>reads1 file - this should be the raw reads file for read1 in <A
+<LI>reads1 file - this should be the raw reads file (<I>untrimmed</I>) for read1 in <A
 HREF="http://en.wikipedia.org/wiki/FASTQ_format">FASTQ</A> or <A
 HREF="http://en.wikipedia.org/wiki/FASTA">FASTA</A> format,
 e.g. DATASET_NAME_R1.fastq
 
-<LI>reads2 file - this should be the raw reads file for read2 in Fastq or
+<LI>reads2 file - this should be the raw reads file (<I>untrimmed</I>) for read2 in Fastq or
 Fasta format, e.g. DATASET_NAME_R2.fastq
 
 <LI>max reads - Normally, leave this blank by default, and TPP will process
