@@ -2,7 +2,7 @@
 # Texas A&M University
 # ioerger@cs.tamu.edu
 
-import wx
+import wx, wx.lib.filebrowsebutton
 import glob,os,sys,time,math
 import sys, re, shutil
 import platform
@@ -60,29 +60,34 @@ class MyForm(wx.Frame):
         sizer0 = wx.BoxSizer(wx.HORIZONTAL)
         label0 = wx.StaticText(panel, label='BWA executable:',size=(350,-1))
         sizer0.Add(label0,0,0,0)
-        print vars.bwa
-        self.picker0 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="path to BWA",size=(400,30),path=os.path.abspath(vars.bwa))
+        print os.path.dirname(vars.bwa)
+        #self.picker0 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="path to BWA",size=(400,30))#,path=os.path.abspath(vars.bwa))
+        #self.picker0.SetDirName('/pacific/home/cambadipudi/chaitra/tpp/')
+        self.picker0 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id = wx.ID_ANY, size=(400,30), dialogTitle='Path to BWA', fileMode=wx.OPEN, startDirectory=os.path.dirname(vars.bwa), initialValue=vars.bwa, labelText='')
         sizer0.Add(self.picker0, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer0,0,wx.EXPAND,0)
 
         sizer3 = wx.BoxSizer(wx.HORIZONTAL)
         label3 = wx.StaticText(panel, label='Choose a reference genome (FASTA):',size=(350,-1))
         sizer3.Add(label3,0,0,0)
-        self.picker3 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the reference genome", wildcard='*.fna;*.fasta;*.fa', size=(400,30),path=vars.ref)
+        #self.picker3 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the reference genome", wildcard='*.fna;*.fasta;*.fa', size=(400,30),path=vars.ref)
+        self.picker3 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the reference genome', fileMode=wx.OPEN, fileMask='*.fna;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.ref), initialValue=vars.ref, labelText='')
         sizer3.Add(self.picker3, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer3,0,wx.EXPAND,0)
        
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         label1 = wx.StaticText(panel, label='Choose the Fastq file for read 1:',size=(350,-1))
         sizer1.Add(label1,0,0,0)
-        self.picker1 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 1", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq1)
+        # self.picker1 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 1", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq1)
+        self.picker1 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 1', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.fq1), initialValue=vars.fq1, labelText='')
         sizer1.Add(self.picker1, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer1,0,wx.EXPAND,0)
        
         sizer2 = wx.BoxSizer(wx.HORIZONTAL)
         label2 = wx.StaticText(panel, label='Choose the Fastq file for read 2:',size=(350,-1))
         sizer2.Add(label2,0,0,0)
-        self.picker2 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 2", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq2)
+        #self.picker2 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 2", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq2)
+        self.picker2 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 2', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue=vars.fq2, labelText='')
         sizer2.Add(self.picker2, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer2,0,wx.EXPAND,0)
 
@@ -105,7 +110,7 @@ class MyForm(wx.Frame):
         sizer6.Add(label6,0,0,0)
         self.mismatches = wx.TextCtrl(panel,value=str(vars.mm1),size=(400,30))
         sizer6.Add(self.mismatches, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-        sizer.Add(sizer6,0,wx.ALL,0)
+        sizer.Add(sizer6,0,wx.ALL,0)    
 
 
     def InitList(self,panel,sizer):
@@ -191,8 +196,10 @@ class MyForm(wx.Frame):
 
     def map_reads(self,event):
       # add bwa path, prefix
-      bwapath = self.picker0.GetPath()
-      fq1,fq2,ref,base,maxreads = self.picker1.GetPath(),self.picker2.GetPath(),self.picker3.GetPath(),self.base.GetValue(),self.maxreads.GetValue()
+      # bwapath = self.picker0.GetPath()
+      bwapath = self.picker0.GetValue()
+      #fq1,fq2,ref,base,maxreads = self.picker1.GetPath(),self.picker2.GetPath(),self.picker3.GetPath(),self.base.GetValue(),self.maxreads.GetValue()
+      fq1, fq2, ref, base, maxreads = self.picker1.GetValue(), self.picker2.GetValue(), self.picker3.GetValue(), self.base.GetValue(), self.maxreads.GetValue()
 
       mm1 = self.mismatches.GetValue()
       try: mm1 = int(mm1)
@@ -331,7 +338,7 @@ def extract_staggered(infile,outfile,vars):
     elif n==-1: n = len(line.rstrip()) # readlen
     if LEN==-1: LEN = n-lenTn-(Q+1) # genomic suffix len
     #a = line.find(Tn)
-    a = mmfind(line,n,Tn,m,vars.mm1)
+    a = mmfind(line,n,Tn,m,vars.mm1) 
     if a>=P and a<=Q:
       w = line[a+lenTn:a+lenTn+LEN]
       output.write(h)
@@ -693,7 +700,7 @@ def save_config(vars):
   f.write("ref %s\n" % vars.ref)
   f.write("bwa %s\n" % vars.bwa)
   f.write("prefix %s\n" % vars.base)
-  f.write("mismatches1 %s\n" % vars.mm1)
+  f.write("mismatches1 %s\n" % vars.mm1) 
   f.close()
     
 class Globals:
