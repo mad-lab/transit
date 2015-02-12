@@ -58,7 +58,7 @@ class MyForm(wx.Frame):
     def InitFiles(self,panel,sizer):
         vars = self.vars
         sizer0 = wx.BoxSizer(wx.HORIZONTAL)
-        label0 = wx.StaticText(panel, label='BWA executable:',size=(350,-1))
+        label0 = wx.StaticText(panel, label='BWA executable:',size=(340,-1))
         sizer0.Add(label0,0,0,0)
         print os.path.dirname(vars.bwa)
         #self.picker0 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="path to BWA",size=(400,30))#,path=os.path.abspath(vars.bwa))
@@ -68,7 +68,7 @@ class MyForm(wx.Frame):
         sizer.Add(sizer0,0,wx.EXPAND,0)
 
         sizer3 = wx.BoxSizer(wx.HORIZONTAL)
-        label3 = wx.StaticText(panel, label='Choose a reference genome (FASTA):',size=(350,-1))
+        label3 = wx.StaticText(panel, label='Choose a reference genome (FASTA):',size=(340,-1))
         sizer3.Add(label3,0,0,0)
         #self.picker3 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the reference genome", wildcard='*.fna;*.fasta;*.fa', size=(400,30),path=vars.ref)
         self.picker3 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the reference genome', fileMode=wx.OPEN, fileMask='*.fna;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.ref), initialValue=vars.ref, labelText='')
@@ -76,7 +76,7 @@ class MyForm(wx.Frame):
         sizer.Add(sizer3,0,wx.EXPAND,0)
        
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
-        label1 = wx.StaticText(panel, label='Choose the Fastq file for read 1:',size=(350,-1))
+        label1 = wx.StaticText(panel, label='Choose the Fastq file for read 1:',size=(340,-1))
         sizer1.Add(label1,0,0,0)
         # self.picker1 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 1", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq1)
         self.picker1 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 1', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.fq1), initialValue=vars.fq1, labelText='')
@@ -84,7 +84,7 @@ class MyForm(wx.Frame):
         sizer.Add(sizer1,0,wx.EXPAND,0)
        
         sizer2 = wx.BoxSizer(wx.HORIZONTAL)
-        label2 = wx.StaticText(panel, label='Choose the Fastq file for read 2:',size=(350,-1))
+        label2 = wx.StaticText(panel, label='Choose the Fastq file for read 2:',size=(340,-1))
         sizer2.Add(label2,0,0,0)
         #self.picker2 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 2", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq2)
         self.picker2 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 2', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue=vars.fq2, labelText='')
