@@ -277,10 +277,10 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
             self.index_data+=1
 
             if len(tmp) < 5: continue
-            if tmp[-1] == "ES": es+=1
-            if tmp[-1] == "GD": gd+=1
-            if tmp[-1] == "NE": ne+=1
-            if tmp[-1] == "GA": ga+=1
+            if tmp[-2] == "ES": es+=1
+            if tmp[-2] == "GD": gd+=1
+            if tmp[-2] == "NE": ne+=1
+            if tmp[-2] == "GA": ga+=1
             T+=1
             text = """Results:
     Essential: %1.1f%%
