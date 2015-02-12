@@ -7,6 +7,16 @@ http://saclab.tamu.edu/essentiality/transit/transit.html
 http://saclab.tamu.edu/tom/TPP.html
 
 
+
+
+
+# Mercurial Workflow
+    1. Do some work until you are ready to commit or need another's changes.
+    2. hg pull
+    3. hg update (Note: During hg update, your uncommitted changes will be merged with the new tip of your current branch.)
+    4. hg commit when ready.
+
+
 # File directory:
 
 
