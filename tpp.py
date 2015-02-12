@@ -61,7 +61,7 @@ class MyForm(wx.Frame):
         label0 = wx.StaticText(panel, label='BWA executable:',size=(350,-1))
         sizer0.Add(label0,0,0,0)
         print vars.bwa
-        self.picker0 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="path to BWA",size=(400,30),path="/pacific/home/cambadipudi")#os.path.abspath(vars.bwa))
+        self.picker0 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="path to BWA",size=(400,30),path=os.path.abspath(vars.bwa))
         sizer0.Add(self.picker0, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer0,0,wx.EXPAND,0)
 
@@ -99,6 +99,13 @@ class MyForm(wx.Frame):
         self.maxreads = wx.TextCtrl(panel,size=(400,30))
         sizer5.Add(self.maxreads, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer5,0,wx.ALL,0)
+
+        sizer6 = wx.BoxSizer(wx.HORIZONTAL)
+        label6 = wx.StaticText(panel, label='Mismatches allowed in Tn prefix:',size=(350,-1))
+        sizer6.Add(label6,0,0,0)
+        self.mismatches = wx.TextCtrl(panel,value=str(vars.mm1),size=(400,30))
+        sizer6.Add(self.mismatches, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+        sizer.Add(sizer6,0,wx.ALL,0)
 
 
     def InitList(self,panel,sizer):
@@ -187,11 +194,16 @@ class MyForm(wx.Frame):
       bwapath = self.picker0.GetPath()
       fq1,fq2,ref,base,maxreads = self.picker1.GetPath(),self.picker2.GetPath(),self.picker3.GetPath(),self.base.GetValue(),self.maxreads.GetValue()
 
+      mm1 = self.mismatches.GetValue()
+      try: mm1 = int(mm1)
+      except Exception: mm1 = 1
+
       self.vars.bwa = bwapath
       self.vars.fq1 = fq1
       self.vars.fq2 = fq2
       self.vars.ref = ref
       self.vars.base = base  
+      self.vars.mm1 = mm1
       if maxreads == '': self.vars.maxreads = -1
       else: self.vars.maxreads = int(maxreads)
 
@@ -296,16 +308,16 @@ def fix_paired_headers_for_bwa(reads1,reads2):
 	  os.system("mv %s %s" % (temp2, reads2))
   '''
 
-def mmfind(G,n,H,m): # lengths; assume n>m
+def mmfind(G,n,H,m,max): # lengths; assume n>m
   for i in range(0,n-m):
-    cnt,max = 0,1
+    cnt = 0
     for k in range(m):
       if G[i+k]!=H[k]: cnt += 1
       if cnt>max: break
     if cnt<=max: return i
   return -1
 
-def extract_staggered(infile,outfile):
+def extract_staggered(infile,outfile,vars):
   Tn = "ACTTATCAGCCAACCTGTTA"
   lenTn = len(Tn)
 
@@ -319,7 +331,7 @@ def extract_staggered(infile,outfile):
     elif n==-1: n = len(line.rstrip()) # readlen
     if LEN==-1: LEN = n-lenTn-(Q+1) # genomic suffix len
     #a = line.find(Tn)
-    a = mmfind(line,n,Tn,m)
+    a = mmfind(line,n,Tn,m,vars.mm1)
     if a>=P and a<=Q:
       w = line[a+lenTn:a+lenTn+LEN]
       output.write(h)
@@ -495,7 +507,7 @@ def extract_reads(vars):
     message("extracting barcodes and genomic parts of reads...")
 
     message("creating %s" % vars.tgtta1)
-    extract_staggered(vars.reads1,vars.tgtta1)
+    extract_staggered(vars.reads1,vars.tgtta1,vars)
     message("creating %s" % vars.tgtta2)
     select_reads(vars.tgtta1,vars.reads2,vars.tgtta2)
     message("creating %s" % vars.barcodes2)
@@ -610,7 +622,8 @@ def generate_output(vars):
 
   output = open(vars.stats,"w")
   version = "1.0"
-  output.write("# title: Tn-Seq Pre-Processor, version %s\n" % vars.version)
+  #output.write("# title: Tn-Seq Pre-Processor, version %s\n" % vars.version)
+  output.write("# title: Tn-Seq Pre-Processor\n")
   output.write("# date: %s\n" % time.strftime("%m/%d/%Y %H:%M:%S"))
   output.write("# command: python ")
   output.write(' '.join(sys.argv)+"\n")
@@ -659,6 +672,7 @@ def verify_inputs(vars):
 
 def initialize_globals(vars):
       vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
+      vars.mm1 = 2 # mismatches allowed in Tn prefix
       read_config(vars)
 
 def read_config(vars):
@@ -670,6 +684,7 @@ def read_config(vars):
     if len(w)>=2 and w[0]=='ref': vars.ref = w[1]
     if len(w)>=2 and w[0]=='bwa': vars.bwa = w[1]
     if len(w)>=2 and w[0]=='prefix': vars.base = w[1]
+    if len(w)>=2 and w[0]=='mismatches1': vars.mm1 = int(w[1])
 
 def save_config(vars):
   f = open("tpp.cfg","w")
@@ -678,6 +693,7 @@ def save_config(vars):
   f.write("ref %s\n" % vars.ref)
   f.write("bwa %s\n" % vars.bwa)
   f.write("prefix %s\n" % vars.base)
+  f.write("mismatches1 %s\n" % vars.mm1)
   f.close()
     
 class Globals:
