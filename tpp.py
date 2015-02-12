@@ -13,7 +13,7 @@ class MyForm(wx.Frame):
         self.vars = vars
         initialize_globals(self.vars)
 
-        wx.Frame.__init__(self, None, wx.ID_ANY, "Tn-Seq PreProcessor v%s" % vars.version)
+        wx.Frame.__init__(self, None, wx.ID_ANY, "Tn-Seq PreProcessor") # v%s" % vars.version)
         # Add a panel so it looks the correct on all platforms
         panel = wx.Panel(self, wx.ID_ANY)
         #panel.SetFont(wx.Font(14,wx.DECORATIVE,wx.NORMAL,wx.NORMAL,False,u'times'))
@@ -687,7 +687,7 @@ if __name__ == "__main__":
     # if -nowin is command-line arg, skip the GUI and set filenames in vars
     
     vars = Globals()
-    vars.version = "$Revision: 1.5 $".split()[1]
+    #vars.version = "$Revision: 1.5 $".split()[1]
     
     if(len(sys.argv) <= 1):
         app = wx.App(False)
