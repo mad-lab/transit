@@ -15,6 +15,7 @@ http://saclab.tamu.edu/tom/TPP.html
     2. hg pull
     3. hg update (Note: During hg update, your uncommitted changes will be merged with the new tip of your current branch.)
     4. hg commit when ready.
+    5. hg push, to push changes to bitbucket
 
 
     OR
@@ -24,6 +25,7 @@ http://saclab.tamu.edu/tom/TPP.html
     2. hg pull
     3. hg merge
     4. hg commit -m "Merge"  [You will be comitting twice; you can leave the message of the second commit as "Merge"]
+    5. hg push, to push changes to bitbucket
 
 
 
