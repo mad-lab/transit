@@ -118,14 +118,16 @@ class MyForm(wx.Frame):
         self.list_ctrl.InsertColumn(0, 'dataset',width=300)
         self.list_ctrl.InsertColumn(1, 'total reads',wx.LIST_FORMAT_RIGHT,width=125)
         self.list_ctrl.InsertColumn(2, 'TGTTA prefix', wx.LIST_FORMAT_RIGHT,width=125)
-        self.list_ctrl.InsertColumn(3, 'mapped\nreads', wx.LIST_FORMAT_RIGHT,width=90)
-        self.list_ctrl.InsertColumn(4, 'template\ncount', wx.LIST_FORMAT_RIGHT,width=90)
-        self.list_ctrl.InsertColumn(5, 'TAs hit', wx.LIST_FORMAT_RIGHT,width=90)
-        self.list_ctrl.InsertColumn(6, 'insertion\ndensity',wx.LIST_FORMAT_RIGHT,width=90)
-        self.list_ctrl.InsertColumn(7, 'NZmean', wx.LIST_FORMAT_RIGHT,width=90)
-        self.list_ctrl.InsertColumn(8, 'maxcount', wx.LIST_FORMAT_RIGHT,width=90)
-        self.list_ctrl.InsertColumn(9, 'primer', wx.LIST_FORMAT_RIGHT,width=90)
-        self.list_ctrl.InsertColumn(10, 'vector',wx.LIST_FORMAT_RIGHT,width=90)
+        self.list_ctrl.InsertColumn(3, 'reads 1', wx.LIST_FORMAT_RIGHT,width=90)
+        self.list_ctrl.InsertColumn(4, 'reads 2', wx.LIST_FORMAT_RIGHT,width=90)
+        self.list_ctrl.InsertColumn(5, 'mapped\nreads', wx.LIST_FORMAT_RIGHT,width=90)
+        self.list_ctrl.InsertColumn(6, 'template\ncount', wx.LIST_FORMAT_RIGHT,width=90)
+        self.list_ctrl.InsertColumn(7, 'TAs hit', wx.LIST_FORMAT_RIGHT,width=90)
+        self.list_ctrl.InsertColumn(8, 'insertion\ndensity',wx.LIST_FORMAT_RIGHT,width=90)
+        self.list_ctrl.InsertColumn(9, 'NZmean', wx.LIST_FORMAT_RIGHT,width=90)
+        self.list_ctrl.InsertColumn(10, 'maxcount', wx.LIST_FORMAT_RIGHT,width=90)
+        self.list_ctrl.InsertColumn(11, 'primer', wx.LIST_FORMAT_RIGHT,width=90)
+        self.list_ctrl.InsertColumn(12, 'vector',wx.LIST_FORMAT_RIGHT,width=90)
         #self.list_ctrl.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL))
         #btn = wx.Button(panel, label="Add Line")
         #btn.Bind(wx.EVT_BUTTON, self.add_line)
@@ -171,7 +173,7 @@ class MyForm(wx.Frame):
         
         #self.add_data(fname,
 
-        vals = [stats.get("total_reads","?"),stats.get("TGTTA_reads","?"),stats.get("mapped_reads","?"),stats.get("template_count","?"), stats.get("TAs_hit","?"), stats.get("density", "?"), stats.get("NZ_mean", "?"), stats.get("max_count", "?"), stats.get("primer_matches:","?"),stats.get("vector_matches:","?")]
+        vals = [stats.get("total_reads","?"),stats.get("TGTTA_reads","?"),stats.get("reads1_mapped"),stats.get("reads2_mapped"),stats.get("mapped_reads","?"),stats.get("template_count","?"), stats.get("TAs_hit","?"), stats.get("density", "?"), stats.get("NZ_mean", "?"), stats.get("max_count", "?"), stats.get("primer_matches:","?"),stats.get("vector_matches:","?")]
 
         self.add_data(fname, vals)
 
@@ -723,7 +725,7 @@ def generate_output(vars):
   output.write("# vector_matches: %s reads contain %s\n" % (nvector,vector))
   #output.write("# most_abundant_prefix: %s reads start with %s\n" % (temp[0][1],temp[0][0]))
   # since these are reads (within Tn prefix stripped off), I expect ~1/4 to match Tn prefix
-  vals = [vars.fq1,vars.fq2,tot_reads,vars.tot_tgtta,vars.mapped,vars.r1,vars.r2,rc,tc,ratio,ta_sites,tas_hit,max_tc,max_coord,NZmean,FR_corr,BC_corr,nprimer,nvector]
+  vals = [vars.fq1,vars.fq2,tot_reads,vars.tot_tgtta,vars.r1,vars.r2,vars.mapped,vars.r1,vars.r2,rc,tc,ratio,ta_sites,tas_hit,max_tc,max_coord,NZmean,FR_corr,BC_corr,nprimer,nvector]
   output.write('\t'.join([str(x) for x in vals])+"\n")
   output.close()
 
