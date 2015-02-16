@@ -18,7 +18,7 @@ http://saclab.tamu.edu/tom/TPP.html
     5. hg push, to push changes to bitbucket
 
 
-    OR
+OR
 
     1. Do some work.
     2. hg commit (repeat 1 & 2 as necessary until ready to push to repository)
@@ -31,20 +31,22 @@ http://saclab.tamu.edu/tom/TPP.html
 
 
 
-## HGRC File
+## Configure HGRC File
 
-An example hgrc file to setup Mercurial can be:
+An example hgrc file configuration for Mercurial can be:
 
 
     [ui]
-    username = FIRSTNAME LASTNAME <e-mail>
+    username = FIRSTNAME LASTNAME <EMAIL>
 
     [paths]
     default = https://USERNAME@bitbucket.org/mad-lab/transit/
 
 
 
-You can configure mercurial to merge using your desired editor/method by adding one of the following entries to your hgrc file:
+This will make your commits include your information, and automatically make push and pull work on the bitbucket server.
+
+In addition, you can configure mercurial to merge using your desired editor/method by adding one of the following entries to your hgrc file:
  
 
 ### Merge with conflict markers
