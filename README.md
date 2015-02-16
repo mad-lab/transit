@@ -47,7 +47,7 @@ An example hgrc file to setup Mercurial can be:
 You can configure mercurial to merge using your desired editor/method by adding one of the following entries to your hgrc file:
  
 
-### Merge with confligt markers
+### Merge with conflict markers
 
 
     [ui]
