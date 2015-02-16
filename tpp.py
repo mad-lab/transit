@@ -327,22 +327,27 @@ def mmfind(G,n,H,m,max): # lengths; assume n>m
 def extract_staggered(infile,outfile,vars):
   Tn = "ACTTATCAGCCAACCTGTTA"
   lenTn = len(Tn)
+  ADAPTER2 = "TACCACGACCA"
+  lenADAP = len(ADAPTER2)
 
-  LEN = -1
   P,Q = 5,10 # 1-based inclusive positions to look for start of Tn prefix
 
-  n,m = -1,len(Tn)
+  vars.tot_tgtta = 0
+  vars.truncated_reads = 0
   output = open(outfile,"w")
   for line in open(infile):
-    if line[0]=='>': h = line; continue
-    elif n==-1: n = len(line.rstrip()) # readlen
-    if LEN==-1: LEN = n-lenTn-(Q+1) # genomic suffix len
-    #a = line.find(Tn)
-    a = mmfind(line,n,Tn,m,vars.mm1) 
+    line = line.rstrip()
+    if line[0]=='>': header = line; continue
+    readlen = len(line)
+    a = mmfind(line,readlen,Tn,lenTn,vars.mm1) # allow some mismatches
+    b = mmfind(line,readlen,ADAPTER2,lenADAP,vars.mm1) # look for end of short frags
     if a>=P and a<=Q:
-      w = line[a+lenTn:a+lenTn+LEN]
-      output.write(h)
-      output.write(w+"\n")
+      gstart,gend = a+lenTn,readlen
+      if b!=-1: gend = b; vars.truncated_reads += 1
+      if gend-gstart<20: continue # too short
+      output.write(header+"\n")
+      output.write(line[gstart:gend]+"\n")
+      vars.tot_tgtta += 1
   output.close()
 
 def message(s):
@@ -410,7 +415,24 @@ def read_genome(filename):
     else: s += line[:-1]
   return s
 
-def template_counts(ref,sam,bcfile):
+# convert to bistring (8 bits; bit 0 is low-order bit)
+#
+# Bit Description
+# 0 0x1 template having multiple segments in sequencing
+# 1 0x2 each segment properly aligned according to the aligner
+# 2 0x4 segment unmapped
+# 3 0x8 next segment in the template unmapped
+# 4 0x10 SEQ being reverse complemented
+# 5 0x20 SEQ of the next segment in the template being reversed
+# 6 0x40 the first segment in the template
+# 7 0x80 the last segment in the template
+#
+# code[6]=1 means read1
+# code[4]=1 means reverse strand
+
+def samcode(num): return bin(int(num))[2:].zfill(8)[::-1]
+
+def template_counts(ref,sam,bcfile,vars):
   genome = read_genome(ref)
 
   barcodes = {}
@@ -420,19 +442,25 @@ def template_counts(ref,sam,bcfile):
     else: barcodes[id] = line
 
   hits = {}
-  readlen = -1
-  tot,mapped = 0,0
+  vars.tot_tgtta,vars.mapped = 0,0
+  vars.r1 = vars.r2 = 0
   for line in open(sam):
     if line[0]=='@': continue
     else:
       w = line.split('\t')
-      if int(w[1])>=128: tot += 1 # just count read1's
-      if w[1]=="99" or w[1]=="83":
-        mapped += 1
-        if readlen==-1: readlen = len(w[9])
-        pos,size = int(w[3]),int(w[8])
+      code = samcode(w[1])
+      if code[6]=="1": # previously checked for for reads1's via w[1]<128 
+        vars.tot_tgtta += 1 
+        if code[2]=="0": vars.r1 += 1
+      if code[7]=="1" and code[2]=="0": vars.r2 += 1
+      # include "improperly mapped reads, which might just be short frags
+      #if w[1]=="99" or w[1]=="83" or w[1]=="97" or w[1]=="81": 
+      if code[6]=="1" and code[2]=="0" and code[3]=="0": # both reads mapped (proper or not)
+        vars.mapped += 1
+        readlen = len(w[9])
+        pos,size = int(w[3]),int(w[8]) # note: size could be negative
         strand,delta = 'F',-2
-        if w[1]=="83": strand,delta = 'R',readlen
+        if code[4]=="1": strand,delta = 'R',readlen
         pos += delta
         bc = barcodes[w[0]]
         if pos not in hits: hits[pos] = []
@@ -517,13 +545,62 @@ def extract_reads(vars):
     extract_staggered(vars.reads1,vars.tgtta1,vars)
     message("creating %s" % vars.tgtta2)
     select_reads(vars.tgtta1,vars.reads2,vars.tgtta2)
+    #message("creating %s" % vars.barcodes2)
+    #select_cycles(vars.tgtta2,22,30,vars.barcodes2)
+    #message("creating %s" % vars.genomic2)
+    #select_cycles(vars.tgtta2,43,-1,vars.genomic2)
+
+    # instead of using select_cycles, do these both in one shot by looking for constant seqs
     message("creating %s" % vars.barcodes2)
-    select_cycles(vars.tgtta2,22,30,vars.barcodes2)
+    message("creating %s" % vars.genomic2)
+    extract_barcodes(vars.tgtta2,vars.barcodes2,vars.genomic2)
+
     message("creating %s" % vars.barcodes1)
     replace_ids(vars.tgtta1,vars.barcodes2,vars.barcodes1)
-    message("creating %s" % vars.genomic2)
-    select_cycles(vars.tgtta2,43,-1,vars.genomic2)
 
+#  pattern for read 2...
+#    TAGTGGATGATGGCCGGTGGATTTGTG GTAATTACCA TGGTCGTGGTAT CCCAGCGCGACTTCTTCGGCGCACACACC TAACAGGTTGGCTGATAAGTCCCCG?AGAT AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGT
+#    -----const1---------------- --barcode- ---const2--- ------genomic---------------- ------const3--------------------------------------------------------------
+#    const suffix might appear if fragment is shorter than read length; if so, truncate
+#    if genomic part is too short, just output at least 20bp of const so as not to mess up BWA
+#    could the start of these be shifted slightly?
+
+def extract_barcodes(fn_tgtta2,fn_barcodes2,fn_genomic2):
+  const1 = "GATGGCCGGTGGATTTGTG"
+  const2 = "TGGTCGTGGTAT"
+  const3 = "TAACAGGTTGGCTGATAAG"
+  nconst1,nconst2,nconst3 = len(const1),len(const2),len(const3)
+  fl_barcodes2 = open(fn_barcodes2,"w")
+  fl_genomic2 = open(fn_genomic2,"w")
+  DEBUG = 0
+  for line in open(fn_tgtta2):
+    line = line.rstrip()
+    if line[0]=='>': header = line
+    else:
+      a  = line.find(const1)
+      b  = line.find(const2)
+      c  = line.find(const3)
+      bstart,bend = a+nconst1,b
+      gstart,gend = b+nconst2,len(line)
+      if c!=-1 and c-gstart>20: gend = c
+      if a==-1 or bend<bstart+5 or bend>bstart+15:
+        bstart,bend = 0,10
+        gstart,gend = 0,20
+      if DEBUG==1:
+        fl_barcodes2.write(header+"\n")
+        fl_barcodes2.write(line+"\n")
+        fl_barcodes2.write((" "*bstart)+line[bstart:bend]+"\n")
+        fl_genomic2.write(header+"\n")
+        fl_genomic2.write(line+"\n")
+        fl_genomic2.write((" "*gstart)+line[gstart:gend]+"\n")
+      else:
+        fl_barcodes2.write(header+"\n")
+        fl_barcodes2.write(line[bstart:bend]+"\n")
+        fl_genomic2.write(header+"\n")
+        fl_genomic2.write(line[gstart:gend]+"\n")
+  fl_barcodes2.close()
+  fl_genomic2.close()
+  if DEBUG==1: sys.exit(0)
 
 def run_bwa(vars):
     message("mapping reads using BWA...(this takes a couple of minutes)")
@@ -566,7 +643,7 @@ def corr(X,Y):
 
 def generate_output(vars):
   message("tabulating template counts and statistics...")
-  counts = template_counts(vars.ref,vars.sam,vars.barcodes1)
+  counts = template_counts(vars.ref,vars.sam,vars.barcodes1,vars)
 
   tcfile = open(vars.tc,"w")
   tcfile.write('\t'.join("coord Fwd_Rd_Ct Fwd_Templ_Ct Rev_Rd_Ct Rev_Templ_Ct Tot_Rd_Ct Tot_Templ_Ct".split())+"\n")
@@ -583,20 +660,6 @@ def generate_output(vars):
   output.write("variableStep chrom="+ fi + "\n")
   for data in counts: output.write("%s %s\n" % (data[0],data[-1]))
   output.close()
-
-  tot_tgtta,mapped = 0,0
-  r1,r2=0,0
-  for line in open(vars.sam):
-    if line[0]=='@': continue
-    else:
-      w = line.split('\t')
-      if int(w[1])>=128: tot_tgtta += 1 # just count read1's
-      if w[1]=="99" or w[1]=="83":
-        mapped += 1
-      bin_str = bin(int(w[1]))[2:].zfill(8)[::-1]
-      if bin_str[2]=='0' and bin_str[6]=='1': r1 +=1
-      if bin_str[2]=='0' and bin_str[7]=='1': r2 +=1
-      
 
   primer = "CTAGAGGGCCCAATTCGCCCTATAGTGAGT"
   vector = "CTAGACCGTCCAGTCTGGCAGGCCGGAAAC"
@@ -638,10 +701,11 @@ def generate_output(vars):
   output.write('# read2: %s\n' % vars.fq2)
   output.write('# ref_genome: %s\n' % vars.ref)
   output.write("# total_reads %s (read pairs)\n" % tot_reads)
-  output.write("# TGTTA_reads %s (reads with valid Tn prefix)\n" % tot_tgtta)
-  output.write("# mapped_reads %s (both R1 and R2 map into genome)\n" % mapped)
-  output.write("# reads1_mapped %s\n" % r1)
-  output.write("# reads2_mapped %s\n" %r2)
+  output.write("# TGTTA_reads %s (reads with valid Tn prefix)\n" % vars.tot_tgtta)
+  output.write("# truncated_reads %s (fragments shorter than the read length; ADAP2 appears in read1)\n" % vars.truncated_reads)
+  output.write("# reads1_mapped %s\n" % vars.r1)
+  output.write("# reads2_mapped %s\n" % vars.r2)
+  output.write("# mapped_reads %s (both R1 and R2 map into genome)\n" % vars.mapped)
 
   output.write("# read_count %s (TA sites only)\n" % rc)
   output.write("# template_count %s\n" % tc)
@@ -659,8 +723,8 @@ def generate_output(vars):
   output.write("# vector_matches: %s reads contain %s\n" % (nvector,vector))
   #output.write("# most_abundant_prefix: %s reads start with %s\n" % (temp[0][1],temp[0][0]))
   # since these are reads (within Tn prefix stripped off), I expect ~1/4 to match Tn prefix
-  vals = [vars.fq1,vars.fq2,tot_reads,tot_tgtta,mapped,r1,r2,rc,tc,ratio,ta_sites,tas_hit,max_tc,max_coord,NZmean,FR_corr,BC_corr,nprimer,nvector]
-  output.write('\t'.join([str(x) for x in vals]))
+  vals = [vars.fq1,vars.fq2,tot_reads,vars.tot_tgtta,vars.mapped,vars.r1,vars.r2,rc,tc,ratio,ta_sites,tas_hit,max_tc,max_coord,NZmean,FR_corr,BC_corr,nprimer,nvector]
+  output.write('\t'.join([str(x) for x in vals])+"\n")
   output.close()
 
   message("writing %s" % vars.stats)
