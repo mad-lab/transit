@@ -730,8 +730,13 @@ def generate_output(vars):
   output.close()
 
   message("writing %s" % vars.stats)
-  os.system("grep '#' %s" % vars.stats)
-
+  #os.system("grep '#' %s" % vars.stats)
+  infile = open(vars.stats)
+  for line in infile:
+      if '#' in line:
+          print line.rstrip()
+  infile.close()
+  
 #############################################################################
 
 def error(s):
