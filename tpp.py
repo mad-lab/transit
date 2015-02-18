@@ -118,8 +118,8 @@ class MyForm(wx.Frame):
         self.list_ctrl.InsertColumn(0, 'dataset',width=300)
         self.list_ctrl.InsertColumn(1, 'total reads',wx.LIST_FORMAT_RIGHT,width=125)
         self.list_ctrl.InsertColumn(2, 'TGTTA prefix', wx.LIST_FORMAT_RIGHT,width=125)
-        self.list_ctrl.InsertColumn(3, 'reads 1', wx.LIST_FORMAT_RIGHT,width=90)
-        self.list_ctrl.InsertColumn(4, 'reads 2', wx.LIST_FORMAT_RIGHT,width=90)
+        self.list_ctrl.InsertColumn(3, 'R1_mapped', wx.LIST_FORMAT_RIGHT,width=90)
+        self.list_ctrl.InsertColumn(4, 'R2_mapped', wx.LIST_FORMAT_RIGHT,width=90)
         self.list_ctrl.InsertColumn(5, 'mapped\nreads', wx.LIST_FORMAT_RIGHT,width=90)
         self.list_ctrl.InsertColumn(6, 'template\ncount', wx.LIST_FORMAT_RIGHT,width=90)
         self.list_ctrl.InsertColumn(7, 'TAs hit', wx.LIST_FORMAT_RIGHT,width=90)
@@ -730,8 +730,13 @@ def generate_output(vars):
   output.close()
 
   message("writing %s" % vars.stats)
-  os.system("grep '#' %s" % vars.stats)
-
+  #os.system("grep '#' %s" % vars.stats)
+  infile = open(vars.stats)
+  for line in infile:
+      if '#' in line:
+          print line.rstrip()
+  infile.close()
+  
 #############################################################################
 
 def error(s):
