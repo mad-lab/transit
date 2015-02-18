@@ -1122,8 +1122,9 @@ if __name__ == "__main__":
             kwargs["ignoreCTerm"] = args.ignoreC
             kwargs["output"] = open(args.output_file, "w")
     
-            thread = threading.Thread(target=gumbelMH.runGumbel, args=(None, None), kwargs=kwargs)
-            thread.start()
+            #thread = threading.Thread(target=gumbelMH.runGumbel, args=(None, None), kwargs=kwargs)
+            #thread.start()
+            gumbelMH.runGumbel(None, None, **kwargs)
             
         elif args.command == "hmm":
             kwargs = {}
@@ -1135,8 +1136,9 @@ if __name__ == "__main__":
             kwargs["ignoreCTerm"] = args.ignoreC
             kwargs["output"] = open(args.output_file, "w")
 
-            thread = threading.Thread(target=hmm_geom.runHMM, args=(None, None), kwargs=kwargs)
-            thread.start()
+            #thread = threading.Thread(target=hmm_geom.runHMM, args=(None, None), kwargs=kwargs)
+            #thread.start()
+            hmm_geom.runHMM(None, None, **kwargs)
 
         elif args.command == "resampling":
             kwargs = {}
@@ -1160,8 +1162,9 @@ if __name__ == "__main__":
             kwargs["doNormalize"] = True
             kwargs["output"] = open(args.output_file, "w")
             
-            thread = threading.Thread(target=resampling.runResampling, args=(None, None), kwargs=kwargs)
-            thread.start()
+            #thread = threading.Thread(target=resampling.runResampling, args=(None, None), kwargs=kwargs)
+            #thread.start()
+            resampling.runResampling(None, None, **kwargs)
 
         else:
             print "Error: Command not recognized!"
