@@ -72,9 +72,6 @@ def runGumbel(wx, pubmsg, **kwargs):
 
     N_GENES = len(N)
 
-    print N_GENES, type(N_GENES)
-    print SAMPLE_SIZE, type(SAMPLE_SIZE)
-
     Z_sample = numpy.zeros((N_GENES, SAMPLE_SIZE))
     Z = [classify(N[g], R[g], 0.5)   for g in xrange(N_GENES)]
     Z_sample[:,0] = Z
