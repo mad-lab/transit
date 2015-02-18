@@ -1,5 +1,6 @@
 import sys
 import os
+import datetime
 import random
 import numpy
 import matplotlib.pyplot as plt
@@ -60,11 +61,26 @@ def fdr_corrected_pval(X):
 
 
 
-def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output, wx, pubmsg, doNormalize=True):
+#def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output, wx, pubmsg, doNormalize=True):
+def runResampling(wx, pubmsg, **kwargs):
+
+    print "Running Resampling Method"
 
     arguments = locals().items()
-    ctrlList = ctrlString.split(",")
-    expList = expString.split(",")
+
+
+    ctrlList = kwargs.get("ctrlList")
+    expList = kwargs.get("expList")
+    annotationPath = kwargs.get("annotationPath")
+    sampleSize = kwargs.get("sampleSize", 10000)
+    histPath = kwargs.get("histPath")
+    doAdaptive = kwargs.get("doAdaptive", False)
+    doNormalize = kwargs.get("doNormalize", True)
+    ignoreCodon = kwargs.get("ignoreCodon", True)
+    ignoreNTerm = kwargs.get("ignoreNTerm", 5)
+    ignoreCTerm = kwargs.get("ignoreCTerm", 5)
+    output = kwargs.get("output")
+
 
     N1 = len(ctrlList)
     N2 = len(expList)
@@ -161,7 +177,7 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, d
 
 
         count += 1
-        wx.CallAfter(pubmsg, "resampling", msg="Running Resampling Method... %2.0f%%" % (100.0*(count+1)/(G)))
+        if wx: wx.CallAfter(pubmsg, "resampling", msg="Running Resampling Method... %2.0f%%" % (100.0*(count+1)/(G)))
 
     qval = fdr_corrected_pval(pval)
     count = 0
@@ -171,5 +187,23 @@ def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, d
         count += 1
 
     output.close()
+
+
+
+    print "Finished Resampling Method"
+    if not output.name.startswith("<"):
+        data = {"path":output.name, "type":"Resampling", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+        print "Adding File:", output.name
+        if wx: wx.CallAfter(pubmsg, "file", data=data)
+
+    if wx: wx.CallAfter(pubmsg, "resampling", msg="Finished!")
+    if wx: wx.CallAfter(pubmsg,"finish", msg="resampling")
+
+
+
+
+
+
+
 
 

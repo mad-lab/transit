@@ -1,5 +1,6 @@
 import sys
 import time
+import datetime
 #import trash_tools
 from MH_tools import *
 import transit_tools
@@ -7,9 +8,25 @@ import transit_tools
 #def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, output, wx, pubmsg):
 #def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, wx, pubmsg):
 #def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, wx, pubmsg):
-def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, REPCHOICE, IGNORECODON, ignoreNTerm, ignoreCTerm, output, wx, pubmsg):
+#def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, REPCHOICE, IGNORECODON, ignoreNTerm, ignoreCTerm, output, wx, pubmsg):
+def runGumbel(wx, pubmsg, **kwargs):
 
 
+    print "Running Gumbel Method"
+
+
+
+    PATH = kwargs.get("readPathList")
+    PROT_PATH = kwargs.get("annotationPath")
+    MINIMUM_READ = kwargs.get("min_read", 1)
+    SAMPLE_SIZE = kwargs.get("samples", 10000)
+    BURNIN = kwargs.get("burnin", 500) 
+    TRIM = kwargs.get("trim", 1) 
+    REPCHOICE  = kwargs.get("repchoice", "Sum")
+    IGNORECODON = kwargs.get("ignoreCodon", True)
+    ignoreNTerm = kwargs.get("ignoreNTerm", 5)
+    ignoreCTerm = kwargs.get("ignoreCTerm", 5)
+    output = kwargs.get("output")
 
 
     w1 = 0.15
@@ -30,8 +47,6 @@ def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, REPCHOIC
     orf2info = transit_tools.get_gene_info(PROT_PATH)
     hash = transit_tools.get_pos_hash(PROT_PATH)
 
-    print "PATH", PATH
-    print "Codon", IGNORECODON
 
     (data, position) = transit_tools.get_data(PATH)
     orf2reads, orf2pos = transit_tools.get_gene_reads(hash, data, position, orf2info, ignoreCodon=IGNORECODON, ignoreNTerm=ignoreNTerm, ignoreCTerm=ignoreCTerm, orf_list=orf2info.keys())
@@ -56,6 +71,10 @@ def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, REPCHOIC
 
 
     N_GENES = len(N)
+
+    print N_GENES, type(N_GENES)
+    print SAMPLE_SIZE, type(SAMPLE_SIZE)
+
     Z_sample = numpy.zeros((N_GENES, SAMPLE_SIZE))
     Z = [classify(N[g], R[g], 0.5)   for g in xrange(N_GENES)]
     Z_sample[:,0] = Z
@@ -104,7 +123,8 @@ def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, REPCHOIC
 
 
         #Update 
-        wx.CallAfter(pubmsg, "gumbel", msg="Running Gumbel Method... %2.0f%%" % (100.0*(count+1)/(SAMPLE_SIZE+BURNIN)))
+        if wx:
+            wx.CallAfter(pubmsg, "gumbel", msg="Running Gumbel Method... %2.0f%%" % (100.0*(count+1)/(SAMPLE_SIZE+BURNIN)))
 
 
     ZBAR = numpy.apply_along_axis(numpy.mean, 1, Z_sample)
@@ -138,7 +158,19 @@ def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, REPCHOIC
 
         output.write("%s\t%s\t%s\t%d\t%d\t%d\t%d\t%f\t%s%s\n" % (orf, orf2name.get(orf,"-"), orf2desc.get(orf,"-"), k, n, r, s, zbar, call, sample_str))
 
-
-
     output.close()
-          
+    
+    
+    if not output.name.startswith("<"):
+        data = {"path":output.name, "type":"Gumbel", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+        print "Adding File:", output.name
+        if wx:
+            wx.CallAfter(pubmsg, "file", data=data)
+    if wx:
+        wx.CallAfter(pubmsg, "gumbel", msg="Finished!")
+        wx.CallAfter(pubmsg,"finish", msg="gumbel")
+    
+    print "Finished Gumbel Method"
+    
+    
+    

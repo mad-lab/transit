@@ -1,7 +1,8 @@
 import sys
+import math
+import datetime
 import numpy
 import scipy.stats
-import math
 import hmm_tools
 import transit_tools
 
@@ -9,10 +10,21 @@ import transit_tools
 numpy.seterr(divide='ignore')
 
 
-def runHMM(wigPathList, protPath, repchoice, output, wx, pubmsg):
+#def runHMM(wigPathList, protPath, repchoice, output, wx, pubmsg):
+def runHMM(wx, pubmsg, **kwargs):
+
+    
+    print "Running HMM Method"
 
 
-    print "repchoice:", repchoice,"|"
+    readPathList = kwargs.get("readPathList")
+    annotationPath = kwargs.get("annotationPath")
+    repchoice = kwargs.get("repchoice", "Sum")
+    ignoreCodon = kwargs.get("ignoreCodon", True)
+    ignoreNTerm = kwargs.get("ignoreNTerm", 5)
+    ignoreCTerm = kwargs.get("ignoreCTerm", 5)
+    output = kwargs.get("output", sys.stdout)
+
 
     defaultStates = True
     defaultParameters = True
@@ -21,32 +33,13 @@ def runHMM(wigPathList, protPath, repchoice, output, wx, pubmsg):
 
     # Get Gene Annotation from Prot Table File
     hash = {}; rv2name = {}
-    if protPath:
-        #hash = hmm_tools.hash_prot_genes(protPath)
-        #rv2name = hmm_tools.get_prot_names(protPath)
-        hash = transit_tools.get_pos_hash(protPath)
-        rv2name = transit_tools.get_gene_name(protPath)
-
-
-    """
-    # Read in read count data
-    pos_list = []
-    C = []
-    for line in open(wigPath):
-        if line.startswith("#"): continue
-        if line.startswith("variable"): continue
-        if line.startswith("location"): continue
-        tmp = line.split()
-        pos = int(tmp[0]); reads = int(tmp[1]);
-        pos_list.append(int(pos))
-        C.append(reads+1)
-
-    O = numpy.array(C) # Reads
-    """
+    if annotationPath:
+        hash = transit_tools.get_pos_hash(annotationPath)
+        rv2name = transit_tools.get_gene_name(annotationPath)
 
     # Read in read count data
     data = []
-    for wigPath in wigPathList:
+    for wigPath in readPathList:
         pos_list = []
         C = []
         for line in open(wigPath):
@@ -139,8 +132,7 @@ def runHMM(wigPathList, protPath, repchoice, output, wx, pubmsg):
 
 
     
-
-    wx.CallAfter(pubmsg, "hmm", msg="Creating HMM Sites output...")
+    if wx: wx.CallAfter(pubmsg, "hmm", msg="Creating HMM Sites output...")
     T = len(O); total=0; state2count = dict.fromkeys(range(N),0)
     for t in xrange(T):
         state = Q_opt[t]
@@ -165,21 +157,6 @@ def runHMM(wigPathList, protPath, repchoice, output, wx, pubmsg):
     output.write("#    %s\n" % "   ".join(["%s: %2.2f%%" % (label[i], state2count[i]*100.0/total) for i in range(N)]))
 
 
-    """"
-    T = len(O)
-    last_orf = ""
-    if not protPath: output.write("\n")
-    for t in xrange(T):
-        current_orf = hash.get(pos_list[t], "non-coding")
-        if (not last_orf or last_orf != current_orf) and protPath:
-            orf = hash.get(pos_list[t], "non-coding")
-            output.write( "\n%s %s\n" % (orf, rv2name.get(orf,"-")))
-            last_orf = current_orf
-    
-        output.write( "%-7d %-7d %-4s  %-4s\n" % (pos_list[t], O[t]-1, "   ".join( "%-9.2e" % B[i](O[t]) for i in range(N)), label.get(int(Q_opt[t]), "Unknown State")))
-
-    """
-
     T = len(O)
     last_orf = ""
     for t in xrange(T):
@@ -192,8 +169,28 @@ def runHMM(wigPathList, protPath, repchoice, output, wx, pubmsg):
 
         output.write("%s\t%s\t%s\t%s\t%s\n" % (int(pos_list[t]), int(O[t])-1, "\t".join(["%-9.2e" % g for g in gamma_t]), s_lab, genestr))
 
-
     output.close()
+
+    print "Finished HMM - Sites Method"
+    if not output.name.startswith("<"):
+        data = {"path":output.name, "type":"HMM - Sites", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+
+        print "Adding File:", output.name
+        
+        if wx: wx.CallAfter(pubmsg, "file", data=data)
+
+        if wx: wx.CallAfter(pubmsg, "hmm", msg="Creating HMM Sites output...")
+        genes_path = ".".join(output.name.split(".")[:-1]) + "_genes." + output.name.split(".")[-1]
+        hmm_tools.post_process_genes(output.name, annotationPath, ignoreCodon, ignoreNTerm, ignoreCTerm, output=open(genes_path,"w"))
+        data["path"] =  genes_path
+        data["type"] = "HMM - Genes"
+        print "Adding File:", genes_path
+        if wx: wx.CallAfter(pubmsg, "file", data=data)
+        if wx: wx.CallAfter(pubmsg, "hmm", msg="Finished!")
+        if wx: wx.CallAfter(pubmsg,"finish", msg="hmm")
+
+
+
 
 
 

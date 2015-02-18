@@ -33,7 +33,7 @@ def forward_procedure(A, B, PI, O, wx, pubmsg):
         if numpy.sum(alpha[:,t]) == 0:
             alpha[:,t] = 0.0000000000001
 
-        wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
+        if wx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
         count+=1
         #print t, O[:,t], alpha[:,t]
 
@@ -71,7 +71,7 @@ def backward_procedure(A, B, PI, O, wx, pubmsg, C=None):
             beta[:,t] = beta[:,t] * C[t]
 
 
-        wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
+        if wx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
         count+=1
 
         #print t, beta[:,t]
@@ -101,16 +101,16 @@ def viterbi(A, B, PI, O, wx, pubmsg, scaling=True, discrete=False):
         nus = delta[:, t-1] + A
         delta[:,t] = nus.max(1) + numpy.log(b_o)
         Q[:,t] = nus.argmax(1)
-        wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
+        if wx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
         count+=1
 
     Q_opt = [numpy.argmax(delta[:,T-1])]
     for t in xrange(T-2, -1, -1):
         Q_opt.insert(0, Q[Q_opt[0],t+1])
-        wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
+        if wx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
         count+=1
 
-    wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(ITERATIONS)/(ITERATIONS)))
+    if wx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(ITERATIONS)/(ITERATIONS)))
 
     return((Q_opt, delta, Q))
 
