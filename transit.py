@@ -1,6 +1,11 @@
 #importing wx files
-import wx
+
 import sys
+
+if len(sys.argv) == 1:
+    import wx
+    from wx.lib.pubsub import pub
+   
 import os
 import time
 import datetime
@@ -9,7 +14,6 @@ import threading
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import math
-from wx.lib.pubsub import pub
 
 # trash view stuff
 import trash
@@ -24,143 +28,12 @@ import resampling
 
 import imgTRANSIT
 
+import argparse
+
 
 wildcard = "Python source (*.py)|*.py|" \
             "All files (*.*)|*.*"
 DEBUG = True
-
-class GumbelThread(threading.Thread):
-    """Gumbel Worker Thread Class."""
- 
-    #----------------------------------------------------------------------
-    def __init__(self, readPath, annotationPath, min_read, samples, burnin, trim, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output):
-        """Init Worker Thread Class."""
-
-        #parameters
-        self.readPath = readPath
-        self.annotationPath = annotationPath
-        self.min_read = min_read
-        self.samples = samples
-        self.burnin = burnin
-        self.trim = trim
-        self.repchoice = repchoice
-        self.ignoreCodon = ignoreCodon
-        self.ignoreNTerm = ignoreNTerm
-        self.ignoreCTerm = ignoreCTerm
-        self.output = output
-
-        #thread
-        threading.Thread.__init__(self)
-        self.daemon = True 
-        self.start()    # start the thread
- 
-    #----------------------------------------------------------------------
-    def run(self):
-        """Run Worker Thread."""
-        # This is the code executing in the new thread.
-
-        print "Running Gumbel Method for %d Samples" % (self.samples)
-        gumbelMH.runGumbel(self.readPath, self.annotationPath, self.min_read, self.samples, self.burnin, self.trim, self.repchoice, self.ignoreCodon, self.ignoreNTerm, self.ignoreCTerm, self.output, wx, pub.sendMessage)
-        print "Finished Gumbel Method"
-        if not self.output.name.startswith("<"):
-            data = {"path":self.output.name, "type":"Gumbel", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-            print "Adding File:", self.output.name
-            wx.CallAfter(pub.sendMessage, "file", data=data)
-
-        wx.CallAfter(pub.sendMessage, "gumbel", msg="Finished!")
-        wx.CallAfter(pub.sendMessage,"finish", msg="gumbel")
-
-
-
-class HMMThread(threading.Thread):
-    """HMM Worker Thread Class."""
-
-    #----------------------------------------------------------------------
-    def __init__(self, readPathList, annotationPath, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output):
-        """Init Worker Thread Class."""
-
-        #parameters
-        self.readPathList = readPathList
-        self.annotationPath = annotationPath
-        self.repchoice = repchoice
-        self.ignoreCodon = ignoreCodon
-        self.ignoreNTerm = ignoreNTerm
-        self.ignoreCTerm = ignoreCTerm
-        self.output = output
-
-        #thread
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.start()    # start the thread
-
-    #----------------------------------------------------------------------
-    def run(self):
-        """Run Worker Thread."""
-        # This is the code executing in the new thread.
-
-        print "Running HMM Method"
-        hmm_geom.runHMM(self.readPathList, self.annotationPath, self.repchoice, self.output, wx, pub.sendMessage)
-        print "Finished HMM Method"
-
-        if not self.output.name.startswith("<"):
-            data = {"path":self.output.name, "type":"HMM - Sites", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-            
-            print "Adding File:", self.output.name
-            wx.CallAfter(pub.sendMessage, "file", data=data)
-            
-            wx.CallAfter(pub.sendMessage, "hmm", msg="Creating HMM Sites output...")
-            genes_path = ".".join(self.output.name.split(".")[:-1]) + "_genes." + self.output.name.split(".")[-1]
-            hmm_tools.post_process_genes(self.output.name, self.annotationPath, self.ignoreCodon, self.ignoreNTerm, self.ignoreCTerm, output=open(genes_path,"w"))
-            data["path"] =  genes_path
-            data["type"] = "HMM - Genes"
-            print "Adding File:", genes_path
-            wx.CallAfter(pub.sendMessage, "file", data=data)
-            wx.CallAfter(pub.sendMessage, "hmm", msg="Finished!")
-            wx.CallAfter(pub.sendMessage,"finish", msg="hmm")
-
-
-
-class ResamplingThread(threading.Thread):
-    """HMM Worker Thread Class."""
-
-    #----------------------------------------------------------------------
-    def __init__(self, ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output):
-        """Init Worker Thread Class."""
-
-        #parameters
-        self.ctrlString = ctrlString
-        self.expString = expString
-        self.annotationPath = annotationPath
-        self.sampleSize = sampleSize
-        self.histPath = histPath
-        self.doAdaptive = doAdaptive
-        self.ignoreCodon = ignoreCodon
-        self.ignoreNTerm = ignoreNTerm
-        self.ignoreCTerm = ignoreCTerm
-        self.output = output
-
-        #thread
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.start()    # start the thread
-
-    #----------------------------------------------------------------------
-    def run(self):
-        """Run Worker Thread."""
-        # This is the code executing in the new thread.
-
-        print "Running Resampling Method"
-        resampling.runResampling(self.ctrlString, self.expString, self.annotationPath, self.sampleSize, self.histPath, self.doAdaptive, self.ignoreCodon, self.ignoreNTerm, self.ignoreCTerm, self.output, wx, pub.sendMessage)
-        print "Finished Resampling Method"
-        if not self.output.name.startswith("<"):
-            data = {"path":self.output.name, "type":"Resampling", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-            print "Adding File:", self.output.name
-            wx.CallAfter(pub.sendMessage, "file", data=data)
-
-        wx.CallAfter(pub.sendMessage, "resampling", msg="Finished!")
-        wx.CallAfter(pub.sendMessage,"finish", msg="resampling")
-
-
 
 
 #inherit from the MainFrame created in wxFowmBuilder and create CalcFrame
@@ -983,7 +856,7 @@ class TnSeekFrame(transit_gui.MainFrame):
             self.ShowError("Error: No annotation file selected.")
             return
         
- 
+        
         pathCol = self.list_ctrl.GetColumnCount() - 1
         readPath = self.list_ctrl.GetItem(next, pathCol).GetText()
         readPathList = all_selected
@@ -993,11 +866,6 @@ class TnSeekFrame(transit_gui.MainFrame):
         burnin = int(self.gumbelBurninText.GetValue())
         trim = int(self.gumbelTrimText.GetValue())
         repchoice = self.gumbelRepChoice.GetString(self.gumbelRepChoice.GetCurrentSelection())
-
-
-        #ignoreCodon = self.ignoreCodonMenuItem.IsChecked()
-        #ignoreNC = self.ignoreNCMenuItem.IsChecked()
-
         ignoreCodon = True
         ignoreNTerm = float(self.globalNTerminusText.GetValue())
         ignoreCTerm = float(self.globalCTerminusText.GetValue())
@@ -1005,7 +873,6 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         #Get Default file name
         defaultFile = "gumbel_%s_s%d_b%d_t%d.dat" % (".".join(name.split(".")[:-1]), samples, burnin, trim)
-
 
         #Get Default directory
         defaultDir = os.path.dirname(os.path.realpath(__file__))
@@ -1021,10 +888,23 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.statusBar.SetStatusText("Running Gumbel Method")
         self.gumbel_count = 0
         self.gumbelProgress.SetRange(samples+burnin)
-
         self.gumbelButton.Disable()
-        X = GumbelThread(readPathList, annotationPath, min_read, samples, burnin, trim, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
 
+        kwargs = {}
+        kwargs["readPathList"] = readPathList
+        kwargs["annotationPath"] = annotationPath
+        kwargs["min_read"] = min_read
+        kwargs["samples"] = samples
+        kwargs["burnin"] = burnin
+        kwargs["trim"] = trim
+        kwargs["repchoice"] = repchoice
+        kwargs["ignoreCodon"] = ignoreCodon
+        kwargs["ignoreNTerm"] = ignoreNTerm
+        kwargs["ignoreCTerm"] = ignoreCTerm
+        kwargs["output"] = output
+
+        thread = threading.Thread(target=gumbelMH.runGumbel, args=(wx, pub.sendMessage), kwargs=kwargs)
+        thread.start()
 
 
     def RunHMMFunc(self, event):
@@ -1043,10 +923,6 @@ class TnSeekFrame(transit_gui.MainFrame):
         readPathList = all_selected
         name = ntpath.basename(readPath)
         repchoice = self.hmmRepChoice.GetString(self.hmmRepChoice.GetCurrentSelection())
-
-        #ignoreCodon = self.ignoreCodonMenuItem.IsChecked()
-        #ignoreNC = self.ignoreNCMenuItem.IsChecked()
-
         ignoreCodon = True
         ignoreNTerm = float(self.globalNTerminusText.GetValue())
         ignoreCTerm = float(self.globalCTerminusText.GetValue())
@@ -1072,7 +948,20 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.hmmProgress.SetRange(T*4 +1)
 
         self.hmmButton.Disable()
-        HMMThread(readPathList, annotationPath, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
+
+        kwargs = {}
+        kwargs["readPathList"] = readPathList
+        kwargs["annotationPath"] = annotationPath
+        kwargs["repchoice"] = repchoice
+        kwargs["ignoreCodon"] = ignoreCodon
+        kwargs["ignoreNTerm"] = ignoreNTerm
+        kwargs["ignoreCTerm"] = ignoreCTerm
+        kwargs["output"] = output
+
+        #HMMThread(readPathList, annotationPath, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
+        thread = threading.Thread(target=hmm_geom.runHMM, args=(wx, pub.sendMessage), kwargs=kwargs)
+        thread.start()
+
 
 
     def RunResamplingFunc(self, event):
@@ -1111,7 +1000,6 @@ class TnSeekFrame(transit_gui.MainFrame):
             return
 
         #Check if user wants individual histograms
-        #/pacific/home/mdejesus/transitresampling_results.dat
         if self.resamplingHistCheck.GetValue():
             histPath = os.path.join(ntpath.dirname(outputPath), transit_tools.fetch_name(outputPath))
             if not os.path.isdir(histPath):
@@ -1120,14 +1008,10 @@ class TnSeekFrame(transit_gui.MainFrame):
             histPath = ""
 
         doAdaptive= self.resamplingAdaptiveCheck.GetValue()
-        
-        #ignoreCodon = self.ignoreCodonMenuItem.IsChecked()
-        #ignoreNC = self.ignoreNCMenuItem.IsChecked()
 
         ignoreCodon = True
         ignoreNTerm = float(self.globalNTerminusText.GetValue())
         ignoreCTerm = float(self.globalCTerminusText.GetValue())
-
 
         ctrlString = ",".join(selected_ctrl)
         expString = ",".join(selected_exp)
@@ -1146,18 +1030,141 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.resamplingProgress.SetRange(T+1)
 
         self.resamplingButton.Disable()
-        ResamplingThread(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
+
+        kwargs = {}
+        kwargs["ctrlList"] = ctrlString.split(",")
+        kwargs["expList"] = expString.split(",")
+        kwargs["annotationPath"] = annotationPath
+        kwargs["sampleSize"] = sampleSize
+        kwargs["histPath"] = histPath
+        kwargs["doAdaptive"] = doAdaptive
+        kwargs["ignoreCodon"] = ignoreCodon
+        kwargs["ignoreNTerm"] = ignoreNTerm
+        kwargs["ignoreCTerm"] = ignoreCTerm
+        kwargs["doNormalize"] = True
+        kwargs["output"] = output
+
+        #HMMThread(readPathList, annotationPath, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
+        thread = threading.Thread(target=resampling.runResampling, args=(wx, pub.sendMessage), kwargs=kwargs)
+        thread.start()
+
+        #ResamplingThread(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
 
 
 if __name__ == "__main__":
-    #refer manual for details
-    app = wx.App(False)
-     
-    #create an object of CalcFrame
-    frame = TnSeekFrame(None)
-    #show the frame
-    frame.Show(True)
-    #start the applications
-    app.MainLoop()
+
+
+    #If no arguments, show GUI:
+    if len(sys.argv) == 1:
+        #refer manual for details
+        app = wx.App(False)
+
+        #create an object of CalcFrame
+        frame = TnSeekFrame(None)
+        #show the frame
+        frame.Show(True)
+        #start the applications
+        app.MainLoop()
+
+    else:
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers(help='Methods', dest='command')
+        
+        # A gumbel command
+        gumbel_parser = subparsers.add_parser('gumbel', help='Gumbel method')
+        gumbel_parser.add_argument("annotation", help="Path to the annotation file in .prot_table format.")
+        gumbel_parser.add_argument("control_files", help="Comma separated list of paths for replicate CONTROL files.")
+        gumbel_parser.add_argument("output_file", help="Output filename.")
+        gumbel_parser.add_argument("-m", "--minread", help="Smallest read-count considered to be an insertion.", default=1, type=int)
+        gumbel_parser.add_argument("-s", "--samples", help="Number of samples performed by the MH sampler.", default=10000, type=int)
+        gumbel_parser.add_argument("-b", "--burnin", help="Burn in period, Skips this number of samples before getting estimates. See documentation.", default=500, type=int)
+        gumbel_parser.add_argument("-t", "--trim", help="Number of samples to trim. See documentation.", default=1, type=int)
+        gumbel_parser.add_argument("-r", "--rep", help="How to handle replicates: 'Sum' or 'Mean'.", default="Sum", type=str)
+        gumbel_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus.", default=5.0, type=float)
+        gumbel_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus.", default=5.0, type=float)
+        
+        # A hmm command
+        hmm_parser = subparsers.add_parser('hmm', help='HMM method')
+        hmm_parser.add_argument("annotation", help="Path to the annotation file in .prot_table format.")
+        hmm_parser.add_argument("control_files", help="Comma separated list of paths for replicate CONTROL files.")
+        hmm_parser.add_argument("output_file", help="Output filename.")
+        hmm_parser.add_argument("-r", "--rep", help="How to handle replicates: 'Sum' or 'Mean'.", default="Sum")
+        hmm_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus.", default=5.0, type=float)
+        hmm_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus.", default=5.0, type=float)
+        
+        # A resampling command
+        resampling_parser = subparsers.add_parser('resampling', help='Resampling method')
+        resampling_parser.add_argument("annotation", help="Path to the annotation file in .prot_table format.")
+        resampling_parser.add_argument("control_files", help="Comma separated list of paths for replicate CONTROL files.")
+        resampling_parser.add_argument("exp_files", help="Comma separated list of paths for replicate EXPERIMENTAL files.")
+        resampling_parser.add_argument("output_file", help="Output filename.")
+        resampling_parser.add_argument("-s", "--samples", help="Number of permutation samples obtained for each gene.", default=10000, type=int)
+        resampling_parser.add_argument("-H", "--hist", help="Number of samples to trim. See documentation.", action='store_true')
+        resampling_parser.add_argument("-a", "--adaptive", help="Adaptive resampling; faster at the risk of lower accuracy.", action='store_true')
+        resampling_parser.add_argument("-dN", "--dontNormalize", help="Set this flag to NOT Normalize between conditions.", action='store_true')
+        resampling_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus.", default=5.0, type=float)
+        resampling_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus.", default=5.0, type=float)
+        
+        args = parser.parse_args()
+
+        if args.command == "gumbel":
+            #prepare kwargs
+            kwargs = {}
+            kwargs["readPathList"] = args.control_files.split(",")
+            kwargs["annotationPath"] = args.annotation
+            kwargs["min_read"] = args.minread
+            kwargs["samples"] = args.samples
+            kwargs["burnin"] = args.burnin
+            kwargs["trim"] = args.trim
+            kwargs["repchoice"] = args.rep
+            kwargs["ignoreCodon"] = True
+            kwargs["ignoreNTerm"] = args.ignoreN
+            kwargs["ignoreCTerm"] = args.ignoreC
+            kwargs["output"] = open(args.output_file, "w")
+    
+            thread = threading.Thread(target=gumbelMH.runGumbel, args=(None, None), kwargs=kwargs)
+            thread.start()
+            
+        elif args.command == "hmm":
+            kwargs = {}
+            kwargs["readPathList"] = args.control_files.split(",")
+            kwargs["annotationPath"] = args.annotation
+            kwargs["repchoice"] = args.rep
+            kwargs["ignoreCodon"] = True
+            kwargs["ignoreNTerm"] = args.ignoreN
+            kwargs["ignoreCTerm"] = args.ignoreC
+            kwargs["output"] = open(args.output_file, "w")
+
+            thread = threading.Thread(target=hmm_geom.runHMM, args=(None, None), kwargs=kwargs)
+            thread.start()
+
+        elif args.command == "resampling":
+            kwargs = {}
+            kwargs["ctrlList"] = args.control_files.split(",")
+            kwargs["expList"] = args.exp_files.split(",")
+            kwargs["annotationPath"] = args.annotation
+            kwargs["sampleSize"] = args.samples
+           
+            if args.hist:
+                histPath = os.path.join(ntpath.dirname(args.output_file), transit_tools.fetch_name(args.output_file))
+                if not os.path.isdir(histPath):
+                    os.makedirs(histPath)
+            else:
+                histPath = ""
+            kwargs["histPath"] = histPath
+
+            kwargs["doAdaptive"] = args.adaptive
+            kwargs["ignoreCodon"] = True
+            kwargs["ignoreNTerm"] = args.ignoreN
+            kwargs["ignoreCTerm"] = args.ignoreC
+            kwargs["doNormalize"] = True
+            kwargs["output"] = open(args.output_file, "w")
+            
+            thread = threading.Thread(target=resampling.runResampling, args=(None, None), kwargs=kwargs)
+            thread.start()
+
+        else:
+            print "Error: Command not recognized!"
+
 
 
