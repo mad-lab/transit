@@ -35,6 +35,11 @@ height: 50%;
 <UL>
     <LI> <A HREF="#overview">Overview</A>
     <LI> <A HREF="#installation">Installation</A>
+    <LI> <A HREF="#running">Running TRANSIT</A>
+    <UL>
+        <LI> <A HREF="#running_gui">GUI Mode</A>
+        <LI> <A HREF="#running_console">Command line Mode</A>
+    </UL>
     <LI> <A HREF="#analysis">Analysis Methods</A>
     <UL>
         <LI> <A HREF="#gumbel">Gumbel</A>
@@ -156,9 +161,10 @@ There are various methods available for pre-processing (converting .fastq files 
 
 <h2><A id="installation">Installation</A></H2>
 
-<UL>
-<LI class="param">TRANSIT is python-based.  Primarily, you have to have python installed (installed by default on most systems).  In addition, TRANSIT relies on some python packages/libraries/modules that you might need to install.  Fortunately, there is nothing to compile/make/build.  You can simply run it from the command line.
-<LI class="param">Requirements:
+TRANSIT is python-based.  Primarily, you have to have python installed (installed by default on most systems).  In addition, TRANSIT relies on some python packages/libraries/modules that you might need to install.  Fortunately, there is nothing to compile/make/build.  You can simply run it from the command line.
+
+<H3>Requirements</H3>
+The following libraries/modules are required to run TRANSIT:
 
 <BR>
 <UL>
@@ -173,7 +179,11 @@ There are various methods available for pre-processing (converting .fastq files 
 
 Install these using the appropriate methods for your machine, e.g. apt-get or yum (for unix machines) or pip or easy_install (for Macs) or installer file (for Windows).
 
-<LI class="param">Running TRANSIT from the command-line (should be the same on Linux, Windows and MacOS):
+
+<H2><A id="running">Running TRANSIT</A></H2>
+
+<H3><A id="running_gui">GUI Mode</A></H3>
+To run TRANSIT in GUI mode (should be the same on Linux, Windows and MacOS), from the command line run:
 
 <PRE>
 python transit.pyc
@@ -181,9 +191,123 @@ python transit.pyc
 
 You might be able to double-click on icon for transit.pyc, if your OS associates .pyc files with python and automatically runs them.
 
-<LI class="param">Note, because TRANSIT has a graphical user interface, if you are trying to run TRANSIT across a network, for example, running on a unix server but displaying on a desktop machine, you will probably need to use 'ssh -Y' and a local X11 client (like Xming or Cygwin/X on PCs).
+Note, because TRANSIT has a graphical user interface, if you are trying to run TRANSIT across a network, for example, running on a unix server but displaying on a desktop machine, you will probably need to use 'ssh -Y' and a local X11 client (like Xming or Cygwin/X on PCs).
 
-</UL>
+
+
+
+<H3><A id="running_console">Command line Mode</A></H3>
+
+TRANSIT can also be run from the command line, without the GUI interface. This is convenient if you want to run many analyses in batch, as you can write a script that automatically runs that automatically runs TRANSIT from the command line.
+
+
+<BR>
+TRANSIT expects the user to specify which analysis method they wish to run. The user can choose from "gumbel", "hmm", or "resampling". By choosing a method, and adding the "-h" flag, you will get a list of all the necessary parameters and optional flags for the chosen method:
+ 
+<PRE>python transit.pyc gumbel -h</PRE>
+
+
+
+<BR>
+
+<H4>Gumbel</H4>
+<P>
+
+To run the Gumbel analysis from the command line, type "python transit.pyc gumbel" followed by the following arguments:
+
+<P>
+<table border=1
+<tr><th>Argument</th> <th>Type</th> <th>Description</th> <th>Default</th> <th>Example</th></tr>
+
+<tr><td>annotation</td> <td>Required</td> <td>Path to annotation file in .prot_table format</td> <td></td> <td>genomes/H37Rv.prot_table</td></tr>
+<tr><td>control_files</td> <td>Required</td> <td>Comma-separated list of paths to the *.wig replicate datasets</td> <td></td> <td>data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig</td></tr>
+
+<tr><td>output_file</td> <td>Required</td> <td>Name of the output file with the results.</td> <td></td> <td>results/gumbel_glycerol.dat</td></tr>
+
+<tr><td>-s SAMPLES</td> <td>Optional</td> <td>Number of samples to take.</td> <td>10000</td> <td>-s 20000</td></tr>
+<tr><td>-m MINREAD</td> <td>Optional</td> <td>Smallest read-count considered to be an insertion.</td> <td>1</td> <td>-m 2</td></tr>
+<tr><td>-b BURNIN</td> <td>Optional</td> <td>Burn in period, Skips this number of samples before getting estimates. See documentation.</td> <td>500</td> <td>-b 100</td></tr>
+<tr><td>-t TRIM</td> <td>Optional</td> <td>Number of samples to trim. See documentation.</td> <td>1</td> <td>-t 2</td></tr>
+<tr><td>-r REP</td> <td>Optional</td> <td>How to handle replicates read-counts: 'Sum' or 'Mean'.</td> <td>Sum</td> <td>-r Mean</td></tr>
+<tr><td>-iN IGNOREN</td> <td>Optional</td> <td>Ignore TAs occuring at X% of the N terminus.</td> <td>5</td> <td>-iN 0</td></tr>
+<tr><td>-iC IGNOREC</td> <td>Optional</td> <td>Ignore TAs occuring at X% of the C terminus.</td> <td>5</td> <td>-iC 10</td></tr>
+</table>
+
+<P>
+
+Example Gumbel command:
+<PRE>python transit.py gumbel genomes/H37Rv.prot_table data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig test_console_gumbel.dat -s 20000 -b 1000</PRE>
+
+
+
+<BR>
+
+
+<H4>HMM</H4>
+
+To run the HMM analysis from the command line, type "python transit.pyc hmm" followed by the following arguments:
+
+<P>
+<table border=1
+<tr><th>Argument</th> <th>Type</th> <th>Description</th> <th>Default</th> <th>Example</th></tr>
+
+<tr><td>annotation</td> <td>Required</td> <td>Path to annotation file in .prot_table format</td> <td></td> <td>genomes/H37Rv.prot_table</td></tr>
+<tr><td>control_files</td> <td>Required</td> <td>Comma-separated list of paths to the *.wig replicate datasets</td> <td></td> <td>data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig</td></tr>
+
+<tr><td>output_file</td> <td>Required</td> <td>Name of the output file with the results.</td> <td></td> <td>results/gumbel_glycerol.dat</td></tr>
+
+<tr><td>-r REP</td> <td>Optional</td> <td>How to handle replicates read-counts: 'Sum' or 'Mean'.</td> <td>Sum</td> <td>-r Mean</td></tr>
+<tr><td>-iN IGNOREN</td> <td>Optional</td> <td>Ignore TAs occuring at X% of the N terminus.</td> <td>5</td> <td>-iN 0</td></tr>
+<tr><td>-iC IGNOREC</td> <td>Optional</td> <td>Ignore TAs occuring at X% of the C terminus.</td> <td>5</td> <td>-iC 10</td></tr>
+</table>
+
+
+
+<P>
+
+Example HMM command:
+<PRE>python transit.py hmm genomes/H37Rv.prot_table data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig test_console_hmm.dat -r Sum</PRE>
+
+
+<BR>
+
+
+
+<H4>Resampling</H4>
+
+To run the Resampling analysis from the command line, type "python transit.pyc resampling" followed by the following arguments:
+
+<P>
+
+<table border=1
+<tr><th>Argument</th> <th>Type</th> <th width=60%>Description</th> <th>Default</th> <th>Example</th></tr>
+
+<tr><td>annotation</td> <td>Required</td> <td>Path to annotation file in .prot_table format</td> <td></td> <td>genomes/H37Rv.prot_table</td></tr>
+
+<tr><td>control_files</td> <td>Required</td> <td>Comma-separated list of paths to the *.wig replicate datasets for the control condition</td> <td></td> <td>data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig</td></tr>
+
+<tr><td>exp_files</td> <td>Required</td> <td>Comma-separated list of paths to the *.wig replicate datasets for the experimental condition</td> <td></td> <td>data/cholesterol_reads_rep1.wig,data/cholesterol_reads_rep2.wig</td></tr>
+
+<tr><td>output_file</td> <td>Required</td> <td>Name of the output file with the results.</td> <td></td> <td>results/gumbel_glycerol.dat</td></tr>
+
+<tr><td>-s SAMPLES</td> <td>Optional</td> <td>Number of permutations performed.</td> <td>10000</td> <td>-s 5000</td></tr>
+
+<tr><td>-H</td> <td>Optional</td> <td>Creates histograms of the permutations for all genes.</td> <td>Not set</td> <td>-H</td></tr>
+
+<tr><td>-a</td> <td>Optional</td> <td>Performs adaptive appoximation to resampling.</td> <td>Not set</td> <td>-a</td></tr>
+
+<tr><td>-dN</td> <td>Optional</td> <td>Uses raw counts, instead of normalizing between conditions.</td> <td>Not set</td> <td>-dN</td></tr>
+
+<tr><td>-iN IGNOREN</td> <td>Optional</td> <td>Ignore TAs occuring at X% of the N terminus.</td> <td>5</td> <td>-iN 0</td></tr>
+<tr><td>-iC IGNOREC</td> <td>Optional</td> <td>Ignore TAs occuring at X% of the C terminus.</td> <td>5</td> <td>-iC 10</td></tr>
+</table>
+
+
+<P>
+Example Resampling command:
+<PRE>python transit.pyc resampling genomes/H37Rv.prot_table data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig data/cholesterol_reads_rep1.wig,data/cholesterol_reads_rep2.wig,data/cholesterol_reads_rep3.wig test_console_resampling.dat -H -s 10000 </PRE>
+
+
 
 
 
@@ -260,6 +384,8 @@ The Gumbel method takes on the order of 10 minutes for 10,000 samples.  Run-time
 
 Other notes: Gumbel can be run on multiple replicates; replicate datasets will be automatically merged.
 
+
+    
 
 <P>
 <BR>
