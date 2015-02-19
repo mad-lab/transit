@@ -146,7 +146,7 @@ def runResampling(wx, pubmsg, **kwargs):
 
             if doAdaptive:
                 if s == 100 or s == 1000 or s == 10000:
-                    if count_2tail >=10:
+                    if count_2tail >=5:
                         s_performed = s+1
                         break
             
