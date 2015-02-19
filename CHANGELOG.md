@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - TRANSIT:
     - Fixed error in HMM results file table, which was not correctly showing breakdwn of genes.
     - Made TRANSIT work from the command-line, without displaying GUI. See documentation for arguments/flags.
+    - Added ability to convert annotation files between several formats (.prot_table, ptt.table, gff3).
 
 - TPP:
     - Added capability to specify number of mismatches.
