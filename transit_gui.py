@@ -197,10 +197,10 @@ class MainFrame ( wx.Frame ):
 		
 		bSizer1721 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.globalNTerminusText = wx.TextCtrl( self, wx.ID_ANY, u"5", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.globalNTerminusText = wx.TextCtrl( self, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer1721.Add( self.globalNTerminusText, 0, wx.ALL, 5 )
 		
-		self.globalCTerminusText = wx.TextCtrl( self, wx.ID_ANY, u"5", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.globalCTerminusText = wx.TextCtrl( self, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer1721.Add( self.globalCTerminusText, 0, wx.ALL, 5 )
 		
 		
