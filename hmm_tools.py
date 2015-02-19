@@ -303,6 +303,7 @@ def post_process_genes(path, annotationPath, ignoreCodon=True, ignoreNTerm=5, ig
         n = len(reads)
         freq = numpy.average([c > 0 for c in reads])
         reads_nz = [c for c in reads if c > 0]
+
         avg_read_nz = 0
         if len(reads_nz) > 0:
             avg_read_nz = numpy.average(reads_nz)
@@ -333,7 +334,7 @@ def post_process_genes(path, annotationPath, ignoreCodon=True, ignoreNTerm=5, ig
             E = 0.0
             V = 0.0
             S = "N/A"
-        output.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%1.4f\t%1.1f\t%s\n" % (gene, name, desc, n, n0, n1, n2, n3, freq, avg_read_nz, S))
+        output.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%1.4f\t%1.2f\t%s\n" % (gene, name, desc, n, n0, n1, n2, n3, freq, avg_read_nz, S))
 
     output.close()
 
