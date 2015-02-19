@@ -766,7 +766,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
         
-    def annotationToGFF3(self, event):
+    def annotationPT_to_GFF3(self, event):
         annotationpath = self.annotationFilePicker.GetPath()
         defaultFile = transit_tools.fetch_name(annotationpath) + ".gff3"
         defaultDir = os.path.dirname(os.path.realpath(__file__))
@@ -777,7 +777,7 @@ class TnSeekFrame(transit_gui.MainFrame):
             self.ShowError("Error: No annotation file selected.")
 
         elif outputPath:
-            print "Converting annotation file to GFF3"
+            print "Converting annotation file from prot_table format to GFF3 format"
             year = time.localtime().tm_year
             month = time.localtime().tm_mon
             day = time.localtime().tm_mday
@@ -803,7 +803,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
 
-    def annotationToPTT(self, event):
+    def annotationPT_to_PTT(self, event):
  
         annotationpath = self.annotationFilePicker.GetPath()
         defaultFile = transit_tools.fetch_name(annotationpath) + ".ptt.table"
@@ -818,7 +818,7 @@ class TnSeekFrame(transit_gui.MainFrame):
             
             outputPath = self.SaveFile(defaultDir, defaultFile)
             if not outputPath: return
-            print "Converting annotation file to PTT"
+            print "Converting annotation file from prot_table format to PTT format"
             (data, position) = transit_tools.get_data(datasets)
             orf2info = transit_tools.get_gene_info(annotationpath)
             hash = transit_tools.get_pos_hash(annotationpath)
@@ -841,6 +841,99 @@ class TnSeekFrame(transit_gui.MainFrame):
             output.close()
             print "Finished conversion"
                 
+
+
+    def annotationPTT_to_PT(self, event):
+
+        annotationpath = self.annotationFilePicker.GetPath()
+        defaultFile = transit_tools.fetch_name(annotationpath) + ".prot_table"
+        defaultDir = os.path.dirname(os.path.realpath(__file__))
+        
+        datasets = self.ctrlSelected() + self.expSelected()
+        if not annotationpath:
+            self.ShowError("Error: No annotation file selected.")
+        #elif not datasets:
+        #    self.ShowError("Error: Please add a .wig dataset, to determine TA sites.")
+        else:
+
+            outputPath = self.SaveFile(defaultDir, defaultFile)
+            if not outputPath: return
+            print "Converting annotation file from PTT format to prot_table format"
+            #(data, position) = transit_tools.get_data(datasets)
+            #orf2info = transit_tools.get_gene_info(annotationpath)
+            #hash = transit_tools.get_pos_hash(annotationpath)
+            #(orf2reads, orf2pos) = transit_tools.get_gene_reads(hash, data, position, orf2info)
+            
+            
+            output = open(outputPath, "w")
+            #output.write("geneID\tstart\tend\tstrand\tTA coordinates\n")
+            for line in open(annotationpath):
+                if line.startswith("#"): continue
+                if line.startswith("geneID"): continue
+                tmp = line.strip().split("\t")
+                orf = tmp[0]
+                if orf == "intergenic": continue
+                name = "-"
+                desc = "-"
+                start = int(tmp[1])
+                end = int(tmp[2])
+                length = ((end-start+1)/3)-1
+                strand = tmp[3]
+                someID = "-"
+                someID2 = "-"
+                COG = "-"
+                output.write("%s\t%d\t%d\t%s\t%d\t%s\t%s\t%s\t%s\t%s\n" % (desc, start, end, strand, length, someID, someID2, name, orf, COG))
+            output.close()
+            print "Finished conversion"
+
+        #geneID  start   end strand  TA coordinates
+        
+
+
+    def annotationGFF3_to_PT(self, event):
+
+        annotationpath = self.annotationFilePicker.GetPath()
+        defaultFile = transit_tools.fetch_name(annotationpath) + ".prot_table"
+        defaultDir = os.path.dirname(os.path.realpath(__file__))
+
+        datasets = self.ctrlSelected() + self.expSelected()
+        if not annotationpath:
+            self.ShowError("Error: No annotation file selected.")
+        else:
+            outputPath = self.SaveFile(defaultDir, defaultFile)
+            if not outputPath: return
+            print "Converting annotation file from GFF3 format to prot_table format"
+
+            output = open(outputPath, "w")
+            for line in open(annotationpath):
+                if line.startswith("#"): continue
+                tmp = line.strip().split("\t")
+                chr = tmp[0]
+                type = tmp[2]
+                start = int(tmp[3])
+                end = int(tmp[4])
+                length = ((end-start+1)/3)-1
+                strand = tmp[6]
+                features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
+                if "ID" not in features: continue
+                orf = features["ID"]
+                name = features.get("Name", "-")
+                if name == "-": name = features.get("name", "-")
+                
+                desc = features.get("Description", "-")
+                if desc == "-": desc = features.get("description", "-")
+                if desc == "-": desc = features.get("Desc", "-")
+                if desc == "-": desc = features.get("desc", "-")
+
+                someID = "-"
+                someID2 = "-"
+                COG = "-"
+                output.write("%s\t%d\t%d\t%s\t%d\t%s\t%s\t%s\t%s\t%s\n" % (desc, start, end, strand, length, someID, someID2, name, orf, COG))
+            output.close()
+            print "Finished conversion"
+
+                 
+
                 
     def RunGumbelFunc(self, event):
 

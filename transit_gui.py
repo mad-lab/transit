@@ -422,16 +422,22 @@ class MainFrame ( wx.Frame ):
 		
 		self.exportMenuItem.AppendSubMenu( self.allExportMenuItem, u"All Samples" )
 		
-		self.annotationExportMenuItem = wx.Menu()
-		self.annotationExportGFFMenuItem = wx.MenuItem( self.annotationExportMenuItem, wx.ID_ANY, u"to GFF3", wx.EmptyString, wx.ITEM_NORMAL )
-		self.annotationExportMenuItem.AppendItem( self.annotationExportGFFMenuItem )
-		
-		self.annotationExportPTTMenuItem = wx.MenuItem( self.annotationExportMenuItem, wx.ID_ANY, u"to PTT", wx.EmptyString, wx.ITEM_NORMAL )
-		self.annotationExportMenuItem.AppendItem( self.annotationExportPTTMenuItem )
-		
-		self.exportMenuItem.AppendSubMenu( self.annotationExportMenuItem, u"Annotation" )
-		
 		self.fileMenuItem.AppendSubMenu( self.exportMenuItem, u"Export" )
+		
+		self.convertMenuItem = wx.Menu()
+		self.annotationConvertPTToPTTMenu = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"prot_table to PTT", wx.EmptyString, wx.ITEM_NORMAL )
+		self.convertMenuItem.AppendItem( self.annotationConvertPTToPTTMenu )
+		
+		self.annotationConvertPTToGFF3Menu = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"prot_table to GFF3", wx.EmptyString, wx.ITEM_NORMAL )
+		self.convertMenuItem.AppendItem( self.annotationConvertPTToGFF3Menu )
+		
+		self.annotationConvertPTTToPT = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"PTT to prot_table", wx.EmptyString, wx.ITEM_NORMAL )
+		self.convertMenuItem.AppendItem( self.annotationConvertPTTToPT )
+		
+		self.annotationConvertGFF3ToPT = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"GFF3 to prot_table", wx.EmptyString, wx.ITEM_NORMAL )
+		self.convertMenuItem.AppendItem( self.annotationConvertGFF3ToPT )
+		
+		self.fileMenuItem.AppendSubMenu( self.convertMenuItem, u"Convert" )
 		
 		self.fileExitMenuItem = wx.MenuItem( self.fileMenuItem, wx.ID_ANY, u"Exit", wx.EmptyString, wx.ITEM_NORMAL )
 		self.fileMenuItem.AppendItem( self.fileExitMenuItem )
@@ -473,8 +479,10 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.ctrlToIGV, id = self.ctrlExportIGVMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.expToIGV, id = self.expExportIGVMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.allToIGV, id = self.allExportIGVMenuItem.GetId() )
-		self.Bind( wx.EVT_MENU, self.annotationToGFF3, id = self.annotationExportGFFMenuItem.GetId() )
-		self.Bind( wx.EVT_MENU, self.annotationToPTT, id = self.annotationExportPTTMenuItem.GetId() )
+		self.Bind( wx.EVT_MENU, self.annotationPT_to_PTT, id = self.annotationConvertPTToPTTMenu.GetId() )
+		self.Bind( wx.EVT_MENU, self.annotationPT_to_GFF3, id = self.annotationConvertPTToGFF3Menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.annotationPTT_to_PT, id = self.annotationConvertPTTToPT.GetId() )
+		self.Bind( wx.EVT_MENU, self.annotationGFF3_to_PT, id = self.annotationConvertGFF3ToPT.GetId() )
 		self.Bind( wx.EVT_MENU, self.Exit, id = self.fileExitMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.scatterFunc, id = self.scatterMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.allViewFunc, id = self.trackMenuItem.GetId() )
@@ -537,10 +545,16 @@ class MainFrame ( wx.Frame ):
 	def allToIGV( self, event ):
 		event.Skip()
 	
-	def annotationToGFF3( self, event ):
+	def annotationPT_to_PTT( self, event ):
 		event.Skip()
 	
-	def annotationToPTT( self, event ):
+	def annotationPT_to_GFF3( self, event ):
+		event.Skip()
+	
+	def annotationPTT_to_PT( self, event ):
+		event.Skip()
+	
+	def annotationGFF3_to_PT( self, event ):
 		event.Skip()
 	
 	def Exit( self, event ):

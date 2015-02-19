@@ -2594,25 +2594,25 @@
                             <property name="border">5</property>
                             <property name="flag"></property>
                             <property name="proportion">0</property>
-                            <object class="wxBoxSizer" expanded="1">
+                            <object class="wxBoxSizer" expanded="0">
                                 <property name="minimum_size"></property>
                                 <property name="name">bSizer1431</property>
                                 <property name="orient">wxHORIZONTAL</property>
                                 <property name="permission">none</property>
-                                <object class="sizeritem" expanded="1">
+                                <object class="sizeritem" expanded="0">
                                     <property name="border">5</property>
                                     <property name="flag">wxEXPAND</property>
                                     <property name="proportion">1</property>
-                                    <object class="wxBoxSizer" expanded="1">
+                                    <object class="wxBoxSizer" expanded="0">
                                         <property name="minimum_size"></property>
                                         <property name="name">bSizer1521</property>
                                         <property name="orient">wxHORIZONTAL</property>
                                         <property name="permission">none</property>
-                                        <object class="sizeritem" expanded="1">
+                                        <object class="sizeritem" expanded="0">
                                             <property name="border">5</property>
                                             <property name="flag">wxEXPAND</property>
                                             <property name="proportion">1</property>
-                                            <object class="wxBoxSizer" expanded="1">
+                                            <object class="wxBoxSizer" expanded="0">
                                                 <property name="minimum_size"></property>
                                                 <property name="name">bSizer1621</property>
                                                 <property name="orient">wxVERTICAL</property>
@@ -4473,7 +4473,7 @@
                             <property name="border">5</property>
                             <property name="flag">wxALIGN_CENTER_HORIZONTAL</property>
                             <property name="proportion">0</property>
-                            <object class="wxBoxSizer" expanded="1">
+                            <object class="wxBoxSizer" expanded="0">
                                 <property name="minimum_size"></property>
                                 <property name="name">resamplingSection</property>
                                 <property name="orient">wxVERTICAL</property>
@@ -4561,7 +4561,7 @@
                                         <event name="OnUpdateUI"></event>
                                     </object>
                                 </object>
-                                <object class="sizeritem" expanded="1">
+                                <object class="sizeritem" expanded="0">
                                     <property name="border">5</property>
                                     <property name="flag">wxEXPAND</property>
                                     <property name="proportion">1</property>
@@ -5608,7 +5608,7 @@
                 <event name="OnSetFocus"></event>
                 <event name="OnSize"></event>
                 <event name="OnUpdateUI"></event>
-                <object class="wxMenu" expanded="0">
+                <object class="wxMenu" expanded="1">
                     <property name="label">File</property>
                     <property name="name">fileMenuItem</property>
                     <property name="permission">protected</property>
@@ -5680,41 +5680,71 @@
                                 <event name="OnUpdateUI"></event>
                             </object>
                         </object>
-                        <object class="submenu" expanded="0">
+                    </object>
+                    <object class="submenu" expanded="1">
+                        <property name="bitmap"></property>
+                        <property name="label">Convert</property>
+                        <property name="name">convertMenuItem</property>
+                        <property name="permission">protected</property>
+                        <object class="wxMenuItem" expanded="0">
                             <property name="bitmap"></property>
-                            <property name="label">Annotation</property>
-                            <property name="name">annotationExportMenuItem</property>
-                            <property name="permission">protected</property>
-                            <object class="wxMenuItem" expanded="0">
-                                <property name="bitmap"></property>
-                                <property name="checked">0</property>
-                                <property name="enabled">1</property>
-                                <property name="help"></property>
-                                <property name="id">wxID_ANY</property>
-                                <property name="kind">wxITEM_NORMAL</property>
-                                <property name="label">to GFF3</property>
-                                <property name="name">annotationExportGFFMenuItem</property>
-                                <property name="permission">none</property>
-                                <property name="shortcut"></property>
-                                <property name="unchecked_bitmap"></property>
-                                <event name="OnMenuSelection">annotationToGFF3</event>
-                                <event name="OnUpdateUI"></event>
-                            </object>
-                            <object class="wxMenuItem" expanded="0">
-                                <property name="bitmap"></property>
-                                <property name="checked">0</property>
-                                <property name="enabled">1</property>
-                                <property name="help"></property>
-                                <property name="id">wxID_ANY</property>
-                                <property name="kind">wxITEM_NORMAL</property>
-                                <property name="label">to PTT</property>
-                                <property name="name">annotationExportPTTMenuItem</property>
-                                <property name="permission">none</property>
-                                <property name="shortcut"></property>
-                                <property name="unchecked_bitmap"></property>
-                                <event name="OnMenuSelection">annotationToPTT</event>
-                                <event name="OnUpdateUI"></event>
-                            </object>
+                            <property name="checked">0</property>
+                            <property name="enabled">1</property>
+                            <property name="help"></property>
+                            <property name="id">wxID_ANY</property>
+                            <property name="kind">wxITEM_NORMAL</property>
+                            <property name="label">prot_table to PTT</property>
+                            <property name="name">annotationConvertPTToPTTMenu</property>
+                            <property name="permission">none</property>
+                            <property name="shortcut"></property>
+                            <property name="unchecked_bitmap"></property>
+                            <event name="OnMenuSelection">annotationPT_to_PTT</event>
+                            <event name="OnUpdateUI"></event>
+                        </object>
+                        <object class="wxMenuItem" expanded="0">
+                            <property name="bitmap"></property>
+                            <property name="checked">0</property>
+                            <property name="enabled">1</property>
+                            <property name="help"></property>
+                            <property name="id">wxID_ANY</property>
+                            <property name="kind">wxITEM_NORMAL</property>
+                            <property name="label">prot_table to GFF3</property>
+                            <property name="name">annotationConvertPTToGFF3Menu</property>
+                            <property name="permission">none</property>
+                            <property name="shortcut"></property>
+                            <property name="unchecked_bitmap"></property>
+                            <event name="OnMenuSelection">annotationPT_to_GFF3</event>
+                            <event name="OnUpdateUI"></event>
+                        </object>
+                        <object class="wxMenuItem" expanded="0">
+                            <property name="bitmap"></property>
+                            <property name="checked">0</property>
+                            <property name="enabled">1</property>
+                            <property name="help"></property>
+                            <property name="id">wxID_ANY</property>
+                            <property name="kind">wxITEM_NORMAL</property>
+                            <property name="label">PTT to prot_table</property>
+                            <property name="name">annotationConvertPTTToPT</property>
+                            <property name="permission">none</property>
+                            <property name="shortcut"></property>
+                            <property name="unchecked_bitmap"></property>
+                            <event name="OnMenuSelection">annotationPTT_to_PT</event>
+                            <event name="OnUpdateUI"></event>
+                        </object>
+                        <object class="wxMenuItem" expanded="0">
+                            <property name="bitmap"></property>
+                            <property name="checked">0</property>
+                            <property name="enabled">1</property>
+                            <property name="help"></property>
+                            <property name="id">wxID_ANY</property>
+                            <property name="kind">wxITEM_NORMAL</property>
+                            <property name="label">GFF3 to prot_table</property>
+                            <property name="name">annotationConvertGFF3ToPT</property>
+                            <property name="permission">none</property>
+                            <property name="shortcut"></property>
+                            <property name="unchecked_bitmap"></property>
+                            <event name="OnMenuSelection">annotationGFF3_to_PT</event>
+                            <event name="OnUpdateUI"></event>
                         </object>
                     </object>
                     <object class="wxMenuItem" expanded="0">
@@ -5733,7 +5763,7 @@
                         <event name="OnUpdateUI"></event>
                     </object>
                 </object>
-                <object class="wxMenu" expanded="1">
+                <object class="wxMenu" expanded="0">
                     <property name="label">View</property>
                     <property name="name">viewMenuItem</property>
                     <property name="permission">protected</property>
