@@ -78,6 +78,22 @@ See the following for more information: http://mercurial.selenic.com/wiki/Mergin
 
 
 
+
+## Useful Mercurial Commands
+
+
+Get a "version" number for latest version in repository. Uses last tag + number of commits:
+
+    hg log -r tip --template '{latesttag}.{latesttagdistance}\n'
+
+
+Search commit log by date:
+
+    hg log --date "2015-02-13 to 2015-02-20"
+
+
+
+
 ## File directory:
 
 
