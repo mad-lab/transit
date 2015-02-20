@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 ## Version 1.1 - 2015-02-20
 
 - TRANSIT:
-    - Fixed error in HMM results file table, which was not correctly showing breakdwn of genes.
+    - Fixed error in HMM results file table, which was not correctly showing breakdown of genes.
     - Made TRANSIT work from the command-line, without displaying GUI. See documentation for arguments/flags.
     - Added ability to convert annotation files between several formats (.prot_table, ptt.table, gff3).
 
