@@ -11,9 +11,21 @@ All notable changes to this project will be documented in this file.
     - Added ability to convert annotation files between several formats (.prot_table, ptt.table, gff3).
 
 - TPP:
-    - Added capability to specify number of mismatches.
-    
+    - User can supply reads in either FastA or FastQ format.
+    - Added an option to specify number of mismatches (default=1) when looking
+       for sequence patterns such as the transposon prefix in read 1.
+    - Added command-line arguments so TPP can be run in batch mode without the GUI.
+    - Number of mapped reads for R1 and R2 independently is also now reported.
+    - Modified how barcodes are extracted from read 2.  It now looks for specific
+       sequence patterns, even if they are shifted.  This should greatly increase
+       the number of mapped reads (esp. the genomic part of R2) for certain datasets.
+    - Properly handle short fragments, ie. for reads where the insert size is shorter
+       than the read length.  In such cases, the adapter from other end appears
+       at the end of read 1, and this suffix is now stripped off so these reads 
+       will map too.
 
 ## Version 1.0  - 2015-02-10
 - First limited-release version of TRANSIT
 - Released to close collaborators first and presented in teleconference to get feedback.
+
+

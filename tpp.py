@@ -578,13 +578,18 @@ def extract_barcodes(fn_tgtta2,fn_barcodes2,fn_genomic2):
     line = line.rstrip()
     if line[0]=='>': header = line
     else:
-      a  = line.find(const1)
-      b  = line.find(const2)
-      c  = line.find(const3)
+      #a  = line.find(const1)
+      #b  = line.find(const2)
+      #c  = line.find(const3)
+      a  = mmfind(line,len(line),const1,nconst1,vars.mm1)
+      b  = mmfind(line,len(line),const2,nconst2,vars.mm1)
+      c  = mmfind(line,len(line),const3,nconst3,vars.mm1)
       bstart,bend = a+nconst1,b
       gstart,gend = b+nconst2,len(line)
       if c!=-1 and c-gstart>20: gend = c
       if a==-1 or bend<bstart+5 or bend>bstart+15:
+        # U cab't just reject these, beacuse they are paired with R1
+        # but setting the genomic part to the first 20 cycles should prevent it from mapping
         bstart,bend = 0,10
         gstart,gend = 0,20
       if DEBUG==1:

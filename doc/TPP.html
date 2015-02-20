@@ -111,8 +111,8 @@ HREF="http://en.wikipedia.org/wiki/FASTQ_format">FASTQ</A> or <A
 HREF="http://en.wikipedia.org/wiki/FASTA">FASTA</A> format,
 e.g. DATASET_NAME_R1.fastq
 
-<LI>reads2 file - this should be the raw reads file (<I>untrimmed</I>) for read2 in Fastq or
-Fasta format, e.g. DATASET_NAME_R2.fastq
+<LI>reads2 file - this should be the raw reads file (<I>untrimmed</I>) for
+read2 in FASTQ or FASTA format, e.g. DATASET_NAME_R2.fastq
 
 <LI>max reads - Normally, leave this blank by default, and TPP will process
 all reads.  However, if you want to do a quick run on a subset of the data,
@@ -187,26 +187,45 @@ files) into template counts:
 
 <LI>Convert .fastq files to .fasta format (.reads).
 
-<P><LI>Identify reads with transposon prefix.  The sequence searched for is
+<P><LI>Identify reads with the transposon prefix in R1
+.  The sequence searched for is
 ACTTATCAGCCAACCTGTTA, which must start between cycles 5 and 10 (inclusive).
 (Note that this ends in the canonical terminus of the Himar1 transposon,
 TGTTA.) The "staggered" position of this sequence is due to insertion a few
 nucleotides of variable length in the primers used in the Tn-Seq sample prep
-protocol (e.g. 4 variants of Sol_AP1_57, etc.).
+protocol (e.g. 4 variants of Sol_AP1_57, etc.).  The number of mimatches
+allowed in searching reads for the transposon sequence pattern can be adjusted
+as an option in the interface; the default is 1.
 
-<P><LI>Extract barcodes from cycles 22-30 in read 2.
+<P><LI>Extract genomic part of read 1.  This is the suffix following the
+transposon sequence pattern above.  However, for reads coming from fragments 
+shorter than the read length, the adapter might appear at the other end of R1,
+TACCACGACCA.  If so, the adapter suffix is stripped off.  (These are 
+referred to as "truncated" reads, but they can still be mapped into the 
+genome just fine by BWA.)  The length of the genomic part must be at least 20 bp.
 
-<P><LI>Extract genomic suffixes of reads 1 and 2.
+<P><LI>Extract barcodes from read 2.  Read 2 is searched for
+GATGGCCGGTGGATTTGTGnnnnnnnnnnTGGTCGTGGTAT".  The length of the barcode is
+typically 10 bp, but can be varaible, and must be between 5-15 bp.
 
-<P><LI>Map reads into the genome using BWA.  Mismatches are allowed, but indels
-are ignored.  No trimming is performed.  BWA is run in 'sampe' mode (treating
-reads as pairs).  Both reads of a pair must map (on opposite strands) to be
-counted.
+<P><LI>Extract genomic portions of read 2.  This is the part following
+TGGTCGTGGTATxxx.  It is often the whole suffix of the read.  However, if the
+read comes from a short DNA fragment that is shorter than the read length,
+the adapter on the other end might appear, in which case it is stripped off
+and the nucleotides in the middle representing the genomic insert,
+TGGTCGTGGTATxxxxxxxTAACAGGTTGGCTGATAAG.  The insert must be at least 20 bp
+long (inserts shorter than this are discarded, as they might map to spurious
+locations in the genome).
+
+<P><LI>Map genomic parts of R1 and R2 into the genome using BWA.  Mismatches
+are allowed, but indels are ignored.  No trimming is performed.  BWA is run in
+'sampe' mode (treating reads as pairs).  Both reads of a pair must map (on
+opposite strands) to be counted.
 
 <P><LI>Count the reads mapping to each TA site in the reference genome.
 
 <P><LI>Reduce raw read counts to unique template counts.  Group reads by barcode
-AND mapping location (or coordinate) of read 2 (aka "endpoints").
+AND mapping location of read 2 (aka fragment "endpoints").
 
 <P><LI>Output template counts at each TA site in a .wig file.
 
