@@ -75,11 +75,15 @@ class MyForm(wx.Frame):
         sizer3.Add(self.picker3, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer3,0,wx.EXPAND,0)
        
+        
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         label1 = wx.StaticText(panel, label='Choose the Fastq file for read 1:',size=(340,-1))
         sizer1.Add(label1,0,0,0)
         # self.picker1 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 1", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq1)
-        self.picker1 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 1', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.fq1), initialValue=vars.fq1, labelText='')
+        self.picker1 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 1', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.fq1), initialValue=vars.fq1, labelText='',changeCallback=self.OnChanged2)
+        #self.picker1.OnChanged = self.OnChanged(self.picker1.GetValue(), self.base)
+        #self.Bind(wx.EVT_TEXT, self.OnChanged, id=self.picker1.GetId())
+        #self.picker1.Bind(wx.EVT_TEXT, self.OnChanged)
         sizer1.Add(self.picker1, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer1,0,wx.EXPAND,0)
        
@@ -87,7 +91,7 @@ class MyForm(wx.Frame):
         label2 = wx.StaticText(panel, label='Choose the Fastq file for read 2:',size=(340,-1))
         sizer2.Add(label2,0,0,0)
         #self.picker2 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 2", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq2)
-        self.picker2 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 2', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue=vars.fq2, labelText='')
+        self.picker2 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 2', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue=vars.fq2, labelText='', changeCallback=self.OnChanged2)
         sizer2.Add(self.picker2, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer2,0,wx.EXPAND,0)
 
@@ -112,6 +116,22 @@ class MyForm(wx.Frame):
         sizer6.Add(self.mismatches, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer6,0,wx.ALL,0)    
 
+        #self.picker1.OnChanged = self.OnChanged(self.picker1.GetValue())
+
+
+    def OnChanged(self, str_path):
+        print "changed"
+        value = os.path.basename(str_path).split('.')[0]
+        if '_R1' in value or '_R2':
+            value = value.split('_')[0]
+        self.base.SetValue(value)
+
+    def OnChanged2(self, event):
+        value2 = os.path.basename(self.picker2.GetValue()).split('.')[0]
+        value1 = os.path.basename(self.picker1.GetValue()).split('.')[0]
+        value = os.path.commonprefix([value1, value2])
+        self.base.SetValue(value)
+        self.base.Refresh()
 
     def InitList(self,panel,sizer):
         self.list_ctrl = wx.ListCtrl(panel, size=(-1,-1), style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.BORDER_SUNKEN)
@@ -751,6 +771,8 @@ def verify_inputs(vars):
   if not os.path.exists(vars.fq1): error("file not found: "+vars.fq1)
   if not os.path.exists(vars.fq2): error("file not found: "+vars.fq2)
   if not os.path.exists(vars.ref): error("file not found: "+vars.ref)
+  if vars.base == '': error("prefix cannot be empty")
+  if vars.fq1 == vars.fq2: error('fastq files cannot be similar')
 
 def initialize_globals(vars):
       vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
@@ -818,6 +840,8 @@ if __name__ == "__main__":
                 vars.maxreads = sys.argv[i+1]
             elif sys.argv[i] == '-prefix':
                 vars.base = sys.argv[i+1]
+            elif sys.argv[i] == '-mismatches':
+                vars.mm1 = int(sys.argv[i+1])
         print 'running pre-processing on %s and %s' % (vars.fq1, vars.fq2)
         verify_inputs(vars)
         save_config(vars)
