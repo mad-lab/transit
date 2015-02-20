@@ -24,8 +24,8 @@ def runGumbel(wx, pubmsg, **kwargs):
     TRIM = kwargs.get("trim", 1) 
     REPCHOICE  = kwargs.get("repchoice", "Sum")
     IGNORECODON = kwargs.get("ignoreCodon", True)
-    ignoreNTerm = kwargs.get("ignoreNTerm", 5)
-    ignoreCTerm = kwargs.get("ignoreCTerm", 5)
+    ignoreNTerm = kwargs.get("ignoreNTerm", 0)
+    ignoreCTerm = kwargs.get("ignoreCTerm", 0)
     output = kwargs.get("output")
 
 
@@ -130,7 +130,8 @@ def runGumbel(wx, pubmsg, **kwargs):
 
     #Orf	k	n	r	s	zbar
     output.write("#Gumbel\n")
-    output.write("#Command used:\tpython %s\n" % (" ".join(sys.argv)))
+    output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
+    #output.write("#Command used:\tpython %s\n" % (" ".join(sys.argv)))
     output.write("#FDR Corrected thresholds: %f, %f\n" % (ess_t, non_t))
     output.write("#MH Acceptance-Rate:\t%2.2f%%\n" % (100.0*acctot/count))
     output.write("#Total Iterations Performed:\t%d\n" % count)

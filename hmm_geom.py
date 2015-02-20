@@ -21,8 +21,8 @@ def runHMM(wx, pubmsg, **kwargs):
     annotationPath = kwargs.get("annotationPath")
     repchoice = kwargs.get("repchoice", "Sum")
     ignoreCodon = kwargs.get("ignoreCodon", True)
-    ignoreNTerm = kwargs.get("ignoreNTerm", 5)
-    ignoreCTerm = kwargs.get("ignoreCTerm", 5)
+    ignoreNTerm = kwargs.get("ignoreNTerm", 0)
+    ignoreCTerm = kwargs.get("ignoreCTerm", 0)
     output = kwargs.get("output", sys.stdout)
 
 
@@ -142,7 +142,8 @@ def runHMM(wx, pubmsg, **kwargs):
 
     output.write("#HMM - Sites\n")
     output.write("# Tn-HMM\n")
-    output.write("# Command Used: python %s\n" % " ".join(sys.argv))
+    #output.write("# Command Used: python %s\n" % " ".join(sys.argv))
+    output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
     output.write("# \n") 
     output.write("# Mean:\t%2.2f\n" % (numpy.average(reads_nz)))
     output.write("# Median:\t%2.2f\n" % numpy.median(reads_nz))

@@ -77,8 +77,8 @@ def runResampling(wx, pubmsg, **kwargs):
     doAdaptive = kwargs.get("doAdaptive", False)
     doNormalize = kwargs.get("doNormalize", True)
     ignoreCodon = kwargs.get("ignoreCodon", True)
-    ignoreNTerm = kwargs.get("ignoreNTerm", 5)
-    ignoreCTerm = kwargs.get("ignoreCTerm", 5)
+    ignoreNTerm = kwargs.get("ignoreNTerm", 0)
+    ignoreCTerm = kwargs.get("ignoreCTerm", 0)
     output = kwargs.get("output")
 
 
@@ -98,7 +98,7 @@ def runResampling(wx, pubmsg, **kwargs):
     S = sampleSize
 
     output.write("#Resampling\n")
-    output.write("#Command: python %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in arguments]))
+    output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
     output.write("#Control Samples:  %s\n" % ", ".join(ctrlList))
     output.write("#Experimental Samples:  %s\n" % ", ".join(expList))
     if doNormalize:
