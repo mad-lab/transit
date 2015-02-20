@@ -63,7 +63,7 @@ class MyForm(wx.Frame):
         print os.path.dirname(vars.bwa)
         #self.picker0 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="path to BWA",size=(400,30))#,path=os.path.abspath(vars.bwa))
         #self.picker0.SetDirName('/pacific/home/cambadipudi/chaitra/tpp/')
-        self.picker0 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id = wx.ID_ANY, size=(400,30), dialogTitle='Path to BWA', fileMode=wx.OPEN, startDirectory=os.path.dirname(vars.bwa), initialValue=vars.bwa, labelText='')
+        self.picker0 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id = wx.ID_ANY, size=(400,30), dialogTitle='Path to BWA', fileMode=wx.OPEN, fileMask='bwa*', startDirectory=os.path.dirname(vars.bwa), initialValue=vars.bwa, labelText='')
         sizer0.Add(self.picker0, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer0,0,wx.EXPAND,0)
 
@@ -173,7 +173,7 @@ class MyForm(wx.Frame):
         
         #self.add_data(fname,
 
-        vals = [stats.get("total_reads","?"),stats.get("TGTTA_reads","?"),stats.get("reads1_mapped"),stats.get("reads2_mapped"),stats.get("mapped_reads","?"),stats.get("template_count","?"), stats.get("TAs_hit","?"), stats.get("density", "?"), stats.get("NZ_mean", "?"), stats.get("max_count", "?"), stats.get("primer_matches:","?"),stats.get("vector_matches:","?")]
+        vals = [stats.get("total_reads","?"),stats.get("TGTTA_reads","?"),stats.get("reads1_mapped", "?"),stats.get("reads2_mapped","?"),stats.get("mapped_reads","?"),stats.get("template_count","?"), stats.get("TAs_hit","?"), stats.get("density", "?"), stats.get("NZ_mean", "?"), stats.get("max_count", "?"), stats.get("primer_matches:","?"),stats.get("vector_matches:","?")]
 
         self.add_data(fname, vals)
 
@@ -754,7 +754,7 @@ def verify_inputs(vars):
 
 def initialize_globals(vars):
       vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
-      vars.mm1 = 2 # mismatches allowed in Tn prefix
+      vars.mm1 = 1 # mismatches allowed in Tn prefix
       read_config(vars)
 
 def read_config(vars):
