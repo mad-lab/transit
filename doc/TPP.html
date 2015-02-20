@@ -78,7 +78,10 @@ Requirements:
 <UL>
 <LI> <A HREF="http://www.python.org/">python version 2.7</A>
 <LI> <A HREF="http://www.wxpython.org/">wxPython 3.0.1</A> (the 'cocoa' version)
-<LI> <A HREF="http://bio-bwa.sourceforge.net/">BWA version 0.7.12 </A> (can put this directory anywhere; be sure to run 'make' to build bwa executable)
+<LI> <A HREF="http://bio-bwa.sourceforge.net/">BWA version 0.7.12 </A> (can put this directory anywhere; be sure to run 'make' to build bwa executable
+ <UL> 
+ <LI><A HREF="http://saclab.tamu.edu/essentiality/transit/bwa-0.7.12_windows.zip">pre-compiled version for 64-bit Windows</A>)
+ </UL>
 </UL>
 
 Since TPP is a python script, there is nothing to compile or 'make'.
@@ -96,7 +99,7 @@ python tpp.pyc
 This should pop up the GUI window, looking like this...
 
 <P>
-<IMG SRC="Screenshot-TPP.png" width="80%"></IMG>
+<IMG SRC="TPP-screenshot.png" width="80%"></IMG>
 <P>
 
 The main fields to fill out in the GUI are...
@@ -114,11 +117,18 @@ e.g. DATASET_NAME_R1.fastq
 <LI>reads2 file - this should be the raw reads file (<I>untrimmed</I>) for
 read2 in FASTQ or FASTA format, e.g. DATASET_NAME_R2.fastq
 
+<LI>prefix to use for filename (for the multiple intermediate files that will
+get generated in the process; when you pick datasets, a temp file name 
+will automatically be suggested for you, but you can change it to whatever
+you want)
+
 <LI>max reads - Normally, leave this blank by default, and TPP will process
 all reads.  However, if you want to do a quick run on a subset of the data,
 you can select a smaller number.  This is mainly for testing purposes.
 
-
+<LI>mismatches - this is for searching for the sequence patterns in reads
+corresponding to the transposon prefix in R1 and the constant adapter sequences
+surrounding the barcode in R2; we suggest using a default value of 1 mismatch
 
 </UL>
 
@@ -167,6 +177,7 @@ The input arguments and file types are as follows:
 <TD>-reads2<TD> file of read 2 of paired reads<TD>FASTA or FASTQ format<TR>
 <TD>-prefix<TD> base filename to use for output files<TR>
 <TD>-maxreads<TD>subset of reads to process (optional); if blank, use all<TR>
+<TD>-mismatches<TD>how many to allow when searching reads for sequence patterns<TR>
 </TABLE>
 
 <P>
@@ -209,7 +220,7 @@ GATGGCCGGTGGATTTGTGnnnnnnnnnnTGGTCGTGGTAT".  The length of the barcode is
 typically 10 bp, but can be varaible, and must be between 5-15 bp.
 
 <P><LI>Extract genomic portions of read 2.  This is the part following
-TGGTCGTGGTATxxx.  It is often the whole suffix of the read.  However, if the
+TGGTCGTGGTAT....  It is often the whole suffix of the read.  However, if the
 read comes from a short DNA fragment that is shorter than the read length,
 the adapter on the other end might appear, in which case it is stripped off
 and the nucleotides in the middle representing the genomic insert,
@@ -250,8 +261,14 @@ to track multiple datasets.
 
 <TD>total_reads<TD>total number of reads in the original .fastq/.fasta files<TR>
 
+<TD>truncated_reads<TD>reads representing DNA fragments shorter than the read length;<BR>adapter appears at end of read 1 and is stripped for mapping<TR>
+
 <TD>TGTTA_reads<TD>number of reads with a proper transposon prefix (ending in
 TGTTA in read1)</TR>
+
+<TD>reads1_mapped<TD>number of R1 mappped into genome (independent of R2)<TR>
+
+<TD>reads2_mapped<TD>number of R2 mappped into genome (independent of R1)<TR>
 
 <TD><B>mapped_reads</B><TD>number of reads which mapped into the genome
 (requiring both read1 and read2 to map)<TR>
@@ -291,29 +308,32 @@ sequence (transposon vector) used in Tn mutant library construction<TR>
 <P>Here is an example of a .tn_stats file:
 
 <PRE>
-# title: Tn-Seq Pre-Processor, version 1.3
-# date: 02/07/2015 14:54:13
-# command: python tpp.pyc -reads1 temp.BCGcov_R1.fastq -reads2 temp.BCGcov_R2.fastq -prefix temp3
-# read1: temp.BCGcov_R1.fastq
-# read2: temp.BCGcov_R2.fastq
-# ref_genome: BCG.fna
-# total_reads 150000 (read pairs)
-# TGTTA_reads 140878 (reads with valid Tn prefix)
-# mapped_reads 87063 (both R1 and R2 map into genome)
-# read_count 86821 (TA sites only)
-# template_count 85802
-# template_ratio 1.01 (reads per template)
-# TA_sites 73920
-# TAs_hit 32759
-# density 0.443
-# max_count 27 (among templates)
-# max_site 3882571 (coordinate)
-# NZ_mean 2.6 (among templates)
-# FR_corr 0.476 (Fwd templates vs. Rev templates)
-# BC_corr 0.996 (reads vs. templates, summed over both strands)
-# primer_matches: 28 reads contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT
-# vector_matches: 53 reads contain CTAGACCGTCCAGTCTGGCAGGCCGGAAAC
-temp.BCGcov_R1.fastq	temp.BCGcov_R2.fastq	150000	140878	87063	86821	85802	1.01187618004	73920	32759	27	3882571	2.61918861992	0.475899604942	0.99616512292	28	53
+# title: Tn-Seq Pre-Processor
+# date: 02/18/2015 09:36:04
+# command: python /pacific/home/ioerger/transit/tpp.py
+# read1: /pacific/HomeFrozen/ioerger/Run58/analysis/Tn-glyceryl-trioleate-2_1.fastq
+# read2: /pacific/HomeFrozen/ioerger/Run58/analysis/Tn-glyceryl-trioleate-2_3.fastq
+# ref_genome: /pacific/home/ioerger/transit/genomes/H37Rv.fna
+# total_reads 1301968 (read pairs)
+# truncated_reads 26000 (fragments shorter than the read length; ADAP2 appears in read1)
+# TGTTA_reads 1090333 (reads with valid Tn prefix, and insert size>20bp)
+# reads1_mapped 1016860
+# reads2_mapped 427481
+# mapped_reads 413251 (both R1 and R2 map into genome)
+# read_count 400069 (TA sites only)
+# template_count 211128
+# template_ratio 1.89 (reads per template)
+# TA_sites 74605
+# TAs_hit 21072
+# density 0.282
+# max_count 2306 (among templates)
+# max_site 212278 (coordinate)
+# NZ_mean 10.0 (among templates)
+# FR_corr 0.917 (Fwd templates vs. Rev templates)
+# BC_corr 0.965 (reads vs. templates, summed over both strands)
+# primer_matches: 78 reads contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT
+# vector_matches: 2 reads contain CTAGACCGTCCAGTCTGGCAGGCCGGAAAC
+/pacific/HomeFrozen/ioerger/Run58/analysis/Tn-glyceryl-trioleate-2_1.fastq	/pacific/HomeFrozen/ioerger/Run58/analysis/Tn-glyceryl-trioleate-2_3.fastq	1301968	1090333	1016860	427481	413251	1016860	427481	400069	211128	1.89491209124	74605	21072	2306	212278	10.0193621868	0.917104229568	0.96542310842	78	2
 </PRE>
 
 <B>Interpretation:</B>
@@ -323,13 +343,23 @@ primary statistics:
 
 <OL>
 
-<LI><B>mapped reads</B> (should be on the order of several million)
+<LI><B>mapped reads</B>: should be on the order of several million mapped_reads;
+if there is a significant reduction from total_reads, look at
+reads1_mapped and reads2_mapped and truncated_reads to figure what
+might have gone wrong; you might try allowing 2 mismatches
 
-<LI><B>insertion density</B> (good libraries should have insertions at &ge; ~35% of TA
-sites for statistical analysis)
+<LI> <B>primer/vector_matches</B>: check whether a lot of the reads
+might be matching the primer or vector sequences; if they match the
+vector, it suggests your library still has phage contamination from
+the original infection; if there are a lot of primer reads, these
+probably represent "primer-dimers", which could be reduced by
+inproving fragment size selection during sample prep.
 
-<LI><B>NZ_mean</B> (good datasets should have a mean of around 50 templates per site
-for sufficient dynamic range)
+<LI><B>insertion density</B>: good libraries should have insertions at &ge; ~35% of TA
+sites for statistical analysis
+
+<LI><B>NZ_mean</B>: good datasets should have a mean of around 50 templates per site
+for sufficient dynamic range
 
 </OL>
 
