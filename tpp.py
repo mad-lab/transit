@@ -261,7 +261,6 @@ def fastq2reads(infile,outfile,maxreads):
       output.write(">%s" % h)
     if cnt==1: output.write(line)
     cnt = (cnt+1)%4
-  print cnt,tot
   output.close()
 
 # the headers for each pair must be identical up to /1 and /2 at the ends
@@ -703,8 +702,8 @@ def generate_output(vars):
   output.write('# read2: %s\n' % vars.fq2)
   output.write('# ref_genome: %s\n' % vars.ref)
   output.write("# total_reads %s (read pairs)\n" % tot_reads)
-  output.write("# TGTTA_reads %s (reads with valid Tn prefix)\n" % vars.tot_tgtta)
   output.write("# truncated_reads %s (fragments shorter than the read length; ADAP2 appears in read1)\n" % vars.truncated_reads)
+  output.write("# TGTTA_reads %s (reads with valid Tn prefix, and insert size>20bp)\n" % vars.tot_tgtta)
   output.write("# reads1_mapped %s\n" % vars.r1)
   output.write("# reads2_mapped %s\n" % vars.r2)
   output.write("# mapped_reads %s (both R1 and R2 map into genome)\n" % vars.mapped)
