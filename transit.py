@@ -997,6 +997,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         kwargs["output"] = output
 
         thread = threading.Thread(target=gumbelMH.runGumbel, args=(wx, pub.sendMessage), kwargs=kwargs)
+        thread.setDaemon(True)
         thread.start()
 
 
@@ -1053,6 +1054,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         #HMMThread(readPathList, annotationPath, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
         thread = threading.Thread(target=hmm_geom.runHMM, args=(wx, pub.sendMessage), kwargs=kwargs)
+        thread.setDaemon(True)
         thread.start()
 
 
@@ -1139,6 +1141,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         #HMMThread(readPathList, annotationPath, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
         thread = threading.Thread(target=resampling.runResampling, args=(wx, pub.sendMessage), kwargs=kwargs)
+        thread.setDaemon(True)
         thread.start()
 
         #ResamplingThread(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
