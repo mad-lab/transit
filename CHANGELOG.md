@@ -24,7 +24,10 @@ All notable changes to this project will be documented in this file.
        at the end of read 1, and this suffix is now stripped off so these reads 
        will map too.
 
+
+
 ## Version 1.0  - 2015-02-10
+
 - First limited-release version of TRANSIT
 - Released to close collaborators first and presented in teleconference to get feedback.
 

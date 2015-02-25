@@ -774,11 +774,11 @@ To view the actual results, we can open the file in a new window by selecting it
 <BR>
 
 
- The newly opened window will display a table of the results. We can sort the results by clicking on the column header. For example, to focus on the genes that are most likely to be conditionally essential between glycerol and cholesterol, we can click on the column header labeled "q-value".
+ The newly opened window will display a table of the results. We can sort the results by clicking on the column header. For example, to focus on the genes that are most likely to be conditionally essential between glycerol and cholesterol, we can click on the column header labeled "q-value", which represents p-values that have been adjusted for multiple comparisons.
 
 <P>
 
- Sorting q-values in ascending order, we can see those genes which are most likely to be conditionally essential on the top. We can use "Delta Sum" column to see which conditions had the most read counts in a particular gene. The sign of this value (+/-) lets us know on which condition the gene is essential and which condition it is non-essential. The magnitude lets us know how large the difference is. For example, glycerol kinase (GlpK) is necessary for growth on glycerol but it is not expected to be necessary when grown on another carbon source like cholesterol. We confirm our expectations by noticing that the sum of read counts in glycerol is only 22 reads (normalized), while there are a total of 2119 reads in cholesterol. The difference (2096) is positive, which means it is necessary for growth in glycerol but not cholesterol. 
+ Sorting q-values in ascending order, we can see those genes which are most likely to be conditionally essential on the top. A typical threshold for significance is &lt; 0.05.  We can use "Delta Sum" column to see which conditions had the most read counts in a particular gene. The sign of this value (+/-) lets us know on which condition the gene is essential and which condition it is non-essential. The magnitude lets us know how large the difference is. For example, glycerol kinase (GlpK) is necessary for growth on glycerol but it is not expected to be necessary when grown on another carbon source like cholesterol. We confirm our expectations by noticing that the sum of read counts in glycerol is only 22 reads (normalized), while there are a total of 2119 reads in cholesterol. The difference (2096) is positive, which means it is necessary for growth in glycerol but not cholesterol. 
 
 
 <P>
