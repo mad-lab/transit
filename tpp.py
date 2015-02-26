@@ -2,12 +2,13 @@
 # Texas A&M University
 # ioerger@cs.tamu.edu
 
-import wx, wx.lib.filebrowsebutton
 import glob,os,sys,time,math
 import sys, re, shutil
 import platform
 
-class MyForm(wx.Frame):
+if len(sys.argv)==1:
+ import wx, wx.lib.filebrowsebutton
+ class MyForm(wx.Frame):
  
     def __init__(self,vars):
         self.vars = vars
