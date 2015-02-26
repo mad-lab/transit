@@ -1,6 +1,4 @@
-# Copyright 2015 by Thomas R. Ioerger
-# Texas A&M University
-# ioerger@cs.tamu.edu
+# Copyright 2015 by Thomas R. Ioerger, ioerger@cs.tamu.edu
 
 import glob,os,sys,time,math
 import sys, re, shutil
