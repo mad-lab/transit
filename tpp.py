@@ -271,6 +271,7 @@ def fastq2reads(infile,outfile,maxreads):
   for line in open(infile):
     if cnt==0 and line[0]=='@':
         tot += 1
+        if tot%1000000==0: message("%s reads processed" % tot)
     if maxreads > -1:
         if tot > maxreads:
             break
@@ -292,12 +293,15 @@ def fix_paired_headers_for_bwa(reads1,reads2):
   temp2 = "temp."+reads2
   c = open(temp1,"w")
   d = open(temp2,"w")
+  tot = 0
   try:
    while True:
     e = a.readline().rstrip()
     f = b.readline().rstrip()
     if len(e)<=2 or len(f)<=2: break
     if e[0]=='>':
+      tot += 1
+      if tot%1000000==0: message("%s reads processed" % tot)
       # find first position where there is a difference
       i,n = 0,len(e)
       if len(f)!=n: raise Exception('unexpected format of headers in .fastq files')
@@ -355,9 +359,12 @@ def extract_staggered(infile,outfile,vars):
   vars.tot_tgtta = 0
   vars.truncated_reads = 0
   output = open(outfile,"w")
+  tot = 0
   for line in open(infile):
     line = line.rstrip()
     if line[0]=='>': header = line; continue
+    tot += 1
+    if tot%1000000==0: message("%s reads processed" % tot)
     readlen = len(line)
     a = mmfind(line,readlen,Tn,lenTn,vars.mm1) # allow some mismatches
     b = mmfind(line,readlen,ADAPTER2,lenADAP,vars.mm1) # look for end of short frags
@@ -592,11 +599,13 @@ def extract_barcodes(fn_tgtta2,fn_barcodes2,fn_genomic2):
   nconst1,nconst2,nconst3 = len(const1),len(const2),len(const3)
   fl_barcodes2 = open(fn_barcodes2,"w")
   fl_genomic2 = open(fn_genomic2,"w")
-  DEBUG = 0
+  tot,DEBUG = 0,0
   for line in open(fn_tgtta2):
     line = line.rstrip()
     if line[0]=='>': header = line
     else:
+      tot += 1
+      if tot%1000000==0: message("%s reads processed" % tot)
       #a  = line.find(const1)
       #b  = line.find(const2)
       #c  = line.find(const3)
