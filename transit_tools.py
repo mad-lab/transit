@@ -115,7 +115,7 @@ def normalize_data(data):
     return factors * data
     
 
-def get_gene_reads(hash, data, position, orf2info, ignoreCodon=True, ignoreNTerm=5, ignoreCTerm=95, orf_list=set()):
+def get_gene_reads(hash, data, position, orf2info, ignoreCodon=True, ignoreNTerm=0, ignoreCTerm=0, orf_list=set()):
     (K,N) = data.shape
 
     orf2reads = dict([(orf,[]) for orf in orf_list])
