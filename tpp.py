@@ -200,7 +200,9 @@ if len(sys.argv)==1:
       stats = {}
       for line in open(fname):
         w = line.rstrip().split()
-        stats[w[1]] = w[2]
+        val = ""
+        if len(w)>2: val = w[2]
+        stats[w[1]] = val
       return stats
 
     def add_data(self, dataset,vals):
@@ -514,6 +516,42 @@ def template_counts(ref,sam,bcfile,vars):
 
   return sites # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
 
+# pretend that all reads count as unique templates
+
+def read_counts(ref,sam,vars):
+  genome = read_genome(ref)
+
+  hits = {}
+  vars.tot_tgtta,vars.mapped = 0,0
+  vars.r1 = vars.r2 = 0
+  for line in open(sam):
+    if line[0]=='@': continue
+    else:
+      w = line.split('\t')
+      code,icode = samcode(w[1]),int(w[1])
+      vars.tot_tgtta += 1 
+      if icode==0 or icode==16: 
+        vars.r1 += 1
+        vars.mapped += 1
+        readlen = len(w[9])
+        pos = int(w[3])
+        strand,delta = 'F',-2
+        if code[4]=="1": strand,delta = 'R',readlen
+        pos += delta
+        if pos not in hits: hits[pos] = []
+        hits[pos].append(strand)
+
+  sites = []
+  for i in range(len(genome)-1):
+    if genome[i:i+2]=="TA":
+      pos = i+1
+      h = hits.get(pos,[])
+      lenf,lenr = h.count('F'),h.count('R')
+      data = [pos,lenf,lenf,lenr,lenr,lenf+lenr,lenf+lenr]
+      sites.append(data)
+
+  return sites # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
+
 def driver(vars):
   vars.reads1 = vars.base+".reads1"
   vars.reads2 = vars.base+".reads2"
@@ -543,6 +581,7 @@ def extract_reads(vars):
     
     flag = ['','']
     for idx, name in enumerate([vars.fq1, vars.fq2]):
+        if idx==1 and vars.single_end==True: continue
         fil = open(name)
         for line in fil:
             if line[0] == '>':
@@ -557,7 +596,14 @@ def extract_reads(vars):
         fastq2reads(vars.fq1,vars.reads1,vars.maxreads)
     else:
         shutil.copyfile(vars.fq1, vars.reads1)
-    if(flag[1] == 'FASTQ'): 
+
+    if vars.single_end==True:
+      message("assuming single-ended reads")
+      message("creating %s" % vars.tgtta1)
+      extract_staggered(vars.reads1,vars.tgtta1,vars)
+      return 
+
+    if(flag[1] == 'FASTQ'):  
         message("fastq2reads: %s -> %s" % (vars.fq2,vars.reads2))
         fastq2reads(vars.fq2,vars.reads2,vars.maxreads)
     else:
@@ -570,6 +616,7 @@ def extract_reads(vars):
 
     message("creating %s" % vars.tgtta1)
     extract_staggered(vars.reads1,vars.tgtta1,vars)
+
     message("creating %s" % vars.tgtta2)
     select_reads(vars.tgtta1,vars.reads2,vars.tgtta2)
     #message("creating %s" % vars.barcodes2)
@@ -648,13 +695,19 @@ def run_bwa(vars):
     message(cmd)
     os.system(cmd)
 
-    cmd = "%s aln %s %s > %s" % (vars.bwa,vars.ref,vars.genomic2,vars.sai2)
-    message(cmd)
-    os.system(cmd)
+    if vars.single_end==True:
+      cmd = "%s samse %s %s %s > %s" % (vars.bwa,vars.ref,vars.sai1,vars.tgtta1,vars.sam)
+      message(cmd)
+      os.system(cmd)
 
-    cmd = "%s sampe %s %s %s %s %s > %s" % (vars.bwa,vars.ref,vars.sai1,vars.sai2,vars.tgtta1,vars.genomic2,vars.sam)
-    message(cmd)
-    os.system(cmd)
+    else:
+      cmd = "%s aln %s %s > %s" % (vars.bwa,vars.ref,vars.genomic2,vars.sai2)
+      message(cmd)
+      os.system(cmd)
+
+      cmd = "%s sampe %s %s %s %s %s > %s" % (vars.bwa,vars.ref,vars.sai1,vars.sai2,vars.tgtta1,vars.genomic2,vars.sam)
+      message(cmd)
+      os.system(cmd)
 
 
 def stats(vals):
@@ -677,7 +730,8 @@ def corr(X,Y):
 
 def generate_output(vars):
   message("tabulating template counts and statistics...")
-  counts = template_counts(vars.ref,vars.sam,vars.barcodes1,vars)
+  if vars.single_end==True: counts = read_counts(vars.ref,vars.sam,vars) # return read counts copied as template counts
+  else: counts = template_counts(vars.ref,vars.sam,vars.barcodes1,vars)
 
   tcfile = open(vars.tc,"w")
   tcfile.write('\t'.join("coord Fwd_Rd_Ct Fwd_Templ_Ct Rev_Rd_Ct Rev_Templ_Ct Tot_Rd_Ct Tot_Templ_Ct".split())+"\n")
@@ -777,10 +831,12 @@ def error(s):
 
 def verify_inputs(vars):
   if not os.path.exists(vars.fq1): error("file not found: "+vars.fq1)
-  if not os.path.exists(vars.fq2): error("file not found: "+vars.fq2)
+  vars.single_end = False
+  if vars.fq2=="": vars.single_end = True   
+  elif not os.path.exists(vars.fq2): error("file not found: "+vars.fq2)
   if not os.path.exists(vars.ref): error("file not found: "+vars.ref)
   if vars.base == '': error("prefix cannot be empty")
-  if vars.fq1 == vars.fq2: error('fastq files cannot be similar')
+  if vars.fq1 == vars.fq2: error('fastq files cannot be identical')
 
 def initialize_globals(vars):
       vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
