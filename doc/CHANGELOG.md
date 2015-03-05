@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Version 1.2.32 - 2015-03-05
 
+-TRANSIT:
+    - Put .pyc files in in new src/ directory.
+
 - TPP:
     - TPP can now process files with single-end reads.
     - TPP can now process compressed files with "*.fasta.gz" extension
