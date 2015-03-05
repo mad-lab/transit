@@ -3,6 +3,7 @@
 import glob,os,sys,time,math
 import sys, re, shutil
 import platform
+import gzip
 
 if len(sys.argv)==1:
  import wx, wx.lib.filebrowsebutton
@@ -79,7 +80,7 @@ if len(sys.argv)==1:
         label1 = wx.StaticText(panel, label='Choose the Fastq file for read 1:',size=(340,-1))
         sizer1.Add(label1,0,0,0)
         # self.picker1 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 1", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq1)
-        self.picker1 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 1', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.fq1), initialValue=vars.fq1, labelText='',changeCallback=self.OnChanged2)
+        self.picker1 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 1', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa;*.fastq.gz', size=(400,30), startDirectory=os.path.dirname(vars.fq1), initialValue=vars.fq1, labelText='',changeCallback=self.OnChanged2)
         #self.picker1.OnChanged = self.OnChanged(self.picker1.GetValue(), self.base)
         #self.Bind(wx.EVT_TEXT, self.OnChanged, id=self.picker1.GetId())
         #self.picker1.Bind(wx.EVT_TEXT, self.OnChanged)
@@ -90,7 +91,7 @@ if len(sys.argv)==1:
         label2 = wx.StaticText(panel, label='Choose the Fastq file for read 2:',size=(340,-1))
         sizer2.Add(label2,0,0,0)
         #self.picker2 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 2", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq2)
-        self.picker2 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 2', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue=vars.fq2, labelText='', changeCallback=self.OnChanged2)
+        self.picker2 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 2', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa;*.fastq.gz', size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue=vars.fq2, labelText='', changeCallback=self.OnChanged2)
         sizer2.Add(self.picker2, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer2,0,wx.EXPAND,0)
 
@@ -575,6 +576,11 @@ def driver(vars):
 
   message("Done.")
 
+def uncompress(filename):
+   outfil = open(filename[0:-3], "w+")
+   for line in gzip.open(filename):
+      outfil.write(line)
+   return filename[0:-3]
 
 def extract_reads(vars):
     message("extracting reads...")
@@ -590,6 +596,12 @@ def extract_reads(vars):
             flag[idx] = 'FASTQ'
             break
         fil.close() 
+
+    if vars.fq1.endswith('.gz'):
+       vars.fq1 = uncompress(vars.fq1)
+        
+    if vars.fq2.endswith('.gz'):
+       vars.fq2 = uncompress(vars.fq2)
 
     if(flag[0] == 'FASTQ'):
         message("fastq2reads: %s -> %s" % (vars.fq1,vars.reads1))
@@ -727,6 +739,27 @@ def corr(X,Y):
   s = sum([x*y for (x,y) in zip(cX,cY)])
   return s/(float(len(X))*sdX*sdY)
 
+def get_read_length(filename):
+   fil = open(filename)
+   i = 0
+   for line in fil:
+      if i == 1: 
+         print "reads1 line: " + line
+         return len(line.strip())
+      i+=1
+
+def get_genomic_portion(filename):
+   fil = open(filename)
+   i = 0
+   tot_len = 0.0
+   n = 1
+   for line in fil:
+      if i%2 == 1:
+         tot_len += len(line.strip())
+         n += 1
+      i+=1
+   return tot_len/n
+
 
 def generate_output(vars):
   message("tabulating template counts and statistics...")
@@ -778,6 +811,10 @@ def generate_output(vars):
   FR_corr = corr([x[1] for x in counts],[x[3] for x in counts])
   BC_corr = corr([x for x in rcounts if x!=0],[x for x in tcounts if x!=0])
 
+  read_length = get_read_length(vars.base + ".reads1")
+  mean_r1_genomic = get_genomic_portion(vars.base + ".tgtta1")
+  mean_r2_genomic = get_genomic_portion(vars.base + ".genomic2")
+
   output = open(vars.stats,"w")
   version = "1.0"
   #output.write("# title: Tn-Seq Pre-Processor, version %s\n" % vars.version)
@@ -794,7 +831,6 @@ def generate_output(vars):
   output.write("# reads1_mapped %s\n" % vars.r1)
   output.write("# reads2_mapped %s\n" % vars.r2)
   output.write("# mapped_reads %s (both R1 and R2 map into genome)\n" % vars.mapped)
-
   output.write("# read_count %s (TA sites only)\n" % rc)
   output.write("# template_count %s\n" % tc)
   output.write("# template_ratio %0.2f (reads per template)\n" % ratio)
@@ -806,9 +842,12 @@ def generate_output(vars):
   output.write("# NZ_mean %0.1f (among templates)\n" % NZmean)
   output.write("# FR_corr %0.3f (Fwd templates vs. Rev templates)\n" % FR_corr)
   output.write("# BC_corr %0.3f (reads vs. templates, summed over both strands)\n" % BC_corr)
-
   output.write("# primer_matches: %s reads contain %s\n" % (nprimer,primer))
   output.write("# vector_matches: %s reads contain %s\n" % (nvector,vector))
+  output.write("# read_length: %s bp\n" % read_length)
+  output.write("# mean_R1_genomic_length: %0.1f bp\n" % mean_r1_genomic)
+  output.write("# mean_R2_genomic_length: %0.1f bp\n" % mean_r2_genomic)
+
   #output.write("# most_abundant_prefix: %s reads start with %s\n" % (temp[0][1],temp[0][0]))
   # since these are reads (within Tn prefix stripped off), I expect ~1/4 to match Tn prefix
   vals = [vars.fq1,vars.fq2,tot_reads,vars.tot_tgtta,vars.r1,vars.r2,vars.mapped,vars.r1,vars.r2,rc,tc,ratio,ta_sites,tas_hit,max_tc,max_coord,NZmean,FR_corr,BC_corr,nprimer,nvector]
@@ -890,22 +929,25 @@ if __name__ == "__main__":
             driver(vars)
 
     else:
+        flag = False
         initialize_globals(vars)
         for i in range(0, len(sys.argv)):
             if sys.argv[i] == '-reads1': 
                 vars.fq1 = sys.argv[i+1]
             elif sys.argv[i] == '-reads2':
+                flag = True
                 vars.fq2 = sys.argv[i+1]
             elif sys.argv[i] == '-bwa':
                 vars.bwa = sys.argv[i+1]
             elif sys.argv[i] == '-ref':
                 vars.ref = sys.argv[i+1]
             elif sys.argv[i] == '-maxreads':
-                vars.maxreads = sys.argv[i+1]
+                vars.maxreads = int(sys.argv[i+1])
             elif sys.argv[i] == '-prefix':
                 vars.base = sys.argv[i+1]
             elif sys.argv[i] == '-mismatches':
                 vars.mm1 = int(sys.argv[i+1])
+        if flag==False: vars.fq2 = ""
         print 'running pre-processing on %s and %s' % (vars.fq1, vars.fq2)
         verify_inputs(vars)
         save_config(vars)
