@@ -1,4 +1,4 @@
-# TRANSIT & TPP
+# TRANSIT & TPP - tom's change
 
 This repository contains the code and files necessary to run TRANIST and TPP. For more information see:
 
