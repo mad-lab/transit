@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file.
 
 
+
+
+## Version 1.2.33 - 2015-03-06
+
+-TRANSIT:
+    - Fixed issue with histograms create using adaptive resampling.
+
+
+
+
 ## Version 1.2.32 - 2015-03-05
 
 -TRANSIT:
