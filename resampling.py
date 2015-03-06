@@ -174,6 +174,7 @@ def runResampling(wx, pubmsg, **kwargs):
             #print genePath
             plt.savefig(genePath)
             plt.clf()
+            #plt.close()
 
 
         count += 1

@@ -370,7 +370,7 @@ class MainFrame ( wx.Frame ):
 		self.resamplingHistCheck.SetValue(True) 
 		resamplingSection.Add( self.resamplingHistCheck, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
-		self.resamplingAdaptiveCheck = wx.CheckBox( self, wx.ID_ANY, u"Adaptive Resampling", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.resamplingAdaptiveCheck = wx.CheckBox( self, wx.ID_ANY, u"Adaptive Resampling (faster)", wx.DefaultPosition, wx.DefaultSize, 0 )
 		resamplingSection.Add( self.resamplingAdaptiveCheck, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		self.resamplingButton = wx.Button( self, wx.ID_ANY, u"Run Resampling", wx.DefaultPosition, wx.DefaultSize, 0 )

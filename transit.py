@@ -11,6 +11,7 @@ import time
 import datetime
 import ntpath
 import threading
+import numpy
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import math
@@ -268,11 +269,15 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.resamplingProgress.Show()
  
 
-    def SaveFile(self, DIR=".", FILE="", WC=""):
+    def SaveFile(self, DIR=None, FILE="", WC=""):
         """
         Create and show the Save FileDialog
         """
         path = ""
+
+        if not DIR:
+            DIR = os.getcwd()
+
         dlg = wx.FileDialog(
             self, message="Save file as ...",
             defaultDir=DIR,
@@ -568,12 +573,12 @@ class TnSeekFrame(transit_gui.MainFrame):
                         X.append(log2FC)
                         Y.append(log10qval)
 
-                    
                     plt.plot(X,Y, "bo")
                     plt.xlabel("Log Fold Change (base 2)")
                     plt.ylabel("-Log q-value (base 10)")
                     plt.title("Resampling - Volcano plot")
                     plt.show()
+                    plt.close()
 
                 elif filetype == "Gumbel":
                     X = []; Y = [];
@@ -592,10 +597,9 @@ class TnSeekFrame(transit_gui.MainFrame):
                     plt.show()
 
 
-        
 
             except Exception as e:
-                print "Error occurred displaying file", e
+                print "Error occurred displaying file:", e
         else:
             if DEBUG:
                 self.ShowError(MSG="No results selected to display!")
@@ -637,7 +641,8 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
         try:
-            path = self.OpenFile(".", "")
+            defaultDir = os.getcwd() 
+            path = self.OpenFile(defaultDir, "")
             line = open(path).readline()
             if line.startswith("#Gumbel"):
                 type = "Gumbel"
@@ -702,7 +707,9 @@ class TnSeekFrame(transit_gui.MainFrame):
         datasets = self.ctrlSelected()
         defaultFile = "read_counts.igv"
         #Get Default directory
-        defaultDir = os.path.dirname(os.path.realpath(__file__))
+        #defaultDir = os.path.dirname(os.path.realpath(__file__))
+        defaultDir = os.getcwd()
+        
         outputPath = self.SaveFile(defaultDir, defaultFile)
         if datasets and annotationPath and outputPath:
             if DEBUG:
@@ -725,7 +732,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         datasets = self.expSelected()
         defaultFile = "read_counts.igv"
         #Get Default directory
-        defaultDir = os.path.dirname(os.path.realpath(__file__))
+        #defaultDir = os.path.dirname(os.path.realpath(__file__))
+        defaultDir = os.getcwd()
         outputPath = self.SaveFile(defaultDir, defaultFile)
         if datasets and annotationPath and outputPath:
             if DEBUG:
@@ -748,7 +756,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         datasets = self.ctrlSelected() + self.expSelected()
         defaultFile = "read_counts.igv"
         #Get Default directory
-        defaultDir = os.path.dirname(os.path.realpath(__file__))
+        #defaultDir = os.path.dirname(os.path.realpath(__file__))
+        defaultDir = os.getcwd()
         outputPath = self.SaveFile(defaultDir, defaultFile)
         if datasets and annotationPath and outputPath:
             if DEBUG:
@@ -769,7 +778,8 @@ class TnSeekFrame(transit_gui.MainFrame):
     def annotationPT_to_GFF3(self, event):
         annotationpath = self.annotationFilePicker.GetPath()
         defaultFile = transit_tools.fetch_name(annotationpath) + ".gff3"
-        defaultDir = os.path.dirname(os.path.realpath(__file__))
+        #defaultDir = os.path.dirname(os.path.realpath(__file__))
+        defaultDir = os.getcwd()
         outputPath = self.SaveFile(defaultDir, defaultFile)
 
         ORGANISM = transit_tools.fetch_name(annotationpath)
@@ -807,7 +817,8 @@ class TnSeekFrame(transit_gui.MainFrame):
  
         annotationpath = self.annotationFilePicker.GetPath()
         defaultFile = transit_tools.fetch_name(annotationpath) + ".ptt.table"
-        defaultDir = os.path.dirname(os.path.realpath(__file__))
+        #defaultDir = os.path.dirname(os.path.realpath(__file__))
+        defaultDir = os.getcwd()
 
         datasets = self.ctrlSelected() + self.expSelected()
         if not annotationpath:
@@ -847,7 +858,8 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         annotationpath = self.annotationFilePicker.GetPath()
         defaultFile = transit_tools.fetch_name(annotationpath) + ".prot_table"
-        defaultDir = os.path.dirname(os.path.realpath(__file__))
+        #defaultDir = os.path.dirname(os.path.realpath(__file__))
+        defaultDir = os.getcwd()
         
         datasets = self.ctrlSelected() + self.expSelected()
         if not annotationpath:
@@ -894,7 +906,8 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         annotationpath = self.annotationFilePicker.GetPath()
         defaultFile = transit_tools.fetch_name(annotationpath) + ".prot_table"
-        defaultDir = os.path.dirname(os.path.realpath(__file__))
+        #defaultDir = os.path.dirname(os.path.realpath(__file__))
+        defaultDir = os.getcwd()
 
         datasets = self.ctrlSelected() + self.expSelected()
         if not annotationpath:
@@ -968,7 +981,9 @@ class TnSeekFrame(transit_gui.MainFrame):
         defaultFile = "gumbel_%s_s%d_b%d_t%d.dat" % (".".join(name.split(".")[:-1]), samples, burnin, trim)
 
         #Get Default directory
-        defaultDir = os.path.dirname(os.path.realpath(__file__))
+        #defaultDir = os.path.dirname(os.path.realpath(__file__))
+        defaultDir = os.getcwd()
+
 
         #Ask user for output:        
         outputPath = self.SaveFile(defaultDir, defaultFile)
@@ -1026,7 +1041,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         defaultFile = "hmm_%s_sites.dat" % (".".join(name.split(".")[:-1]))
 
         #Get Default directory
-        defaultDir = os.path.dirname(os.path.realpath(__file__))
+        #defaultDir = os.path.dirname(os.path.realpath(__file__))
+        defaultDir = os.getcwd()
 
         #Ask user for output:
         outputPath = self.SaveFile(defaultDir, defaultFile)
@@ -1084,7 +1100,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         defaultFile = "resampling_results.dat"
 
         #Get Default directory
-        defaultDir = os.path.dirname(os.path.realpath(__file__))
+        #defaultDir = os.path.dirname(os.path.realpath(__file__))
+        defaultDir = os.getcwd()
 
         #Ask user for output:        
         outputPath = self.SaveFile(defaultDir, defaultFile)
@@ -1139,7 +1156,13 @@ class TnSeekFrame(transit_gui.MainFrame):
         kwargs["doNormalize"] = True
         kwargs["output"] = output
 
-        #HMMThread(readPathList, annotationPath, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
+        ##############
+        #Instantiating pyplot outside thread to avoid 'main thread not in event loop error'
+        n, bins, patches = plt.hist([0,1,2,3,5], normed=1, facecolor='c', alpha=0.75, bins=100)
+        plt.xlabel('Delta Sum')
+        #############
+
+
         thread = threading.Thread(target=resampling.runResampling, args=(wx, pub.sendMessage), kwargs=kwargs)
         thread.setDaemon(True)
         thread.start()

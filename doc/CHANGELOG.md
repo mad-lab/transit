@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 -TRANSIT:
     - Put .pyc files in in new src/ directory.
+    - Fixed error that sometimes occurred when plotting volcano plots.
+    - Made TRANSIT default to the current working directory when opening file dialogs.
 
 - TPP:
     - TPP can now process files with single-end reads.
