@@ -1130,8 +1130,8 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         print "Control String:", ctrlString
         print "Experim String:", expString
-        print "outputPath", outputPath
-        print "histPath", histPath
+        print "outputPath:", outputPath
+        print "histPath:", histPath
          
 
         sampleSize = int(self.resamplingSampleText.GetValue())
@@ -1160,6 +1160,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         #Instantiating pyplot outside thread to avoid 'main thread not in event loop error'
         n, bins, patches = plt.hist([0,1,2,3,5], normed=1, facecolor='c', alpha=0.75, bins=100)
         plt.xlabel('Delta Sum')
+        plt.clf()
         #############
 
 
