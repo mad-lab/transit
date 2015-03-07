@@ -138,7 +138,7 @@ class MainFrame ( wx.Frame ):
 		self.logoImg = wx.StaticBitmap( self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
 		methodSizer.Add( self.logoImg, 0, wx.ALL, 5 )
 		
-		self.versionLabel = wx.StaticText( self, wx.ID_ANY, u"v1.2.7", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
+		self.versionLabel = wx.StaticText( self, wx.ID_ANY, u"v1.2.32", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
 		self.versionLabel.Wrap( -1 )
 		self.versionLabel.SetFont( wx.Font( 10, 74, 90, 92, False, "Sans" ) )
 		
@@ -370,7 +370,7 @@ class MainFrame ( wx.Frame ):
 		self.resamplingHistCheck.SetValue(True) 
 		resamplingSection.Add( self.resamplingHistCheck, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
-		self.resamplingAdaptiveCheck = wx.CheckBox( self, wx.ID_ANY, u"Adaptive Resampling", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.resamplingAdaptiveCheck = wx.CheckBox( self, wx.ID_ANY, u"Adaptive Resampling (faster)", wx.DefaultPosition, wx.DefaultSize, 0 )
 		resamplingSection.Add( self.resamplingAdaptiveCheck, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		self.resamplingButton = wx.Button( self, wx.ID_ANY, u"Run Resampling", wx.DefaultPosition, wx.DefaultSize, 0 )
