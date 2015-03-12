@@ -107,7 +107,7 @@ def runResampling(wx, pubmsg, **kwargs):
     else:
         output.write("#Not normalized\n")
 
-    output.write("#Orf\t%Name\tDescription\tN\tTAs Hit\tAvg Rd 1\tAvg Rd 2\tDelta Rd\tp-value\tp-adj\n")
+    output.write("#Orf\t%Name\tDescription\tN\tTAs Hit\tAvg Rd 1\tAvg Rd 2\tDelta Rd\tlog2 FC\tp-value\tp-adj\n")
     count = 0
     G = len(orf2reads)
     orf2out= {}

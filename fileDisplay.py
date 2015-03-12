@@ -210,6 +210,7 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
         self.list_data.InsertColumn(0, 'Orf', width=100)
         self.list_data.InsertColumn(1, 'Name', width=85)
         self.list_data.InsertColumn(2, 'Description', width=220)
+        #self.list_data.InsertColumn(2, 'Description', width=wx.LIST_AUTOSIZE_USEHEADER)
         self.list_data.InsertColumn(3, 'k', width=75)
         self.list_data.InsertColumn(4, 'n', width=75)
         self.list_data.InsertColumn(5, 'r', width=75)
