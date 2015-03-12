@@ -1,5 +1,6 @@
 import sys
 import os
+import math
 import datetime
 import random
 import numpy
@@ -121,6 +122,12 @@ def runResampling(wx, pubmsg, **kwargs):
         else:
             sum1 = 0; sum2 = 0;
 
+        try:
+            log2FC = math.log(float(sum1)/float(sum2),2)
+        except:
+            log2FC = 0
+
+
         count_utail = 0
         count_ltail = 0
         count_2tail = 0
@@ -147,8 +154,8 @@ def runResampling(wx, pubmsg, **kwargs):
 
             s_performed+=1
             if doAdaptive:
-                if s_performed == 100 or s_performed == 1000 or s_performed == 10000:
-                    if count_2tail >=5:
+                if s_performed == round(S*0.01) or s_performed == round(S*0.1) or s_performed == round(S*1):
+                    if count_2tail >= round(S*0.01*0.10):
                         break
             
 
@@ -158,7 +165,10 @@ def runResampling(wx, pubmsg, **kwargs):
         pval_ltail = count_ltail/float(s_performed)
         pval_2tail = count_2tail/float(s_performed)
 
-        orf2out[orf] = (orf, orf2info[orf][0], orf2info[orf][1], len(fullreads), len(reads), sum1, sum2, sum2-sum1, pval_2tail)
+
+
+
+        orf2out[orf] = (orf, orf2info[orf][0], orf2info[orf][1], len(fullreads), len(reads), sum1, sum2, sum2-sum1, log2FC, pval_2tail)
         pval.append(pval_2tail)
 
 
@@ -184,7 +194,7 @@ def runResampling(wx, pubmsg, **kwargs):
     qval = fdr_corrected_pval(pval)
     count = 0
     for orf in sorted(orf2out):
-        output.write("%s\t%s\t%s\t%d\t%d\t%1.1f\t%1.1f\t%1.1f\t%1.5f" % orf2out[orf])
+        output.write("%s\t%s\t%s\t%d\t%d\t%1.1f\t%1.1f\t%1.1f\t%1.2f\t%1.5f" % orf2out[orf])
         output.write("\t%1.5f\n" % qval[count])
         count += 1
 

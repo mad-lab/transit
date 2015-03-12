@@ -349,8 +349,9 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
         self.list_data.InsertColumn(5, 'Sum Read 1', width=100)
         self.list_data.InsertColumn(6, 'Sum Read 2', width=100)
         self.list_data.InsertColumn(7, 'Delta Sum', width=100)
-        self.list_data.InsertColumn(8, 'p-value', width=75)
-        self.list_data.InsertColumn(9, 'q-value', width=75)
+        self.list_data.InsertColumn(8, 'log2 FC', width=100)
+        self.list_data.InsertColumn(9, 'p-value', width=75)
+        self.list_data.InsertColumn(10, 'q-value', width=75)
 
 
     def populateResampling(self, path):
