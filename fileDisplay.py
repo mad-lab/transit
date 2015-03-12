@@ -16,6 +16,14 @@ def ShowError(MSG=""):
             wx.OK | wx.ICON_ERROR)
         dial.ShowModal()
 
+def sortColumn(item1, item2):
+    try: 
+        i1 = float(item1)
+        i2 = float(item2)
+    except ValueError:
+        return cmp(item1, item2)
+    else:
+        return cmp(i1, i2)
 
 
 ########################################################################
@@ -227,10 +235,17 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
             if not tmp: continue
             if len(tmp) < 3: continue
             self.list_data.InsertStringItem(self.index_data, tmp[1])
+            actual_data = [tmp[1]]
             for i,cell in enumerate(tmp[2:]):
                 self.list_data.SetStringItem(self.index_data, i+1, cell)
+                try:
+                    actual_data.append(float(cell))
+                except:
+                    actual_data.append(cell)
+
             self.list_data.SetItemData(self.index_data, self.index_data)
-            self.itemDataMap[self.index_data] = tmp[1:]
+            self.itemDataMap[self.index_data] = actual_data
+
             self.index_data+=1
             if tmp[-1] == "E": ess+=1
             if tmp[-1] == "U": unc+=1
@@ -319,11 +334,16 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
         data.sort()
         for tmp in data:
             self.list_data.InsertStringItem(self.index_data, tmp[1])
+            actual_data = [tmp[1]]
             for i,cell in enumerate(tmp[2:]):
                 self.list_data.SetStringItem(self.index_data, i+1, cell)
+                try:
+                    actual_data.append(float(cell))
+                except:
+                    actual_data.append(cell)
 
             self.list_data.SetItemData(self.index_data, self.index_data)
-            self.itemDataMap[self.index_data] = tmp[1:]
+            self.itemDataMap[self.index_data] = actual_data
             self.index_data+=1
             if len(tmp) < 5: continue
             if tmp[-1] == "ES": es+=1
@@ -367,10 +387,16 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
         
         for tmp in data:
             self.list_data.InsertStringItem(self.index_data, tmp[1])
+            actual_data = [tmp[1]]
             for i,cell in enumerate(tmp[2:]):
                 self.list_data.SetStringItem(self.index_data, i+1, cell)
+                try:
+                    actual_data.append(float(cell))
+                except:
+                    actual_data.append(cell)
+                    
             self.list_data.SetItemData(self.index_data, self.index_data)
-            self.itemDataMap[self.index_data] = tmp[1:]
+            self.itemDataMap[self.index_data] = actual_data
             self.index_data+=1
             if float(tmp[-1]) < 0.05: de05+=1
             if float(tmp[-1]) < 0.01: de01+=1
@@ -388,6 +414,7 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
         self.headerText2.SetLabel(text2)
 
 
+
 #----------------------------------------------------------------------
     # Used by the ColumnSorterMixin, see wx/lib/mixins/listctrl.py
     def GetListCtrl(self):
@@ -397,6 +424,7 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
     def OnColClick(self, event):
         #print "column clicked self:", self
         #print "column clicked event:", event
+        #self.list_data.SortItems(sortColumn)
         event.Skip()
  
     ########
