@@ -101,8 +101,10 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
 
         bSizer3 = wx.BoxSizer( wx.VERTICAL )
 
+        #Get file path
         self.filePath = filePath
 
+        # Check which method was used and assign settings
         self.index_data = 0
         if method == "Gumbel":
             self.list_data = SortableListCtrl(self, size=(-1,100),

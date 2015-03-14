@@ -107,7 +107,7 @@ def runResampling(wx, pubmsg, **kwargs):
     else:
         output.write("#Not normalized\n")
 
-    output.write("#Orf\t%Name\tDescription\tN\tTAs Hit\tAvg Rd 1\tAvg Rd 2\tDelta Rd\tlog2 FC\tp-value\tp-adj\n")
+    output.write("#Orf\t%Name\tDescription\tN\tTAs Hit\tSum Rd 1\tSum Rd 2\tDelta Rd\tlog2 FC\tp-value\tp-adj\n")
     count = 0
     G = len(orf2reads)
     orf2out= {}
@@ -123,7 +123,7 @@ def runResampling(wx, pubmsg, **kwargs):
             sum1 = 0; sum2 = 0;
 
         try:
-            log2FC = math.log(float(sum1)/float(sum2),2)
+            log2FC = math.log(float(sum2)/float(sum1),2)
         except:
             log2FC = 0
 

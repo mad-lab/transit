@@ -563,8 +563,8 @@ class TnSeekFrame(transit_gui.MainFrame):
                         if line.startswith("#"): continue
                         tmp = line.strip().split("\t")
                         try:
-                            log2FC = math.log(float(tmp[5])/float(tmp[6]),2)
-                            log10qval = -math.log(float(tmp[9]), 10)
+                            log2FC = math.log(float(tmp[6])/float(tmp[5]),2)
+                            log10qval = -math.log(float(tmp[-1].strip()), 10)
                         except:
                             log2FC = 0
                             log10qval = 0
