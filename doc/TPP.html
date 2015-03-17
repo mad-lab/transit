@@ -93,13 +93,17 @@ TPP may be run from the command line (e.g. of a terminal window or shell)
 by typing:
 
 <PRE>
-python tpp.pyc
+python PATH/src/tpp.pyc
 </PRE>
 
-This should pop up the GUI window, looking like this...
+where PATH is the path to the TRANSIT installation directory. This should pop up the GUI window, looking like this...
 
 <P>
 <IMG SRC="TPP-screenshot.png" width="80%"></IMG>
+<P>
+
+Note, TPP can process paired-end reads, as well as single-end datasets. (just leave the filename for read2 blank)
+
 <P>
 
 The main fields to fill out in the GUI are...
@@ -114,8 +118,16 @@ HREF="http://en.wikipedia.org/wiki/FASTQ_format">FASTQ</A> or <A
 HREF="http://en.wikipedia.org/wiki/FASTA">FASTA</A> format,
 e.g. DATASET_NAME_R1.fastq
 
+<UL>
+<LI><I>Note: you can also supply <U>gzipped</U> files for reads, e.g. *.fastq.gz</I>
+</UL>
+
 <LI>reads2 file - this should be the raw reads file (<I>untrimmed</I>) for
 read2 in FASTQ or FASTA format, e.g. DATASET_NAME_R2.fastq
+
+<UL>
+<LI><I>Note: if you leave read2 blank, it will process the dataset as <U>single-ended</U>. Since there are no barcodes, each read will be counted as a unique template.</I>
+</UL>
 
 <LI>prefix to use for filename (for the multiple intermediate files that will
 get generated in the process; when you pick datasets, a temp file name 
@@ -164,7 +176,7 @@ command-line without invoking the user interface (GUI) by providing it
 filenames and parameters as command-line arguments.
 
 <PRE>
-usage: python tpp.pyc -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE -reads2 PATH_TO_FASTQ_OR_FASTA_FILE -prefix OUTPUT_BASE_FILENAME [-maxreads N]
+usage: python PATH/src/tpp.pyc -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE [-reads2 PATH_TO_FASTQ_OR_FASTA_FILE] -prefix OUTPUT_BASE_FILENAME [-maxreads N]
 
 </PRE>
 
@@ -173,8 +185,8 @@ The input arguments and file types are as follows:
 <TABLE border=1>
 <TD>-bwa<TD> path executable<TD><TR>
 <TD>-ref<TD> reference genome sequence <TD>FASTA file<TR>
-<TD>-reads1<TD> file of read 1 of paired reads<TD>FASTA or FASTQ format<TR>
-<TD>-reads2<TD> file of read 2 of paired reads<TD>FASTA or FASTQ format<TR>
+<TD>-reads1<TD> file of read 1 of paired reads<TD>FASTA or FASTQ format (or gzipped)<TR>
+<TD>-reads2<TD> file of read 2 of paired reads (optional for single-end reads)<TD>FASTA or FASTQ format (or gzipped)<TR>
 <TD>-prefix<TD> base filename to use for output files<TR>
 <TD>-maxreads<TD>subset of reads to process (optional); if blank, use all<TR>
 <TD>-mismatches<TD>how many to allow when searching reads for sequence patterns<TR>

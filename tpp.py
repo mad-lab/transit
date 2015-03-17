@@ -675,22 +675,28 @@ def extract_barcodes(fn_tgtta2,fn_barcodes2,fn_genomic2):
       gstart,gend = b+nconst2,len(line)
       if c!=-1 and c-gstart>20: gend = c
       if a==-1 or bend<bstart+5 or bend>bstart+15:
-        # U cab't just reject these, beacuse they are paired with R1
+        # you can't just reject these, beacuse they are paired with R1
         # but setting the genomic part to the first 20 cycles should prevent it from mapping
         bstart,bend = 0,10
         gstart,gend = 0,20
+        barcode,genomic = "XXXXXXXXXX","XXXXXXXXXX"
+      else: barcode,genomic = line[bstart:bend],line[gstart:gend]
       if DEBUG==1:
         fl_barcodes2.write(header+"\n")
         fl_barcodes2.write(line+"\n")
-        fl_barcodes2.write((" "*bstart)+line[bstart:bend]+"\n")
+        #fl_barcodes2.write((" "*bstart)+line[bstart:bend]+"\n")
+        fl_barcodes2.write((" "*bstart)+barcode+"\n")
         fl_genomic2.write(header+"\n")
         fl_genomic2.write(line+"\n")
-        fl_genomic2.write((" "*gstart)+line[gstart:gend]+"\n")
+        #fl_genomic2.write((" "*gstart)+line[gstart:gend]+"\n")
+        fl_genomic2.write((" "*gstart)+genomic+"\n")
       else:
         fl_barcodes2.write(header+"\n")
-        fl_barcodes2.write(line[bstart:bend]+"\n")
+        #fl_barcodes2.write(line[bstart:bend]+"\n")
+        fl_barcodes2.write(barcode+"\n")
         fl_genomic2.write(header+"\n")
-        fl_genomic2.write(line[gstart:gend]+"\n")
+        #fl_genomic2.write(line[gstart:gend]+"\n")
+        fl_genomic2.write(genomic+"\n")
   fl_barcodes2.close()
   fl_genomic2.close()
   if DEBUG==1: sys.exit(0)

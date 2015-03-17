@@ -1,5 +1,6 @@
 import sys
 import os
+import math
 import datetime
 import random
 import numpy
@@ -106,7 +107,7 @@ def runResampling(wx, pubmsg, **kwargs):
     else:
         output.write("#Not normalized\n")
 
-    output.write("#Orf\t%Name\tDescription\tN\tTAs Hit\tAvg Rd 1\tAvg Rd 2\tDelta Rd\tp-value\tp-adj\n")
+    output.write("#Orf\t%Name\tDescription\tN\tTAs Hit\tSum Rd 1\tSum Rd 2\tDelta Rd\tlog2 FC\tp-value\tp-adj\n")
     count = 0
     G = len(orf2reads)
     orf2out= {}
@@ -121,12 +122,19 @@ def runResampling(wx, pubmsg, **kwargs):
         else:
             sum1 = 0; sum2 = 0;
 
+        try:
+            log2FC = math.log(float(sum2)/float(sum1),2)
+        except:
+            log2FC = 0
+
+
         count_utail = 0
         count_ltail = 0
         count_2tail = 0
    
-        delta_sum_list = numpy.zeros(S)
-        s_performed = S
+        #delta_sum_list = numpy.zeros(S)
+        delta_sum_list = []
+        s_performed = 0
         for s in range(S):
             #Reads
             #if len(reads) == 0: breaki
@@ -138,16 +146,16 @@ def runResampling(wx, pubmsg, **kwargs):
             #all_perm=np.array((list(itertools.permutations([0,1,2,3]))))
             #(reads.flatten()[(all_perm[numpy.random.randint(0,len(all_perm),size=100)]+3*np.arange(100)[...,numpy.newaxis]).flatten()]).reshape(reads.shape)
 
-            delta_sum_list[s] = sumB-sumA
+            delta_sum_list.append(sumB-sumA)
             if sumB-sumA >= sum2-sum1: count_utail+=1
             if sumB-sumA <= sum2-sum1: count_ltail+=1
             if abs(sumB-sumA) >= abs(sum2-sum1): count_2tail+=1
 
 
+            s_performed+=1
             if doAdaptive:
-                if s == 100 or s == 1000 or s == 10000:
-                    if count_2tail >=5:
-                        s_performed = s+1
+                if s_performed == round(S*0.01) or s_performed == round(S*0.1) or s_performed == round(S*1):
+                    if count_2tail >= round(S*0.01*0.10):
                         break
             
 
@@ -157,9 +165,12 @@ def runResampling(wx, pubmsg, **kwargs):
         pval_ltail = count_ltail/float(s_performed)
         pval_2tail = count_2tail/float(s_performed)
 
-        orf2out[orf] = (orf, orf2info[orf][0], orf2info[orf][1], len(fullreads), len(reads), sum1, sum2, sum2-sum1, pval_2tail)
+
+
+
+        orf2out[orf] = (orf, orf2info[orf][0], orf2info[orf][1], len(fullreads), len(reads), sum1, sum2, sum2-sum1, log2FC, pval_2tail)
         pval.append(pval_2tail)
-    
+
 
         # the histogram of the data
         if histPath:
@@ -174,6 +185,7 @@ def runResampling(wx, pubmsg, **kwargs):
             #print genePath
             plt.savefig(genePath)
             plt.clf()
+            #plt.close()
 
 
         count += 1
@@ -182,7 +194,7 @@ def runResampling(wx, pubmsg, **kwargs):
     qval = fdr_corrected_pval(pval)
     count = 0
     for orf in sorted(orf2out):
-        output.write("%s\t%s\t%s\t%d\t%d\t%1.1f\t%1.1f\t%1.1f\t%1.5f" % orf2out[orf])
+        output.write("%s\t%s\t%s\t%d\t%d\t%1.1f\t%1.1f\t%1.1f\t%1.2f\t%1.5f" % orf2out[orf])
         output.write("\t%1.5f\n" % qval[count])
         count += 1
 

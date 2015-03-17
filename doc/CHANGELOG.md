@@ -3,6 +3,39 @@ All notable changes to this project will be documented in this file.
 
 
 
+
+## Version 1.2.33 - 2015-03-06
+
+-TRANSIT:
+    - Fixed issue with histograms create using adaptive resampling.
+
+
+
+
+## Version 1.2.32 - 2015-03-05
+
+-TRANSIT:
+    - Put .pyc files in in new src/ directory.
+    - Fixed error that sometimes occurred when plotting volcano plots.
+    - Made TRANSIT default to the current working directory when opening file dialogs.
+
+- TPP:
+    - TPP can now process files with single-end reads.
+    - TPP can now process compressed files with "*.fasta.gz" extension
+
+
+
+## Version 1.2.7 - 2015-02-25
+
+- TRANSIT:
+    - Fixed error that occured when displaying graphs after running an analysis.
+    - Updated datasets included in the data/ directory.
+
+- TPP:
+    - Removed the requirement for wxPython when running TPP on command-line mode.
+
+
+
 ## Version 1.1 - 2015-02-20
 
 - TRANSIT:
