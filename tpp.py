@@ -902,6 +902,9 @@ def save_config(vars):
   f.write("prefix %s\n" % vars.base)
   f.write("mismatches1 %s\n" % vars.mm1) 
   f.close()
+
+def show_help():
+  print 'usage: python PATH/src/tpp.pyc -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE -reads2 PATH_TO_FASTQ_OR_FASTA_FILE -prefix OUTPUT_BASE_FILENAME [-maxreads N] [-mismatches N]'
     
 class Globals:
   pass
@@ -932,6 +935,9 @@ if __name__ == "__main__":
         flag = False
         initialize_globals(vars)
         for i in range(0, len(sys.argv)):
+            if sys.argv[i] == '-help':
+                show_help()
+                exit()
             if sys.argv[i] == '-reads1': 
                 vars.fq1 = sys.argv[i+1]
             elif sys.argv[i] == '-reads2':
