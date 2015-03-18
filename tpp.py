@@ -819,7 +819,7 @@ def generate_output(vars):
 
   read_length = get_read_length(vars.base + ".reads1")
   mean_r1_genomic = get_genomic_portion(vars.base + ".tgtta1")
-  mean_r2_genomic = get_genomic_portion(vars.base + ".genomic2")
+  if vars.single_end==False: mean_r2_genomic = get_genomic_portion(vars.base + ".genomic2")
 
   output = open(vars.stats,"w")
   version = "1.0"
@@ -852,7 +852,7 @@ def generate_output(vars):
   output.write("# vector_matches: %s reads contain %s\n" % (nvector,vector))
   output.write("# read_length: %s bp\n" % read_length)
   output.write("# mean_R1_genomic_length: %0.1f bp\n" % mean_r1_genomic)
-  output.write("# mean_R2_genomic_length: %0.1f bp\n" % mean_r2_genomic)
+  if vars.single_end==False: output.write("# mean_R2_genomic_length: %0.1f bp\n" % mean_r2_genomic)
 
   #output.write("# most_abundant_prefix: %s reads start with %s\n" % (temp[0][1],temp[0][0]))
   # since these are reads (within Tn prefix stripped off), I expect ~1/4 to match Tn prefix
