@@ -42,7 +42,7 @@ def fetch_name(filepath):
     return os.path.splitext(ntpath.basename(filepath))[0]
 
 
-
+track_prefix = "[TrackView]"
 #inherit from the MainFrame created in wxFowmBuilder and create CalcFrame
 class TrashFrame(view_trash.MainFrame):
     #constructor
@@ -96,7 +96,7 @@ class TrashFrame(view_trash.MainFrame):
         factors = [grand_mean/float(mean_hits[i]) for i in range(N)]
 
         #Save normalized data
-        print "Normalization factors", factors
+        print track_prefix, "Normalization factors", factors
         self.fulldata_norm = []
         for j,data in enumerate(self.fulldata):
             self.fulldata_norm.append([])
@@ -224,15 +224,15 @@ class TrashFrame(view_trash.MainFrame):
 
         query = self.searchText.GetValue()
 
-        print "Search query:", query
+        print track_prefix, "Search query:", query
         #check if query is name:
         genes_match_name = self.name2id.get(query.lower(), [])
         gene_match_orf = self.lowerid2id.get(query.lower(), None)
         gene_match_orf_w_c = self.lowerid2id.get(query.lower()+"c", None)
 
 
-        print "Genes with matching name:", genes_match_name
-        print "Genes with matching IDs:", gene_match_orf
+        print track_prefix, "Genes with matching name:", genes_match_name
+        print track_prefix, "Genes with matching IDs:", gene_match_orf
         
         if len(genes_match_name) == 1:      # Check if query is a name
             orf_match = genes_match_name[0]
@@ -246,7 +246,7 @@ class TrashFrame(view_trash.MainFrame):
 
         start, end, strand, name = self.orf2data.get(orf_match, [0, 2000, "+", "-"])
 
-        print "Got the following data", start, end, strand, name
+        print track_prefix, "Matched data:", start, end, strand, name
        
         try:
 
@@ -291,7 +291,7 @@ class TrashFrame(view_trash.MainFrame):
             )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            print "You chose the following output filename: %s" % path
+            print track_view, "You chose the following output filename: %s" % path
         dlg.Destroy()
         return path
 

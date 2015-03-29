@@ -34,8 +34,7 @@ import argparse
 
 wildcard = "Python source (*.py)|*.py|" \
             "All files (*.*)|*.*"
-DEBUG = True
-
+transit_prefix = "[TRANSIT]"
 
 #inherit from the MainFrame created in wxFowmBuilder and create CalcFrame
 class TnSeekFrame(transit_gui.MainFrame):
@@ -72,6 +71,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.list_files.InsertColumn(3, 'Full Path',width=403)
 
 
+        self.verbose = True
+
 
         self.progress_count = 0
         self.gumbel_count = 0
@@ -96,7 +97,8 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def Exit(self, event):
         """Exit Menu Item"""
-        print "Exiting Transit"
+        if self.verbose:
+            print transit_prefix, "Exiting Transit"
         self.Close()
 
 
@@ -285,7 +287,8 @@ class TnSeekFrame(transit_gui.MainFrame):
             )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            print "You chose the following output filename: %s" % path
+            if self.verbose:
+                print transit_prefix, "You chose the following output filename: %s" % path
         dlg.Destroy()
         return path
 
@@ -301,7 +304,8 @@ class TnSeekFrame(transit_gui.MainFrame):
             )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            print "You chose the following file: %s" % path
+            if self.verbose:
+                print transit_prefix, "You chose the following file: %s" % path
         dlg.Destroy()
         return path
 
@@ -368,11 +372,11 @@ class TnSeekFrame(transit_gui.MainFrame):
             self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
             self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
             self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
-            if DEBUG:
-                print "Adding control item (%d): %s" % (self.index_ctrl, name)
+            if self.verbose:
+                print transit_prefix, "Adding control item (%d): %s" % (self.index_ctrl, name)
             self.index_ctrl+=1
         except e:
-            print "Error:", e
+            print transit_prefix, "Error:", e
 
         
 
@@ -388,20 +392,20 @@ class TnSeekFrame(transit_gui.MainFrame):
             self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
             self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
             self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
-            if DEBUG:
-                print "Adding experimental item (%d): %s" % (self.index_exp, name)
+            if self.verbose:
+                print transit_prefix, "Adding experimental item (%d): %s" % (self.index_exp, name)
             self.index_exp+=1
         
 
         except e:
-            print "Error:", e 
+            print transit_prefix, "Error:", e 
 
 
     def ctrlRemoveFunc(self, event):
         next = self.list_ctrl.GetNextSelected(-1)
         while next != -1:
-            if DEBUG:
-                print "Removing control item (%d): %s" % (next, self.list_ctrl.GetItem(next, 0).GetText())
+            if self.verbose:
+                print transit_prefix, "Removing control item (%d): %s" % (next, self.list_ctrl.GetItem(next, 0).GetText())
             self.list_ctrl.DeleteItem(next)
             next = self.list_ctrl.GetNextSelected(-1)
             self.index_ctrl-=1 
@@ -410,8 +414,8 @@ class TnSeekFrame(transit_gui.MainFrame):
     def expRemoveFunc(self, event):
         next = self.list_exp.GetNextSelected(-1)
         while next != -1:
-            if DEBUG:
-                print "Removing experimental item (%d): %s" % (next, self.list_exp.GetItem(next, 0).GetText())
+            if self.verbose:
+                print transit_prefix, "Removing experimental item (%d): %s" % (next, self.list_exp.GetItem(next, 0).GetText())
             self.list_exp.DeleteItem(next)
             next = self.list_exp.GetNextSelected(-1)
             self.index_exp-=1
@@ -423,8 +427,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         datasets = self.ctrlSelected() + self.expSelected()
 
         if datasets and annotationpath:
-            if DEBUG:
-                print "Visualizing counts for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+            if self.verbose:
+                print transit_prefix, "Visualizing counts for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
             viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
             viewWindow.Show()
         elif not datasets:
@@ -442,16 +446,16 @@ class TnSeekFrame(transit_gui.MainFrame):
         annotationpath = self.annotationFilePicker.GetPath()
         datasets = self.ctrlSelected()
         if datasets and annotationpath:
-            if DEBUG:
-                print "Visualizing counts for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+            if self.verbose:
+                print transit_prefix, "Visualizing counts for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
             viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
             viewWindow.Show()
         elif not datasets:
-            if DEBUG:
-                print "No datasets selected to visualize!"
+            if self.verbose:
+                print transit_prefix, "No datasets selected to visualize!"
         else:
-            if DEBUG:
-                print "No annotation file selected"
+            if self.verbose:
+                print transit_prefix, "No annotation file selected"
 
 
 
@@ -459,16 +463,16 @@ class TnSeekFrame(transit_gui.MainFrame):
         annotationpath = self.annotationFilePicker.GetPath()
         datasets = self.expSelected()
         if datasets and annotationpath:
-            if DEBUG:
-                print "Visualizing counts for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+            if self.verbose:
+                print transit_prefix, "Visualizing counts for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
             viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
             viewWindow.Show()
         elif not datasets:
-            if DEBUG:
-                print "No datasets selected to visualize!"
+            if self.verbose:
+                print transit_prefix, "No datasets selected to visualize!"
         else:
-            if DEBUG:
-                print "No annotation file selected"
+            if self.verbose:
+                print transit_prefix, "No annotation file selected"
 
 
 
@@ -477,8 +481,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         #annotationpath = self.annotationFilePicker.GetPath()
         datasets = self.ctrlSelected() + self.expSelected()
         if len(datasets) == 2:
-            if DEBUG:
-                print "Showing scatter plot for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+            if self.verbose:
+                print transit_prefix, "Showing scatter plot for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
             (data, position) = transit_tools.get_data(datasets)
             X = data[0,:]
             Y = data[1,:]
@@ -494,7 +498,8 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
     def annotationFileFunc(self, event):
-        print "Annotation File Selected:", self.annotationFilePicker.GetPath()
+        if self.verbose:
+            print transit_prefix, "Annotation File Selected:", self.annotationFilePicker.GetPath()
         
         
     def MethodSelectFunc(self, event):
@@ -527,16 +532,16 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         self.Layout()
 
-        if DEBUG:
-            print "Selected Method (%d): %s" % (X, self.methodChoice.GetString(X))
+        if self.verbose:
+            print transit_prefix, "Selected Method (%d): %s" % (X, self.methodChoice.GetString(X))
 
 
     def displayFileFunc(self, event):
         next = self.list_files.GetNextSelected(-1)
         if next > -1:
             dataset = self.list_files.GetItem(next, 3).GetText()
-            if DEBUG:
-                print "Displaying results:", self.list_files.GetItem(next, 0).GetText()
+            if self.verbose:
+                print transit_prefix, "Displaying results:", self.list_files.GetItem(next, 0).GetText()
 
             try:
                 fileWindow = fileDisplay.FileFrame(self, dataset, self.list_files.GetItem(next, 1).GetText())
@@ -544,16 +549,16 @@ class TnSeekFrame(transit_gui.MainFrame):
             except Exception as e:
                 print "Error occurred displaying file", e
         else:
-            if DEBUG:
-                print "No results selected to display!"
+            if self.verbose:
+                print transit_prefix, "No results selected to display!"
 
 
     def graphFileFunc(self, event):
         next = self.list_files.GetNextSelected(-1)
         if next > -1:
             dataset = self.list_files.GetItem(next, 3).GetText()
-            if DEBUG:
-                print "Graphing results:", self.list_files.GetItem(next, 0).GetText()
+            if self.verbose:
+                print transit_prefix, "Graphing results:", self.list_files.GetItem(next, 0).GetText()
 
             try:
                 filetype = self.list_files.GetItem(next, 1).GetText()
@@ -601,8 +606,7 @@ class TnSeekFrame(transit_gui.MainFrame):
             except Exception as e:
                 print "Error occurred displaying file:", e
         else:
-            if DEBUG:
-                self.ShowError(MSG="No results selected to display!")
+            self.ShowError(MSG="No results selected to display!")
 
 
 
@@ -611,21 +615,24 @@ class TnSeekFrame(transit_gui.MainFrame):
         file1= "gumbel_H37Rv_Sassetti_glycerol_s100_b5_t1.dat"
         type="Gumbel"
         data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-        print "Adding File:", file1
+        if self.verbose:
+            print transit_prefix, "Adding File:", file1
         wx.CallAfter(pub.sendMessage, "file", data=data)
 
 
         file1= "hmm_H37Rv_Sassetti_glycerol_sites.dat"
         type="HMM - Sites"
         data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-        print "Adding File:", file1
+        if self.verbose:
+            print transit_prefix, "Adding File:", file1
         wx.CallAfter(pub.sendMessage, "file", data=data)
 
 
         file1= "hmm_H37Rv_Sassetti_glycerol_genes.dat"
         type="HMM - Genes"
         data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-        print "Adding File:", file1
+        if self.verbose:
+            print transit_prefix, "Adding File:", file1
         wx.CallAfter(pub.sendMessage, "file", data=data)
 
 
@@ -633,7 +640,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         #file1= "resampling_results_qval_test.dat"
         type="Resampling"
         data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-        print "Adding File:", file1
+        if self.verbose:
+            print transit_prefix, "Adding File:", file1
         wx.CallAfter(pub.sendMessage, "file", data=data)
 
 
@@ -663,7 +671,8 @@ class TnSeekFrame(transit_gui.MainFrame):
                 return
             
             data = {"path":path, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-            print "Adding File:", path
+            if self.verbose:
+                print transit_prefix, "Adding File:", path
             wx.CallAfter(pub.sendMessage, "file", data=data)
         except:
             pass
@@ -712,16 +721,15 @@ class TnSeekFrame(transit_gui.MainFrame):
         
         outputPath = self.SaveFile(defaultDir, defaultFile)
         if datasets and annotationPath and outputPath:
-            if DEBUG:
-                print "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
-                self.convertToIGV(datasets, annotationPath, outputPath)
-                print "Finished conversion"
+            if self.verbose:
+                print transit_prefix, "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+            self.convertToIGV(datasets, annotationPath, outputPath)
+            if self.verbose:
+                print transit_prefix, "Finished conversion"
         elif not datasets:
-            if DEBUG:
-                self.ShowError("Error: No datasets selected to convert!")
+            self.ShowError("Error: No datasets selected to convert!")
         elif not annotationPath:
-            if DEBUG:
-                self.ShowError("Error: No annotation file selected.")
+            self.ShowError("Error: No annotation file selected.")
         else:
             pass
         
@@ -736,16 +744,15 @@ class TnSeekFrame(transit_gui.MainFrame):
         defaultDir = os.getcwd()
         outputPath = self.SaveFile(defaultDir, defaultFile)
         if datasets and annotationPath and outputPath:
-            if DEBUG:
-                print "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
-                self.convertToIGV(datasets, annotationPath, outputPath)
-                print "Finished conversion"
+            if self.verbose:
+                print transit_prefix, "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+            self.convertToIGV(datasets, annotationPath, outputPath)
+            if self.verbose:
+                print transit_prefix, "Finished conversion"
         elif not datasets:
-            if DEBUG:
-                self.ShowError("Error: No datasets selected to convert!")
+            self.ShowError("Error: No datasets selected to convert!")
         elif not annotationPath:
-            if DEBUG:
-                self.ShowError("Error: No annotation file selected.")
+            self.ShowError("Error: No annotation file selected.")
         else:
             pass
        
@@ -760,16 +767,15 @@ class TnSeekFrame(transit_gui.MainFrame):
         defaultDir = os.getcwd()
         outputPath = self.SaveFile(defaultDir, defaultFile)
         if datasets and annotationPath and outputPath:
-            if DEBUG:
-                print "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
-                self.convertToIGV(datasets, annotationPath, outputPath)
-                print "Finished conversion"
+            if self.verbose:
+                print transit_prefix, "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+            self.convertToIGV(datasets, annotationPath, outputPath)
+            if self.verbose:
+                print transit_pefix, "Finished conversion"
         elif not datasets:
-            if DEBUG:
-                self.ShowError("Error: No datasets selected to convert!")
+            self.ShowError("Error: No datasets selected to convert!")
         elif not annotationPath:
-            if DEBUG:
-                self.ShowError("Error: No annotation file selected.")
+            self.ShowError("Error: No annotation file selected.")
         else:
             pass
 
@@ -787,7 +793,8 @@ class TnSeekFrame(transit_gui.MainFrame):
             self.ShowError("Error: No annotation file selected.")
 
         elif outputPath:
-            print "Converting annotation file from prot_table format to GFF3 format"
+            if self.verbose:
+                print transit_prefix, "Converting annotation file from prot_table format to GFF3 format"
             year = time.localtime().tm_year
             month = time.localtime().tm_mon
             day = time.localtime().tm_mday
@@ -807,8 +814,9 @@ class TnSeekFrame(transit_gui.MainFrame):
                 desc.replace("%", "%25").replace(";", "%3B").replace("=","%3D").replace(",","%2C")
                 output.write("%s\tRefSeq\tgene\t%d\t%d\t.\t%s\t.\tID=%s;Name=%s;Alias=%s;locus_tag=%s;desc=%s\n" % (ORGANISM, start, end, strand, orf,ID, orf, orf,desc))
                 
-            output.close() 
-            print "Finished conversion"        
+            output.close()
+            if self.verbose:
+                print transit_prefix, "Finished conversion"        
        
 
 
@@ -829,7 +837,8 @@ class TnSeekFrame(transit_gui.MainFrame):
             
             outputPath = self.SaveFile(defaultDir, defaultFile)
             if not outputPath: return
-            print "Converting annotation file from prot_table format to PTT format"
+            if self.verbose:
+                print transit_prefix, "Converting annotation file from prot_table format to PTT format"
             (data, position) = transit_tools.get_data(datasets)
             orf2info = transit_tools.get_gene_info(annotationpath)
             hash = transit_tools.get_pos_hash(annotationpath)
@@ -850,7 +859,8 @@ class TnSeekFrame(transit_gui.MainFrame):
                 if orf in orf2pos: ta_str = "\t".join([str(int(ta)) for ta in orf2pos[orf]])
                 output.write("%s\t%s\t%s\t%s\t%s\n" % (orf, start, end, strand, ta_str))
             output.close()
-            print "Finished conversion"
+            if self.verbose:
+                print transit_prefix, "Finished conversion"
                 
 
 
@@ -870,7 +880,8 @@ class TnSeekFrame(transit_gui.MainFrame):
 
             outputPath = self.SaveFile(defaultDir, defaultFile)
             if not outputPath: return
-            print "Converting annotation file from PTT format to prot_table format"
+            if self.verbose:
+                print transit_prefix, "Converting annotation file from PTT format to prot_table format"
             #(data, position) = transit_tools.get_data(datasets)
             #orf2info = transit_tools.get_gene_info(annotationpath)
             #hash = transit_tools.get_pos_hash(annotationpath)
@@ -896,7 +907,8 @@ class TnSeekFrame(transit_gui.MainFrame):
                 COG = "-"
                 output.write("%s\t%d\t%d\t%s\t%d\t%s\t%s\t%s\t%s\t%s\n" % (desc, start, end, strand, length, someID, someID2, name, orf, COG))
             output.close()
-            print "Finished conversion"
+            if self.verbose:
+                print transit_prefix, "Finished conversion"
 
         #geneID  start   end strand  TA coordinates
         
@@ -915,7 +927,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         else:
             outputPath = self.SaveFile(defaultDir, defaultFile)
             if not outputPath: return
-            print "Converting annotation file from GFF3 format to prot_table format"
+            if self.verbose:
+                print transit_prefix, "Converting annotation file from GFF3 format to prot_table format"
 
             output = open(outputPath, "w")
             for line in open(annotationpath):
@@ -943,7 +956,8 @@ class TnSeekFrame(transit_gui.MainFrame):
                 COG = "-"
                 output.write("%s\t%d\t%d\t%s\t%d\t%s\t%s\t%s\t%s\t%s\n" % (desc, start, end, strand, length, someID, someID2, name, orf, COG))
             output.close()
-            print "Finished conversion"
+            if self.verbose:
+                print transit_prefix, "Finished conversion"
 
                  
 
@@ -1128,10 +1142,11 @@ class TnSeekFrame(transit_gui.MainFrame):
         ctrlString = ",".join(selected_ctrl)
         expString = ",".join(selected_exp)
 
-        print "Control String:", ctrlString
-        print "Experim String:", expString
-        print "outputPath:", outputPath
-        print "histPath:", histPath
+        if self.verbose:
+            print transit_prefix, "Control String:", ctrlString
+            print transit_prefix, "Experim String:", expString
+            print transit_prefix, "outputPath:", outputPath
+            print transit_prefix, "histPath:", histPath
          
 
         sampleSize = int(self.resamplingSampleText.GetValue())

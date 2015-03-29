@@ -5,6 +5,9 @@ import datetime
 from MH_tools import *
 import transit_tools
 
+
+gumbel_prefix = "[Gumbel]"
+
 #def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, output, wx, pubmsg):
 #def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, wx, pubmsg):
 #def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, wx, pubmsg):
@@ -12,7 +15,7 @@ import transit_tools
 def runGumbel(wx, pubmsg, **kwargs):
 
 
-    print "Running Gumbel Method"
+    print gumbel_prefix, "Running Gumbel Method"
 
 
 
@@ -161,14 +164,14 @@ def runGumbel(wx, pubmsg, **kwargs):
     
     if not output.name.startswith("<"):
         data = {"path":output.name, "type":"Gumbel", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-        print "Adding File:", output.name
+        print gumbel_prefix, "Adding File:", output.name
         if wx:
             wx.CallAfter(pubmsg, "file", data=data)
     if wx:
         wx.CallAfter(pubmsg, "gumbel", msg="Finished!")
         wx.CallAfter(pubmsg,"finish", msg="gumbel")
     
-    print "Finished Gumbel Method"
+    print gumbel_prefix, "Finished Gumbel Method"
     
     
     

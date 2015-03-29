@@ -62,10 +62,12 @@ def fdr_corrected_pval(X):
 
 
 
+resampling_prefix = "[Resampling]"
+
 #def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output, wx, pubmsg, doNormalize=True):
 def runResampling(wx, pubmsg, **kwargs):
 
-    print "Running Resampling Method"
+    print resampling_prefix, "Running Resampling Method"
 
     arguments = locals().items()
 
@@ -202,10 +204,10 @@ def runResampling(wx, pubmsg, **kwargs):
 
 
 
-    print "Finished Resampling Method"
+    print resampling_prefix, "Finished Resampling Method"
     if not output.name.startswith("<"):
         data = {"path":output.name, "type":"Resampling", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-        print "Adding File:", output.name
+        print resampling_prefix, "Adding File:", output.name
         if wx: wx.CallAfter(pubmsg, "file", data=data)
 
     if wx: wx.CallAfter(pubmsg, "resampling", msg="Finished!")

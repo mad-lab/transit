@@ -9,12 +9,13 @@ import transit_tools
 # Ignores Divide by Zero warnings caused by calculations in log-space.
 numpy.seterr(divide='ignore')
 
+hmm_prefix = "[HMM]"
 
 #def runHMM(wigPathList, protPath, repchoice, output, wx, pubmsg):
 def runHMM(wx, pubmsg, **kwargs):
 
     
-    print "Running HMM Method"
+    print hmm_prefix, "Running HMM Method"
 
 
     readPathList = kwargs.get("readPathList")
@@ -172,11 +173,11 @@ def runHMM(wx, pubmsg, **kwargs):
 
     output.close()
 
-    print "Finished HMM - Sites Method"
+    print hmm_prefix, "Finished HMM - Sites Method"
     if not output.name.startswith("<"):
         data = {"path":output.name, "type":"HMM - Sites", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
 
-        print "Adding File:", output.name
+        print hmm_prefix, "Adding File:", output.name
         
         if wx: wx.CallAfter(pubmsg, "file", data=data)
 
@@ -185,7 +186,7 @@ def runHMM(wx, pubmsg, **kwargs):
         hmm_tools.post_process_genes(output.name, annotationPath, ignoreCodon, ignoreNTerm, ignoreCTerm, output=open(genes_path,"w"))
         data["path"] =  genes_path
         data["type"] = "HMM - Genes"
-        print "Adding File:", genes_path
+        print hmm_prefix, "Adding File:", genes_path
         if wx: wx.CallAfter(pubmsg, "file", data=data)
         if wx: wx.CallAfter(pubmsg, "hmm", msg="Finished!")
         if wx: wx.CallAfter(pubmsg,"finish", msg="hmm")
