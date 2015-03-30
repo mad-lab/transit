@@ -15,6 +15,12 @@ http://saclab.tamu.edu/essentiality/transit/transit.html
 http://saclab.tamu.edu/tom/TPP.html
 
 
+## Datasets
+
+The TRANSIT distribution comes with some example .wig files in the data/ directory, an genome annotations (.prot_table format) in the genomes/directory. Genomes may also be found in the following website:
+
+http://saclab.tamu.edu/essentiality/transit/genomes/
+
 
 ## Copyright Information
 
