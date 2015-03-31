@@ -5,4 +5,4 @@ For more information see the manuals (open these URLs in a web broweser):
 
 http://saclab.tamu.edu/essentiality/transit/transit.html
 
-http://saclab.tamu.edu/tom/TPP.html
+http://saclab.tamu.edu/essentiality/transit/TPP.html
