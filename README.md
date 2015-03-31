@@ -12,7 +12,7 @@ For full instructions on how to install and run TRANSIT (and the optional pre-pr
 
 http://saclab.tamu.edu/essentiality/transit/transit.html
 
-http://saclab.tamu.edu/tom/TPP.html
+http://saclab.tamu.edu/essentiality/transit/TPP.html
 
 
 ## Datasets
