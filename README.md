@@ -1,13 +1,13 @@
 # TRANSIT
 
-Welcome! This is the public repository for the TRANSIT and TPP tools developed by the Ioerger Lab.
+Welcome! This is the distribution for the TRANSIT and TPP tools developed by the Ioerger Lab.
 
-TRANSIT is a tool for the analysis of Tn-Seq data. It provides a easy to use graphical interface and access to three different analysis methods that allow the user to analyse essentiality in both single conditions and between conditions.
+TRANSIT is a tool for the analysis of Tn-Seq data. It provides an easy to use graphical interface and access to three different analysis methods that allow the user to determine essentiality in a single condition as well as between conditions.
 
 
 ## Instructions
 
-For full instructions on how to install and run TRANSIT (and the optional pre-processor, TPP), please see the documentation included in this repository ("doc" folder) or the following websites:
+For full instructions on how to install and run TRANSIT (and the optional pre-processor, TPP), please see the documentation included in this distribution ("doc" folder) or visit the following web pages:
 
 
 http://saclab.tamu.edu/essentiality/transit/transit.html
@@ -17,7 +17,7 @@ http://saclab.tamu.edu/essentiality/transit/TPP.html
 
 ## Datasets
 
-The TRANSIT distribution comes with some example .wig files in the data/ directory, an genome annotations (.prot_table format) in the genomes/ directory. Genomes may also be found in the following website:
+The TRANSIT distribution comes with some example .wig files in the data/ directory, as well as an example annotation file (.prot_table format) in the genomes/ directory. Additional genomes may be found on the following website:
  
 http://saclab.tamu.edu/essentiality/transit/genomes/
 
