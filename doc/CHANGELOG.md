@@ -3,12 +3,25 @@ All notable changes to this project will be documented in this file.
 
 
 
+## Version 1.3.0 - 2015-03-31
+-TRANSIT:
+    - Fixed threading issue for volcano plot.
+    - Improved format and quality of the output messages.
+    - Fixed direction of log-fold change in volcano plots.
+    - Added log-fold change column to resampling output file.
+    - Made adaptive resampling work better with custom sample sizes.
+
+
+-TPP:
+    - Fixed genomic portion for single ends.
+    - Added usage help as part of command line arguments.
+
+
 
 ## Version 1.2.33 - 2015-03-06
 
 -TRANSIT:
     - Fixed issue with histograms create using adaptive resampling.
-
 
 
 
