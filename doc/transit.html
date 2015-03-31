@@ -198,10 +198,10 @@ Install these using the appropriate methods for your machine, e.g. apt-get or yu
 To run TRANSIT in GUI mode (should be the same on Linux, Windows and MacOS), from the command line run:
 
 <PRE>
-python PATH/src/transit.pyc
+python PATH/src/transit.py
 </PRE>
 
-where PATH is the path to the TRANSIT installation directory. You might be able to double-click on icon for transit.pyc, if your OS associates .pyc files with python and automatically runs them.
+where PATH is the path to the TRANSIT installation directory. You might be able to double-click on icon for transit.py, if your OS associates .py files with python and automatically runs them.
 
 Note, because TRANSIT has a graphical user interface, if you are trying to run TRANSIT across a network, for example, running on a unix server but displaying on a desktop machine, you will probably need to use 'ssh -Y' and a local X11 client (like Xming or Cygwin/X on PCs).
 
@@ -216,7 +216,7 @@ TRANSIT can also be run from the command line, without the GUI interface. This i
 <BR>
 TRANSIT expects the user to specify which analysis method they wish to run. The user can choose from "gumbel", "hmm", or "resampling". By choosing a method, and adding the "-h" flag, you will get a list of all the necessary parameters and optional flags for the chosen method:
  
-<PRE>python PATH/src/transit.pyc gumbel -h</PRE>
+<PRE>python PATH/src/transit.py gumbel -h</PRE>
 
 
 
@@ -225,7 +225,7 @@ TRANSIT expects the user to specify which analysis method they wish to run. The 
 <H4>Gumbel</H4>
 <P>
 
-To run the Gumbel analysis from the command line, type "python PATH/src/transit.pyc gumbel" followed by the following arguments:
+To run the Gumbel analysis from the command line, type "python PATH/src/transit.py gumbel" followed by the following arguments:
 
 <P>
 <table border=1
@@ -248,7 +248,7 @@ To run the Gumbel analysis from the command line, type "python PATH/src/transit.
 <P>
 
 Example Gumbel command:
-<PRE>python PATH/src/transit.pyc gumbel genomes/H37Rv.prot_table data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig test_console_gumbel.dat -s 20000 -b 1000</PRE>
+<PRE>python PATH/src/transit.py gumbel genomes/H37Rv.prot_table data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig test_console_gumbel.dat -s 20000 -b 1000</PRE>
 
 
 
@@ -257,7 +257,7 @@ Example Gumbel command:
 
 <H4>HMM</H4>
 
-To run the HMM analysis from the command line, type "python PATH/src/transit.pyc hmm" followed by the following arguments:
+To run the HMM analysis from the command line, type "python PATH/src/transit.py hmm" followed by the following arguments:
 
 <P>
 <table border=1
@@ -278,7 +278,7 @@ To run the HMM analysis from the command line, type "python PATH/src/transit.pyc
 <P>
 
 Example HMM command:
-<PRE>python PATH/src/transit.pyc hmm genomes/H37Rv.prot_table data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig test_console_hmm.dat -r Sum</PRE>
+<PRE>python PATH/src/transit.py hmm genomes/H37Rv.prot_table data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig test_console_hmm.dat -r Sum</PRE>
 
 
 <BR>
@@ -287,7 +287,7 @@ Example HMM command:
 
 <H4>Resampling</H4>
 
-To run the Resampling analysis from the command line, type "python PATH/src/transit.pyc resampling" followed by the following arguments:
+To run the Resampling analysis from the command line, type "python PATH/src/transit.py resampling" followed by the following arguments:
 
 <P>
 
@@ -317,7 +317,7 @@ To run the Resampling analysis from the command line, type "python PATH/src/tran
 
 <P>
 Example Resampling command:
-<PRE>python PATH/src/transit.pyc resampling genomes/H37Rv.prot_table data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig data/cholesterol_reads_rep1.wig,data/cholesterol_reads_rep2.wig,data/cholesterol_reads_rep3.wig test_console_resampling.dat -H -s 10000 </PRE>
+<PRE>python PATH/src/transit.py resampling genomes/H37Rv.prot_table data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig data/cholesterol_reads_rep1.wig,data/cholesterol_reads_rep2.wig,data/cholesterol_reads_rep3.wig test_console_resampling.dat -H -s 10000 </PRE>
 
 
 
@@ -560,7 +560,7 @@ Navigate to the directory containing the TRANSIT files, and run TRANSIT:
 
 
 <PRE>
-python PATH/src/transit.pyc
+python PATH/src/transit.py
 </PRE>
 
 
