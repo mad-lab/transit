@@ -1,7 +1,9 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
-
+## Next version
+-TPP:
+    - Eliminated soft-clipped reads.
 
 ## Version 1.3.0 - 2015-03-31
 -TRANSIT:
