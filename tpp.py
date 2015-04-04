@@ -375,7 +375,8 @@ def extract_staggered(infile,outfile,vars):
   ADAPTER2 = "TACCACGACCA"
   lenADAP = len(ADAPTER2)
 
-  P,Q = 5,10 # 1-based inclusive positions to look for start of Tn prefix
+  #P,Q = 5,10 # 1-based inclusive positions to look for start of Tn prefix
+  P,Q = 0,15
 
   vars.tot_tgtta = 0
   vars.truncated_reads = 0
@@ -497,6 +498,7 @@ def template_counts(ref,sam,bcfile,vars):
     else:
       w = line.split('\t')
       code = samcode(w[1])
+      if 'S' in w[5]: continue #elimate softclipped reads
       if code[6]=="1": # previously checked for for reads1's via w[1]<128 
         vars.tot_tgtta += 1 
         if code[2]=="0": vars.r1 += 1
@@ -509,6 +511,7 @@ def template_counts(ref,sam,bcfile,vars):
         pos,size = int(w[3]),int(w[8]) # note: size could be negative
         strand,delta = 'F',-2
         if code[4]=="1": strand,delta = 'R',readlen
+
         pos += delta
         bc = barcodes[w[0]]
         if pos not in hits: hits[pos] = []
