@@ -483,17 +483,40 @@ def samcode(num): return bin(int(num))[2:].zfill(8)[::-1]
 
 def template_counts(ref,sam,bcfile,vars):
   genome = read_genome(ref)
-
   barcodes = {}
+
+  
+  fil1 = open(bcfile)
+  fil2 = open(sam)
+
+  idx=1
+  for line in fil1:
+    if idx==1: break
+    idx+=1
+
+  idx=1
+  for line in fil2:
+    if idx==2: break
+    idx+=1
+  
+  '''
   for line in open(bcfile):
     line = line.rstrip()
     if line[0]=='>': id = line[1:]
     else: barcodes[id] = line
-
+  '''
   hits = {}
   vars.tot_tgtta,vars.mapped = 0,0
   vars.r1 = vars.r2 = 0
-  for line in open(sam):
+
+  #for line in open(sam):
+  bcline=''
+  for line in fil2:
+    try:
+      bcline = fil1.next().rstrip()
+      if bcline[0] !='>': bc = bcline
+    except StopIteration:
+      pass
     if line[0]=='@': continue
     else:
       w = line.split('\t')
@@ -513,7 +536,7 @@ def template_counts(ref,sam,bcfile,vars):
         if code[4]=="1": strand,delta = 'R',readlen
 
         pos += delta
-        bc = barcodes[w[0]]
+        #bc = barcodes[w[0]]
         if pos not in hits: hits[pos] = []
         hits[pos].append((strand,size,bc))
 
@@ -542,7 +565,6 @@ def template_counts(ref,sam,bcfile,vars):
 
 def read_counts(ref,sam,vars):
   genome = read_genome(ref)
-
   hits = {}
   vars.tot_tgtta,vars.mapped = 0,0
   vars.r1 = vars.r2 = 0
@@ -792,7 +814,6 @@ def generate_output(vars):
   message("tabulating template counts and statistics...")
   if vars.single_end==True: counts = read_counts(vars.ref,vars.sam,vars) # return read counts copied as template counts
   else: counts = template_counts(vars.ref,vars.sam,vars.barcodes1,vars)
-
   tcfile = open(vars.tc,"w")
   tcfile.write('\t'.join("coord Fwd_Rd_Ct Fwd_Templ_Ct Rev_Rd_Ct Rev_Templ_Ct Tot_Rd_Ct Tot_Templ_Ct".split())+"\n")
   for data in counts: tcfile.write('\t'.join([str(x) for x in data])+"\n")
@@ -818,11 +839,11 @@ def generate_output(vars):
     if line[0]=='>': tot_reads += 1; continue
     if primer in line: nprimer += 1
     if vector in line: nvector += 1
-    prefix = line[:30]
-    if prefix not in prefixes: prefixes[prefix] = 0
-    prefixes[prefix] += 1
-  temp = prefixes.items()
-  temp.sort(key=lambda x: x[1],reverse=True)
+    #prefix = line[:30]
+    #if prefix not in prefixes: prefixes[prefix] = 0
+    #prefixes[prefix] += 1
+  #temp = prefixes.items()
+  #temp.sort(key=lambda x: x[1],reverse=True)
 
   rcounts = [x[5] for x in counts]
   tcounts = [x[6] for x in counts]
@@ -853,7 +874,7 @@ def generate_output(vars):
   output.write('# read2: %s\n' % vars.fq2)
   output.write('# ref_genome: %s\n' % vars.ref)
   output.write("# total_reads %s (read pairs)\n" % tot_reads)
-  output.write("# truncated_reads %s (fragments shorter than the read length; ADAP2 appears in read1)\n" % vars.truncated_reads)
+  #output.write("# truncated_reads %s (fragments shorter than the read length; ADAP2 appears in read1)\n" % vars.truncated_reads)
   output.write("# TGTTA_reads %s (reads with valid Tn prefix, and insert size>20bp)\n" % vars.tot_tgtta)
   output.write("# reads1_mapped %s\n" % vars.r1)
   output.write("# reads2_mapped %s\n" % vars.r2)
