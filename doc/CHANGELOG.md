@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## Next version
 -TPP:
     - Eliminated soft-clipped reads.
+    - Modified template_counts() to be much more memory efficient (does not need gigabytes of RAM any more to process large datasets)
 
 ## Version 1.3.0 - 2015-03-31
 -TRANSIT:
