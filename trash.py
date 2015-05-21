@@ -142,8 +142,14 @@ class TrashFrame(view_trash.MainFrame):
             start = int(self.startText.GetValue())
             end = int(self.endText.GetValue())
 
-            min_read = int(self.minText.GetValue())
-            max_read = int(self.maxText.GetValue())
+            min_read = 0
+            if self.minText.GetValue():
+                min_read = int(self.minText.GetValue())
+
+            max_read = 0
+            if self.maxText.GetValue():
+                max_read = int(self.maxText.GetValue())
+
 
     
             if self.normCheck.GetValue():
@@ -161,8 +167,11 @@ class TrashFrame(view_trash.MainFrame):
             image_pil = ""
 
         except Exception, e:
-            print 'error', e
-    #put a blank string in text when 'Clear' is clicked
+            print track_prefix + '[ERROR]:', e
+            #put a blank string in text when 'Clear' is clicked
+
+
+
 
     def leftFunc(self, event):
         start = int(self.startText.GetValue())
@@ -294,7 +303,7 @@ class TrashFrame(view_trash.MainFrame):
             image_pil = ""
 
         except Exception, e:
-            print 'error', e
+            print track_prefix + '[ERROR]:', e
  
         
 
