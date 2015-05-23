@@ -34,6 +34,15 @@ gumbel_prefix = "[Gumbel]"
 #def runGumbel(PATH, PROT_PATH, MINIMUM_READ, SAMPLE_SIZE, BURNIN, TRIM, REPCHOICE, IGNORECODON, ignoreNTerm, ignoreCTerm, output, wx, pubmsg):
 def runGumbel(wx, pubmsg, **kwargs):
 
+    #Check if wx is the newest 3.0+ version:
+    try:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        newWx = True
+    except AttributeError as e:
+        from wx.lib.pubsub import Publisher as pub
+        newWx = False
+
 
     print gumbel_prefix, "Running Gumbel Method"
 
@@ -144,7 +153,11 @@ def runGumbel(wx, pubmsg, **kwargs):
 
         #Update 
         if wx:
-            wx.CallAfter(pubmsg, "gumbel", msg="Running Gumbel Method... %2.0f%%" % (100.0*(count+1)/(SAMPLE_SIZE+BURNIN)))
+            if newWx:
+                wx.CallAfter(pubmsg, "gumbel", msg="Running Gumbel Method... %2.0f%%" % (100.0*(count+1)/(SAMPLE_SIZE+BURNIN)))
+            else:
+                wx.CallAfter(pubmsg, "gumbel", "Running Gumbel Method... %2.0f%%" % (100.0*(count+1)/(SAMPLE_SIZE+BURNIN)))
+
 
 
     ZBAR = numpy.apply_along_axis(numpy.mean, 1, Z_sample)
@@ -186,10 +199,19 @@ def runGumbel(wx, pubmsg, **kwargs):
         data = {"path":output.name, "type":"Gumbel", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
         print gumbel_prefix, "Adding File:", output.name
         if wx:
-            wx.CallAfter(pubmsg, "file", data=data)
+            if newWx:
+                wx.CallAfter(pubmsg, "file", data=data)
+            else:
+                wx.CallAfter(pubmsg, "file", data)
+
     if wx:
-        wx.CallAfter(pubmsg, "gumbel", msg="Finished!")
-        wx.CallAfter(pubmsg,"finish", msg="gumbel")
+        if newWx:
+            wx.CallAfter(pubmsg, "gumbel", msg="Finished!")
+            wx.CallAfter(pubmsg,"finish", msg="gumbel")
+        else:
+            wx.CallAfter(pubmsg, "gumbel", "Finished!")
+            wx.CallAfter(pubmsg,"finish", "gumbel")
+
     
     print gumbel_prefix, "Finished Gumbel Method"
     

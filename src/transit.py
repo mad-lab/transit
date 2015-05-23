@@ -21,10 +21,16 @@
 #importing wx files
 
 import sys
-
-if len(sys.argv) == 1:
-    import wx
+import wx
+#Check if wx is the newest 3.0+ version:
+try:
     from wx.lib.pubsub import pub
+    pub.subscribe
+    newWx = True
+except AttributeError as e:
+    from wx.lib.pubsub import Publisher as pub
+    newWx = False
+
    
 import os
 import time
@@ -128,8 +134,12 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         X = self.methodChoice.GetCurrentSelection()
         if X == 1: # if gumbel
-            if self.gumbel_count > self.gumbelProgress.GetRange(): msg = ""
-            self.statusBar.SetStatusText(msg)
+            if newWx:
+                if self.gumbel_count > self.gumbelProgress.GetRange(): msg = ""
+                self.statusBar.SetStatusText(msg)
+            else:
+                self.statusBar.SetStatusText(msg.data)
+
     
     def updateHMM(self, msg):
         self.hmm_count+=1
@@ -137,8 +147,12 @@ class TnSeekFrame(transit_gui.MainFrame):
         
         X = self.methodChoice.GetCurrentSelection()
         if X == 2: # if hmm
-            if self.hmm_count > self.hmmProgress.GetRange(): msg = ""
-            self.statusBar.SetStatusText(msg)
+            if newWx:
+                if self.hmm_count > self.hmmProgress.GetRange(): msg = ""
+                self.statusBar.SetStatusText(msg)
+            else:
+                self.statusBar.SetStatusText(msg.data)
+        
 
 
     def updateResampling(self, msg):
@@ -147,21 +161,29 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         X = self.methodChoice.GetCurrentSelection()
         if X == 3: # if resampling
-            if self.resampling_count > self.resamplingProgress.GetRange(): msg = ""
-            self.statusBar.SetStatusText(msg)
+            if newWx:
+                if self.resampling_count > self.resamplingProgress.GetRange(): msg = ""
+                self.statusBar.SetStatusText(msg)
+            else:
+                self.statusBar.SetStatusText(msg.data)
 
 
     def updateProgress(self, msg):
         """"""
         self.progress_count += 1
         self.progress.SetValue(self.progress_count)
-        self.statusBar.SetStatusText(msg)
+        if newWx:
+            self.statusBar.SetStatusText(msg)
+        else:
+            self.statusBar.SetStatusText(msg.data)
         if self.progress_count > self.progress.GetRange():
             self.statusBar.SetStatusText("Finished!")
         #self.statusBar.SetStatusText("Running Gumbel Method... %2.0f%%" % (100.0*self.progress_count/self.progress.GetRange()))
 
 
     def addFile(self, data):
+        if not newWx:
+            data = data.data
         fullpath = data["path"]
         name = ntpath.basename(fullpath)
         type = data["type"]
@@ -174,6 +196,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         
 
     def finishRun(self,msg):
+        if not newWx: msg = msg.data
         if msg == "gumbel":
             self.gumbelButton.Enable()
         elif msg == "hmm":
@@ -691,9 +714,10 @@ class TnSeekFrame(transit_gui.MainFrame):
                 return
             
             data = {"path":path, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-            if self.verbose:
-                print transit_prefix, "Adding File:", path
-            wx.CallAfter(pub.sendMessage, "file", data=data)
+            if newWx:
+                wx.CallAfter(pub.sendMessage, "file", data=data)
+            else:
+                wx.CallAfter(pub.sendMessage, "file", data)
         except:
             pass
 

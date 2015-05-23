@@ -86,6 +86,14 @@ resampling_prefix = "[Resampling]"
 
 #def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output, wx, pubmsg, doNormalize=True):
 def runResampling(wx, pubmsg, **kwargs):
+    try:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        newWx = True
+    except AttributeError as e:
+        from wx.lib.pubsub import Publisher as pub
+        newWx = False
+
 
     print resampling_prefix, "Running Resampling Method"
 
@@ -211,7 +219,8 @@ def runResampling(wx, pubmsg, **kwargs):
 
 
         count += 1
-        if wx: wx.CallAfter(pubmsg, "resampling", msg="Running Resampling Method... %2.0f%%" % (100.0*(count+1)/(G)))
+        if wx and newWx: wx.CallAfter(pubmsg, "resampling", msg="Running Resampling Method... %2.0f%%" % (100.0*(count+1)/(G)))
+        if wx and not newWx: wx.CallAfter(pubmsg, "resampling", "Running Resampling Method... %2.0f%%" % (100.0*(count+1)/(G)))
 
     qval = fdr_corrected_pval(pval)
     count = 0
@@ -228,11 +237,16 @@ def runResampling(wx, pubmsg, **kwargs):
     if not output.name.startswith("<"):
         data = {"path":output.name, "type":"Resampling", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
         print resampling_prefix, "Adding File:", output.name
-        if wx: wx.CallAfter(pubmsg, "file", data=data)
+        if wx and newWx: wx.CallAfter(pubmsg, "file", data=data)
+        if wx and not newWx: wx.CallAfter(pubmsg, "file", data)
 
-    if wx: wx.CallAfter(pubmsg, "resampling", msg="Finished!")
-    if wx: wx.CallAfter(pubmsg,"finish", msg="resampling")
-
+    if wx:
+        if newWx:
+            wx.CallAfter(pubmsg, "resampling", msg="Finished!")
+            wx.CallAfter(pubmsg,"finish", msg="resampling")
+        else:
+            wx.CallAfter(pubmsg, "resampling", "Finished!")
+            wx.CallAfter(pubmsg,"finish", "resampling")
 
 
 

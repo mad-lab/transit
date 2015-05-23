@@ -34,6 +34,15 @@ hmm_prefix = "[HMM]"
 #def runHMM(wigPathList, protPath, repchoice, output, wx, pubmsg):
 def runHMM(wx, pubmsg, **kwargs):
 
+    try:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        newWx = True
+    except AttributeError as e:
+        from wx.lib.pubsub import Publisher as pub
+        newWx = False
+
+
     
     print hmm_prefix, "Running HMM Method"
 
@@ -139,21 +148,22 @@ def runHMM(wx, pubmsg, **kwargs):
 
     ###############
     ### VITERBI ###
-    (Q_opt, delta, Q) = hmm_tools.viterbi(A, B, PI, O, wx, pubmsg, scaling=True, discrete=False)
+    (Q_opt, delta, Q) = hmm_tools.viterbi(A, B, PI, O, wx, pubmsg, newWx, scaling=True, discrete=False)
     ###############
 
 
     ##################
     ### ALPHA PASS ###
-    (log_Prob_Obs, alpha, C) = hmm_tools.forward_procedure(numpy.exp(A), B, PI, O, wx, pubmsg)
+    (log_Prob_Obs, alpha, C) = hmm_tools.forward_procedure(numpy.exp(A), B, PI, O, wx, pubmsg, newWx)
 
     #################
     ### BETA PASS ###
-    beta = hmm_tools.backward_procedure(numpy.exp(A), B, PI, O, wx, pubmsg, C)
+    beta = hmm_tools.backward_procedure(numpy.exp(A), B, PI, O, wx, pubmsg, newWx, C)
 
 
+    if wx and newWx: wx.CallAfter(pubmsg, "hmm", msg="Creating HMM Sites output...")
+    if wx and not newWx: wx.CallAfter(pubmsg, "hmm", "Creating HMM Sites output...")
     
-    if wx: wx.CallAfter(pubmsg, "hmm", msg="Creating HMM Sites output...")
     T = len(O); total=0; state2count = dict.fromkeys(range(N),0)
     for t in xrange(T):
         state = Q_opt[t]
@@ -198,20 +208,28 @@ def runHMM(wx, pubmsg, **kwargs):
         data = {"path":output.name, "type":"HMM - Sites", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
 
         print hmm_prefix, "Adding File:", output.name
-        
-        if wx: wx.CallAfter(pubmsg, "file", data=data)
 
-        if wx: wx.CallAfter(pubmsg, "hmm", msg="Creating HMM Sites output...")
+        if wx and newWx: wx.CallAfter(pubmsg, "file", data=data)
+        if wx and not newWx: wx.CallAfter(pubmsg, "file", data)        
+
+        if wx and newWx: wx.CallAfter(pubmsg, "hmm", msg="Creating HMM Sites output...")
+        if wx and not newWx: wx.CallAfter(pubmsg, "hmm", "Creating HMM Sites output...")
+
         genes_path = ".".join(output.name.split(".")[:-1]) + "_genes." + output.name.split(".")[-1]
         hmm_tools.post_process_genes(output.name, annotationPath, ignoreCodon, ignoreNTerm, ignoreCTerm, output=open(genes_path,"w"))
         data["path"] =  genes_path
         data["type"] = "HMM - Genes"
         print hmm_prefix, "Adding File:", genes_path
-        if wx: wx.CallAfter(pubmsg, "file", data=data)
-        if wx: wx.CallAfter(pubmsg, "hmm", msg="Finished!")
-        if wx: wx.CallAfter(pubmsg,"finish", msg="hmm")
 
-
+        if wx:
+            if newWx:
+                wx.CallAfter(pubmsg, "file", data=data)
+                wx.CallAfter(pubmsg, "hmm", msg="Finished!")
+                wx.CallAfter(pubmsg,"finish", msg="hmm")
+            else:
+                wx.CallAfter(pubmsg, "file", data)
+                wx.CallAfter(pubmsg, "hmm", "Finished!")
+                wx.CallAfter(pubmsg,"finish", "hmm")
 
 
 

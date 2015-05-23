@@ -26,7 +26,7 @@ import transit_tools
 
 
 
-def forward_procedure(A, B, PI, O, wx, pubmsg):
+def forward_procedure(A, B, PI, O, wx, pubmsg, newWx):
     T = len(O)
     N = len(B)
     alpha = numpy.zeros((N,  T))
@@ -53,7 +53,8 @@ def forward_procedure(A, B, PI, O, wx, pubmsg):
         if numpy.sum(alpha[:,t]) == 0:
             alpha[:,t] = 0.0000000000001
 
-        if wx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
+        if wx and newWx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
+        if wx and not newWx: wx.CallAfter(pubmsg, "hmm", "Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
         count+=1
         #print t, O[:,t], alpha[:,t]
 
@@ -62,7 +63,7 @@ def forward_procedure(A, B, PI, O, wx, pubmsg):
 
 
 
-def backward_procedure(A, B, PI, O, wx, pubmsg, C=None):
+def backward_procedure(A, B, PI, O, wx, pubmsg, newWx, C=None):
 
     N = len(B)
     T = len(O)
@@ -90,8 +91,8 @@ def backward_procedure(A, B, PI, O, wx, pubmsg, C=None):
         if C!=None:
             beta[:,t] = beta[:,t] * C[t]
 
-
-        if wx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
+        if wx and newWx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
+        if wx and not newWx: wx.CallAfter(pubmsg, "hmm", "Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
         count+=1
 
         #print t, beta[:,t]
@@ -101,7 +102,7 @@ def backward_procedure(A, B, PI, O, wx, pubmsg, C=None):
 
 
 
-def viterbi(A, B, PI, O, wx, pubmsg, scaling=True, discrete=False):
+def viterbi(A, B, PI, O, wx, pubmsg, newWx, scaling=True, discrete=False):
     N=len(B)    
     T = len(O)
     delta = numpy.zeros((N, T))
@@ -121,16 +122,20 @@ def viterbi(A, B, PI, O, wx, pubmsg, scaling=True, discrete=False):
         nus = delta[:, t-1] + A
         delta[:,t] = nus.max(1) + numpy.log(b_o)
         Q[:,t] = nus.argmax(1)
-        if wx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
+        if wx and newWx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
+        if wx and not newWx: wx.CallAfter(pubmsg, "hmm", "Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
         count+=1
 
     Q_opt = [numpy.argmax(delta[:,T-1])]
     for t in xrange(T-2, -1, -1):
         Q_opt.insert(0, Q[Q_opt[0],t+1])
-        if wx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
+        if wx and newWx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
+        if wx and not newWx: wx.CallAfter(pubmsg, "hmm", "Running HMM Method... %2.0f%%" % (100.0*(count-1)/(ITERATIONS)))
+
         count+=1
 
-    if wx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(ITERATIONS)/(ITERATIONS)))
+    if wx and newWx: wx.CallAfter(pubmsg, "hmm", msg="Running HMM Method... %2.0f%%" % (100.0*(ITERATIONS)/(ITERATIONS)))
+    if wx and not newWx: wx.CallAfter(pubmsg, "hmm", "Running HMM Method... %2.0f%%" % (100.0*(ITERATIONS)/(ITERATIONS)))
 
     return((Q_opt, delta, Q))
 
