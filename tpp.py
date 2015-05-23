@@ -370,7 +370,10 @@ def mmfind(G,n,H,m,max): # lengths; assume n>m
   return -1
 
 def extract_staggered(infile,outfile,vars):
-  Tn = "ACTTATCAGCCAACCTGTTA"
+  Himar1 = "ACTTATCAGCCAACCTGTTA"
+  Tn5 = "TAAGAGACAG"
+  if vars.tn5==True: Tn = Tn5
+  else: Tn = Himar1
   lenTn = len(Tn)
   ADAPTER2 = "TACCACGACCA"
   lenADAP = len(ADAPTER2)
@@ -587,7 +590,7 @@ def read_counts(ref,sam,vars):
 
   sites = []
   for i in range(len(genome)-1):
-    if genome[i:i+2]=="TA":
+    if genome[i:i+2]=="TA"or vars.tn5==True:  
       pos = i+1
       h = hits.get(pos,[])
       lenf,lenr = h.count('F'),h.count('R')
@@ -928,6 +931,7 @@ def verify_inputs(vars):
 def initialize_globals(vars):
       vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
       vars.mm1 = 1 # mismatches allowed in Tn prefix
+      vars.tn5 = False
       read_config(vars)
 
 def read_config(vars):
@@ -952,7 +956,7 @@ def save_config(vars):
   f.close()
 
 def show_help():
-  print 'usage: python PATH/src/tpp.pyc -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE -reads2 PATH_TO_FASTQ_OR_FASTA_FILE -prefix OUTPUT_BASE_FILENAME [-maxreads N] [-mismatches N]'
+  print 'usage: python PATH/src/tpp.pyc -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE -reads2 PATH_TO_FASTQ_OR_FASTA_FILE -prefix OUTPUT_BASE_FILENAME [-maxreads N] [-mismatches N] [-tn5]'
     
 class Globals:
   pass
@@ -986,6 +990,8 @@ if __name__ == "__main__":
             if sys.argv[i] == '-help':
                 show_help()
                 exit()
+            if sys.argv[i] == '-tn5': 
+                vars.tn5 = True
             if sys.argv[i] == '-reads1': 
                 vars.fq1 = sys.argv[i+1]
             elif sys.argv[i] == '-reads2':
