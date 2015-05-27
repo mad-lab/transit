@@ -114,14 +114,22 @@ if len(sys.argv)==1:
         sizer.Add(sizer2,0,wx.EXPAND,0)
 
         sizer4 = wx.BoxSizer(wx.HORIZONTAL)
-        label4 = wx.StaticText(panel, label='Prefix to use for filenames:',size=(350,-1))
+        label4 = wx.StaticText(panel, label='Prefix to use for output filenames:',size=(350,-1))
         sizer4.Add(label4,0,0,0)
         self.base = wx.TextCtrl(panel,value=vars.base,size=(400,30))
         sizer4.Add(self.base, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer4,0,wx.ALL,0)
 
+        sizer7 = wx.BoxSizer(wx.HORIZONTAL)
+        label7 = wx.StaticText(panel, label='Transposon used:',size=(350,-1))
+        sizer7.Add(label7,0,0,0)
+        self.transposon = wx.ComboBox(panel,choices=['Himar1','Tn5'],size=(400,30))
+        self.transposon.SetStringSelection(vars.transposon)
+        sizer7.Add(self.transposon, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+        sizer.Add(sizer7,0,wx.ALL,0)    
+
         sizer5 = wx.BoxSizer(wx.HORIZONTAL)
-        label5 = wx.StaticText(panel, label='Max reads:',size=(350,-1))
+        label5 = wx.StaticText(panel, label='Max reads (leave blank to use all):',size=(350,-1))
         sizer5.Add(label5,0,0,0)
         self.maxreads = wx.TextCtrl(panel,size=(400,30))
         sizer5.Add(self.maxreads, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
@@ -246,6 +254,8 @@ if len(sys.argv)==1:
       mm1 = self.mismatches.GetValue()
       try: mm1 = int(mm1)
       except Exception: mm1 = 1
+
+      self.vars.transposon = self.transposon.GetStringSelection()
 
       self.vars.bwa = bwapath
       self.vars.fq1 = fq1
@@ -372,8 +382,8 @@ def mmfind(G,n,H,m,max): # lengths; assume n>m
 def extract_staggered(infile,outfile,vars):
   Himar1 = "ACTTATCAGCCAACCTGTTA"
   Tn5 = "TAAGAGACAG"
-  if vars.tn5==True: Tn = Tn5
-  else: Tn = Himar1
+  if vars.transposon=='Tn5': Tn = Tn5
+  elif vars.transposon=='Himar1': Tn = Himar1
   lenTn = len(Tn)
   ADAPTER2 = "TACCACGACCA"
   lenADAP = len(ADAPTER2)
@@ -590,7 +600,7 @@ def read_counts(ref,sam,vars):
 
   sites = []
   for i in range(len(genome)-1):
-    if genome[i:i+2]=="TA"or vars.tn5==True:  
+    if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
       pos = i+1
       h = hits.get(pos,[])
       lenf,lenr = h.count('F'),h.count('R')
@@ -873,6 +883,7 @@ def generate_output(vars):
   output.write("# date: %s\n" % time.strftime("%m/%d/%Y %H:%M:%S"))
   output.write("# command: python ")
   output.write(' '.join(sys.argv)+"\n")
+  output.write('# transposon type: %s\n' % vars.transposon)
   output.write('# read1: %s\n' % vars.fq1)
   output.write('# read2: %s\n' % vars.fq2)
   output.write('# ref_genome: %s\n' % vars.ref)
@@ -931,7 +942,7 @@ def verify_inputs(vars):
 def initialize_globals(vars):
       vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
       vars.mm1 = 1 # mismatches allowed in Tn prefix
-      vars.tn5 = False
+      vars.transposon = 'Himar1'
       read_config(vars)
 
 def read_config(vars):
@@ -944,6 +955,7 @@ def read_config(vars):
     if len(w)>=2 and w[0]=='bwa': vars.bwa = w[1]
     if len(w)>=2 and w[0]=='prefix': vars.base = w[1]
     if len(w)>=2 and w[0]=='mismatches1': vars.mm1 = int(w[1])
+    if len(w)>=2 and w[0]=='transposon': vars.transposon = w[1]
 
 def save_config(vars):
   f = open("tpp.cfg","w")
@@ -953,6 +965,7 @@ def save_config(vars):
   f.write("bwa %s\n" % vars.bwa)
   f.write("prefix %s\n" % vars.base)
   f.write("mismatches1 %s\n" % vars.mm1) 
+  f.write("transposon %s\n" % vars.transposon) 
   f.close()
 
 def show_help():
@@ -978,8 +991,11 @@ if __name__ == "__main__":
         # vars.action not defined, quit...
 
         if vars.action=="start":
-            print "running pre-processing on %s and %s" % (vars.fq1,vars.fq2)
             verify_inputs(vars)
+            if vars.fq2=="": msg = 'running pre-processing on %s' % (vars.fq1)
+            else: msg = 'running pre-processing on %s and %s' % (vars.fq1,vars.fq2)
+            message(msg)
+            message("transposon type: %s" % vars.transposon)
             save_config(vars)
             driver(vars)
 
@@ -991,7 +1007,7 @@ if __name__ == "__main__":
                 show_help()
                 exit()
             if sys.argv[i] == '-tn5': 
-                vars.tn5 = True
+                vars.transposon = 'Tn5'
             if sys.argv[i] == '-reads1': 
                 vars.fq1 = sys.argv[i+1]
             elif sys.argv[i] == '-reads2':
@@ -1008,7 +1024,10 @@ if __name__ == "__main__":
             elif sys.argv[i] == '-mismatches':
                 vars.mm1 = int(sys.argv[i+1])
         if flag==False: vars.fq2 = ""
-        print 'running pre-processing on %s and %s' % (vars.fq1, vars.fq2)
+        if vars.fq2=="": msg = 'running pre-processing on %s' % (vars.fq1)
+        else: msg = 'running pre-processing on %s and %s' % (vars.fq1,vars.fq2)
+        message(msg)
+        message("transposon type: %s" % vars.transposon)
         verify_inputs(vars)
         save_config(vars)
         driver(vars)
