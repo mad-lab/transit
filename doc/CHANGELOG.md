@@ -1,10 +1,20 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
-## Next version
+## Version 1.4.0 - 2015-05-27
+-TRANSIT:
+    - Added option to correct for genomic position bias (using LOESS)
+    - Added more options for normalization, including zero-inflated negative binomial and quantile normalization.
+
+
 -TPP:
     - Eliminated soft-clipped reads.
     - Modified template_counts() to be much more memory efficient (does not need gigabytes of RAM any more to process large datasets)
+    - Added ability to process Tn5 datasets
+
+
+
+
 
 ## Version 1.3.0 - 2015-03-31
 -TRANSIT:
@@ -37,7 +47,7 @@ All notable changes to this project will be documented in this file.
 
 - TPP:
     - TPP can now process files with single-end reads.
-    - TPP can now process compressed files with "*.fasta.gz" extension
+    - TPP can now process *.fasta and compressed files with "*.fastq.gz" extension
 
 
 
