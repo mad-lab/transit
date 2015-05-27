@@ -134,6 +134,14 @@ get generated in the process; when you pick datasets, a temp file name
 will automatically be suggested for you, but you can change it to whatever
 you want)
 
+<LI>transposon used - Himar1 is assumed by default, but you can set it
+to Tn5 to process libraries of that type.  The main consequences of
+this setting are: 1) the selected transposon determines the nucleotide
+prefix to be recognized in read 1, and 2) for Himar1, reads are
+counted only at TA sites, whereas for Tn5, reads are counted at ALL
+sites in the genome (since it does not have significant sequence
+specificity) and written out in the .counts and .wig files.
+
 <LI>max reads - Normally, leave this blank by default, and TPP will process
 all reads.  However, if you want to do a quick run on a subset of the data,
 you can select a smaller number.  This is mainly for testing purposes.
@@ -177,7 +185,7 @@ filenames and parameters as command-line arguments.
 
 <PRE>
 For a list of possible command line arguments, type: python tpp.py -help
-usage: python PATH/src/tpp.py -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE [-reads2 PATH_TO_FASTQ_OR_FASTA_FILE] -prefix OUTPUT_BASE_FILENAME [-maxreads N]
+usage: python TRANSIT_PATH/src/tpp.py -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE [-reads2 PATH_TO_FASTQ_OR_FASTA_FILE] -prefix OUTPUT_BASE_FILENAME [-maxreads N] [-tn5]
 
 </PRE>
 
@@ -191,6 +199,7 @@ The input arguments and file types are as follows:
 <TD>-prefix<TD> base filename to use for output files<TR>
 <TD>-maxreads<TD>subset of reads to process (optional); if blank, use all<TR>
 <TD>-mismatches<TD>how many to allow when searching reads for sequence patterns<TR>
+<TD>-tn5<TD>process reads as a Tn5 library (Himar1 is assumed by default)<TR>
 </TABLE>
 
 <P>
@@ -324,8 +333,8 @@ sequence (transposon vector) used in Tn mutant library construction<TR>
 # title: Tn-Seq Pre-Processor
 # date: 02/18/2015 09:36:04
 # command: python /pacific/home/ioerger/transit/tpp.py
-# read1: /pacific/HomeFrozen/ioerger/Run58/analysis/Tn-glyceryl-trioleate-2_1.fastq
-# read2: /pacific/HomeFrozen/ioerger/Run58/analysis/Tn-glyceryl-trioleate-2_3.fastq
+# read1: /pacific/HomeFrozen/Tn-H37Rv-in-vitro_R1.fastq
+# read2: /pacific/HomeFrozen/Tn-H37Rv-in-vitro_R2.fastq
 # ref_genome: /pacific/home/ioerger/transit/genomes/H37Rv.fna
 # total_reads 1301968 (read pairs)
 # truncated_reads 26000 (fragments shorter than the read length; ADAP2 appears in read1)
@@ -346,7 +355,7 @@ sequence (transposon vector) used in Tn mutant library construction<TR>
 # BC_corr 0.965 (reads vs. templates, summed over both strands)
 # primer_matches: 78 reads contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT
 # vector_matches: 2 reads contain CTAGACCGTCCAGTCTGGCAGGCCGGAAAC
-/pacific/HomeFrozen/ioerger/Run58/analysis/Tn-glyceryl-trioleate-2_1.fastq	/pacific/HomeFrozen/ioerger/Run58/analysis/Tn-glyceryl-trioleate-2_3.fastq	1301968	1090333	1016860	427481	413251	1016860	427481	400069	211128	1.89491209124	74605	21072	2306	212278	10.0193621868	0.917104229568	0.96542310842	78	2
+/pacific/HomeFrozen/Tn-H37Rv-in-vitro_R1.fastq	/pacific/HomeFrozen/Tn-H37Rv-in-vitro_R2.fastq	1301968	1090333	1016860	427481	413251	1016860	427481	400069	211128	1.89491209124	74605	21072	2306	212278	10.0193621868	0.917104229568	0.96542310842	78	2
 </PRE>
 
 <B>Interpretation:</B>
