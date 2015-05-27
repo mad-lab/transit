@@ -106,7 +106,8 @@ def runResampling(wx, pubmsg, **kwargs):
     sampleSize = kwargs.get("sampleSize", 10000)
     histPath = kwargs.get("histPath")
     doAdaptive = kwargs.get("doAdaptive", False)
-    doNormalize = kwargs.get("doNormalize", True)
+    normalize = kwargs.get("normalize", "nzmean")
+    doLOESS = kwargs.get("doLOESS", False)
     ignoreCodon = kwargs.get("ignoreCodon", True)
     ignoreNTerm = kwargs.get("ignoreNTerm", 0)
     ignoreCTerm = kwargs.get("ignoreCTerm", 0)
@@ -120,10 +121,27 @@ def runResampling(wx, pubmsg, **kwargs):
 
     hash = transit_tools.get_pos_hash(annotationPath)
     (data, position) = transit_tools.get_data(ctrlList + expList)
-    factors = transit_tools.get_norm_factors(data)
 
-    if doNormalize:
+    print resampling_prefix, "Normalizing with", normalize
+    if normalize == "nzmean":
+        factors = transit_tools.nzmean_factors(data)
         data = factors * data
+    if normalize == "totreads":
+        factors = transit_tools.totreads_factors(data)
+        data = factors * data
+    elif normalize == "zinfnb":
+        factors = transit_tools.zinfnb_factors(data)
+        data = factors * data
+    elif normalize == "quantile":
+        data = transit_tools.quantile_norm(data)
+    else:
+        pass
+
+    if doLOESS:
+        for j in range(len(data)):
+            data[j] = transit_tools.loess_correction(position, data[j])
+        
+
     orf2reads,orf2pos = transit_tools.get_gene_reads(hash, data, position, orf2info, ignoreCodon=ignoreCodon, ignoreNTerm=ignoreNTerm, ignoreCTerm=ignoreCTerm, orf_list=orf2info.keys())
     
     S = sampleSize
@@ -132,8 +150,10 @@ def runResampling(wx, pubmsg, **kwargs):
     output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
     output.write("#Control Samples:  %s\n" % ", ".join(ctrlList))
     output.write("#Experimental Samples:  %s\n" % ", ".join(expList))
-    if doNormalize:
-        output.write("#Normalization factors: %s\n" % "\t".join(["%1.4f" % f for f in factors]))
+    if  normalize in ["nzmean", "totreads", "zinfnb"]:
+        output.write("#%s factors: %s\n" % (normalize ,"\t".join(["%1.4f" % f for f in factors])))
+    elif normalize == "quantile":
+        output.write("#quantile factors: no factors used in quantile normalization\n")
     else:
         output.write("#Not normalized\n")
 

@@ -53,6 +53,7 @@ def runHMM(wx, pubmsg, **kwargs):
     ignoreCodon = kwargs.get("ignoreCodon", True)
     ignoreNTerm = kwargs.get("ignoreNTerm", 0)
     ignoreCTerm = kwargs.get("ignoreCTerm", 0)
+    doLOESS = kwargs.get("doLOESS", False)
     output = kwargs.get("output", sys.stdout)
 
 
@@ -84,6 +85,13 @@ def runHMM(wx, pubmsg, **kwargs):
         data.append(numpy.array(C))
 
     data = numpy.array(data)
+
+    if doLOESS:
+        for j in range(len(data)):
+            data[j] = transit_tools.loess_correction(position, data[j])
+
+
+
     if repchoice == "Sum":
         O = numpy.sum(data,0)
     elif repchoice == "Mean":

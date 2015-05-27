@@ -17,7 +17,7 @@ import wx.xrc
 class MainFrame ( wx.Frame ):
 	
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"TRANSIT", pos = wx.DefaultPosition, size = wx.Size( 1150,875 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"TRANSIT", pos = wx.DefaultPosition, size = wx.Size( 1200,975 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
@@ -299,6 +299,9 @@ class MainFrame ( wx.Frame ):
 		self.hmmRepLabel.Wrap( -1 )
 		bSizer162.Add( self.hmmRepLabel, 1, wx.ALL, 5 )
 		
+		self.hmmLoessCheck = wx.CheckBox( self, wx.ID_ANY, u"LOESS Correction", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer162.Add( self.hmmLoessCheck, 0, wx.ALL, 5 )
+		
 		
 		bSizer152.Add( bSizer162, 1, wx.EXPAND, 5 )
 		
@@ -308,6 +311,9 @@ class MainFrame ( wx.Frame ):
 		self.hmmRepChoice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, hmmRepChoiceChoices, 0 )
 		self.hmmRepChoice.SetSelection( 0 )
 		bSizer172.Add( self.hmmRepChoice, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		self.hmmLoessPrev = wx.Button( self, wx.ID_ANY, u"Preview", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer172.Add( self.hmmLoessPrev, 0, wx.ALL, 5 )
 		
 		
 		bSizer152.Add( bSizer172, 1, wx.EXPAND, 5 )
@@ -344,6 +350,9 @@ class MainFrame ( wx.Frame ):
 		self.resamplingNormLabel.Wrap( -1 )
 		bSizer161.Add( self.resamplingNormLabel, 0, wx.ALL, 5 )
 		
+		self.resamplingLoessCheck = wx.CheckBox( self, wx.ID_ANY, u"LOESS Correction", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer161.Add( self.resamplingLoessCheck, 0, wx.ALL, 5 )
+		
 		
 		bSizer151.Add( bSizer161, 1, wx.EXPAND, 5 )
 		
@@ -352,10 +361,13 @@ class MainFrame ( wx.Frame ):
 		self.resamplingSampleText = wx.TextCtrl( self, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer171.Add( self.resamplingSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 		
-		resamplingNormChoiceChoices = [ u"NZ Mean" ]
+		resamplingNormChoiceChoices = [ u"nzmean", u"totreads", u"zinfnb", u"nonorm" ]
 		self.resamplingNormChoice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, resamplingNormChoiceChoices, 0 )
 		self.resamplingNormChoice.SetSelection( 0 )
 		bSizer171.Add( self.resamplingNormChoice, 0, wx.ALL, 5 )
+		
+		self.resamplingLoessPrev = wx.Button( self, wx.ID_ANY, u"Preview", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer171.Add( self.resamplingLoessPrev, 0, wx.ALL, 5 )
 		
 		
 		bSizer151.Add( bSizer171, 1, wx.EXPAND, 5 )
@@ -474,7 +486,9 @@ class MainFrame ( wx.Frame ):
 		self.addFileButton.Bind( wx.EVT_BUTTON, self.addFileFunc )
 		self.methodChoice.Bind( wx.EVT_CHOICE, self.MethodSelectFunc )
 		self.gumbelButton.Bind( wx.EVT_BUTTON, self.RunGumbelFunc )
+		self.hmmLoessPrev.Bind( wx.EVT_BUTTON, self.LoessPrevFunc )
 		self.hmmButton.Bind( wx.EVT_BUTTON, self.RunHMMFunc )
+		self.resamplingLoessPrev.Bind( wx.EVT_BUTTON, self.LoessPrevFunc )
 		self.resamplingButton.Bind( wx.EVT_BUTTON, self.RunResamplingFunc )
 		self.Bind( wx.EVT_MENU, self.ctrlToIGV, id = self.ctrlExportIGVMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.expToIGV, id = self.expExportIGVMenuItem.GetId() )
@@ -530,8 +544,12 @@ class MainFrame ( wx.Frame ):
 	def RunGumbelFunc( self, event ):
 		event.Skip()
 	
+	def LoessPrevFunc( self, event ):
+		event.Skip()
+	
 	def RunHMMFunc( self, event ):
 		event.Skip()
+	
 	
 	def RunResamplingFunc( self, event ):
 		event.Skip()

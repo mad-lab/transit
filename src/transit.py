@@ -276,6 +276,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.hmmRepLabel.Hide()
         self.hmmRepChoice.Hide()
         self.hmmButton.Hide()
+        self.hmmLoessPrev.Hide()
+        self.hmmLoessCheck.Hide()
         self.hmmProgress.Hide()
 
     
@@ -285,6 +287,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.hmmRepLabel.Show()
         self.hmmRepChoice.Show()
         self.hmmButton.Show()
+        self.hmmLoessPrev.Show()
+        self.hmmLoessCheck.Show()
         self.hmmProgress.Show()
 
 
@@ -295,6 +299,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.resamplingSampleText.Hide()
         self.resamplingNormLabel.Hide()
         self.resamplingNormChoice.Hide()
+        self.resamplingLoessCheck.Hide()
+        self.resamplingLoessPrev.Hide()
         self.resamplingHistCheck.Hide()
         self.resamplingAdaptiveCheck.Hide()
         self.resamplingButton.Hide()
@@ -308,6 +314,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.resamplingSampleText.Show()
         self.resamplingNormLabel.Show()
         self.resamplingNormChoice.Show()
+        self.resamplingLoessCheck.Show()
+        self.resamplingLoessPrev.Show()
         self.resamplingHistCheck.Show()
         self.resamplingAdaptiveCheck.Show()
         self.resamplingButton.Show()
@@ -651,6 +659,33 @@ class TnSeekFrame(transit_gui.MainFrame):
         else:
             self.ShowError(MSG="No results selected to display!")
 
+
+
+
+    def LoessPrevFunc(self,event):
+        datasets_selected = self.ctrlSelected() + self.expSelected()
+        data, position = transit_tools.get_data(datasets_selected)
+        (K,N) = data.shape
+        window = 100
+        for j in range(K):
+
+            size = len(position)/window + 1
+            x_w = numpy.zeros(size)
+            y_w = numpy.zeros(size)
+            for i in range(size):
+                x_w[i] = window*i
+                y_w[i] = sum(data[j][window*i:window*(i+1)])
+
+            y_smooth = transit_tools.loess(x_w, y_w, h=10000)
+            plt.plot(x_w, y_w, "g+")
+            plt.plot(x_w, y_smooth, "b-")
+            plt.xlabel("Genomic Position")
+            plt.ylabel("Reads per 100 insertion sites")
+
+            plt.title("LOESS Fit - %s" % ntpath.basename(datasets_selected[j]) )
+            plt.show()
+            plt.close()
+    
 
 
 
@@ -1178,7 +1213,8 @@ class TnSeekFrame(transit_gui.MainFrame):
             histPath = ""
 
         doAdaptive= self.resamplingAdaptiveCheck.GetValue()
-
+        doLOESS = self.resamplingLoessCheck.GetValue()
+        normalize = self.resamplingNormChoice.GetString(self.resamplingNormChoice.GetCurrentSelection())
         ignoreCodon = True
         ignoreNTerm = float(self.globalNTerminusText.GetValue())
         ignoreCTerm = float(self.globalCTerminusText.GetValue())
@@ -1212,7 +1248,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         kwargs["ignoreCodon"] = ignoreCodon
         kwargs["ignoreNTerm"] = ignoreNTerm
         kwargs["ignoreCTerm"] = ignoreCTerm
-        kwargs["doNormalize"] = True
+        kwargs["normalize"] = normalize
+        kwargs["doLOESS"] = doLOESS
         kwargs["output"] = output
 
         ##############
@@ -1268,6 +1305,7 @@ if __name__ == "__main__":
         hmm_parser.add_argument("control_files", help="Comma separated list of paths for replicate CONTROL files.")
         hmm_parser.add_argument("output_file", help="Output filename.")
         hmm_parser.add_argument("-r", "--rep", help="How to handle replicates: 'Sum' or 'Mean'. Default is Sum.", default="Sum")
+        hmm_parser.add_argument("-L", "--loess", help="Perform LOESS Correction; Helps remove possible genomic position bias.", action='store_true')
         hmm_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus. Default is 0%.", default=0.0, type=float)
         hmm_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus. Default is 0%.", default=0.0, type=float)
         
@@ -1280,7 +1318,8 @@ if __name__ == "__main__":
         resampling_parser.add_argument("-s", "--samples", help="Number of permutation samples obtained for each gene. Default is 10000.", default=10000, type=int)
         resampling_parser.add_argument("-H", "--hist", help="Number of samples to trim. See documentation. Default is to NOT create histograms.", action='store_true')
         resampling_parser.add_argument("-a", "--adaptive", help="Adaptive resampling; faster at the risk of lower accuracy. Default is off (i.e. regular resampling).", action='store_true')
-        resampling_parser.add_argument("-dN", "--dontNormalize", help="Set this flag to NOT Normalize between conditions. Default is to normalize.", action='store_true')
+        resampling_parser.add_argument("-N", "--normalize", help="Choose the normalization method: 'nzmean', 'totread', 'zinfnb', 'quantile', 'nonorm'. Default is 'nzmean'. See documentation for an explanation", default="nzmean", type=str)
+        resampling_parser.add_argument("-L", "--loess", help="Perform LOESS Correction; Helps remove possible genomic position bias.", action='store_true')
         resampling_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus. Default is 0%.", default=0.0, type=float)
         resampling_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus. Default is 0%.", default=0.0, type=float)
         
@@ -1313,6 +1352,7 @@ if __name__ == "__main__":
             kwargs["ignoreCodon"] = True
             kwargs["ignoreNTerm"] = args.ignoreN
             kwargs["ignoreCTerm"] = args.ignoreC
+            kwargs["doLOESS"] = args.loess
             kwargs["output"] = open(args.output_file, "w")
 
             #thread = threading.Thread(target=hmm_geom.runHMM, args=(None, None), kwargs=kwargs)
@@ -1338,7 +1378,8 @@ if __name__ == "__main__":
             kwargs["ignoreCodon"] = True
             kwargs["ignoreNTerm"] = args.ignoreN
             kwargs["ignoreCTerm"] = args.ignoreC
-            kwargs["doNormalize"] = True
+            kwargs["normalize"] = args.normalize
+            kwargs["doLOESS"] = args.loess
             kwargs["output"] = open(args.output_file, "w")
             
             #thread = threading.Thread(target=resampling.runResampling, args=(None, None), kwargs=kwargs)

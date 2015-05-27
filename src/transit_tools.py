@@ -23,6 +23,8 @@ import os
 import math
 import ntpath
 import numpy
+import scipy.optimize
+
 
 
 def aton(aa):
@@ -111,7 +113,7 @@ def get_data(wig_list):
 
 
 
-def get_norm_factors(data):
+def nzmean_factors(data):
     (K,N) = data.shape
     total_hits = numpy.sum(data,1)
     TAs_hit = numpy.sum(data > 0, 1)
@@ -120,8 +122,80 @@ def get_norm_factors(data):
     grand_mean = grand_total/float(K)
     factors = numpy.zeros((K,1))
     factors[:,0] = grand_mean/mean_hits
+    return factors
+
+
+
+def totreads_factors(data):
+    (K,N) = data.shape
+    total_hits = numpy.sum(data,1)
+    TAs = float(N)
+    mean_hits = total_hits/TAs
+    grand_total = numpy.sum(mean_hits)
+    grand_mean = grand_total/float(K)
+    factors = numpy.zeros((K,1))
+    factors[:,0] = grand_mean/mean_hits
+    return factors
+
+
+
+def Fzinfnb(params, args):
+    pi, mu, r = params
+    Fdata = args
+    temp0 = numpy.nan_to_num(numpy.log(pi + scipy.stats.nbinom.pmf(Fdata[Fdata==0], mu, r)))
+    tempnz = numpy.nan_to_num(numpy.log(1.0-pi)+scipy.stats.nbinom.logpmf(Fdata[Fdata>0], mu, r))
+    negLL = -(numpy.sum(temp0) + numpy.sum(tempnz))
+    return negLL
+
+
+def zinfnb_factors(data):
+   
+    N = len(data)
+    G = len(data[0])
+
+    factors = numpy.zeros((N, 1))
+    for j in range(N):
+        initParams = [0.3, 10, 0.5]
+        M = "L-BFGS-B"
+        Fdata = numpy.array(data[j])
+        results = scipy.optimize.minimize(Fzinfnb, initParams, args=(Fdata,), method=M, bounds=[(0.0001, 0.9999),(0.0001, None),(0.0001, 0.9999)])
+
+        
+        pi, n, p = results.x
+        mu = n*(1-p)/p
+        factors[j,0] = 1.0/mu
+    
 
     return factors
+
+
+
+def quantile_norm(data):
+    """Performs Quantile Normalization as described by Bolstad et al. 2003"""
+    
+    N = len(data)
+    G = len(data[0])
+
+    #Sort columns
+    s_data = numpy.array([sorted(col) for col in data])
+
+    #Get ranks of original data
+    ranks = numpy.zeros(data.shape, dtype=int)
+    for j in range(N):
+        ranks[j,:] = scipy.stats.rankdata(data[j], method='dense')
+
+    #Get empirical distribution
+    ranked_means = numpy.mean(s_data,0)
+    
+    #Create dictionary of rank to new empirical values
+    rank2count = dict([(r,c) for (r,c) in zip(scipy.stats.rankdata(ranked_means, method='dense'), ranked_means)])
+
+    #Assign values
+    norm_data = numpy.zeros(data.shape)
+    for i in range(G):
+        norm_data[:,i] = [rank2count[ranks[j,i]] for j in range(N)]
+    return norm_data
+
 
 def normalize_data(data):
     (K,N) = data.shape
@@ -162,12 +236,12 @@ def get_gene_reads(hash, data, position, orf2info, ignoreCodon=True, ignoreNTerm
                     continue
 
 
-            #Ignore TAs at beginning 5%
+            #Ignore TAs at beginning n%
             if (coord-start)/float(end-start) <= (ignoreNTerm/100.0):
                 #print "Ignoring", coord, "from gene", gene, "with", (coord-start)/float(end-start), "perc and NTerm", ignoreNTerm/100.0
                 continue
             
-            #Ignore TAs at end 5%
+            #Ignore TAs at end c%
             if (coord-start)/float(end-start) >= ((100-ignoreCTerm)/100.0):
                 #print "Ignoring", coord, "from gene", gene, "with", (coord-start)/float(end-start), "perc and Cterm", ignoreCTerm/100.0
                 continue
@@ -176,7 +250,52 @@ def get_gene_reads(hash, data, position, orf2info, ignoreCodon=True, ignoreNTerm
             orf2reads[gene].append(data[:,i])
             orf2pos[gene].append(position[i])
     return (orf2reads, orf2pos)
+   
+
+
+def tricube(X):
+    result = numpy.zeros(len(X))
+    ii = numpy.logical_and(X >= -1, X <= 1)
+    result[ii] = numpy.power(1 - numpy.power(numpy.abs(X[ii]), 3), 3)
+    return result
+
+
+def loess(X, Y, h=10000):
+    smoothed = numpy.zeros(len(Y))
+    for i,x in enumerate(X):
+        W = tricube((X-x)/float(h))
+        sW = numpy.sum(W)
+        wsX = numpy.sum(W*X)
+        wsY = numpy.sum(W*Y)
+        wsXY = numpy.sum(W*X*Y)
+        sXX = numpy.sum(X*X)
+        B = (sW * wsXY - wsX * wsY)/(sW * sXX - numpy.power(wsX,2))
+        A = (wsY - B*wsX) / sW
+        smoothed[i] = B*x + A
+    return smoothed
+
+
+
+
+def loess_correction(X, Y, h=10000, window=100):
+    Y = numpy.array(Y)
+    size = len(X)/window + 1
+    x_w = numpy.zeros(size)
+    y_w = numpy.zeros(size)
+    for i in range(len(X)/window + 1):
+        x_w[i] = window*i
+        y_w[i] = sum(Y[window*i:window*(i+1)])
+
+    ysmooth = loess(x_w, y_w, h)
+    mline = numpy.mean(y_w)
+    y_w * (ysmooth/mline)
+
+    normalized_Y = numpy.zeros(len(Y))
+    for i in range(size):
+        normalized_Y[window*i:window*(i+1)] = Y[window*i:window*(i+1)] * (ysmooth[i]/mline)
     
+    return normalized_Y
+
 
 def get_gene_info(path):
     orf2info = {}
