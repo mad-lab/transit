@@ -2,12 +2,12 @@
 All notable changes to this project will be documented in this file.
 
 ## Version 1.4.0 - 2015-05-27
--TRANSIT:
+- TRANSIT:
     - Added option to correct for genomic position bias (using LOESS)
     - Added more options for normalization, including zero-inflated negative binomial and quantile normalization.
 
 
--TPP:
+- TPP:
     - Eliminated soft-clipped reads.
     - Modified template_counts() to be much more memory efficient (does not need gigabytes of RAM any more to process large datasets)
     - Added ability to process Tn5 datasets
@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file.
 
 
 ## Version 1.3.0 - 2015-03-31
--TRANSIT:
+- TRANSIT:
     - Fixed threading issue for volcano plot.
     - Improved format and quality of the output messages.
     - Fixed direction of log-fold change in volcano plots.
@@ -25,7 +25,7 @@ All notable changes to this project will be documented in this file.
     - Made adaptive resampling work better with custom sample sizes.
 
 
--TPP:
+- TPP:
     - Fixed genomic portion for single ends.
     - Added usage help as part of command line arguments.
 
@@ -33,14 +33,14 @@ All notable changes to this project will be documented in this file.
 
 ## Version 1.2.33 - 2015-03-06
 
--TRANSIT:
+- TRANSIT:
     - Fixed issue with histograms create using adaptive resampling.
 
 
 
 ## Version 1.2.32 - 2015-03-05
 
--TRANSIT:
+- TRANSIT:
     - Put .pyc files in in new src/ directory.
     - Fixed error that sometimes occurred when plotting volcano plots.
     - Made TRANSIT default to the current working directory when opening file dialogs.
