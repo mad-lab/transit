@@ -138,7 +138,7 @@ class MainFrame ( wx.Frame ):
 		self.logoImg = wx.StaticBitmap( self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
 		methodSizer.Add( self.logoImg, 0, wx.ALL, 5 )
 		
-		self.versionLabel = wx.StaticText( self, wx.ID_ANY, u"v1.3.0", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
+		self.versionLabel = wx.StaticText( self, wx.ID_ANY, u"v1.4.0", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
 		self.versionLabel.Wrap( -1 )
 		self.versionLabel.SetFont( wx.Font( 10, 74, 90, 92, False, "Sans" ) )
 		
@@ -312,7 +312,7 @@ class MainFrame ( wx.Frame ):
 		self.hmmRepChoice.SetSelection( 0 )
 		bSizer172.Add( self.hmmRepChoice, 0, wx.ALL|wx.EXPAND, 5 )
 		
-		self.hmmLoessPrev = wx.Button( self, wx.ID_ANY, u"Preview", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.hmmLoessPrev = wx.Button( self, wx.ID_ANY, u"Plot LOESS", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer172.Add( self.hmmLoessPrev, 0, wx.ALL, 5 )
 		
 		
@@ -350,9 +350,6 @@ class MainFrame ( wx.Frame ):
 		self.resamplingNormLabel.Wrap( -1 )
 		bSizer161.Add( self.resamplingNormLabel, 0, wx.ALL, 5 )
 		
-		self.resamplingLoessCheck = wx.CheckBox( self, wx.ID_ANY, u"LOESS Correction", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer161.Add( self.resamplingLoessCheck, 0, wx.ALL, 5 )
-		
 		
 		bSizer151.Add( bSizer161, 1, wx.EXPAND, 5 )
 		
@@ -361,13 +358,10 @@ class MainFrame ( wx.Frame ):
 		self.resamplingSampleText = wx.TextCtrl( self, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer171.Add( self.resamplingSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 		
-		resamplingNormChoiceChoices = [ u"nzmean", u"totreads", u"zinfnb", u"nonorm" ]
+		resamplingNormChoiceChoices = [ u"nzmean", u"totreads", u"zinfnb", u"quantile", u"nonorm" ]
 		self.resamplingNormChoice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, resamplingNormChoiceChoices, 0 )
 		self.resamplingNormChoice.SetSelection( 0 )
 		bSizer171.Add( self.resamplingNormChoice, 0, wx.ALL, 5 )
-		
-		self.resamplingLoessPrev = wx.Button( self, wx.ID_ANY, u"Preview", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer171.Add( self.resamplingLoessPrev, 0, wx.ALL, 5 )
 		
 		
 		bSizer151.Add( bSizer171, 1, wx.EXPAND, 5 )
@@ -378,7 +372,13 @@ class MainFrame ( wx.Frame ):
 		
 		resamplingSection.Add( bSizer142, 1, wx.EXPAND, 5 )
 		
-		self.resamplingHistCheck = wx.CheckBox( self, wx.ID_ANY, u"Output Histograms", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.resamplingLoessCheck = wx.CheckBox( self, wx.ID_ANY, u"Correction for Genome Positional Bias", wx.DefaultPosition, wx.DefaultSize, 0 )
+		resamplingSection.Add( self.resamplingLoessCheck, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.resamplingLoessPrev = wx.Button( self, wx.ID_ANY, u"Plot LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
+		resamplingSection.Add( self.resamplingLoessPrev, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.resamplingHistCheck = wx.CheckBox( self, wx.ID_ANY, u"Generate Resampling Histograms", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.resamplingHistCheck.SetValue(True) 
 		resamplingSection.Add( self.resamplingHistCheck, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
