@@ -284,7 +284,7 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
 
     def initializeHMMSites(self):
         self.list_data.InsertColumn(0, 'Location', width=100)
-        self.list_data.InsertColumn(1, 'Read', width=85)
+        self.list_data.InsertColumn(1, 'Read Count', width=85)
         self.list_data.InsertColumn(2, 'Probability - ES', width=120)
         self.list_data.InsertColumn(3, 'Probability - GD', width=120)
         self.list_data.InsertColumn(4, 'Probability - NE', width=120)
