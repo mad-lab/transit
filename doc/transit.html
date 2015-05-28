@@ -35,7 +35,7 @@ border-radius: 10px;
 <BODY>
 
 
-<H1>TRANSIT v1.2.32 Documentation</H1>
+<H1>TRANSIT v1.4.0 Documentation</H1>
 
 <br>
 
@@ -772,6 +772,7 @@ The resampling method is non-parametric, and therefore does not require any para
         <LI> <b>nzmean</b>: Normalizes datasets to have the same mean over the non-zero sites. 
         <LI> <b>totreads</b>: Normalizes datasets by total read-counts, and scales them to have the same mean over all counts.
         <LI> <b>zinfnb</b>: Fits a zero-inflated negative binomial model, and then divides read-counts by the mean. The zero-inflated negative binomial model will treat some empty sites as belonging to the "true" negative binomial distribution responsible for read-counts while treating the others as "essential" (and thus not influencing its parameters).
+        <LI> <b>quantile</b>: Normalizes datasets using the quantile normalization method described by <a href="http://www.ncbi.nlm.nih.gov/pubmed/12538238">Bolstad et al. (2003)</a>. In this normalization procedure, datasets are sorted, an empirical distribution is estimated as the mean across the sorted datasets at each site, and then the original (unsorted) datasets are assigned values from the empirical distribution based on their quantiles.
         <LI> <b>nonorm</b>: No normalization is performed.
     </UL>
 </UL>
