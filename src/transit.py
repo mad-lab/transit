@@ -1300,8 +1300,8 @@ if __name__ == "__main__":
         gumbel_parser.add_argument("-b", "--burnin", help="Burn in period, Skips this number of samples before getting estimates. See documentation. Default is 500.", default=500, type=int)
         gumbel_parser.add_argument("-t", "--trim", help="Number of samples to trim. See documentation. Default is 1.", default=1, type=int)
         gumbel_parser.add_argument("-r", "--rep", help="How to handle replicates: 'Sum' or 'Mean'. Default is Sum.", default="Sum", type=str)
-        gumbel_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus. Default is 0.0.", default=0.0, type=float)
-        gumbel_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus. Default is 0.0.", default=0.0, type=float)
+        gumbel_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus. Default is 0%%.", default=0.0, type=float)
+        gumbel_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus. Default is 0%%.", default=0.0, type=float)
         
         # A hmm command
         hmm_parser = subparsers.add_parser('hmm', help='HMM method')
@@ -1310,8 +1310,8 @@ if __name__ == "__main__":
         hmm_parser.add_argument("output_file", help="Output filename.")
         hmm_parser.add_argument("-r", "--rep", help="How to handle replicates: 'Sum' or 'Mean'. Default is Sum.", default="Sum")
         hmm_parser.add_argument("-L", "--loess", help="Perform LOESS Correction; Helps remove possible genomic position bias.", action='store_true')
-        hmm_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus. Default is 0.0.", default=0.0, type=float)
-        hmm_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus. Default is 0.0.", default=0.0, type=float)
+        hmm_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus. Default is 0%%.", default=0.0, type=float)
+        hmm_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus. Default is 0%%.", default=0.0, type=float)
        
         # A resampling command
         resampling_parser = subparsers.add_parser('resampling', help='Resampling method')
@@ -1324,8 +1324,8 @@ if __name__ == "__main__":
         resampling_parser.add_argument("-a", "--adaptive", help="Adaptive resampling; faster at the risk of lower accuracy. Default is off (i.e. regular resampling).", action='store_true')
         resampling_parser.add_argument("-N", "--normalize", help="Choose the normalization method: 'nzmean', 'totread', 'zinfnb', 'quantile', 'nonorm'. Default is 'nzmean'. See documentation for an explanation", default="nzmean", type=str)
         resampling_parser.add_argument("-L", "--loess", help="Perform LOESS Correction; Helps remove possible genomic position bias.", action='store_true')
-        resampling_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus. Default is 0.0.", default=0.0, type=float)
-        resampling_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus. Default is 0.0.", default=0.0, type=float)
+        resampling_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus. Default is 0%%.", default=0.0, type=float)
+        resampling_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus. Default is 0%%.", default=0.0, type=float)
         
         args = parser.parse_args()
 
