@@ -47,7 +47,7 @@ def get_wig_stats(path):
         if line.startswith("location"): continue
         tmp = line.split()
         pos = int(tmp[0])
-        rd = int(tmp[1])
+        rd = float(tmp[1])
         data.append(rd)
     return (sum(data), sum([1 for rd in data if rd > 0])/float(len(data)),  sum(data)/float(len(data)), max(data))
 
