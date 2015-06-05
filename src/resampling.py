@@ -222,23 +222,12 @@ def runResampling(wx, pubmsg, **kwargs):
         pval.append(pval_2tail)
 
 
-        # the histogram of the data
-        if histPath:
-            n, bins, patches = plt.hist(delta_sum_list, normed=1, facecolor='c', alpha=0.75, bins=100)
-            plt.xlabel('Delta Sum')
-            plt.ylabel('Probability')
-            plt.title('%s - Histogram of Delta Sum' % orf)
-            plt.axvline(sum2-sum1, color='r', linestyle='dashed', linewidth=3)
-            plt.grid(True)
-            #plt.show()
-            genePath = os.path.join(histPath, orf +".png")
-            #print genePath
-            plt.savefig(genePath)
-            plt.clf()
-            #plt.close()
-
-
         count += 1
+        # the histogram of the data
+        if wx and newWx: wx.CallAfter(pubmsg, "histogram", msg=(delta_sum_list, orf, histPath, sum2-sum1))
+        if wx and not newWx: wx.CallAfter(pubmsg, "histogram", (delta_sum_list, orf, histPath, sum2-sum1))
+
+        # Update Progress
         if wx and newWx: wx.CallAfter(pubmsg, "resampling", msg="Running Resampling Method... %2.0f%%" % (100.0*(count+1)/(G)))
         if wx and not newWx: wx.CallAfter(pubmsg, "resampling", "Running Resampling Method... %2.0f%%" % (100.0*(count+1)/(G)))
 

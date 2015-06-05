@@ -110,7 +110,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         pub.subscribe(self.updateProgress, "update")
         pub.subscribe(self.addFile, "file")
         pub.subscribe(self.finishRun, "finish")
-   
+        pub.subscribe(self.saveHistogram, "histogram")   
  
         #self.outputDirPicker.SetPath(os.path.dirname(os.path.realpath(__file__)))
 
@@ -179,6 +179,23 @@ class TnSeekFrame(transit_gui.MainFrame):
         if self.progress_count > self.progress.GetRange():
             self.statusBar.SetStatusText("Finished!")
         #self.statusBar.SetStatusText("Running Gumbel Method... %2.0f%%" % (100.0*self.progress_count/self.progress.GetRange()))
+
+    
+    def saveHistogram(self, msg):
+        if newWx:
+            data, orf, path, delta = msg
+        else:
+            data, orf, path, delta = msg.data
+        n, bins, patches = plt.hist(data, normed=1, facecolor='c', alpha=0.75, bins=100)
+        plt.xlabel('Delta Sum')
+        plt.ylabel('Probability')
+        plt.title('%s - Histogram of Delta Sum' % orf)
+        plt.axvline(delta, color='r', linestyle='dashed', linewidth=3)
+        plt.grid(True)
+        genePath = os.path.join(path, orf +".png")
+        plt.savefig(genePath)
+        plt.clf()
+
 
 
     def addFile(self, data):
@@ -1251,13 +1268,6 @@ class TnSeekFrame(transit_gui.MainFrame):
         kwargs["normalize"] = normalize
         kwargs["doLOESS"] = doLOESS
         kwargs["output"] = output
-
-        ##############
-        #Instantiating pyplot outside thread to avoid 'main thread not in event loop error'
-        n, bins, patches = plt.hist([0,1,2,3,5], normed=1, facecolor='c', alpha=0.75, bins=100)
-        plt.xlabel('Delta Sum')
-        plt.clf()
-        #############
 
 
         thread = threading.Thread(target=resampling.runResampling, args=(wx, pub.sendMessage), kwargs=kwargs)
