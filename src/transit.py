@@ -426,7 +426,7 @@ class TnSeekFrame(transit_gui.MainFrame):
             if self.verbose:
                 print transit_prefix, "Adding control item (%d): %s" % (self.index_ctrl, name)
             self.index_ctrl+=1
-        except e:
+        except Exception as e:
             print transit_prefix, "Error:", e
 
         
@@ -448,7 +448,7 @@ class TnSeekFrame(transit_gui.MainFrame):
             self.index_exp+=1
         
 
-        except e:
+        except Exception as e:
             print transit_prefix, "Error:", e 
 
 
