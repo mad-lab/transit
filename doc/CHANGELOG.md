@@ -1,6 +1,12 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+## Version 1.4.1 - 2015-06-5
+- TRANSIT:
+    - TRANSIT now accepts read-counts in floating-point precision, not just integers.
+    - Made transit work with most recent versions of matplotlib.
+
+
 ## Version 1.4.0 - 2015-05-27
 - TRANSIT:
     - Added option to correct for genomic position bias (using LOESS)
