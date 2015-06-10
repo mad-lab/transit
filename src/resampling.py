@@ -224,8 +224,9 @@ def runResampling(wx, pubmsg, **kwargs):
 
         count += 1
         # the histogram of the data
-        if wx and newWx: wx.CallAfter(pubmsg, "histogram", msg=(delta_sum_list, orf, histPath, sum2-sum1))
-        if wx and not newWx: wx.CallAfter(pubmsg, "histogram", (delta_sum_list, orf, histPath, sum2-sum1))
+        if histPath:
+            if wx and newWx: wx.CallAfter(pubmsg, "histogram", msg=(delta_sum_list, orf, histPath, sum2-sum1))
+            if wx and not newWx: wx.CallAfter(pubmsg, "histogram", (delta_sum_list, orf, histPath, sum2-sum1))
 
         # Update Progress
         if wx and newWx: wx.CallAfter(pubmsg, "resampling", msg="Running Resampling Method... %2.0f%%" % (100.0*(count+1)/(G)))
