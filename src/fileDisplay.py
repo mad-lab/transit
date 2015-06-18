@@ -69,7 +69,7 @@ class SortableListCtrl(wx.ListCtrl):
 class ImgFrame(wx.Frame):
 
     def __init__(self, parent, filePath):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = "%s" % (filePath), pos = wx.DefaultPosition, size = wx.Size( 1019,740 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = "%s" % (filePath), pos = wx.DefaultPosition, size = wx.Size( 1150,740 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
         bSizer1 = wx.BoxSizer( wx.VERTICAL )
        
@@ -92,7 +92,7 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
     #constructor
     def __init__(self, parent, filePath, method="Gumbel"):
 
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = "%s - %s" % (method, ntpath.basename(filePath)), pos = wx.DefaultPosition, size = wx.Size( 1019,740 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = "%s - %s" % (method, ntpath.basename(filePath)), pos = wx.DefaultPosition, size = wx.Size( 1150,740 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 
