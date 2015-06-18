@@ -197,6 +197,57 @@ def quantile_norm(data):
     return norm_data
 
 
+
+
+def ecdf(S, x):
+    return numpy.sum(S<=x)/float(len(S))
+
+
+def cleaninfgeom(x, rho):
+    if x == float('inf'):
+        return scipy.stats.geom.ppf(0.9999999999999999, rho)
+    else:
+        return x
+
+
+
+def betageom_norm(data, doNZMean = True, bgsamples=200000):
+    (K,N) = data.shape
+    total_hits = numpy.sum(data,1)
+    TAs_hit = numpy.sum(data > 0,1)
+    mean_hits = total_hits/TAs_hit
+    grand_total = numpy.sum(mean_hits)
+    grand_mean = grand_total/float(K)
+    norm_data = numpy.zeros(data.shape)
+    for j in range(K):
+
+        tQ = numpy.arange(0,N)/float(N)
+        eX = numpy.array([rd for rd in data[j]])
+        eX.sort()
+
+        rho = 1.0/scipy.stats.trim_mean(eX, 0.001)
+        A = (numpy.sum(numpy.power(numpy.log(1.0-tQ),2)))/(numpy.sum(eX*numpy.log(1.0-tQ)))
+        Kp = (2.0 * numpy.exp(A) - 1)   /(numpy.exp(A) + rho - 1)
+    
+        
+        BGsample = scipy.stats.geom.rvs(scipy.stats.beta.rvs(Kp*rho, Kp*(1-rho), size=bgsamples), size=bgsamples)
+        for i in range(N):
+            norm_data[j,i] = cleaninfgeom(scipy.stats.geom.ppf(ecdf(BGsample, data[j,i]), 1.0/grand_mean), 1.0/grand_mean)
+
+        #mapping = dict([(x, cleaninfgeom(scipy.stats.geom.ppf(ecdf(BGsample, x), 1.0/grand_mean), 1.0/grand_mean)) for x in data[j]])
+        #for i in range(N):
+        #    try:
+        #        norm_data[j,i] = mapping[data[j,i]]
+        #    except KeyError:
+        #        print "Error: %s  | key = %s not found. Using original Data. Notify authors!" % (KeyError, data[j,i])
+        #        norm_data[j,i] = data[j,i]
+    
+    if doNZMean:
+        return normalize_data(norm_data)
+    return norm_data
+
+
+
 def normalize_data(data):
     (K,N) = data.shape
     total_hits = numpy.sum(data,1)

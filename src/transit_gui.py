@@ -358,7 +358,7 @@ class MainFrame ( wx.Frame ):
 		self.resamplingSampleText = wx.TextCtrl( self, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer171.Add( self.resamplingSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 		
-		resamplingNormChoiceChoices = [ u"nzmean", u"totreads", u"zinfnb", u"quantile", u"nonorm" ]
+		resamplingNormChoiceChoices = [ u"nzmean", u"totreads", u"zinfnb", u"quantile", u"betageom", u"nonorm", wx.EmptyString ]
 		self.resamplingNormChoice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, resamplingNormChoiceChoices, 0 )
 		self.resamplingNormChoice.SetSelection( 0 )
 		bSizer171.Add( self.resamplingNormChoice, 0, wx.ALL, 5 )

@@ -126,7 +126,7 @@ def runResampling(wx, pubmsg, **kwargs):
     if normalize == "nzmean":
         factors = transit_tools.nzmean_factors(data)
         data = factors * data
-    if normalize == "totreads":
+    elif normalize == "totreads":
         factors = transit_tools.totreads_factors(data)
         data = factors * data
     elif normalize == "zinfnb":
@@ -134,7 +134,10 @@ def runResampling(wx, pubmsg, **kwargs):
         data = factors * data
     elif normalize == "quantile":
         data = transit_tools.quantile_norm(data)
+    elif normalize == "betageom":
+        data = transit_tools.betageom_norm(data)
     else:
+        normalize = "nonorm"
         pass
 
     if doLOESS:
@@ -150,12 +153,13 @@ def runResampling(wx, pubmsg, **kwargs):
     output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
     output.write("#Control Samples:  %s\n" % ", ".join(ctrlList))
     output.write("#Experimental Samples:  %s\n" % ", ".join(expList))
+    if normalize == "nonorm":
+        output.write("#Not normalized\n")
+    else:
+        output.write("#Normalized with %s\n" % normalize)
     if  normalize in ["nzmean", "totreads", "zinfnb"]:
         output.write("#%s factors: %s\n" % (normalize ,"\t".join(["%1.4f" % f for f in factors])))
-    elif normalize == "quantile":
-        output.write("#quantile factors: no factors used in quantile normalization\n")
-    else:
-        output.write("#Not normalized\n")
+
 
     output.write("#Orf\t%Name\tDescription\tN\tTAs Hit\tSum Rd 1\tSum Rd 2\tDelta Rd\tlog2 FC\tp-value\tp-adj\n")
     count = 0

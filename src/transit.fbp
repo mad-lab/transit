@@ -4755,7 +4755,7 @@
                                                 <property name="name">bSizer151</property>
                                                 <property name="orient">wxHORIZONTAL</property>
                                                 <property name="permission">none</property>
-                                                <object class="sizeritem" expanded="0">
+                                                <object class="sizeritem" expanded="1">
                                                     <property name="border">5</property>
                                                     <property name="flag">wxEXPAND</property>
                                                     <property name="proportion">1</property>
@@ -4932,11 +4932,11 @@
                                                         </object>
                                                     </object>
                                                 </object>
-                                                <object class="sizeritem" expanded="0">
+                                                <object class="sizeritem" expanded="1">
                                                     <property name="border">5</property>
                                                     <property name="flag">wxEXPAND</property>
                                                     <property name="proportion">1</property>
-                                                    <object class="wxBoxSizer" expanded="0">
+                                                    <object class="wxBoxSizer" expanded="1">
                                                         <property name="minimum_size"></property>
                                                         <property name="name">bSizer171</property>
                                                         <property name="orient">wxVERTICAL</property>
@@ -5050,7 +5050,7 @@
                                                                 <property name="caption"></property>
                                                                 <property name="caption_visible">1</property>
                                                                 <property name="center_pane">0</property>
-                                                                <property name="choices">&quot;nzmean&quot; &quot;totreads&quot; &quot;zinfnb&quot; &quot;quantile&quot; &quot;nonorm&quot;</property>
+                                                                <property name="choices">&quot;nzmean&quot; &quot;totreads&quot; &quot;zinfnb&quot; &quot;quantile&quot; &quot;betageom&quot; &quot;nonorm&quot; &quot;&quot;</property>
                                                                 <property name="close_button">1</property>
                                                                 <property name="context_help"></property>
                                                                 <property name="context_menu">1</property>
