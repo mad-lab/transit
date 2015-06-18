@@ -435,7 +435,7 @@ class TnSeekFrame(transit_gui.MainFrame):
             name = ntpath.basename(fullpath)
             totalrd,density,meanrd,maxrd = transit_tools.get_wig_stats(fullpath)
             self.list_ctrl.InsertStringItem(self.index_ctrl, name)
-            self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%d" % (totalrd))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
             self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
             self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
             self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
@@ -445,6 +445,9 @@ class TnSeekFrame(transit_gui.MainFrame):
             self.index_ctrl+=1
         except Exception as e:
             print transit_prefix, "Error:", e
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
 
         
 
@@ -1277,6 +1280,14 @@ class TnSeekFrame(transit_gui.MainFrame):
         #ResamplingThread(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
 
 
+def msg():
+    return """transit.py {gumbel, hmm, resampling} [-h/--help]
+
+    
+Help:  
+    """
+
+
 if __name__ == "__main__":
 
 
@@ -1293,7 +1304,8 @@ if __name__ == "__main__":
         app.MainLoop()
 
     else:
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(usage=msg())
+        #parser = argparse.ArgumentParser()
         subparsers = parser.add_subparsers(help='Methods', dest='command')
         
         # A gumbel command
