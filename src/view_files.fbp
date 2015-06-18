@@ -44,7 +44,7 @@
             <property name="minimum_size"></property>
             <property name="name">MyFrame1</property>
             <property name="pos"></property>
-            <property name="size">1019,740</property>
+            <property name="size">1150,740</property>
             <property name="style">wxDEFAULT_FRAME_STYLE</property>
             <property name="subclass"></property>
             <property name="title"></property>
