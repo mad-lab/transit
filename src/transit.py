@@ -1226,7 +1226,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         #Check if user wants individual histograms
         if self.resamplingHistCheck.GetValue():
-            histPath = os.path.join(ntpath.dirname(outputPath), transit_tools.fetch_name(outputPath))
+            histPath = os.path.join(ntpath.dirname(outputPath), transit_tools.fetch_name(outputPath)+"_histograms")
             if not os.path.isdir(histPath):
                 os.makedirs(histPath)
         else:
@@ -1276,8 +1276,6 @@ class TnSeekFrame(transit_gui.MainFrame):
         thread = threading.Thread(target=resampling.runResampling, args=(wx, pub.sendMessage), kwargs=kwargs)
         thread.setDaemon(True)
         thread.start()
-
-        #ResamplingThread(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
 
 
 def msg():
@@ -1393,7 +1391,7 @@ if __name__ == "__main__":
             kwargs["sampleSize"] = args.samples
            
             if args.hist:
-                histPath = os.path.join(ntpath.dirname(args.output_file), transit_tools.fetch_name(args.output_file))
+                histPath = os.path.join(ntpath.dirname(args.output_file), transit_tools.fetch_name(args.output_file)+"_histograms")
                 if not os.path.isdir(histPath):
                     os.makedirs(histPath)
             else:
