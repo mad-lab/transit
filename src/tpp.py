@@ -1010,7 +1010,7 @@ if __name__ == "__main__":
         for i in range(0, len(sys.argv)):
             if sys.argv[i] == '-help':
                 show_help()
-                exit()
+                sys.exit()
             if sys.argv[i] == '-tn5': 
                 vars.transposon = 'Tn5'
             if sys.argv[i] == '-reads1': 
