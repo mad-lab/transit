@@ -580,7 +580,7 @@ To run the Resampling analysis from the command line, type "python PATH/src/tran
 
 <tr><td>-a</td> <td>Optional</td> <td>Performs adaptive appoximation to resampling.</td> <td>Not set</td> <td>-a</td></tr>
 
-<tr><td>-N</td> <td>Optional</td> <td>Select which normalizing procedure to use. Can choose between 'nzmean', 'totreads', 'zinfnb', and 'nonorm'. See the parameters section for the <A HREF="#resampling">Re-sampling method</A> for a description of these normalization options. </td> <td>nzmean</td> <td>-N nzmean</td></tr>
+<tr><td>-N</td> <td>Optional</td> <td>Select which normalizing procedure to use. Can choose between 'TTR', 'nzmean', 'totreads', 'zinfnb', 'betageom', and 'nonorm'. See the parameters section for the <A HREF="#resampling">Re-sampling method</A> for a description of these normalization options. </td> <td>nzmean</td> <td>-N nzmean</td></tr>
 
 <tr><td>-iN IGNOREN</td> <td>Optional</td> <td>Ignore TAs occuring at X% of the N terminus.</td> <td>5</td> <td>-iN 0</td></tr>
 <tr><td>-iC IGNOREC</td> <td>Optional</td> <td>Ignore TAs occuring at X% of the C terminus.</td> <td>5</td> <td>-iC 10</td></tr>
@@ -777,10 +777,12 @@ The resampling method is non-parametric, and therefore does not require any para
     <LI class="param"><B>Adaptive Resampling:</B> An optional "adaptive" version of resampling which accelerates the calculation by terminating early for genes which are likely not significant. This dramatically speeds up the computation at the cost of less accurate estimates for those genes  that terminate early (i.e. deemed not significant). This option is OFF by default.
     <LI class="param"><B>Normalization Method:</B> Determines which normalization method to use when comparing datasets. Proper normalization is important as it ensures that other sources of variability are not mistakenly treated as real differences.
     <UL>
+        <LI> <b>TTR</b>: Trimmed Total Reads (TTR), normalized by the total read-counts (like totreads), but trims top and bottom 5% of read-counts. This is the recommended normalization method for most cases as it has the beneffit of normalizing for difference in saturation in the context of resampling.
         <LI> <b>nzmean</b>: Normalizes datasets to have the same mean over the non-zero sites. 
         <LI> <b>totreads</b>: Normalizes datasets by total read-counts, and scales them to have the same mean over all counts.
         <LI> <b>zinfnb</b>: Fits a zero-inflated negative binomial model, and then divides read-counts by the mean. The zero-inflated negative binomial model will treat some empty sites as belonging to the "true" negative binomial distribution responsible for read-counts while treating the others as "essential" (and thus not influencing its parameters).
         <LI> <b>quantile</b>: Normalizes datasets using the quantile normalization method described by <a href="http://www.ncbi.nlm.nih.gov/pubmed/12538238">Bolstad et al. (2003)</a>. In this normalization procedure, datasets are sorted, an empirical distribution is estimated as the mean across the sorted datasets at each site, and then the original (unsorted) datasets are assigned values from the empirical distribution based on their quantiles.
+        <LI> <b>betageom</b>: Normalizes the datasets to fit an "ideal" Geometric distribution with a variable probability parameter <i>p</i>. Specially useful for datasets that contain a large skew.
         <LI> <b>nonorm</b>: No normalization is performed.
     </UL>
 </UL>
