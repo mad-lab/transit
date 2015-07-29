@@ -86,13 +86,16 @@ def runResampling(wx, pubmsg, **kwargs):
 
     hash = transit_tools.get_pos_hash(annotationPath)
     (data, position) = transit_tools.get_data(ctrlList + expList)
-
+    factors = []
     print resampling_prefix, "Normalizing with", normalize
     if normalize == "nzmean":
         factors = transit_tools.nzmean_factors(data)
         data = factors * data
     elif normalize == "totreads":
         factors = transit_tools.totreads_factors(data)
+        data = factors * data
+    elif normalize == "TTR":
+        factors = transit_tools.TTR_factors(data)
         data = factors * data
     elif normalize == "zinfnb":
         factors = transit_tools.zinfnb_factors(data)
@@ -122,8 +125,9 @@ def runResampling(wx, pubmsg, **kwargs):
         output.write("#Not normalized\n")
     else:
         output.write("#Normalized with %s\n" % normalize)
-    if  normalize in ["nzmean", "totreads", "zinfnb"]:
-        output.write("#%s factors: %s\n" % (normalize ,"\t".join(["%1.4f" % f for f in factors])))
+
+    if len(factors) > 0:
+        output.write("#%s factors:\t%s\n" % (normalize ,"\t".join(["%1.4f" % f for f in factors])))
 
 
     output.write("#Orf\t%Name\tDescription\tN\tTAs Hit\tSum Rd 1\tSum Rd 2\tDelta Rd\tlog2 FC\tp-value\tp-adj\n")

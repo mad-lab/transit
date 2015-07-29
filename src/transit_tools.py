@@ -24,7 +24,7 @@ import math
 import ntpath
 import numpy
 import scipy.optimize
-
+import scipy.stats
 
 
 def aton(aa):
@@ -139,6 +139,24 @@ def totreads_factors(data):
 
 
 
+def empirical_theta(X):
+    return numpy.mean(X > 0)
+
+def trimmed_empirical_mu(X, t=0.05):
+    return scipy.stats.trim_mean(X[X > 0], t)
+
+def TTR_factors(data, thetaEst=empirical_theta, muEst=trimmed_empirical_mu):
+    K = len(data)
+    N = len(data[0])
+
+    factors = numpy.zeros((K,1))
+    for j in range(K):
+        factors[j] = (thetaEst(data[0]) * muEst(data[0]))/(thetaEst(data[j]) * muEst(data[j]))
+
+    return factors
+
+
+
 def Fzinfnb(params, args):
     pi, mu, r = params
     Fdata = args
@@ -167,6 +185,21 @@ def zinfnb_factors(data):
     
 
     return factors
+
+
+
+def thetanorm_factors(data):
+
+    K = len(data)
+    N = len(data[0])
+    
+    factors = numpy.zeros((K,1))
+    for j in range(K):
+        factors[j] = (numpy.mean(data[0] > 0) * scipy.stats.trim_mean(data[0][data[0] > 0], 0.05))/(numpy.mean(data[j] > 0) * scipy.stats.trim_mean(data[j][data[j] > 0], 0.05))
+
+    return factors
+
+
 
 
 
