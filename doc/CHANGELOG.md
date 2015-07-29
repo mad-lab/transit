@@ -1,6 +1,19 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+
+
+## Version 1.4.2 - 2015-07-29
+- TRANSIT:
+    - Added Total Trimmed Reads normaliztion (TTR) as the default option. This is the recommended normalization method at this point.
+    - Added BetaGeomtric Correction (betageom) as a normalization option. This is recommended for datasets that are very skewed.
+    - Fixed bug that caused transit to create histograms when not desired.
+    - Added a pseudo-count when calculating log-FC to genes without reads.
+    - Increased size of result windows so that all columns are immediately visible.
+
+
+
+
 ## Version 1.4.1 - 2015-06-5
 - TRANSIT:
     - TRANSIT now accepts read-counts in floating-point precision, not just integers.
