@@ -1226,7 +1226,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         #Check if user wants individual histograms
         if self.resamplingHistCheck.GetValue():
-            histPath = os.path.join(ntpath.dirname(outputPath), transit_tools.fetch_name(outputPath))
+            histPath = os.path.join(ntpath.dirname(outputPath), transit_tools.fetch_name(outputPath)+"_histograms")
             if not os.path.isdir(histPath):
                 os.makedirs(histPath)
         else:
@@ -1276,8 +1276,6 @@ class TnSeekFrame(transit_gui.MainFrame):
         thread = threading.Thread(target=resampling.runResampling, args=(wx, pub.sendMessage), kwargs=kwargs)
         thread.setDaemon(True)
         thread.start()
-
-        #ResamplingThread(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
 
 
 def msg():
@@ -1344,7 +1342,7 @@ if __name__ == "__main__":
         resampling_parser.add_argument("-s", "--samples", help="Number of permutation samples obtained for each gene. Default is 10000.", default=10000, type=int)
         resampling_parser.add_argument("-H", "--hist", help="Number of samples to trim. See documentation. Default is to NOT create histograms.", action='store_true')
         resampling_parser.add_argument("-a", "--adaptive", help="Adaptive resampling; faster at the risk of lower accuracy. Default is off (i.e. regular resampling).", action='store_true')
-        resampling_parser.add_argument("-N", "--normalize", help="Choose the normalization method: 'nzmean', 'totread', 'zinfnb', 'quantile', 'betageom', 'nonorm'. Default is 'nzmean'. See documentation for an explanation", default="nzmean", type=str)
+        resampling_parser.add_argument("-N", "--normalize", help="Choose the normalization method: 'nzmean', 'totread', 'TTR', 'zinfnb', 'quantile', 'betageom', 'nonorm'. Default is 'nzmean'. See documentation for an explanation", default="nzmean", type=str)
         resampling_parser.add_argument("-L", "--loess", help="Perform LOESS Correction; Helps remove possible genomic position bias.", action='store_true')
         resampling_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus. Default is 0%%.", default=0.0, type=float)
         resampling_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus. Default is 0%%.", default=0.0, type=float)
@@ -1393,7 +1391,7 @@ if __name__ == "__main__":
             kwargs["sampleSize"] = args.samples
            
             if args.hist:
-                histPath = os.path.join(ntpath.dirname(args.output_file), transit_tools.fetch_name(args.output_file))
+                histPath = os.path.join(ntpath.dirname(args.output_file), transit_tools.fetch_name(args.output_file)+"_histograms")
                 if not os.path.isdir(histPath):
                     os.makedirs(histPath)
             else:

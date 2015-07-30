@@ -1869,7 +1869,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">v1.4.1</property>
+                                <property name="label">v1.4.2</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
                                 <property name="maximum_size"></property>
@@ -5050,7 +5050,7 @@
                                                                 <property name="caption"></property>
                                                                 <property name="caption_visible">1</property>
                                                                 <property name="center_pane">0</property>
-                                                                <property name="choices">&quot;nzmean&quot; &quot;totreads&quot; &quot;zinfnb&quot; &quot;quantile&quot; &quot;betageom&quot; &quot;nonorm&quot; &quot;&quot;</property>
+                                                                <property name="choices">&quot;TTR&quot; &quot;nzmean&quot; &quot;totreads&quot; &quot;zinfnb&quot; &quot;quantile&quot; &quot;betageom&quot; &quot;nonorm&quot;</property>
                                                                 <property name="close_button">1</property>
                                                                 <property name="context_help"></property>
                                                                 <property name="context_menu">1</property>

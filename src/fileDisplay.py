@@ -432,6 +432,7 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
         text2 = """         Notes:
             TAs Hit:   Number of TA sites with insertions combined across conditions.
             Sum Reads: Sum of read-counts normalized with the Non-Zero Mean normalization method.
+            log2 FC:  Log fold change (base 2) of the sum of reads. Sums of zero have a pseudo-count of 1 added.
             [Double click on a gene to display it's histogram, if available]"""
         self.headerText2.SetLabel(text2)
 
@@ -453,7 +454,7 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
     def OnDoubleClick_resampling(self, event):
 
         
-        filepath = os.path.join(ntpath.dirname(self.filePath), fetch_name(self.filePath))
+        filepath = os.path.join(ntpath.dirname(self.filePath), fetch_name(self.filePath)+"_histograms")
         filename = os.path.join(filepath, event.GetText()+".png")
         if os.path.exists(filename):
             imgWindow = ImgFrame(None, filename)

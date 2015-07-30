@@ -27,42 +27,8 @@ import numpy
 import matplotlib.pyplot as plt
 import transit_tools
 
-def sum_reads(reads, N1, N2):
-    sum1 = 0
-    sum2 = 0
-    n = len(reads)
-    if n > 0:
-        for row in reads:
-            sum1+=sum(row[:N1])
-            sum2+=sum(row[N1:])
-        return (sum1/float(N1*n),  sum2/float(N2*n))
-    else:
-        return(0,0)
-
-
-def maxrun(lst,item=0):
-    best = 0
-    i,n = 0,len(lst)
-    while i<n:
-        if lst[i]==item:
-            j = i+1
-            while j<n and lst[j]==item: j += 1
-            r = j-i
-            if r>best: best = r
-            i = j
-        else: i += 1
-    return best
-
-
-
-def comb_runs(reads, N1, N2):
-    if not reads: return (0,0)
-    combined_col1 = [sum(row[:N1]) for row in reads]
-    combined_col2 = [sum(row[N1:]) for row in reads]
-    return (maxrun(combined_col1),  maxrun(combined_col2))
       
 def fdr_corrected_pval(X):
-    import numpy
     n = len(X)
     qvalues = numpy.zeros(n)
     pvalues = numpy.array(X)
@@ -84,7 +50,6 @@ def fdr_corrected_pval(X):
 
 resampling_prefix = "[Resampling]"
 
-#def runResampling(ctrlString, expString, annotationPath, sampleSize, histPath, doAdaptive, ignoreCodon, ignoreNTerm, ignoreCTerm, output, wx, pubmsg, doNormalize=True):
 def runResampling(wx, pubmsg, **kwargs):
     try:
         from wx.lib.pubsub import pub
@@ -121,13 +86,16 @@ def runResampling(wx, pubmsg, **kwargs):
 
     hash = transit_tools.get_pos_hash(annotationPath)
     (data, position) = transit_tools.get_data(ctrlList + expList)
-
+    factors = []
     print resampling_prefix, "Normalizing with", normalize
     if normalize == "nzmean":
         factors = transit_tools.nzmean_factors(data)
         data = factors * data
     elif normalize == "totreads":
         factors = transit_tools.totreads_factors(data)
+        data = factors * data
+    elif normalize == "TTR":
+        factors = transit_tools.TTR_factors(data)
         data = factors * data
     elif normalize == "zinfnb":
         factors = transit_tools.zinfnb_factors(data)
@@ -157,8 +125,9 @@ def runResampling(wx, pubmsg, **kwargs):
         output.write("#Not normalized\n")
     else:
         output.write("#Normalized with %s\n" % normalize)
-    if  normalize in ["nzmean", "totreads", "zinfnb"]:
-        output.write("#%s factors: %s\n" % (normalize ,"\t".join(["%1.4f" % f for f in factors])))
+
+    if len(factors) > 0:
+        output.write("#%s factors:\t%s\n" % (normalize ,"\t".join(["%1.4f" % f for f in factors])))
 
 
     output.write("#Orf\t%Name\tDescription\tN\tTAs Hit\tSum Rd 1\tSum Rd 2\tDelta Rd\tlog2 FC\tp-value\tp-adj\n")
@@ -177,21 +146,18 @@ def runResampling(wx, pubmsg, **kwargs):
             sum1 = 0; sum2 = 0;
 
         try:
-            log2FC = math.log(float(sum2)/float(sum1),2)
+            log2FC = math.log(float(sum2 if sum2 > 0 else 1)/float(sum1 if sum1 > 0 else 1),2)
         except:
             log2FC = 0
-
 
         count_utail = 0
         count_ltail = 0
         count_2tail = 0
    
-        #delta_sum_list = numpy.zeros(S)
         delta_sum_list = []
         s_performed = 0
         for s in range(S):
             #Reads
-            #if len(reads) == 0: breaki
             if len(reads) >0:
                 perm = numpy.random.permutation(reads.flatten()).reshape(reads.shape)
                 sumA,sumB = numpy.sum(perm[:,:N1]), numpy.sum(perm[:,N1:])
@@ -218,8 +184,6 @@ def runResampling(wx, pubmsg, **kwargs):
         pval_utail = count_utail/float(s_performed)
         pval_ltail = count_ltail/float(s_performed)
         pval_2tail = count_2tail/float(s_performed)
-
-
 
 
         orf2out[orf] = (orf, orf2info[orf][0], orf2info[orf][1], len(fullreads), len(reads), sum1, sum2, sum2-sum1, log2FC, pval_2tail)
