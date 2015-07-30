@@ -871,7 +871,7 @@ def generate_output(vars):
   tas_hit = len(filter(lambda x: x>0,rcounts))
   density = tas_hit/float(ta_sites)
   counts.sort(key=lambda x: x[-1])
-  max_tc = counts[-1][5]
+  max_tc = counts[-1][6]
   max_coord = counts[-1][0]
   NZmean = tc/float(tas_hit)
   FR_corr = corr([x[1] for x in counts],[x[3] for x in counts])
@@ -917,7 +917,7 @@ def generate_output(vars):
 
   #output.write("# most_abundant_prefix: %s reads start with %s\n" % (temp[0][1],temp[0][0]))
   # since these are reads (within Tn prefix stripped off), I expect ~1/4 to match Tn prefix
-  vals = [vars.fq1,vars.fq2,tot_reads,vars.tot_tgtta,vars.r1,vars.r2,vars.mapped,vars.r1,vars.r2,rc,tc,ratio,ta_sites,tas_hit,max_tc,max_coord,NZmean,FR_corr,BC_corr,nprimer,nvector]
+  vals = [vars.fq1,vars.fq2,tot_reads,vars.tot_tgtta,vars.r1,vars.r2,vars.mapped,rc,tc,ratio,ta_sites,tas_hit,max_tc,density,max_coord,NZmean,FR_corr,BC_corr,nprimer,nvector]
   output.write('\t'.join([str(x) for x in vals])+"\n")
   output.close()
 
