@@ -625,6 +625,9 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
     def graphFileFunc(self, event):
+        #test
+        # Plot choice:
+        plot_choice  = self.gumbelReadChoice.GetCurrentSelection()
         next = self.list_files.GetNextSelected(-1)
         if next > -1:
             dataset = self.list_files.GetItem(next, 3).GetText()
