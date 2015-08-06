@@ -113,6 +113,11 @@ class MainFrame ( wx.Frame ):
 		self.addFileButton = wx.Button( self, wx.ID_ANY, u"Add Results File", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer141.Add( self.addFileButton, 0, wx.ALL, 5 )
 		
+		graphFileChoiceChoices = [ u"[Choose Figure to Plot]", u"Volcano Plot", u"Histogram of gene logFC" ]
+		self.graphFileChoice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, graphFileChoiceChoices, 0 )
+		self.graphFileChoice.SetSelection( 0 )
+		bSizer141.Add( self.graphFileChoice, 0, wx.ALL, 5 )
+		
 		
 		filesSizer.Add( bSizer141, 0, 0, 5 )
 		
