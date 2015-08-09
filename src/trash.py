@@ -246,7 +246,7 @@ class TrashFrame(view_trash.MainFrame):
         output_path = self.SaveFile(DIR=".", FILE="reads_canvas.png")
         if output_path:
             finished_image.SaveFile(output_path, wx.BITMAP_TYPE_PNG)
-        
+        print track_prefix, "Image saved to the following path:", output_path
     
 
     def searchFunc(self, event):
@@ -320,7 +320,7 @@ class TrashFrame(view_trash.MainFrame):
             )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            print track_view, "You chose the following output filename: %s" % path
+            #print track_prefix, "You chose the following output filename: %s" % path
         dlg.Destroy()
         return path
 
