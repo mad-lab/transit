@@ -625,63 +625,97 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
     def graphFileFunc(self, event):
-        #test
-        # Plot choice:
-        plot_choice  = self.gumbelReadChoice.GetCurrentSelection()
+        # 0 - nothing
+        # 1 - Volcano
+        # 2 - Hist gene counts ratio
+        
+        plot_choice  = self.graphFileChoice.GetCurrentSelection()
+        plot_name = self.graphFileChoice.GetString(plot_choice)
+        if plot_choice == 0:
+                return
         next = self.list_files.GetNextSelected(-1)
         if next > -1:
-            dataset = self.list_files.GetItem(next, 3).GetText()
+            dataset_path = self.list_files.GetItem(next, 3).GetText()
+            dataset_name = self.list_files.GetItem(next, 0).GetText()
+            dataset_type = self.list_files.GetItem(next, 1).GetText()
+            
             if self.verbose:
-                print transit_prefix, "Graphing results:", self.list_files.GetItem(next, 0).GetText()
+                print transit_prefix, "Creating a", plot_name, " for dataset", dataset_name
 
-            try:
-                filetype = self.list_files.GetItem(next, 1).GetText()
-                if filetype == "Resampling":
-                    X = []; Y = [];
-                    for line in open(dataset):
-                        if line.startswith("#"): continue
-                        tmp = line.strip().split("\t")
-                        try:
-                            log2FC = math.log(float(tmp[6])/float(tmp[5]),2)
-                            log10qval = -math.log(float(tmp[-1].strip()), 10)
-                        except:
-                            log2FC = 0
-                            log10qval = 0
+            if plot_choice == 1:
+                self.graphVolcanoPlot(dataset_name, dataset_type, dataset_path)
+            elif plot_choice == 2:
+                self.graphGeneCounts(dataset_name, dataset_type, dataset_path)
+
+            self.graphFileChoice.SetSelection(0)
+            
+        else:
+            self.ShowError(MSG="Please select a results file to plot!")
+    
+        
+
+
+    def graphGeneCounts(self, dataset_name, dataset_type, dataset_path):
+        try:
+            if dataset_type == "Resampling":
+                X = []
+                for line in open(dataset_path):
+                    if line.startswith("#"): continue
+                    tmp = line.strip().split("\t")
+                    try:
+                        log2FC = float(tmp[8])
+                    except:
+                        log2FC = 0
+                    X.append(log2FC)
+
+                n, bins, patches = plt.hist(X, normed=1, facecolor='c', alpha=0.75, bins=100)
+                plt.xlabel('log2 FC - Total Gene Counts')
+                plt.ylabel('Probability')
+                plt.title('Histogram of log2 Fold Change for Total Normalized Counts within Genes')
+                plt.axvline(0, color='r', linestyle='dashed', linewidth=3)
+                plt.grid(True)
+                plt.show()
+                plt.close()
+            else:
+               self.ShowError(MSG="Need to select a 'Resampling' results file for this type of plot.")
+
+        except Exception as e:
+            print "Error occurred creating plot:", str(e)
+
+
+
+
+
+    def graphVolcanoPlot(self, dataset_name, dataset_type, dataset_path):
+        try:
+            if dataset_type == "Resampling":
+                X = []; Y = [];
+                for line in open(dataset_path):
+                    if line.startswith("#"): continue
+                    tmp = line.strip().split("\t")
+                    try:
+                        log2FC = math.log(float(tmp[6])/float(tmp[5]),2)
+                        log10qval = -math.log(float(tmp[-1].strip()), 10)
+                    except:
+                        log2FC = 0
+                        log10qval = 0
                         #log2FC = 1
                         #log10qval = 1
-                        X.append(log2FC)
-                        Y.append(log10qval)
+                    X.append(log2FC)
+                    Y.append(log10qval)
 
-                    plt.plot(X,Y, "bo")
-                    plt.xlabel("Log Fold Change (base 2)")
-                    plt.ylabel("-Log q-value (base 10)")
-                    plt.title("Resampling - Volcano plot")
-                    plt.show()
-                    plt.close()
-
-                elif filetype == "Gumbel":
-                    X = []; Y = [];
-                    for line in open(dataset):
-                        if line.startswith("#"): continue
-                        tmp = line.strip().split("\t")
-                        pprob = float(tmp[7])
-                        if pprob < 0: continue
-                        X.append(pprob)
-                    
-                    X.sort()
-                    plt.plot(X,"bo")
-                    plt.xlabel("Rank")
-                    plt.ylabel("Zbar")
-                    plt.title("Gumbel - Ranked Posterior Probability of Essentiality (Zbar)")
-                    plt.show()
-
-
-
-            except Exception as e:
-                print "Error occurred displaying file:", e
-        else:
-            self.ShowError(MSG="No results selected to display!")
-
+                plt.plot(X,Y, "bo")
+                plt.xlabel("Log Fold Change (base 2)")
+                plt.ylabel("-Log q-value (base 10)")
+                plt.title("Resampling - Volcano plot")
+                plt.show()
+                plt.close()
+            else:
+               self.ShowError(MSG="Need to select a 'Resampling' results file for this type of plot.")
+            
+        except Exception as e:
+            print "Error occurred creating plot:", str(e)
+        
 
 
 
