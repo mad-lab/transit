@@ -17,15 +17,15 @@ import wx.xrc
 class MainFrame ( wx.Frame ):
 	
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"TRANSIT", pos = wx.DefaultPosition, size = wx.Size( 1200,975 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"TRANSIT", pos = wx.DefaultPosition, size = wx.Size( 1300,975 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
 		bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.m_scrolledWindow2 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL )
+		self.m_scrolledWindow2 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.SIMPLE_BORDER|wx.VSCROLL )
 		self.m_scrolledWindow2.SetScrollRate( 5, 5 )
-		self.m_scrolledWindow2.SetMinSize( wx.Size( 300,-1 ) )
+		self.m_scrolledWindow2.SetMinSize( wx.Size( 700,-1 ) )
 		
 		bSizer4 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -39,6 +39,12 @@ class MainFrame ( wx.Frame ):
 		
 		self.annotationFilePicker = wx.FilePickerCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.EmptyString, u"Select a file", u"Prot Table (*.prot_table)|*.prot_table;|\nProt Table (*.txt)|*.txt;|\nProt Table (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
 		bSizer10.Add( self.annotationFilePicker, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.m_panel2 = wx.Panel( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_panel2.SetMinSize( wx.Size( 100,-1 ) )
+		self.m_panel2.SetMaxSize( wx.Size( 150,-1 ) )
+		
+		bSizer10.Add( self.m_panel2, 1, wx.EXPAND |wx.ALL, 5 )
 		
 		
 		orgSizer.Add( bSizer10, 1, wx.EXPAND, 5 )
@@ -65,6 +71,12 @@ class MainFrame ( wx.Frame ):
 		
 		self.ctrlFilePicker = wx.FilePickerCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.EmptyString, u"Select a file", u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
 		bSizer2.Add( self.ctrlFilePicker, 1, wx.ALL, 5 )
+		
+		self.m_panel21 = wx.Panel( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_panel21.SetMinSize( wx.Size( 100,-1 ) )
+		self.m_panel21.SetMaxSize( wx.Size( 150,-1 ) )
+		
+		bSizer2.Add( self.m_panel21, 1, wx.EXPAND |wx.ALL, 5 )
 		
 		
 		ctrlSizer.Add( bSizer2, 0, wx.EXPAND, 5 )
@@ -94,6 +106,12 @@ class MainFrame ( wx.Frame ):
 		
 		self.expFilePicker = wx.FilePickerCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.EmptyString, u"Select a .wig file", u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
 		bSizer3.Add( self.expFilePicker, 1, wx.ALL, 5 )
+		
+		self.m_panel22 = wx.Panel( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_panel22.SetMinSize( wx.Size( 100,-1 ) )
+		self.m_panel22.SetMaxSize( wx.Size( 150,-1 ) )
+		
+		bSizer3.Add( self.m_panel22, 1, wx.EXPAND |wx.ALL, 5 )
 		
 		
 		expSizer1.Add( bSizer3, 0, wx.EXPAND, 5 )
@@ -139,7 +157,7 @@ class MainFrame ( wx.Frame ):
 		bSizer4.Fit( self.m_scrolledWindow2 )
 		bSizer1.Add( self.m_scrolledWindow2, 1, wx.ALL|wx.EXPAND, 5 )
 		
-		self.m_scrolledWindow1 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL )
+		self.m_scrolledWindow1 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.SIMPLE_BORDER|wx.VSCROLL )
 		self.m_scrolledWindow1.SetScrollRate( 5, 5 )
 		self.m_scrolledWindow1.SetMinSize( wx.Size( 310,1000 ) )
 		
