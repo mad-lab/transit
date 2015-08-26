@@ -130,7 +130,7 @@ def runResampling(wx, pubmsg, **kwargs):
         output.write("#%s factors:\t%s\n" % (normalize ,"\t".join(["%1.4f" % f for f in factors])))
 
 
-    output.write("#Orf\t%Name\tDescription\tN\tTAs Hit\tSum Rd 1\tSum Rd 2\tDelta Rd\tlog2 FC\tp-value\tp-adj\n")
+    output.write("#Orf\tName\tDescription\tN\tTAs Hit\tSum Rd 1\tSum Rd 2\tDelta Rd\tlog2 FC\tp-value\tp-adj\n")
     count = 0
     G = len(orf2reads)
     orf2out= {}
