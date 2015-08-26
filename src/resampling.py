@@ -146,7 +146,7 @@ def runResampling(wx, pubmsg, **kwargs):
             sum1 = 0; sum2 = 0;
 
         try:
-            log2FC = math.log(float(sum2 if sum2 > 0 else 1)/float(sum1 if sum1 > 0 else 1),2)
+            log2FC = math.log(float(sum2/float(N2) if sum2 > 0 else 1)/float(sum1/float(N1) if sum1 > 0 else 1),2)
         except:
             log2FC = 0
 
