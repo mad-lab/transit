@@ -35,7 +35,6 @@ except AttributeError as e:
 import os
 import time
 import datetime
-import ntpath
 import threading
 import numpy
 import matplotlib.pyplot as plt
@@ -47,6 +46,7 @@ import trash
 import transit_gui
 import transit_tools
 import fileDisplay
+import qcDisplay
 
 import gumbelMH
 import hmm_geom
@@ -202,7 +202,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         if not newWx:
             data = data.data
         fullpath = data["path"]
-        name = ntpath.basename(fullpath)
+        name = transit_tools.basename(fullpath)
         type = data["type"]
         date = data["date"]
         self.list_files.InsertStringItem(self.index_file, name)
@@ -415,6 +415,11 @@ class TnSeekFrame(transit_gui.MainFrame):
         return selected_exp
 
 
+    def allSelected(self, col=5):
+        selected_all = self.ctrlSelected(col) + self.expSelected(col)
+        return selected_all
+
+
     def ctrlAll(self, col=5):
         all_ctrl = []
         for i in range(self.list_ctrl.GetItemCount()):
@@ -432,8 +437,8 @@ class TnSeekFrame(transit_gui.MainFrame):
     def loadCtrlFileFunc(self, event):
         try:
             fullpath = self.ctrlFilePicker.GetPath()
-            name = ntpath.basename(fullpath)
-            totalrd,density,meanrd,maxrd = transit_tools.get_wig_stats(fullpath)
+            name = transit_tools.basename(fullpath)
+            (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = transit_tools.get_wig_stats(fullpath)
             self.list_ctrl.InsertStringItem(self.index_ctrl, name)
             self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
             self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
@@ -455,8 +460,8 @@ class TnSeekFrame(transit_gui.MainFrame):
     def loadExpFileFunc(self, event):
         try:
             fullpath = self.expFilePicker.GetPath()
-            name = ntpath.basename(fullpath)
-            totalrd,density,meanrd,maxrd = transit_tools.get_wig_stats(fullpath)
+            name = transit_tools.basename(fullpath)
+            (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = transit_tools.get_wig_stats(fullpath)
             self.list_exp.InsertStringItem(self.index_exp, name)
             self.list_exp.SetStringItem(self.index_exp, 1, "%d" % (totalrd))
             self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
@@ -466,10 +471,11 @@ class TnSeekFrame(transit_gui.MainFrame):
             if self.verbose:
                 print transit_prefix, "Adding experimental item (%d): %s" % (self.index_exp, name)
             self.index_exp+=1
-        
-
         except Exception as e:
-            print transit_prefix, "Error:", e 
+            print transit_prefix, "Error:", e
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
 
 
     def ctrlRemoveFunc(self, event):
@@ -565,6 +571,23 @@ class TnSeekFrame(transit_gui.MainFrame):
             plt.show()
         else:
             self.ShowError(MSG="Please make sure only two datasets are selected (across control and experimental datasets).")
+
+
+    def qcFunc(self, event):
+        datasets = self.allSelected()
+        nfiles = len(datasets)
+
+        if nfiles == 0:
+            print transit_prefix, "You must select atleast one dataset control or experimental dataset."
+            self.ShowError(MSG="You must select atleast one dataset control or experimental dataset.")
+            
+        elif nfiles >= 1:
+            print transit_prefix, "Displaying results:", datasets[0]
+            try:
+                qcWindow = qcDisplay.qcFrame(self, datasets)
+                qcWindow.Show()
+            except Exception as e:
+                print "Error occurred displaying file", e
 
 
 
@@ -694,7 +717,8 @@ class TnSeekFrame(transit_gui.MainFrame):
                     if line.startswith("#"): continue
                     tmp = line.strip().split("\t")
                     try:
-                        log2FC = math.log(float(tmp[6])/float(tmp[5]),2)
+                        #log2FC = math.log(float(tmp[6])/float(tmp[5]),2)
+                        log2FC = float(tmp[8])
                         log10qval = -math.log(float(tmp[-1].strip()), 10)
                     except:
                         log2FC = 0
@@ -739,7 +763,7 @@ class TnSeekFrame(transit_gui.MainFrame):
             plt.xlabel("Genomic Position")
             plt.ylabel("Reads per 100 insertion sites")
 
-            plt.title("LOESS Fit - %s" % ntpath.basename(datasets_selected[j]) )
+            plt.title("LOESS Fit - %s" % transit_tools.basename(datasets_selected[j]) )
             plt.show()
             plt.close()
     
@@ -1116,7 +1140,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         pathCol = self.list_ctrl.GetColumnCount() - 1
         readPath = self.list_ctrl.GetItem(next, pathCol).GetText()
         readPathList = all_selected
-        name = ntpath.basename(readPath)
+        name = transit_tools.basename(readPath)
         min_read = int(self.gumbelReadChoice.GetString(self.gumbelReadChoice.GetCurrentSelection()))
         samples = int(self.gumbelSampleText.GetValue())
         burnin = int(self.gumbelBurninText.GetValue())
@@ -1180,7 +1204,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         pathCol = self.list_ctrl.GetColumnCount() - 1
         readPath = self.list_ctrl.GetItem(next, pathCol).GetText()
         readPathList = all_selected
-        name = ntpath.basename(readPath)
+        name = transit_tools.basename(readPath)
         repchoice = self.hmmRepChoice.GetString(self.hmmRepChoice.GetCurrentSelection())
         ignoreCodon = True
         ignoreNTerm = float(self.globalNTerminusText.GetValue())
@@ -1263,7 +1287,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         #Check if user wants individual histograms
         if self.resamplingHistCheck.GetValue():
-            histPath = os.path.join(ntpath.dirname(outputPath), transit_tools.fetch_name(outputPath)+"_histograms")
+            histPath = os.path.join(transit_tools.dirname(outputPath), transit_tools.fetch_name(outputPath)+"_histograms")
             if not os.path.isdir(histPath):
                 os.makedirs(histPath)
         else:
@@ -1428,7 +1452,7 @@ if __name__ == "__main__":
             kwargs["sampleSize"] = args.samples
            
             if args.hist:
-                histPath = os.path.join(ntpath.dirname(args.output_file), transit_tools.fetch_name(args.output_file)+"_histograms")
+                histPath = os.path.join(transit_tools.dirname(args.output_file), transit_tools.fetch_name(args.output_file)+"_histograms")
                 if not os.path.isdir(histPath):
                     os.makedirs(histPath)
             else:

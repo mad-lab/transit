@@ -23,7 +23,7 @@ class MainFrame ( wx.Frame ):
 		
 		bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.m_scrolledWindow2 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.SIMPLE_BORDER|wx.VSCROLL )
+		self.m_scrolledWindow2 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL )
 		self.m_scrolledWindow2.SetScrollRate( 5, 5 )
 		self.m_scrolledWindow2.SetMinSize( wx.Size( 700,-1 ) )
 		
@@ -137,7 +137,7 @@ class MainFrame ( wx.Frame ):
 		self.addFileButton = wx.Button( self.m_scrolledWindow2, wx.ID_ANY, u"Add Results File", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer141.Add( self.addFileButton, 0, wx.ALL, 5 )
 		
-		graphFileChoiceChoices = [ u"[Choose Figure to Plot]", u"Volcano Plot", u"Histogram of Total Gene Counts" ]
+		graphFileChoiceChoices = [ u"[Visualization Options]", u"Volcano Plot", u"Histogram of Total Gene Counts" ]
 		self.graphFileChoice = wx.Choice( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, graphFileChoiceChoices, 0 )
 		self.graphFileChoice.SetSelection( 0 )
 		bSizer141.Add( self.graphFileChoice, 0, wx.ALL, 5 )
@@ -157,7 +157,12 @@ class MainFrame ( wx.Frame ):
 		bSizer4.Fit( self.m_scrolledWindow2 )
 		bSizer1.Add( self.m_scrolledWindow2, 1, wx.ALL|wx.EXPAND, 5 )
 		
-		self.m_scrolledWindow1 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.SIMPLE_BORDER|wx.VSCROLL )
+		self.m_panel5 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.DOUBLE_BORDER|wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL )
+		self.m_panel5.SetMaxSize( wx.Size( 2,-1 ) )
+		
+		bSizer1.Add( self.m_panel5, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		self.m_scrolledWindow1 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL )
 		self.m_scrolledWindow1.SetScrollRate( 5, 5 )
 		self.m_scrolledWindow1.SetMinSize( wx.Size( 310,1000 ) )
 		
@@ -502,6 +507,9 @@ class MainFrame ( wx.Frame ):
 		self.trackMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"Track View", wx.EmptyString, wx.ITEM_NORMAL )
 		self.viewMenuItem.AppendItem( self.trackMenuItem )
 		
+		self.qcMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"Quality Control", wx.EmptyString, wx.ITEM_NORMAL )
+		self.viewMenuItem.AppendItem( self.qcMenuItem )
+		
 		self.m_menubar1.Append( self.viewMenuItem, u"View" ) 
 		
 		self.SetMenuBar( self.m_menubar1 )
@@ -540,6 +548,7 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.Exit, id = self.fileExitMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.scatterFunc, id = self.scatterMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.allViewFunc, id = self.trackMenuItem.GetId() )
+		self.Bind( wx.EVT_MENU, self.qcFunc, id = self.qcMenuItem.GetId() )
 	
 	def __del__( self ):
 		pass
@@ -620,5 +629,8 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	
+	
+	def qcFunc( self, event ):
+		event.Skip()
 	
 

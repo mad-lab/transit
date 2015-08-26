@@ -40,24 +40,31 @@ def parseCoords(strand, aa_start, aa_end, start, end):
 
 
 def get_wig_stats(path):
-    data = []
+    reads = []
     for line in open(path):
-        if line.startswith("#"): continue
-        if line.startswith("variable"): continue
-        if line.startswith("location"): continue
+        if line[0] not in "0123456789": continue
         tmp = line.split()
         pos = int(tmp[0])
         rd = float(tmp[1])
-        data.append(rd)
-    return (sum(data), sum([1 for rd in data if rd > 0])/float(len(data)),  sum(data)/float(len(data)), max(data))
+        reads.append(rd)
+    reads = numpy.array(reads)
+    
+    density = numpy.mean(reads>0)
+    meanrd = numpy.mean(reads)
+    nzmeanrd = numpy.mean(reads[reads>0])
+    nzmedianrd = numpy.median(reads[reads>0])
+    maxrd = numpy.max(reads)
+    totalrd = numpy.sum(reads)
+
+    skew = scipy.stats.skew(reads[reads>0])
+    kurtosis = scipy.stats.kurtosis(reads[reads>0])
+    return (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis)
 
 
 def get_reads(path):
     data = []
     for line in open(path):
-        if line.startswith("#"): continue
-        if line.startswith("variable"): continue
-        if line.startswith("location"): continue
+        if line[0] not in "0123456789": continue
         tmp = line.split()
         rd = int(tmp[1])
         data.append(rd)
@@ -68,6 +75,8 @@ def fetch_name(filepath):
     return os.path.splitext(ntpath.basename(filepath))[0]
 
 
+def basename(filepath):
+    return ntpath.basename(filepath)
 
 
 def get_pos_hash(path):
