@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## Version 1.4.3 - 2015-07-29
+## Version 1.4.3 - 2015-12-04
 - TRANSIT:
     - Precision of resampling p-values in output file now increases with sample size
     - Added preliminary Quality Control functionality. Select some datasets and click View -> Quality Control
