@@ -187,7 +187,7 @@ def runResampling(wx, pubmsg, **kwargs):
         pval_2tail = count_2tail/float(s_performed)
 
 
-        orf2out[orf] = (orf, orf2info[orf][0], orf2info[orf][1], len(fullreads), len(reads), sum1, sum2, sum2-sum1, log2FC, pval_2tail)
+        orf2out[orf] = [orf, orf2info[orf][0], orf2info[orf][1], len(fullreads), len(reads), sum1, sum2, sum2-sum1, log2FC, pval_2tail]
         pval.append(pval_2tail)
 
 
@@ -203,9 +203,10 @@ def runResampling(wx, pubmsg, **kwargs):
 
     qval = fdr_corrected_pval(pval)
     count = 0
+    precision = max(4,int(round(math.log(S, 10))))
+    print_str = "%s\t%s\t%s\t%d\t%d\t%1.1f\t%1.1f\t%1.1f\t%1.2f\t%1." + str(precision) + "f\t%1." + str(precision) + "f\n"
     for orf in sorted(orf2out):
-        output.write("%s\t%s\t%s\t%d\t%d\t%1.1f\t%1.1f\t%1.1f\t%1.2f\t%1.5f" % orf2out[orf])
-        output.write("\t%1.5f\n" % qval[count])
+        output.write(print_str % (tuple(orf2out[orf] + [qval[count]])))
         count += 1
 
     output.close()
