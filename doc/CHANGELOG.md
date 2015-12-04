@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 1.4.3 - 2015-07-29
+- TRANSIT:
+    - Precision of resampling p-values in output file now increases with sample size
+    - Added preliminary Quality Control functionality. Select some datasets and click View -> Quality Control
+    - In resampling, changed logFC to divide by number of replicates
+    - Changed plotting of results files to be more versitile
+    - Fixed bug causing HMM_sites output not to be added to list of files
+    - Fixed bug causing LOESS correction not to work in HMM
+
 
 ## Version 1.4.2 - 2015-07-29
 - TRANSIT:

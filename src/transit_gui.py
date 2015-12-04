@@ -179,7 +179,7 @@ class MainFrame ( wx.Frame ):
 		self.logoImg = wx.StaticBitmap( self.m_scrolledWindow1, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
 		methodSizer.Add( self.logoImg, 0, wx.ALL, 5 )
 		
-		self.versionLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"v1.4.2", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
+		self.versionLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"v1.4.3", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
 		self.versionLabel.Wrap( -1 )
 		self.versionLabel.SetFont( wx.Font( 10, 74, 90, 92, False, "Sans" ) )
 		
