@@ -302,6 +302,13 @@ def normalize_data(data):
     return factors * data
     
 
+def norm_to_target(data, target):
+    (K,N) = data.shape
+    factors = numpy.zeros((K,1))
+    factors[:,0] = float(target)/numpy.mean(data,1)
+    return factors
+
+
 def get_gene_reads(hash, data, position, orf2info, ignoreCodon=True, ignoreNTerm=0, ignoreCTerm=0, orf_list=set()):
     (K,N) = data.shape
 
