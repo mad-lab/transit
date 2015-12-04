@@ -226,17 +226,19 @@ def runHMM(wx, pubmsg, **kwargs):
 
         genes_path = ".".join(output.name.split(".")[:-1]) + "_genes." + output.name.split(".")[-1]
         hmm_tools.post_process_genes(output.name, annotationPath, ignoreCodon, ignoreNTerm, ignoreCTerm, output=open(genes_path,"w"))
-        data["path"] =  genes_path
-        data["type"] = "HMM - Genes"
+
+        data2 = {"path":genes_path, "type":"HMM - Genes", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+        #data["path"] =  genes_path
+        #data["type"] = "HMM - Genes"
         print hmm_prefix, "Adding File:", genes_path
 
         if wx:
             if newWx:
-                wx.CallAfter(pubmsg, "file", data=data)
+                wx.CallAfter(pubmsg, "file", data=data2)
                 wx.CallAfter(pubmsg, "hmm", msg="Finished!")
                 wx.CallAfter(pubmsg,"finish", msg="hmm")
             else:
-                wx.CallAfter(pubmsg, "file", data)
+                wx.CallAfter(pubmsg, "file", data2)
                 wx.CallAfter(pubmsg, "hmm", "Finished!")
                 wx.CallAfter(pubmsg,"finish", "hmm")
 

@@ -1210,7 +1210,6 @@ class TnSeekFrame(transit_gui.MainFrame):
         ignoreNTerm = float(self.globalNTerminusText.GetValue())
         ignoreCTerm = float(self.globalCTerminusText.GetValue())
         doLOESS = self.hmmLoessCheck.GetValue()
-        print "Got this doLESS value:", doLOESS
 
         
 
