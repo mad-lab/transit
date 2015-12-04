@@ -79,21 +79,22 @@ def runHMM(wx, pubmsg, **kwargs):
             if line.startswith("location"): continue
             tmp = line.split()
             pos = int(tmp[0])
-            reads = int(tmp[1])
+            reads = int(float(tmp[1]))
             pos_list.append(int(pos))
             C.append(reads)
         data.append(numpy.array(C))
 
     data = numpy.array(data)
+    position = numpy.array(pos_list)
 
     if doLOESS:
+        print hmm_prefix, "Performing LOESS Correction"
         for j in range(len(data)):
             data[j] = transit_tools.loess_correction(position, data[j])
 
 
-
     if repchoice == "Sum":
-        O = numpy.sum(data,0)
+        O = numpy.round(numpy.sum(data,0))
     elif repchoice == "Mean":
         O = numpy.round(numpy.mean(data,0)) 
     else:

@@ -109,6 +109,7 @@ def runResampling(wx, pubmsg, **kwargs):
         pass
 
     if doLOESS:
+        print resampling_prefix, "Performing LOESS Correction"
         for j in range(len(data)):
             data[j] = transit_tools.loess_correction(position, data[j])
         

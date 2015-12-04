@@ -1209,6 +1209,10 @@ class TnSeekFrame(transit_gui.MainFrame):
         ignoreCodon = True
         ignoreNTerm = float(self.globalNTerminusText.GetValue())
         ignoreCTerm = float(self.globalCTerminusText.GetValue())
+        doLOESS = self.hmmLoessCheck.GetValue()
+        print "Got this doLESS value:", doLOESS
+
+        
 
 
         #Get Default file name
@@ -1240,6 +1244,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         kwargs["ignoreCodon"] = ignoreCodon
         kwargs["ignoreNTerm"] = ignoreNTerm
         kwargs["ignoreCTerm"] = ignoreCTerm
+        kwargs["doLOESS"] = doLOESS
         kwargs["output"] = output
 
         #HMMThread(readPathList, annotationPath, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
@@ -1287,7 +1292,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         #Check if user wants individual histograms
         if self.resamplingHistCheck.GetValue():
-            histPath = os.path.join(transit_tools.dirname(outputPath), transit_tools.fetch_name(outputPath)+"_histograms")
+            histPath = os.path.join(os.path.dirname(outputPath), transit_tools.fetch_name(outputPath)+"_histograms")
             if not os.path.isdir(histPath):
                 os.makedirs(histPath)
         else:
@@ -1452,7 +1457,7 @@ if __name__ == "__main__":
             kwargs["sampleSize"] = args.samples
            
             if args.hist:
-                histPath = os.path.join(transit_tools.dirname(args.output_file), transit_tools.fetch_name(args.output_file)+"_histograms")
+                histPath = os.path.join(os.path.dirname(args.output_file), transit_tools.fetch_name(args.output_file)+"_histograms")
                 if not os.path.isdir(histPath):
                     os.makedirs(histPath)
             else:
