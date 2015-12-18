@@ -185,7 +185,7 @@ class MainFrame ( wx.Frame ):
 		
 		methodSizer.Add( self.versionLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
-		methodChoiceChoices = [ u"[Choose Method]", u"Gumbel", u"HMM", u"Resampling" ]
+		methodChoiceChoices = [ u"[Choose Method]", u"Gumbel", u"Binomial", u"HMM", u"Resampling" ]
 		self.methodChoice = wx.Choice( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, methodChoiceChoices, 0 )
 		self.methodChoice.SetSelection( 0 )
 		methodSizer.Add( self.methodChoice, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
@@ -211,9 +211,17 @@ class MainFrame ( wx.Frame ):
 		self.hmmInstructions.Wrap( 250 )
 		methodSizer.Add( self.hmmInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
+		self.dehmmInstructions = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Instructions:\n\n1. Make sure you have at least on control sample and one experimental sample  selected.\n2. Click on the \"Run DE-HMM\" button.\n3. Choose a name for the output file. Note: An additional file with the gene-level analysis will also be created.\n4. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.\n\n\n", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.dehmmInstructions.Wrap( 250 )
+		methodSizer.Add( self.dehmmInstructions, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, 5 )
+		
 		self.gumbelInstructions = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Instructions:\n\n1. Make sure you have one control sample selected.\n2. Modify the options as desired.\n3. Click on the \"Run Gumbel\" button.\n4. Choose a name for the output file.\n5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.gumbelInstructions.Wrap( 250 )
 		methodSizer.Add( self.gumbelInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.binomialInstructions = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Instructions:\n\n1. Make sure you have one control sample selected.\n2. Modify the options as desired.\n3. Click on the \"Run Binomial\" button.\n4. Choose a name for the output file.\n5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.binomialInstructions.Wrap( 250 )
+		methodSizer.Add( self.binomialInstructions, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, 5 )
 		
 		self.globalLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Global Options", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.globalLabel.Wrap( -1 )
@@ -324,6 +332,52 @@ class MainFrame ( wx.Frame ):
 		
 		methodSizer.Add( gumbelSection, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
+		binomialSection = wx.BoxSizer( wx.VERTICAL )
+		
+		self.binomialLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Binomial Options", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.binomialLabel.Wrap( -1 )
+		binomialSection.Add( self.binomialLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		bSizer144 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer153 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer163 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.binomialSampleLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.binomialSampleLabel.Wrap( -1 )
+		bSizer163.Add( self.binomialSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.binomialBurninLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Burn-In", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.binomialBurninLabel.Wrap( -1 )
+		bSizer163.Add( self.binomialBurninLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		
+		bSizer153.Add( bSizer163, 1, wx.EXPAND, 5 )
+		
+		bSizer173 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.binomialSampleText = wx.TextCtrl( self.m_scrolledWindow1, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer173.Add( self.binomialSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+		
+		self.binomialBurninText = wx.TextCtrl( self.m_scrolledWindow1, wx.ID_ANY, u"500", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer173.Add( self.binomialBurninText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+		
+		
+		bSizer153.Add( bSizer173, 1, wx.EXPAND, 5 )
+		
+		
+		bSizer144.Add( bSizer153, 0, wx.EXPAND, 5 )
+		
+		
+		binomialSection.Add( bSizer144, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+		
+		self.binomialButton = wx.Button( self.m_scrolledWindow1, wx.ID_ANY, u"Run Binomial", wx.DefaultPosition, wx.DefaultSize, 0 )
+		binomialSection.Add( self.binomialButton, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, 5 )
+		
+		
+		methodSizer.Add( binomialSection, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+		
 		hmmSection = wx.BoxSizer( wx.VERTICAL )
 		
 		self.hmmLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"HMM Options", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -432,6 +486,53 @@ class MainFrame ( wx.Frame ):
 		
 		methodSizer.Add( resamplingSection, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
+		dehmmSection = wx.BoxSizer( wx.VERTICAL )
+		
+		self.dehmmLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"DE-HMM Options", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.dehmmLabel.Wrap( -1 )
+		dehmmSection.Add( self.dehmmLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		bSizer1432 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer1522 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer1622 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.dehmmRepLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.dehmmRepLabel.Wrap( -1 )
+		bSizer1622.Add( self.dehmmRepLabel, 1, wx.ALL, 5 )
+		
+		self.dehmmLoessCheck = wx.CheckBox( self.m_scrolledWindow1, wx.ID_ANY, u"LOESS Correction", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer1622.Add( self.dehmmLoessCheck, 0, wx.ALL, 5 )
+		
+		
+		bSizer1522.Add( bSizer1622, 1, wx.EXPAND, 5 )
+		
+		bSizer1722 = wx.BoxSizer( wx.VERTICAL )
+		
+		dehmmRepChoiceChoices = [ u"Sum", u"Mean" ]
+		self.dehmmRepChoice = wx.Choice( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, dehmmRepChoiceChoices, 0 )
+		self.dehmmRepChoice.SetSelection( 0 )
+		bSizer1722.Add( self.dehmmRepChoice, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		self.dehmmLoessPrev = wx.Button( self.m_scrolledWindow1, wx.ID_ANY, u"Plot LOESS", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer1722.Add( self.dehmmLoessPrev, 0, wx.ALL, 5 )
+		
+		
+		bSizer1522.Add( bSizer1722, 1, wx.EXPAND, 5 )
+		
+		
+		bSizer1432.Add( bSizer1522, 1, wx.EXPAND, 5 )
+		
+		
+		dehmmSection.Add( bSizer1432, 1, wx.EXPAND, 5 )
+		
+		self.dehmmButton = wx.Button( self.m_scrolledWindow1, wx.ID_ANY, u"Run DE-HMM", wx.DefaultPosition, wx.DefaultSize, 0 )
+		dehmmSection.Add( self.dehmmButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		
+		methodSizer.Add( dehmmSection, 1, wx.EXPAND, 5 )
+		
 		self.progressLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Progress", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.progressLabel.Wrap( -1 )
 		methodSizer.Add( self.progressLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
@@ -440,6 +541,10 @@ class MainFrame ( wx.Frame ):
 		self.gumbelProgress.SetValue( 0 ) 
 		methodSizer.Add( self.gumbelProgress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
+		self.binomialProgress = wx.Gauge( self.m_scrolledWindow1, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
+		self.binomialProgress.SetValue( 0 ) 
+		methodSizer.Add( self.binomialProgress, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, 5 )
+		
 		self.hmmProgress = wx.Gauge( self.m_scrolledWindow1, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
 		self.hmmProgress.SetValue( 0 ) 
 		methodSizer.Add( self.hmmProgress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
@@ -447,6 +552,10 @@ class MainFrame ( wx.Frame ):
 		self.resamplingProgress = wx.Gauge( self.m_scrolledWindow1, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
 		self.resamplingProgress.SetValue( 0 ) 
 		methodSizer.Add( self.resamplingProgress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.dehmmProgress = wx.Gauge( self.m_scrolledWindow1, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
+		self.dehmmProgress.SetValue( 0 ) 
+		methodSizer.Add( self.dehmmProgress, 0, wx.ALL, 5 )
 		
 		
 		self.m_scrolledWindow1.SetSizer( methodSizer )
@@ -534,10 +643,13 @@ class MainFrame ( wx.Frame ):
 		self.graphFileChoice.Bind( wx.EVT_CHOICE, self.graphFileFunc )
 		self.methodChoice.Bind( wx.EVT_CHOICE, self.MethodSelectFunc )
 		self.gumbelButton.Bind( wx.EVT_BUTTON, self.RunGumbelFunc )
+		self.binomialButton.Bind( wx.EVT_BUTTON, self.RunBinomialFunc )
 		self.hmmLoessPrev.Bind( wx.EVT_BUTTON, self.LoessPrevFunc )
 		self.hmmButton.Bind( wx.EVT_BUTTON, self.RunHMMFunc )
 		self.resamplingLoessPrev.Bind( wx.EVT_BUTTON, self.LoessPrevFunc )
 		self.resamplingButton.Bind( wx.EVT_BUTTON, self.RunResamplingFunc )
+		self.dehmmLoessPrev.Bind( wx.EVT_BUTTON, self.LoessPrevFunc )
+		self.dehmmButton.Bind( wx.EVT_BUTTON, self.RunDEHMMFunc )
 		self.Bind( wx.EVT_MENU, self.ctrlToIGV, id = self.ctrlExportIGVMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.expToIGV, id = self.expExportIGVMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.allToIGV, id = self.allExportIGVMenuItem.GetId() )
@@ -594,6 +706,9 @@ class MainFrame ( wx.Frame ):
 	def RunGumbelFunc( self, event ):
 		event.Skip()
 	
+	def RunBinomialFunc( self, event ):
+		event.Skip()
+	
 	def LoessPrevFunc( self, event ):
 		event.Skip()
 	
@@ -602,6 +717,10 @@ class MainFrame ( wx.Frame ):
 	
 	
 	def RunResamplingFunc( self, event ):
+		event.Skip()
+	
+	
+	def RunDEHMMFunc( self, event ):
 		event.Skip()
 	
 	def ctrlToIGV( self, event ):

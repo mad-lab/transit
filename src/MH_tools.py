@@ -115,6 +115,10 @@ def ExpectedRuns(n,p):
 def good_orf(n, s):
 	return (n >= 3 and s >= 150)
 
+def good_orf2(n, s):
+    return (n >= 1 and s >= 1)
+    #return True
+
 
 def hash_genes(path):
     hash = {}

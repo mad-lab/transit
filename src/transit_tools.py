@@ -319,11 +319,11 @@ def get_gene_reads(hash, data, position, orf2info, ignoreCodon=True, ignoreNTerm
         coord = position[i]
         genes_with_coord = hash.get(coord, [])
         for gene in genes_with_coord:
-
             if gene not in orf2reads: orf2reads[gene] = []
             if gene not in orf2pos: orf2pos[gene] = []
 
             start,end,strand = orf2info.get(gene, [0,0,0,0])[2:5]
+            #print gene, coord, start, end, strand, data[:,i].shape
 
             if strand == "+":
                 #Ignore TAs at stop codon
@@ -335,18 +335,24 @@ def get_gene_reads(hash, data, position, orf2info, ignoreCodon=True, ignoreNTerm
                 if ignoreCodon and coord < start + 3:
                     continue
 
+            #print "passed first IF"
 
             #Ignore TAs at beginning n%
-            if (coord-start)/float(end-start) <= (ignoreNTerm/100.0):
+            if (coord-start)/float(end-start) < (ignoreNTerm/100.0):
                 #print "Ignoring", coord, "from gene", gene, "with", (coord-start)/float(end-start), "perc and NTerm", ignoreNTerm/100.0
                 continue
             
+            #print "passed second IF"
+
             #Ignore TAs at end c%
-            if (coord-start)/float(end-start) >= ((100-ignoreCTerm)/100.0):
+            if (coord-start)/float(end-start) > ((100-ignoreCTerm)/100.0):
                 #print "Ignoring", coord, "from gene", gene, "with", (coord-start)/float(end-start), "perc and Cterm", ignoreCTerm/100.0
                 continue
 
 
+
+            #print "adding data"
+            #print gene, data[:,i]
             orf2reads[gene].append(data[:,i])
             orf2pos[gene].append(position[i])
     return (orf2reads, orf2pos)
@@ -395,6 +401,42 @@ def loess_correction(X, Y, h=10000, window=100):
         normalized_Y[window*i:window*(i+1)] = Y[window*i:window*(i+1)] * (ysmooth[i]/mline)
     
     return normalized_Y
+
+
+def fdr_post_prob(Z_raw, ALPHA=0.05):
+    Z = numpy.sort(Z_raw)[::-1]
+    W = 1 - Z
+    N = len(Z)
+
+    ess_threshold = 1.00
+    INDEX = range(3, N+1)
+    count = 0
+    for i in INDEX:
+        count +=1
+        wi = 1 - Z[i-1]
+        ai_n = (ALPHA*i)/N
+        mean_wi = numpy.average(W[0:i-2])
+        delta_w = wi - mean_wi
+        if delta_w > ai_n:
+            ess_threshold = Z[i-1]
+            break
+
+    noness_threshold = 0.00
+    count = 0
+    INDEX = range(0, N+1)
+    INDEX.sort(reverse=True)
+    for i in INDEX:
+        wi = Z[N-i+1]
+        ai_n = (ALPHA*i)/N
+        mean_wi = numpy.average(Z[N-i+1:])
+        delta_w = Z[N-i+1] - mean_wi
+        count +=1
+        if ai_n > delta_w:
+            break
+        noness_threshold = Z[N-i]
+
+    return(ess_threshold, noness_threshold)
+
 
 
 def get_gene_info(path):

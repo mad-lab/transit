@@ -142,6 +142,26 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
             self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
             self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick_gumbel, self.list_data)
 
+
+        elif method == "Binomial":
+            self.list_data = SortableListCtrl(self, size=(-1,100),
+                         style=wx.LC_REPORT
+                         |wx.BORDER_SUNKEN
+                         |wx.LC_SORT_ASCENDING
+                         )
+            self.initializeBinomial()
+            self.populateBinomial(filePath)
+            listmix.ColumnSorterMixin.__init__(self, len(self.itemDataMap[0]))
+            menu_titles = ["Display in Track View",]
+            self.menu_title_by_id = {}
+            for title in menu_titles:
+                self.menu_title_by_id[ wx.NewId() ] = title
+
+            self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
+            self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick_binomial, self.list_data)
+
+
+
         elif method == "HMM - Sites":
             self.list_data = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
             self.initializeHMMSites()
@@ -281,6 +301,69 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
     Short: %s
         """ % (ess, unc, non, short)
         self.headerText1.SetLabel(text)
+
+    
+
+    def initializeBinomial(self):
+        self.list_data.InsertColumn(0, 'Orf', width=100)
+        self.list_data.InsertColumn(1, 'Name', width=85)
+        self.list_data.InsertColumn(2, 'Description', width=220)
+        self.list_data.InsertColumn(3, 'Mean Insertion', width=75)
+        self.list_data.InsertColumn(4, 'Sites per Replicate', width=75)
+        self.list_data.InsertColumn(5, 'Total Insertions', width=75)
+        self.list_data.InsertColumn(6, 'Total Sites', width=75)
+        self.list_data.InsertColumn(7, 'thetabar', width=100)
+        self.list_data.InsertColumn(8, 'zbar', width=100)
+        self.list_data.InsertColumn(9, 'Call', width=50)
+
+
+
+
+    def populateBinomial(self, path):
+
+        self.itemDataMap = {}
+        ess=0; unc=0; non=0; short=0
+
+        data = []
+        for line in open(path):
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            data.append([tmp[0].upper()]+tmp)
+
+        data.sort()
+
+        for tmp in data:
+            if not tmp: continue
+            if len(tmp) < 3: continue
+            self.list_data.InsertStringItem(self.index_data, tmp[1])
+            actual_data = [tmp[1]]
+            for i,cell in enumerate(tmp[2:]):
+                self.list_data.SetStringItem(self.index_data, i+1, cell)
+                try:
+                    actual_data.append(float(cell))
+                except:
+                    actual_data.append(cell)
+
+            self.list_data.SetItemData(self.index_data, self.index_data)
+            self.itemDataMap[self.index_data] = actual_data
+
+            self.index_data+=1
+            if tmp[-1] == "Essential": ess+=1
+            if tmp[-1] == "Uncertain": unc+=1
+            if tmp[-1] == "Non-Essential": non+=1
+
+        text = """Results:
+    Essentials: %s
+    Uncertain: %s
+    Non-Essential: %s
+        """ % (ess, unc, non)
+        self.headerText1.SetLabel(text)
+
+
+
+
+
+
 
     def initializeHMMSites(self):
         self.list_data.InsertColumn(0, 'Location', width=100)
@@ -480,6 +563,33 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
 
 
     def MenuSelection_gumbel( self, event ):
+        # do something
+        operation = self.menu_title_by_id[ event.GetId() ]
+        target    = self.list_item_clicked
+        parent = self.GetParent()
+
+        if operation == "Display in Track View":
+            parent.allViewFunc(None,target)
+        else:
+            print "Menu choice not recognized"
+
+
+    def OnRightClick_binomial(self, event):
+
+        self.list_item_clicked = right_click_context = event.GetText()
+        menu = wx.Menu()
+        for (id,title) in self.menu_title_by_id.items():
+            ### 3. Launcher packs menu with Append. ###
+            menu.Append( id, title )
+            ### 4. Launcher registers menu handlers with EVT_MENU, on the menu. ###
+            wx.EVT_MENU( menu, id, self.MenuSelection_binomial )
+
+        position = self.ScreenToClient(wx.GetMousePosition())
+        self.PopupMenu( menu, position )
+        menu.Destroy() # destroy to avoid mem leak
+
+
+    def MenuSelection_binomial( self, event ):
         # do something
         operation = self.menu_title_by_id[ event.GetId() ]
         target    = self.list_item_clicked
