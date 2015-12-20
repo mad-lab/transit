@@ -221,8 +221,8 @@ def runHMM(wx, pubmsg, **kwargs):
         if wx and newWx: wx.CallAfter(pubmsg, "file", data=data)
         if wx and not newWx: wx.CallAfter(pubmsg, "file", data)        
 
-        if wx and newWx: wx.CallAfter(pubmsg, "hmm", msg="Creating HMM Sites output...")
-        if wx and not newWx: wx.CallAfter(pubmsg, "hmm", "Creating HMM Sites output...")
+        if wx and newWx: wx.CallAfter(pubmsg, "hmm", msg="Creating HMM Genes output...")
+        if wx and not newWx: wx.CallAfter(pubmsg, "hmm", "Creating HMM Genes output...")
 
         genes_path = ".".join(output.name.split(".")[:-1]) + "_genes." + output.name.split(".")[-1]
         hmm_tools.post_process_genes(output.name, annotationPath, ignoreCodon, ignoreNTerm, ignoreCTerm, output=open(genes_path,"w"))
