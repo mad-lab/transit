@@ -185,7 +185,7 @@ class MainFrame ( wx.Frame ):
 		
 		methodSizer.Add( self.versionLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
-		methodChoiceChoices = [ u"[Choose Method]", u"Gumbel", u"Binomial", u"HMM", u"Resampling" ]
+		methodChoiceChoices = [ u"[Choose Method]", u"Gumbel", u"Binomial", u"HMM", u"Resampling", u"DE-HMM" ]
 		self.methodChoice = wx.Choice( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, methodChoiceChoices, 0 )
 		self.methodChoice.SetSelection( 0 )
 		methodSizer.Add( self.methodChoice, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
@@ -498,25 +498,24 @@ class MainFrame ( wx.Frame ):
 		
 		bSizer1622 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.dehmmRepLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.dehmmRepLabel.Wrap( -1 )
-		bSizer1622.Add( self.dehmmRepLabel, 1, wx.ALL, 5 )
+		self.dehmmClusterPenaltyLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Cluster Quantity Penalty", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.dehmmClusterPenaltyLabel.Wrap( -1 )
+		bSizer1622.Add( self.dehmmClusterPenaltyLabel, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
-		self.dehmmLoessCheck = wx.CheckBox( self.m_scrolledWindow1, wx.ID_ANY, u"LOESS Correction", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer1622.Add( self.dehmmLoessCheck, 0, wx.ALL, 5 )
+		self.dehmmSitesPenaltyLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Sites Quantity Penalty", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.dehmmSitesPenaltyLabel.Wrap( -1 )
+		bSizer1622.Add( self.dehmmSitesPenaltyLabel, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		
 		bSizer1522.Add( bSizer1622, 1, wx.EXPAND, 5 )
 		
 		bSizer1722 = wx.BoxSizer( wx.VERTICAL )
 		
-		dehmmRepChoiceChoices = [ u"Sum", u"Mean" ]
-		self.dehmmRepChoice = wx.Choice( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, dehmmRepChoiceChoices, 0 )
-		self.dehmmRepChoice.SetSelection( 0 )
-		bSizer1722.Add( self.dehmmRepChoice, 0, wx.ALL|wx.EXPAND, 5 )
+		self.dehmmClusterPenaltyText = wx.TextCtrl( self.m_scrolledWindow1, wx.ID_ANY, u"15", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer1722.Add( self.dehmmClusterPenaltyText, 0, wx.ALL, 5 )
 		
-		self.dehmmLoessPrev = wx.Button( self.m_scrolledWindow1, wx.ID_ANY, u"Plot LOESS", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer1722.Add( self.dehmmLoessPrev, 0, wx.ALL, 5 )
+		self.dehmmSitesPenaltyText = wx.TextCtrl( self.m_scrolledWindow1, wx.ID_ANY, u"1", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer1722.Add( self.dehmmSitesPenaltyText, 0, wx.ALL, 5 )
 		
 		
 		bSizer1522.Add( bSizer1722, 1, wx.EXPAND, 5 )
@@ -527,11 +526,17 @@ class MainFrame ( wx.Frame ):
 		
 		dehmmSection.Add( bSizer1432, 1, wx.EXPAND, 5 )
 		
+		self.dehmmLoessCheck = wx.CheckBox( self.m_scrolledWindow1, wx.ID_ANY, u"Correction for Genome Positional Bias", wx.DefaultPosition, wx.DefaultSize, 0 )
+		dehmmSection.Add( self.dehmmLoessCheck, 0, wx.ALL, 5 )
+		
+		self.dehmmLoessPrev = wx.Button( self.m_scrolledWindow1, wx.ID_ANY, u"Plot LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
+		dehmmSection.Add( self.dehmmLoessPrev, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
 		self.dehmmButton = wx.Button( self.m_scrolledWindow1, wx.ID_ANY, u"Run DE-HMM", wx.DefaultPosition, wx.DefaultSize, 0 )
 		dehmmSection.Add( self.dehmmButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		
-		methodSizer.Add( dehmmSection, 1, wx.EXPAND, 5 )
+		methodSizer.Add( dehmmSection, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		self.progressLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Progress", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.progressLabel.Wrap( -1 )
@@ -555,7 +560,7 @@ class MainFrame ( wx.Frame ):
 		
 		self.dehmmProgress = wx.Gauge( self.m_scrolledWindow1, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
 		self.dehmmProgress.SetValue( 0 ) 
-		methodSizer.Add( self.dehmmProgress, 0, wx.ALL, 5 )
+		methodSizer.Add( self.dehmmProgress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		
 		self.m_scrolledWindow1.SetSizer( methodSizer )

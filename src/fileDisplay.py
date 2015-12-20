@@ -160,6 +160,15 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
             self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
             self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick_binomial, self.list_data)
 
+        elif method == "DE-HMM - Sites":
+            self.list_data = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
+            self.initializeDEHMMSites()
+            self.populateDEHMMSites(filePath)
+
+        elif method == "DE-HMM - Segments":
+            self.list_data = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
+            self.initializeDEHMMSegments()
+            self.populateDEHMMSegments(filePath)
 
 
         elif method == "HMM - Sites":
@@ -520,6 +529,107 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
         self.headerText2.SetLabel(text2)
 
 
+        
+
+
+    def initializeDEHMMSites(self):
+        self.list_data.InsertColumn(0, 'Location', width=100)
+        self.list_data.InsertColumn(1, 'Read Count Ctrl', width=85)
+        self.list_data.InsertColumn(2, 'Read Count Exp', width=85)
+        self.list_data.InsertColumn(3, 'LL Ctrl', width=80)
+        self.list_data.InsertColumn(4, 'LL Exp', width=80)
+        self.list_data.InsertColumn(5, 'LLR', width=80)
+        self.list_data.InsertColumn(6, 'Segment', width=80)
+        self.list_data.InsertColumn(7, 'Gene(s)', width=75)
+
+
+    def populateDEHMMSites(self, path):
+        #self.itemDataMap = {}
+        T = 0; de=0;
+        for line in open(path, "r"):
+            if line.startswith("#"): continue
+            tmp = line.split("\t")
+            tmp[-1] = tmp[-1].strip()
+
+            #print tmp
+
+            if not tmp: continue
+
+            n = len(tmp)
+            self.list_data.InsertStringItem(self.index_data, tmp[0])
+            for i,cell in enumerate(tmp[1:]):
+                self.list_data.SetStringItem(self.index_data, i+1, cell)
+            #self.list_data.SetItemData(self.index_data, self.index_data)
+            #self.itemDataMap[self.index_data] = tmp
+            self.index_data+=1
+
+            if tmp[-1] == "1": de+=1
+            T+=1
+            text = """Results:
+    DE Regions: %1.1f%%
+        """ % (100.0*de/T)
+        self.headerText1.SetLabel(text)
+
+
+
+
+    def initializeDEHMMSegments(self):
+        self.list_data.InsertColumn(0, 'ID', width=100)
+        self.list_data.InsertColumn(1, 'Number of Sites', width=85)
+        self.list_data.InsertColumn(2, 'Start', width=140)
+        self.list_data.InsertColumn(3, 'End', width=75)
+        self.list_data.InsertColumn(4, 'Length', width=75)
+        self.list_data.InsertColumn(5, 'Number of Genes', width=75)
+        self.list_data.InsertColumn(6, 'Genes', width=75)
+        self.list_data.InsertColumn(7, 'Sum Ctrl', width=75)
+        self.list_data.InsertColumn(8, 'Sum Exp', width=75)
+        self.list_data.InsertColumn(9, 'log2FC', width=75)
+        self.list_data.InsertColumn(10, 'p-value', width=75)
+        self.list_data.InsertColumn(11, 'q-value', width=75)
+
+
+    def populateDEHMMSegments(self, path):
+
+        self.itemDataMap = {}
+        segments = 0; segments05 = 0; segments01 = 0;
+        data=[]
+        for line in open(path):
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            data.append(["ID"+tmp[0].upper()] + tmp)
+
+        data.sort()
+        for tmp in data:
+            self.list_data.InsertStringItem(self.index_data, tmp[1])
+            actual_data = [tmp[1]]
+            for i,cell in enumerate(tmp[2:]):
+                if not cell:
+                    cell = "N/A"
+                self.list_data.SetStringItem(self.index_data, i+1, cell)
+                try:
+                    actual_data.append(float(cell))
+                except:
+                    actual_data.append(cell)
+
+            self.list_data.SetItemData(self.index_data, self.index_data)
+            self.itemDataMap[self.index_data] = actual_data
+            self.index_data+=1
+            if len(tmp) < 5: continue
+            segments+=1
+            if float(tmp[-1]) < 0.05: segments05+=1
+            if float(tmp[-1]) < 0.01: segments01+=1
+
+        text = """Results:
+    Segments: %s
+    Segments q-val < 0.05: %s
+    Segments q-val < 0.01: %s
+        """ % (segments, segments05, segments01)
+        self.headerText1.SetLabel(text)
+
+
+
+
+
 
 #----------------------------------------------------------------------
     # Used by the ColumnSorterMixin, see wx/lib/mixins/listctrl.py
@@ -628,6 +738,10 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
             parent.allViewFunc(None,target)
         else:
             print "Menu choice not recognized"
+
+
+
+    
 
 
 

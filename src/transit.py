@@ -53,7 +53,7 @@ import betabinomial
 import hmm_geom
 import hmm_tools
 import resampling
-
+import dehmm
 import imgTRANSIT
 
 import argparse
@@ -408,8 +408,10 @@ class TnSeekFrame(transit_gui.MainFrame):
     def HideDEHMMOptions(self):
         self.dehmmLabel.Hide()
         self.dehmmInstructions.Hide()
-        self.dehmmRepLabel.Hide()
-        self.dehmmRepChoice.Hide()
+        self.dehmmClusterPenaltyLabel.Hide()
+        self.dehmmClusterPenaltyText.Hide()
+        self.dehmmSitesPenaltyLabel.Hide()
+        self.dehmmSitesPenaltyText.Hide()
         self.dehmmButton.Hide()
         self.dehmmLoessPrev.Hide()
         self.dehmmLoessCheck.Hide()
@@ -419,8 +421,10 @@ class TnSeekFrame(transit_gui.MainFrame):
     def ShowDEHMMOptions(self):
         self.dehmmLabel.Show()
         self.dehmmInstructions.Show()
-        self.dehmmRepLabel.Show()
-        self.dehmmRepChoice.Show()
+        self.dehmmClusterPenaltyLabel.Show()
+        self.dehmmClusterPenaltyText.Show()
+        self.dehmmSitesPenaltyLabel.Show()
+        self.dehmmSitesPenaltyText.Show()
         self.dehmmButton.Show()
         self.dehmmLoessPrev.Show()
         self.dehmmLoessCheck.Show()
@@ -860,6 +864,10 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def LoessPrevFunc(self,event):
         datasets_selected = self.ctrlSelected() + self.expSelected()
+        if not datasets_selected:
+            self.ShowError(MSG="Need to select at least one control or experimental dataset.")
+            return
+
         data, position = transit_tools.get_data(datasets_selected)
         (K,N) = data.shape
         window = 100
@@ -936,6 +944,10 @@ class TnSeekFrame(transit_gui.MainFrame):
                 type = "HMM - Genes"
             elif line.startswith("#Resampling"):
                 type = "Resampling"
+            elif line.startswith("#DE-HMM - Sites"):
+                type = "DE-HMM - Sites"
+            elif line.startswith("#DE-HMM - Segments"):
+                type = "DE-HMM - Segments"
             else:
                 msg = """Please make sure the file has one of the following headers specifying the type of output as its first line:
     #Gumbel
@@ -943,6 +955,8 @@ class TnSeekFrame(transit_gui.MainFrame):
     #HMM - Sites
     #HMM - Genes
     #Resampling
+    #DE-HMM - Sites
+    #DE-HMM - Segments
 """
                 self.ShowError(msg)
                 return
@@ -1522,6 +1536,87 @@ class TnSeekFrame(transit_gui.MainFrame):
         thread = threading.Thread(target=resampling.runResampling, args=(wx, pub.sendMessage), kwargs=kwargs)
         thread.setDaemon(True)
         thread.start()
+
+
+
+
+    def RunDEHMMFunc(self, event):
+        selected_ctrl = self.ctrlSelected()
+        selected_exp = self.expSelected()
+
+        if len(selected_ctrl) == 0 and len(selected_exp) == 0:
+            self.ShowError("Error: No datasets selected.")
+            return
+
+        elif len(selected_ctrl) == 0:
+            self.ShowError("Error: No control datasets selected.")
+            return
+
+        elif len(selected_exp) == 0:
+            self.ShowError("Error: No experimental datasets selected.")
+            return
+        annotationPath = self.annotationFilePicker.GetPath()
+        if not annotationPath:
+            self.ShowError("Error: No annotation file selected.")
+            return
+
+
+        clusterPenalty = float(self.dehmmClusterPenaltyText.GetValue())
+        sitesPenalty = float(self.dehmmSitesPenaltyText.GetValue())
+
+        #Get Default file name
+        defaultFile = "dehmm_results_cluster%1.1f_sites%1.1f.dat" % (clusterPenalty, sitesPenalty)
+
+        #Get Default directory
+        #defaultDir = os.path.dirname(os.path.realpath(__file__))
+        defaultDir = os.getcwd()
+
+        #Ask user for output:        
+        outputPath = self.SaveFile(defaultDir, defaultFile)
+
+        if outputPath:
+            output = open(outputPath, "w")
+        else:
+            return
+
+
+        clusterPenalty = float(self.dehmmClusterPenaltyText.GetValue())
+        sitesPenalty = float(self.dehmmSitesPenaltyText.GetValue())
+        doLOESS = self.dehmmLoessCheck.GetValue()
+
+        ctrlString = ",".join(selected_ctrl)
+        expString = ",".join(selected_exp)
+
+
+        if self.verbose:
+            print transit_prefix, "Control String:", ctrlString
+            print transit_prefix, "Experim String:", expString
+            print transit_prefix, "outputPath:", outputPath
+
+        self.statusBar.SetStatusText("Running DE-HMM Method")
+        self.dehmm_count = 0
+
+        readPath = selected_ctrl[0]
+        T = len([1 for line in open(readPath).readlines() if not line.startswith("#")])
+        self.dehmmProgress.SetRange(3*(T*4+1))
+        self.dehmmButton.Disable()
+
+        kwargs = {}
+        kwargs["ctrlList"] = ctrlString.split(",")
+        kwargs["expList"] = expString.split(",")
+        kwargs["annotationPath"] = annotationPath
+        kwargs["normalize"] = "TTR"
+        kwargs["doLOESS"] = doLOESS
+        kwargs["clusterPenalty"]  = clusterPenalty
+        kwargs["sitesPenalty"] = sitesPenalty
+        kwargs["output"] = output
+
+
+        thread = threading.Thread(target=dehmm.runDEHMM, args=(wx, pub.sendMessage), kwargs=kwargs)
+        thread.setDaemon(True)
+        thread.start()
+
+
 
 
 def msg():
