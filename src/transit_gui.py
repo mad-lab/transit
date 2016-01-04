@@ -157,7 +157,7 @@ class MainFrame ( wx.Frame ):
 		bSizer4.Fit( self.m_scrolledWindow2 )
 		bSizer1.Add( self.m_scrolledWindow2, 1, wx.ALL|wx.EXPAND, 5 )
 		
-		self.m_panel5 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.DOUBLE_BORDER|wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL )
+		self.m_panel5 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		self.m_panel5.SetMaxSize( wx.Size( 2,-1 ) )
 		
 		bSizer1.Add( self.m_panel5, 0, wx.ALL|wx.EXPAND, 5 )

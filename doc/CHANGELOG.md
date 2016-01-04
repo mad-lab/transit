@@ -2,13 +2,15 @@
 All notable changes to this project will be documented in this file.
 
 
-## Version 1.4.5 - 2015-12-19
+## Version 1.4.5 - 2016-01-10
 - TRANSIT:
     - Added Binomial analysis method as an option to TRANSIT.
     - Added DE-HMM analysis method as an option to TRANSIT.
  
 
-
+## Version 1.4.3.1 - 2016-01-02
+- TRANSIT:
+    - Fixed bug causing TRANSIT not to open on some Windows systems.
 
 
 ## Version 1.4.3 - 2015-12-04
