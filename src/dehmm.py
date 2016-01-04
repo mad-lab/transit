@@ -98,8 +98,6 @@ def runDEHMM(wx, pubmsg, **kwargs):
     combined_data[0,:] = numpy.round(numpy.mean(data[:N1,:],0)) + 1
     combined_data[1,:] = numpy.round(numpy.mean(data[N1:,:],0)) + 1
     combined_data[2,:] = numpy.round((ctrldata+expdata)/2.0) + 1
-    factors = transit_tools.norm_to_target(combined_data, 100)
-    combined_data = factors * combined_data
     ctrldata = combined_data[0,:]
     expdata = combined_data[1,:]
     jointdata = combined_data[2,:]
