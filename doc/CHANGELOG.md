@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 1.4.5 - 2015-12-19
+- TRANSIT:
+    - Added Binomial analysis method as an option to TRANSIT.
+    - Added DE-HMM analysis method as an option to TRANSIT.
+ 
+
+
+
+
 ## Version 1.4.3 - 2015-12-04
 - TRANSIT:
     - Precision of resampling p-values in output file now increases with sample size
