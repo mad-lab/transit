@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 
 
+
+## Version 1.4.3.1 - 2015-12-04
+- TRANSIT:
+    - Fixed bug causing TRANSIT not to open on some Windows systems.
+
 ## Version 1.4.3 - 2015-12-04
 - TRANSIT:
     - Precision of resampling p-values in output file now increases with sample size
