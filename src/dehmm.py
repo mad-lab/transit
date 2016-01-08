@@ -93,11 +93,11 @@ def runDEHMM(wx, pubmsg, **kwargs):
     data = factors * data
 
     #O = numpy.round(numpy.sum(data,0))
-    combined_data = numpy.zeros((3, len(ctrldata)))
+    combined_data = numpy.zeros((3, len(data[0])))
 
     combined_data[0,:] = numpy.round(numpy.mean(data[:N1,:],0)) + 1
     combined_data[1,:] = numpy.round(numpy.mean(data[N1:,:],0)) + 1
-    combined_data[2,:] = numpy.round((ctrldata+expdata)/2.0) + 1
+    combined_data[2,:] = numpy.round((combined_data[0,:]+combined_data[1,:])/2.0) + 1
     ctrldata = combined_data[0,:]
     expdata = combined_data[1,:]
     jointdata = combined_data[2,:]
