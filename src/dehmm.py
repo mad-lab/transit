@@ -97,7 +97,8 @@ def runDEHMM(wx, pubmsg, **kwargs):
 
     combined_data[0,:] = numpy.round(numpy.mean(data[:N1,:],0)) + 1
     combined_data[1,:] = numpy.round(numpy.mean(data[N1:,:],0)) + 1
-    combined_data[2,:] = numpy.round((combined_data[0,:]+combined_data[1,:])/2.0) + 1
+    #combined_data[2,:] = numpy.round((combined_data[0,:]+combined_data[1,:])/2.0) + 1
+    combined_data[2,:] = numpy.round((numpy.mean(data[:N1,:],0) +  numpy.mean(data[N1:,:],0))/2.0) + 1
     ctrldata = combined_data[0,:]
     expdata = combined_data[1,:]
     jointdata = combined_data[2,:]
@@ -125,16 +126,21 @@ def runDEHMM(wx, pubmsg, **kwargs):
     L2 = numpy.zeros(T)
     LLR = numpy.zeros(T)
     for i in range(T):
+        #print exp_gamma_list[i]
+        #print ctrl_gamma_list[i]
+        #print joint_gamma_list[i]
+        #print ""
         indepA = cleanlog(numpy.log(numpy.sum(scipy.stats.geom.pmf(ctrldata[i], ctrl_params) *  ctrl_gamma_list[i])))
         indepB = cleanlog(numpy.log(numpy.sum(scipy.stats.geom.pmf(expdata[i], exp_params) *  exp_gamma_list[i])))
-        combA = cleanlog(numpy.log(numpy.sum(scipy.stats.geom.pmf(ctrldata[i]+1, joint_params) * joint_gamma_list[i])))
-        combB = cleanlog(numpy.log(numpy.sum(scipy.stats.geom.pmf(expdata[i]+1, joint_params) * joint_gamma_list[i])))
+        combA = cleanlog(numpy.log(numpy.sum(scipy.stats.geom.pmf(ctrldata[i], joint_params) * joint_gamma_list[i])))
+        combB = cleanlog(numpy.log(numpy.sum(scipy.stats.geom.pmf(expdata[i], joint_params) * joint_gamma_list[i])))
 
         comb = combA + combB
         indep = indepA + indepB
         L1[i] = indep
         L2[i] = comb
-        LLR[i] = comb - indep
+        #LLR[i] = comb - indep
+        LLR[i] = indep - comb
 
 
     if wx and newWx: wx.CallAfter(pubmsg, "dehmm", msg="Segmenting genome...")
@@ -148,7 +154,9 @@ def runDEHMM(wx, pubmsg, **kwargs):
     output.write("#DE-HMM Sites\n")
     output.write("#Cluster Penalty: %1.2f\n" %  clusterPenalty)
     output.write("#Sites Penalty: %1.2f\n" % sitesPenalty)
-    
+    output.write("# Ctrl HMM Paramters: %s\n" % "\t".join(["%1.4f" % p for p in ctrl_params]))
+    output.write("# Exp HMM Paramters: %s\n" % "\t".join(["%1.4f" % p for p in exp_params]))
+    output.write("# Joint HMM Paramters: %s\n" % "\t".join(["%1.4f" % p for p in joint_params]))
     for i in range(T):
         genes_at_site = hash.get(position[i], [""])
         genestr = ""
@@ -156,7 +164,7 @@ def runDEHMM(wx, pubmsg, **kwargs):
             genestr = ",".join(["%s_(%s)" % (g,rv2name.get(g, "-")) for g in genes_at_site])
 
 
-        output.write("%7d\t%5d\t%5d\t%5s\t%5s\t%5.1f\t%5d\t%s\n" % (position[i], ctrldata[i]-1, expdata[i]-1, L1[i], L2[i], LLR[i], segment_bits[i], genestr))
+        output.write("%7d\t%5d\t%5d\t%5s\t%5s\t%5.1f\t%s\t%s\t%s\t%5d\t%s\n" % (position[i], ctrldata[i]-1, expdata[i]-1, L1[i], L2[i], LLR[i], ctrl_state_list[i], exp_state_list[i], joint_state_list[i], segment_bits[i], genestr))
 
 
     output.close()
@@ -554,10 +562,10 @@ def parseSegments(path):
         if line.startswith("#"): continue
         #60     0       0    -0.1    -0.2     0.0       0   Rv0001_(dnaA)
         tmp = line.split()
-        if len(tmp) == 8:
-            ta,rd1,rd2,ll1,ll2,llr,flag,genestr = line.split()
+        if len(tmp) == 11:
+            ta,rd1,rd2,ll1,ll2,llr,ctrlS,expS,jointS,flag,genestr = line.split()
         else:
-            ta,rd1,rd2,ll1,ll2,llr,flag = line.split()
+            ta,rd1,rd2,ll1,ll2,llr,ctrlS,expS,jointS,flag = line.split()
             genestr = ""
 
         #print ta,rd1,rd2,ll1,ll2,llr,flag,gene
