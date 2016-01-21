@@ -185,7 +185,8 @@ class MainFrame ( wx.Frame ):
 		
 		methodSizer.Add( self.versionLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
-		methodChoiceChoices = [ u"[Choose Method]", u"Gumbel", u"Binomial", u"HMM", u"Resampling", u"DE-HMM" ]
+		#methodChoiceChoices = [ u"[Choose Method]", u"Gumbel", u"Binomial", u"HMM", u"Resampling", u"DE-HMM" ]
+		methodChoiceChoices = [ u"[Choose Method]", u"Gumbel", u"Binomial", u"HMM", u"Resampling"]
 		self.methodChoice = wx.Choice( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, methodChoiceChoices, 0 )
 		self.methodChoice.SetSelection( 0 )
 		methodSizer.Add( self.methodChoice, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
