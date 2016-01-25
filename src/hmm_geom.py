@@ -55,12 +55,13 @@ def runHMM(wx, pubmsg, **kwargs):
     ignoreCTerm = kwargs.get("ignoreCTerm", 0)
     doLOESS = kwargs.get("doLOESS", False)
     output = kwargs.get("output", sys.stdout)
-
+    SEVEN_STATE = False # TRI
 
     defaultStates = True
     defaultParameters = True
     defaultTransition = True
     N = 4
+    if SEVEN_STATE==True: N = 7 # TRI
 
     # Get Gene Annotation from Prot Table File
     hash = {}; rv2name = {}
@@ -104,7 +105,7 @@ def runHMM(wx, pubmsg, **kwargs):
     O = O + 1
 
     # If default states, set known labels
-    if defaultStates:
+    if defaultStates: 
         label= {0:"ES", 1:"GD", 2:"NE",3:"GA"}
     else:
         label = dict([(s, "State-%d" % s) for s in range(0,N)])
@@ -124,6 +125,13 @@ def runHMM(wx, pubmsg, **kwargs):
     else:
         L = PARAM
 
+    # TRI
+    if SEVEN_STATE==True:
+      #mu = numpy.array([1/0.99, mean_r/64.0,mean_r/16.0,mean_r/4.0,  mean_r, mean_r*4.0,mean_r*16.0])
+      #mu = numpy.array([1/0.99, mean_r/27.0,mean_r/9.0,mean_r/3.0,  mean_r, mean_r*3.0,mean_r*9.0])
+      mu = numpy.array([math.exp((i/4.0)*math.log(mean_r)) for i in range(7)]); mu[0] += 0.01
+      L = 1.0/mu
+      label = dict([(s, "S%d" % (s+1)) for s in range(0,N)])
 
     B = [] # Emission Probability Distributions
     for i in range(N):
@@ -142,10 +150,21 @@ def runHMM(wx, pubmsg, **kwargs):
 
         A = numpy.zeros((N,N))
         a = math.log1p(-B[int(N/2)](1)**r)
-        b = r*math.log(B[int(N/2)](1)) + math.log(1.0/3)
+        b = r*math.log(B[int(N/2)](1)) + math.log(1.0/3) # change to N-1?
         for i in range(N):
             A[i] = [b]*N
             A[i][i] = a
+
+        # TRI
+        if SEVEN_STATE==True:
+          A = numpy.zeros((N,N))
+          x = 0.0001
+          for i in range(N):
+            for j in range(N):
+              if i==j: A[i][j] = 1.0-x
+              else: A[i][j] = x/float(N-1)
+          # note - A is the transition matrix, but in log form
+          A = numpy.log(A)
 
     else:
         A = numpy.log(PROB)
@@ -153,7 +172,6 @@ def runHMM(wx, pubmsg, **kwargs):
 
     PI = numpy.zeros(N) # Initial state distribution
     PI[0] = 0.7; PI[1:] = 0.3/(N-1);
-
 
     ###############
     ### VITERBI ###
@@ -190,6 +208,8 @@ def runHMM(wx, pubmsg, **kwargs):
     output.write("# pins (obs):\t%f\n" % pins_obs)
     output.write("# pins (est):\t%f\n" % pins)
     output.write("# Run length (r):\t%d\n" % r)
+    output.write("# State means:\n")
+    output.write("#    %s\n" % "   ".join(["%s: %8.4f" % (label[i], mu[i]) for i in range(N)]))
     output.write("# Self-Transition Prob:\n")
     output.write("#    %s\n" % "   ".join(["%s: %2.4e" % (label[i], A[i][i]) for i in range(N)]))
     output.write("# State Emission Parameters (theta):\n")

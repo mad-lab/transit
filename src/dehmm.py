@@ -99,19 +99,30 @@ def runDEHMM(wx, pubmsg, **kwargs):
     combined_data[1,:] = numpy.round(numpy.mean(data[N1:,:],0)) + 1
     #combined_data[2,:] = numpy.round((combined_data[0,:]+combined_data[1,:])/2.0) + 1
     combined_data[2,:] = numpy.round((numpy.mean(data[:N1,:],0) +  numpy.mean(data[N1:,:],0))/2.0) + 1
+
+    # TRI
+    #combined_data[0,:] = numpy.round(numpy.sum(data[:N1,:],0)) + 1
+    #combined_data[1,:] = numpy.round(numpy.sum(data[N1:,:],0)) + 1
+    #combined_data[2,:] = numpy.round((numpy.sum(data[:N1,:],0) +  numpy.sum(data[N1:,:],0))/2.0) + 1
+
     ctrldata = combined_data[0,:]
     expdata = combined_data[1,:]
     jointdata = combined_data[2,:]
     
     #Control HMM
     print dehmm_prefix, "Running Control HMM"
-    (ctrl_likelihood_list, ctrl_gamma_list, ctrl_state_list, ctrl_params) = runHMM(ctrldata, wx, pubmsg, newWx)
+    #(ctrl_likelihood_list, ctrl_gamma_list, ctrl_state_list, ctrl_params) = runHMM(ctrldata, wx, pubmsg, newWx)
+    (ctrl_likelihood_list, ctrl_gamma_list, ctrl_state_list, ctrl_params,ctrl_mu,ctrl_labels) = runHMM(ctrldata, wx, pubmsg, newWx)
+
     #Exp HMM
     print dehmm_prefix, "Running Experimental HMM"
-    (exp_likelihood_list, exp_gamma_list, exp_state_list, exp_params) = runHMM(expdata, wx, pubmsg, newWx)
+    #(exp_likelihood_list, exp_gamma_list, exp_state_list, exp_params) = runHMM(expdata, wx, pubmsg, newWx)
+    (exp_likelihood_list, exp_gamma_list, exp_state_list, exp_params,exp_mu,exp_labels) = runHMM(expdata, wx, pubmsg, newWx)
+
     #Joint HMM
     print dehmm_prefix, "Running Joint HMM"
-    (joint_likelihood_list, joint_gamma_list, joint_state_list, joint_params) = runHMM(jointdata, wx, pubmsg, newWx)
+    #(joint_likelihood_list, joint_gamma_list, joint_state_list, joint_params,joint_mu) = runHMM(jointdata, wx, pubmsg, newWx)
+    (joint_likelihood_list, joint_gamma_list, joint_state_list, joint_params,joint_mu,joint_labels) = runHMM(jointdata, wx, pubmsg, newWx)
 
     print dehmm_prefix, "Finished the Control, Experimental and Joint HMMs"
 
@@ -142,7 +153,6 @@ def runDEHMM(wx, pubmsg, **kwargs):
         #LLR[i] = comb - indep
         LLR[i] = indep - comb
 
-
     if wx and newWx: wx.CallAfter(pubmsg, "dehmm", msg="Segmenting genome...")
     if wx and not newWx: wx.CallAfter(pubmsg, "dehmm", "Segmenting genome...")
     segment_bits = segmentLLR(LLR, clusterPenalty, sitesPenalty)
@@ -155,16 +165,20 @@ def runDEHMM(wx, pubmsg, **kwargs):
     output.write("#Cluster Penalty: %1.2f\n" %  clusterPenalty)
     output.write("#Sites Penalty: %1.2f\n" % sitesPenalty)
     output.write("# Ctrl HMM Paramters: %s\n" % "\t".join(["%1.4f" % p for p in ctrl_params]))
+    output.write("#   State means: "+' '.join(["%8.4f" % (p) for p,s in zip(ctrl_mu,ctrl_labels)])+"\n")
     output.write("# Exp HMM Paramters: %s\n" % "\t".join(["%1.4f" % p for p in exp_params]))
+    output.write("#   State means: "+' '.join(["%8.4f" % (p) for p,s in zip(exp_mu,exp_labels)])+"\n")
     output.write("# Joint HMM Paramters: %s\n" % "\t".join(["%1.4f" % p for p in joint_params]))
+    output.write("#   State means: "+' '.join(["%8.4f" % (p) for p,s in zip(joint_mu,joint_labels)])+"\n")
     for i in range(T):
         genes_at_site = hash.get(position[i], [""])
         genestr = ""
         if not (len(genes_at_site) == 1 and not genes_at_site[0]):
             genestr = ",".join(["%s_(%s)" % (g,rv2name.get(g, "-")) for g in genes_at_site])
 
+        #output.write("# %6.4f %6.4f %6.4f %6.4f | %6.4f %6.4f %6.4f %6.4f | %6.4f %6.4f %6.4f %6.4f\n" % (ctrl_gamma_list[i][0],ctrl_gamma_list[i][1],ctrl_gamma_list[i][2],ctrl_gamma_list[i][3],exp_gamma_list[i][0],exp_gamma_list[i][1],exp_gamma_list[i][2],exp_gamma_list[i][3],joint_gamma_list[i][0],joint_gamma_list[i][1],joint_gamma_list[i][2],joint_gamma_list[i][3])) # TRI
 
-        output.write("%7d\t%5d\t%5d\t%5s\t%5s\t%5.1f\t%s\t%s\t%s\t%5d\t%s\n" % (position[i], ctrldata[i]-1, expdata[i]-1, L1[i], L2[i], LLR[i], ctrl_state_list[i], exp_state_list[i], joint_state_list[i], segment_bits[i], genestr))
+        output.write("%7d\t%5d\t%5d\t%8.4f\t%8.4f\t%8.4f\t%s\t%s\t%s\t%5d\t%s\n" % (position[i], ctrldata[i]-1, expdata[i]-1, L1[i], L2[i], LLR[i], ctrl_state_list[i], exp_state_list[i], joint_state_list[i], segment_bits[i], genestr))
 
 
     output.close()
@@ -218,6 +232,7 @@ def runDEHMM(wx, pubmsg, **kwargs):
 
 def runHMM(O, wx, pubmsg, newWx):
 
+    SEVEN_STATE = True # TRI
     ####################################
     #Prepare parameters
     N = 4
@@ -230,6 +245,14 @@ def runHMM(O, wx, pubmsg, newWx):
     mu = numpy.array([1/0.99, 0.01 * mean_r + 2,  mean_r, mean_r*5.0])
     L = 1.0/mu
     label= {0:"ES", 1:"GD", 2:"NE",3:"GA"}
+
+    if SEVEN_STATE==True: # TRI
+      N = 7
+      mu = numpy.array([math.exp((i/4.0)*math.log(mean_r)) for i in range(7)]); mu[0] += 0.01
+      #mu = numpy.array([1.01, 0.25*mean_r , 0.5*mean_r , 0.75*mean_r , mean_r , 4.0*mean_r , 10.0*mean_r ])
+      L = 1.0/mu
+      label = dict([(s, "S%d" % (s+1)) for s in range(0,N)])
+
 
     B = [] # Emission Probability Distributions
     for i in range(N):
@@ -252,6 +275,18 @@ def runHMM(O, wx, pubmsg, newWx):
     for i in range(N):
         A[i] = [b]*N
         A[i][i] = a
+
+    # TRI
+    if SEVEN_STATE==True:
+      A = numpy.zeros((N,N))
+      x = 0.001
+      for i in range(N):
+        for j in range(N):
+          if i==j: A[i][j] = 1.0-x
+          else: A[i][j] = x/float(N-1)
+      # note - A is the transition matrix, but in log form
+      A = numpy.log(A)
+
 
     PI = numpy.zeros(N) # Initial state distribution
     PI[0] = 0.7; PI[1:] = 0.3/(N-1);
@@ -296,7 +331,7 @@ def runHMM(O, wx, pubmsg, newWx):
         state_list.append(state_t)
 
 
-    return (likelihood_list, gamma_list, state_list, L)
+    return (likelihood_list, gamma_list, state_list, L, mu, label)
 
 
 
