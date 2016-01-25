@@ -166,7 +166,15 @@ def runGumbel(wx, pubmsg, **kwargs):
 
     #Orf	k	n	r	s	zbar
     output.write("#Gumbel\n")
-    output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
+    #output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
+    if wx:
+        variables = dict([(key,val) for (key,val) in kwargs.items() if not callable(val)])
+        variables["output"] = output.name
+        variables["readPathList"]= ",".join(PATH)
+        output.write("#GUI with: %s\n" % (" ".join(["%s=%s" % (key,val) for (key,val) in variables.items()])))
+    else:
+        output.write("#Console: python %s\n" % " ".join(sys.argv))
+
     #output.write("#Command used:\tpython %s\n" % (" ".join(sys.argv)))
     output.write("#FDR Corrected thresholds: %f, %f\n" % (ess_t, non_t))
     output.write("#MH Acceptance-Rate:\t%2.2f%%\n" % (100.0*acctot/count))

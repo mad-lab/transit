@@ -83,7 +83,7 @@ def runResampling(wx, pubmsg, **kwargs):
     sampleSize = kwargs.get("sampleSize", 10000)
     histPath = kwargs.get("histPath")
     doAdaptive = kwargs.get("doAdaptive", False)
-    normalize = kwargs.get("normalize", "nzmean")
+    normalize = kwargs.get("normalize", "TTR")
     doLOESS = kwargs.get("doLOESS", False)
     ignoreCodon = kwargs.get("ignoreCodon", True)
     ignoreNTerm = kwargs.get("ignoreNTerm", 0)
@@ -131,7 +131,16 @@ def runResampling(wx, pubmsg, **kwargs):
     S = sampleSize
 
     output.write("#Resampling\n")
-    output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
+    if wx:
+        #output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items() if not callable(val)]))
+        variables = dict([(key,val) for (key,val) in kwargs.items() if not callable(val)])
+        variables["output"] = output.name
+        variables["ctrlList"]= ",".join(ctrlList)
+        variables["expList"]= ",".join(expList)
+        output.write("#GUI with: %s\n" % (" ".join(["%s=%s" % (key,val) for (key,val) in variables.items()])))
+    else:
+        output.write("#Console: python %s\n" % " ".join(sys.argv))
+
     output.write("#Control Samples:  %s\n" % ", ".join(ctrlList))
     output.write("#Experimental Samples:  %s\n" % ", ".join(expList))
     if normalize == "nonorm":

@@ -200,8 +200,15 @@ def runHMM(wx, pubmsg, **kwargs):
 
     output.write("#HMM - Sites\n")
     output.write("# Tn-HMM\n")
-    #output.write("# Command Used: python %s\n" % " ".join(sys.argv))
-    output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
+    #output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
+    if wx:
+        variables = dict([(key,val) for (key,val) in kwargs.items() if not callable(val)])
+        variables["output"] = output.name
+        variables["readPathList"]= ",".join(readPathList)
+        output.write("#GUI with: %s\n" % (" ".join(["%s=%s" % (key,val) for (key,val) in variables.items()])))
+    else:
+        output.write("#Console: python %s\n" % " ".join(sys.argv))
+
     output.write("# \n") 
     output.write("# Mean:\t%2.2f\n" % (numpy.average(reads_nz)))
     output.write("# Median:\t%2.2f\n" % numpy.median(reads_nz))

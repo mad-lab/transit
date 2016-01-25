@@ -252,7 +252,14 @@ def runBinomial(wx, pubmsg, **kwargs):
     (ess_threshold, noness_threshold) = transit_tools.fdr_post_prob(z_bar)
 
     output.write("#Binomial\n")
-    output.write("#Command: %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
+    #output.write("#Command: %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
+    if wx:
+        variables = dict([(key,val) for (key,val) in kwargs.items() if not callable(val)])
+        variables["output"] = output.name
+        variables["wigList"]= ",".join(wigList)
+        output.write("#GUI with: %s\n" % (" ".join(["%s=%s" % (key,val) for (key,val) in variables.items()])))
+    else:
+        output.write("#Console: python %s\n" % " ".join(sys.argv))
     output.write("#Thresholds: (%1.5f, %1.5f)\n" % (ess_threshold,noness_threshold))
     output.write("#rho0 Acceptance Rate:\t%f%%\n" % ((100.0*acc_p0)/SAMPLE_SIZE))
     output.write("#Kp0  Acceptance Rate:\t%f%%\n" % ((100.0*acc_k0)/SAMPLE_SIZE))
