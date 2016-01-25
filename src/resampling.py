@@ -27,6 +27,18 @@ import numpy
 import matplotlib.pyplot as plt
 import transit_tools
 
+
+def saveHistogram(data, orf, path, delta):
+        n, bins, patches = plt.hist(data, normed=1, facecolor='c', alpha=0.75, bins=100)
+        plt.xlabel('Delta Sum')
+        plt.ylabel('Probability')
+        plt.title('%s - Histogram of Delta Sum' % orf)
+        plt.axvline(delta, color='r', linestyle='dashed', linewidth=3)
+        plt.grid(True)
+        genePath = os.path.join(path, orf +".png")
+        plt.savefig(genePath)
+        plt.clf()
+
       
 def fdr_corrected_pval(X):
     n = len(X)
@@ -194,8 +206,11 @@ def runResampling(wx, pubmsg, **kwargs):
         count += 1
         # the histogram of the data
         if histPath:
-            if wx and newWx: wx.CallAfter(pubmsg, "histogram", msg=(delta_sum_list, orf, histPath, sum2-sum1))
-            if wx and not newWx: wx.CallAfter(pubmsg, "histogram", (delta_sum_list, orf, histPath, sum2-sum1))
+            if wx:
+                if newWx: wx.CallAfter(pubmsg, "histogram", msg=(delta_sum_list, orf, histPath, sum2-sum1))
+                else: wx.CallAfter(pubmsg, "histogram", (delta_sum_list, orf, histPath, sum2-sum1))
+            else:
+                saveHistogram(delta_sum_list, orf, histPath, sum2-sum1)
 
         # Update Progress
         if wx and newWx: wx.CallAfter(pubmsg, "resampling", msg="Running Resampling Method... %2.0f%%" % (100.0*(count+1)/(G)))
