@@ -162,6 +162,15 @@ def runDEHMM(wx, pubmsg, **kwargs):
     if wx and newWx: wx.CallAfter(pubmsg, "dehmm", msg="Creating individual sites file...")
     if wx and not newWx: wx.CallAfter(pubmsg, "dehmm", "Creating individual sites file...")
     output.write("#DE-HMM Sites\n")
+    if wx:
+        variables = dict([(key,val) for (key,val) in kwargs.items() if not callable(val)])
+        variables["output"] = output.name
+        variables["ctrlList"]= ",".join(ctrlList)
+        variables["expList"]= ",".join(expList)
+        output.write("#GUI with: %s\n" % (" ".join(["%s=%s" % (key,val) for (key,val) in variables.items()])))
+    else:
+        output.write("#Console: python %s\n" % " ".join(sys.argv))
+
     output.write("#Cluster Penalty: %1.2f\n" %  clusterPenalty)
     output.write("#Sites Penalty: %1.2f\n" % sitesPenalty)
     output.write("# Ctrl HMM Paramters: %s\n" % "\t".join(["%1.4f" % p for p in ctrl_params]))
