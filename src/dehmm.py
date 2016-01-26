@@ -191,27 +191,28 @@ def runDEHMM(wx, pubmsg, **kwargs):
 
 
     output.close()
-    
+
+
+    # Adding Sites file to File list    
     data = {"path":output.name, "type":"DE-HMM - Sites", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
     if wx and newWx: wx.CallAfter(pubmsg, "file", data=data)
     if wx and not newWx: wx.CallAfter(pubmsg, "file", data)
     print dehmm_prefix, "Adding File:", output.name
 
-
+    ##################################
+    #Analyzing Segments
     print dehmm_prefix, "Analyzing Segments"
     if wx and newWx: wx.CallAfter(pubmsg, "dehmm", msg="Analyzing Segments...")
     if wx and not newWx: wx.CallAfter(pubmsg, "dehmm", "Analyzing Segments...")
 
-
     segments_path = ".".join(output.name.split(".")[:-1]) + "_segments." + output.name.split(".")[-1]
-
 
     (gene2sites, segment_data) = parseSegments(output.name)
     outputdata = analyzeSegments(segment_data, gene2sites, orf2info)
 
-
     if wx and newWx: wx.CallAfter(pubmsg, "dehmm", msg="Creating Segments output...")
     if wx and not newWx: wx.CallAfter(pubmsg, "dehmm", "Creating Segments output...")
+
 
     output2 = open(segments_path, "w")
     output2.write("#DE-HMM - Segments\n")
@@ -220,11 +221,27 @@ def runDEHMM(wx, pubmsg, **kwargs):
         output2.write("%d\t%d\t%d\t%d\t%d\t%d\t%s\t%1.1f\t%1.1f\t%1.2f\t%1.5f\t%1.5f\n" % tuple(row))
     output2.close()
 
-
-    #[i, n, start, end, span, count_genes, ",".join(["%s_(%s)" % (g, orf2info.get(g, "-")[0]) for g in sorted(set(clean_genes)) if g]), sum1, sum2, log2FC, pval_resampling]
-
     data2 = {"path":segments_path, "type":"DE-HMM - Segments", "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
     print dehmm_prefix, "Adding File:", segments_path
+
+
+
+
+    ####################################
+    #Analyzing Genes
+    print dehmm_prefix, "Analyzing Genes"
+    if wx and newWx: wx.CallAfter(pubmsg, "dehmm", msg="Analyzing Genes...")
+    if wx and not newWx: wx.CallAfter(pubmsg, "dehmm", "Analyzing Genes...")    
+
+    genes_path = ".".join(output.name.split(".")[:-1]) + "_genes." + output.name.split(".")[-1]
+    output3 = open(genes_path, "w")
+    output3.write("#DE-HMM - Genes\n")
+    output3.write("#ORF\tgene\tTAs\tNZ\tmeanA\tmeanB\tDEsites\tDEfrac\tDEgene\n")
+    genes_data = analyze_genes(output.name, orf2info)
+    for row in genes_data:
+        output3.write("%s\n" % '\t'.join([str(x) for x in row]))
+    output3.close()
+
     if wx:
         if newWx:
             wx.CallAfter(pubmsg, "file", data=data2)
@@ -735,6 +752,36 @@ def analyzeSegments(segment_data, gene2sites, orf2info):
 
     return ([data[i] + [qval[i]] for i in range(len(data))])
 
+
+
+
+def analyze_genes(sitespath, orf2info):
+
+    hash = {}
+    for line in open(sitespath):
+        if line[0]=='#': continue
+        w = line.split('\t')
+        hash[int(w[0])] = w
+
+    data = []
+    for orf,(name, desc, start, end, strand) in orf2info.items():
+        vals = [orf, name]
+        TAs,NZ,cntA,cntB,DE = 0,0,0,0,0
+        for i in range(start,end):
+            if i in hash:
+                w = hash[i]
+                a,b,c = int(w[1]),int(w[2]),int(w[9])
+                TAs += 1; DE += c
+                if a+b>0: NZ += 1; cntA += a; cntB += b
+        meanA,meanB,perc = 0,0,0
+        if TAs>0: perc = DE/float(TAs)
+        if NZ>0: meanA,meanB = cntA/float(NZ),cntB/float(NZ)
+        flag = "0"
+        if perc>=0.5: flag = "1"
+        vals += [TAs,NZ,"%0.3f" % meanA,"%0.3f" % meanB,DE,"%0.3f" % perc,flag]
+        data.append(vals)
+    return data
+    
 
 
 
