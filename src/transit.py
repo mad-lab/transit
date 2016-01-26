@@ -227,6 +227,7 @@ class TnSeekFrame(transit_gui.MainFrame):
             data, orf, path, delta = msg
         else:
             data, orf, path, delta = msg.data
+
         n, bins, patches = plt.hist(data, normed=1, facecolor='c', alpha=0.75, bins=100)
         plt.xlabel('Delta Sum')
         plt.ylabel('Probability')
@@ -257,10 +258,14 @@ class TnSeekFrame(transit_gui.MainFrame):
         if not newWx: msg = msg.data
         if msg == "gumbel":
             self.gumbelButton.Enable()
+        elif msg == "binomial":
+            self.binomialButton.Enable()
         elif msg == "hmm":
             self.hmmButton.Enable()
         elif msg == "resampling":
             self.resamplingButton.Enable()
+        elif msg == "dehmm":
+            self.dehmmButton.Enable()
 
 
     def ResetProgress(self):
@@ -1669,7 +1674,7 @@ if __name__ == "__main__":
         hmm_parser.add_argument("annotation", help="Path to the annotation file in .prot_table format.")
         hmm_parser.add_argument("control_files", help="Comma separated list of paths for replicate CONTROL files.")
         hmm_parser.add_argument("output_file", help="Output filename.")
-        hmm_parser.add_argument("-r", "--rep", help="How to handle replicates: 'Sum' or 'Mean'. Default is Sum.", default="Sum")
+        hmm_parser.add_argument("-r", "--rep", help="How to handle replicates: 'TTRMean', 'Sum' or 'Mean'. Default is TTRMean.", default="TTRMean")
         hmm_parser.add_argument("-L", "--loess", help="Perform LOESS Correction; Helps remove possible genomic position bias.", action='store_true')
         hmm_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus. Default is 0%%.", default=0.0, type=float)
         hmm_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus. Default is 0%%.", default=0.0, type=float)

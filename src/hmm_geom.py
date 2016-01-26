@@ -49,7 +49,7 @@ def runHMM(wx, pubmsg, **kwargs):
 
     readPathList = kwargs.get("readPathList")
     annotationPath = kwargs.get("annotationPath")
-    repchoice = kwargs.get("repchoice", "Sum")
+    repchoice = kwargs.get("repchoice", "TTRMean")
     ignoreCodon = kwargs.get("ignoreCodon", True)
     ignoreNTerm = kwargs.get("ignoreNTerm", 0)
     ignoreCTerm = kwargs.get("ignoreCTerm", 0)
@@ -70,24 +70,8 @@ def runHMM(wx, pubmsg, **kwargs):
         rv2name = transit_tools.get_gene_name(annotationPath)
 
     # Read in read count data
-    data = []
-    for wigPath in readPathList:
-        pos_list = []
-        C = []
-        for line in open(wigPath):
-            if line.startswith("#"): continue
-            if line.startswith("variable"): continue
-            if line.startswith("location"): continue
-            tmp = line.split()
-            pos = int(tmp[0])
-            reads = int(float(tmp[1]))
-            pos_list.append(int(pos))
-            C.append(reads)
-        data.append(numpy.array(C))
-
-    data = numpy.array(data)
-    position = numpy.array(pos_list)
-
+    (data, position) = transit_tools.get_data(readPathList)
+    
     if doLOESS:
         print hmm_prefix, "Performing LOESS Correction"
         for j in range(len(data)):
@@ -97,7 +81,13 @@ def runHMM(wx, pubmsg, **kwargs):
     if repchoice == "Sum":
         O = numpy.round(numpy.sum(data,0))
     elif repchoice == "Mean":
-        O = numpy.round(numpy.mean(data,0)) 
+        O = numpy.round(numpy.mean(data,0))
+    elif repchoice == "TTRMean":
+        factors = transit_tools.TTR_factors(data)
+        data = factors * data
+        target_factors = transit_tools.norm_to_target(data, 100)
+        data = target_factors * data
+        O = numpy.round(numpy.mean(data,0))
     else:
         O = data[0,:]
 
@@ -230,12 +220,12 @@ def runHMM(wx, pubmsg, **kwargs):
     for t in xrange(T):
         s_lab = label.get(int(Q_opt[t]), "Unknown State")
         gamma_t = (alpha[:,t] * beta[:,t])/numpy.sum(alpha[:,t] * beta[:,t])
-        genes_at_site = hash.get(pos_list[t], [""])
+        genes_at_site = hash.get(position[t], [""])
         genestr = ""
         if not (len(genes_at_site) == 1 and not genes_at_site[0]):
             genestr = ",".join(["%s_(%s)" % (g,rv2name.get(g, "-")) for g in genes_at_site])
 
-        output.write("%s\t%s\t%s\t%s\t%s\n" % (int(pos_list[t]), int(O[t])-1, "\t".join(["%-9.2e" % g for g in gamma_t]), s_lab, genestr))
+        output.write("%s\t%s\t%s\t%s\t%s\n" % (int(position[t]), int(O[t])-1, "\t".join(["%-9.2e" % g for g in gamma_t]), s_lab, genestr))
 
     output.close()
 
