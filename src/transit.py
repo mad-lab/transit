@@ -771,6 +771,41 @@ class TnSeekFrame(transit_gui.MainFrame):
                 print transit_prefix, "No results selected to display!"
 
 
+    def fileSelected(self,event):
+        next = self.list_files.GetNextSelected(-1)
+        if next > -1:
+            dataset_path = self.list_files.GetItem(next, 3).GetText()
+            dataset_name = self.list_files.GetItem(next, 0).GetText()
+            dataset_type = self.list_files.GetItem(next, 1).GetText()
+            self.updateGraphChoices(dataset_type)
+        else:
+            pass
+        
+
+
+    def updateGraphChoices(self, dataset_type):
+
+        if dataset_type == "Gumbel":
+            choices = ["[Choose Action]", "Plot Ranked Probability of Essentiality"]
+        elif dataset_type == "Binomial":
+            choices = ["[Choose Action]","Plot Ranked Probability of Essentiality"]
+        elif dataset_type == "HMM - Sites":
+            choices = ["[Choose Action]"]
+        elif dataset_type == "HMM - Genes":
+            choices = ["[Choose Action]"]
+        elif dataset_type == "Resampling":
+            choices = ["[Choose Action]","Create a Volcano Plot", "Plot Histogram of Total Gene Counts"]
+        elif dataset_type == "DE-HMM - Sites":
+            choices = ["[Choose Action]", "Recreate Sites File"]
+        elif dataset_type == "DE-HMM - Segments":
+            choices = ["[Choose Action]"]
+        else:
+           choices = ["[Choose Action]"] 
+
+        self.graphFileChoice.SetItems(choices)
+        self.graphFileChoice.SetSelection(0)
+
+
     def graphFileFunc(self, event):
         # 0 - nothing
         # 1 - Volcano
@@ -778,7 +813,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         
         plot_choice  = self.graphFileChoice.GetCurrentSelection()
         plot_name = self.graphFileChoice.GetString(plot_choice)
-        if plot_choice == 0:
+        if plot_name == "[Choose Action]":
                 return
         next = self.list_files.GetNextSelected(-1)
         if next > -1:
@@ -787,19 +822,23 @@ class TnSeekFrame(transit_gui.MainFrame):
             dataset_type = self.list_files.GetItem(next, 1).GetText()
             
             if self.verbose:
-                print transit_prefix, "Creating a", plot_name, " for dataset", dataset_name
+                print transit_prefix, "Performing the '%s' action on dataset '%s'" % (plot_name, dataset_name)
 
-            if plot_choice == 1:
+            if plot_name == "Create a Volcano Plot":
                 self.graphVolcanoPlot(dataset_name, dataset_type, dataset_path)
-            elif plot_choice == 2:
+            elif plot_name == "Plot Histogram of Total Gene Counts":
                 self.graphGeneCounts(dataset_name, dataset_type, dataset_path)
+            else:
+                return
 
             self.graphFileChoice.SetSelection(0)
             
         else:
             self.ShowError(MSG="Please select a results file to plot!")
     
-        
+       
+
+ 
 
 
     def graphGeneCounts(self, dataset_name, dataset_type, dataset_path):

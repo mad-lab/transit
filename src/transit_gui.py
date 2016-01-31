@@ -137,7 +137,7 @@ class MainFrame ( wx.Frame ):
 		self.addFileButton = wx.Button( self.m_scrolledWindow2, wx.ID_ANY, u"Add Results File", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer141.Add( self.addFileButton, 0, wx.ALL, 5 )
 		
-		graphFileChoiceChoices = [ u"[Visualization Options]", u"Volcano Plot", u"Histogram of Total Gene Counts" ]
+		graphFileChoiceChoices = [ u"[Choose Action]" ]
 		self.graphFileChoice = wx.Choice( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, graphFileChoiceChoices, 0 )
 		self.graphFileChoice.SetSelection( 0 )
 		bSizer141.Add( self.graphFileChoice, 0, wx.ALL, 5 )
@@ -646,6 +646,7 @@ class MainFrame ( wx.Frame ):
 		self.graphFileButton.Bind( wx.EVT_BUTTON, self.graphFileFunc )
 		self.addFileButton.Bind( wx.EVT_BUTTON, self.addFileFunc )
 		self.graphFileChoice.Bind( wx.EVT_CHOICE, self.graphFileFunc )
+		self.list_files.Bind( wx.EVT_LIST_ITEM_SELECTED, self.fileSelected )
 		self.methodChoice.Bind( wx.EVT_CHOICE, self.MethodSelectFunc )
 		self.gumbelButton.Bind( wx.EVT_BUTTON, self.RunGumbelFunc )
 		self.binomialButton.Bind( wx.EVT_BUTTON, self.RunBinomialFunc )
@@ -704,6 +705,9 @@ class MainFrame ( wx.Frame ):
 	def addFileFunc( self, event ):
 		event.Skip()
 	
+	
+	def fileSelected( self, event ):
+		event.Skip()
 	
 	def MethodSelectFunc( self, event ):
 		event.Skip()
