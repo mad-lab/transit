@@ -161,7 +161,7 @@ def runDEHMM(wx, pubmsg, **kwargs):
 
     if wx and newWx: wx.CallAfter(pubmsg, "dehmm", msg="Creating individual sites file...")
     if wx and not newWx: wx.CallAfter(pubmsg, "dehmm", "Creating individual sites file...")
-    output.write("#DE-HMM Sites\n")
+    output.write("#DE-HMM - Sites\n")
     if wx:
         variables = dict([(key,val) for (key,val) in kwargs.items() if not callable(val)])
         variables["output"] = output.name
