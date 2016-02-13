@@ -31,7 +31,8 @@ except AttributeError as e:
     from wx.lib.pubsub import Publisher as pub
     newWx = False
 
-   
+import transit.analysis.gumbel   
+from transit.analysis import *
 import os
 import time
 import datetime
@@ -59,6 +60,17 @@ import imgTRANSIT
 import argparse
 
 
+mainInstructions = """Instructions:
+
+1. Choose the annotation file ("prot table") that corresponds to the datasets to be analyzed.
+2. Add the desired Control and Experimental datasets.
+3. (Optional) If you wish to visualize their read counts, select the desired datasets and click on the "View" button.
+4. Select the desired analysis method from the dropdown menu on the top-right of the window, and follow its instructions.
+"""
+
+method_wrap_width = 250
+methodsDict = {"Gumbel":gumbel}
+
 wildcard = "Python source (*.py)|*.py|" \
             "All files (*.*)|*.*"
 transit_prefix = "[TRANSIT]"
@@ -70,6 +82,10 @@ class TnSeekFrame(transit_gui.MainFrame):
         #initialize parent class
         transit_gui.MainFrame.__init__(self,parent)
 
+
+        #import pkgutil
+        #print [x for x in pkgutil.iter_modules(['transit/analysis'])]
+        #print gumbel.Gumbel.__bases__
 
         self.logoImg.SetBitmap(imgTRANSIT.TRANSIT.GetImage().ConvertToBitmap())
 
@@ -105,11 +121,6 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.gumbel_count = 0
         self.hmm_count = 0
         self.resampling_count = 0
-        pub.subscribe(self.updateGumbel, "gumbel")
-        pub.subscribe(self.updateBinomial, "binomial")
-        pub.subscribe(self.updateHMM, "hmm")
-        pub.subscribe(self.updateResampling, "resampling")
-        pub.subscribe(self.updateDEHMM, "dehmm")
         pub.subscribe(self.updateProgress, "update")
         pub.subscribe(self.addFile, "file")
         pub.subscribe(self.finishRun, "finish")
@@ -118,13 +129,14 @@ class TnSeekFrame(transit_gui.MainFrame):
         #self.outputDirPicker.SetPath(os.path.dirname(os.path.realpath(__file__)))
 
         self.progress.Hide()
-        self.progressLabel.Hide()
+
+        methodChoiceChoices = [ "[Choose Method]"]
+        for name,method in methodsDict.items():
+            methodChoiceChoices.append(name)
+        self.methodChoice.SetItems(methodChoiceChoices)
+        self.methodChoice.SetSelection( 0 )
         self.HideGlobalOptions()
-        self.HideGumbelOptions()
-        self.HideBinomialOptions()
-        self.HideHMMOptions()
-        self.HideResamplingOptions()
-        self.HideDEHMMOptions()
+
 
     def Exit(self, event):
         """Exit Menu Item"""
@@ -133,93 +145,15 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.Close()
 
 
-    def updateGumbel(self, msg):
-        self.gumbel_count+=1
-        self.gumbelProgress.SetValue(self.gumbel_count)
-
-        X = self.methodChoice.GetCurrentSelection()
-        method = self.methodChoice.GetString(X)
-        if method == "Gumbel": # if gumbel
-            if newWx:
-                if self.gumbel_count > self.gumbelProgress.GetRange(): msg = ""
-                self.statusBar.SetStatusText(msg)
-            else:
-                self.statusBar.SetStatusText(msg.data)
-
-
-
-    def updateBinomial(self, msg):
-        self.binomial_count+=1
-        self.binomialProgress.SetValue(self.binomial_count)
-
-        
-        X = self.methodChoice.GetCurrentSelection()
-        method = self.methodChoice.GetString(X)
-        if method == "Binomial": # if binomial
-            if newWx:
-                if self.binomial_count > self.binomialProgress.GetRange(): msg = ""
-                self.statusBar.SetStatusText(msg)
-            else:
-                self.statusBar.SetStatusText(msg.data)
-
-    
-
-    def updateHMM(self, msg):
-        self.hmm_count+=1
-        self.hmmProgress.SetValue(self.hmm_count)
-        
-        X = self.methodChoice.GetCurrentSelection()
-        method = self.methodChoice.GetString(X)
-        if method == "HMM": # if hmm
-            if newWx:
-                if self.hmm_count > self.hmmProgress.GetRange(): msg = ""
-                self.statusBar.SetStatusText(msg)
-            else:
-                self.statusBar.SetStatusText(msg.data)
-        
-
-
-    def updateResampling(self, msg):
-        self.resampling_count+=1
-        self.resamplingProgress.SetValue(self.resampling_count)
-
-        X = self.methodChoice.GetCurrentSelection()
-        method = self.methodChoice.GetString(X)
-        if method == "Resampling": # if resampling
-            if newWx:
-                if self.resampling_count > self.resamplingProgress.GetRange(): msg = ""
-                self.statusBar.SetStatusText(msg)
-            else:
-                self.statusBar.SetStatusText(msg.data)
-
-
-    def updateDEHMM(self, msg):
-        self.dehmm_count+=1
-        self.dehmmProgress.SetValue(self.hmm_count)
-
-        X = self.methodChoice.GetCurrentSelection()
-        method = self.methodChoice.GetString(X)
-        if method == "DE-HMM": # if dehmm
-            if newWx:
-                if self.hmm_count > self.dehmmProgress.GetRange(): msg = ""
-                self.statusBar.SetStatusText(msg)
-            else:
-                self.statusBar.SetStatusText(msg.data)
-
-
-
-
     def updateProgress(self, msg):
         """"""
-        self.progress_count += 1
-        self.progress.SetValue(self.progress_count)
         if newWx:
-            self.statusBar.SetStatusText(msg)
+            method, text, count = msg
         else:
-            self.statusBar.SetStatusText(msg.data)
-        if self.progress_count > self.progress.GetRange():
-            self.statusBar.SetStatusText("Finished!")
-        #self.statusBar.SetStatusText("Running Gumbel Method... %2.0f%%" % (100.0*self.progress_count/self.progress.GetRange()))
+            method, text, count = msg.data
+        method.updateProgressBar(count)
+        self.statusBar.SetStatusText(text)
+
 
     
     def saveHistogram(self, msg):
@@ -255,30 +189,20 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def finishRun(self,msg):
         if not newWx: msg = msg.data
-        if msg == "gumbel":
-            self.gumbelButton.Enable()
-        elif msg == "hmm":
-            self.hmmButton.Enable()
-        elif msg == "resampling":
-            self.resamplingButton.Enable()
+        methodsDict[msg].enableButton()
+        
 
 
     def ResetProgress(self):
         self.progress_count = 0
 
 
-    def SetProgressRange(self, X):
-        self.progress.SetRange(X)
-
 
     def HideAllOptions(self):
-
         self.HideGlobalOptions()
-        self.HideGumbelOptions()
-        self.HideBinomialOptions()
-        self.HideHMMOptions()
-        self.HideResamplingOptions()
-        self.HideDEHMMOptions()
+        for name,method in methodsDict.items():
+            method.Hide(self)
+
 
     def HideGlobalOptions(self):
         self.globalLabel.Hide()
@@ -294,143 +218,6 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.globalCTerminusLabel.Show()
         self.globalNTerminusText.Show()
         self.globalCTerminusText.Show()
-
-
-    def HideGumbelOptions(self):
-        self.gumbelLabel.Hide()
-        self.gumbelInstructions.Hide()
-        self.gumbelSampleLabel.Hide()
-        self.gumbelSampleText.Hide()
-        self.gumbelBurninLabel.Hide()
-        self.gumbelBurninText.Hide()
-        self.gumbelTrimLabel.Hide()
-        self.gumbelTrimText.Hide()
-        self.gumbelReadLabel.Hide()
-        self.gumbelReadChoice.Hide()
-        self.gumbelRepLabel.Hide()
-        self.gumbelRepChoice.Hide()
-        self.gumbelButton.Hide()
-        self.gumbelProgress.Hide()
-
-
-    def ShowGumbelOptions(self):
-        self.gumbelLabel.Show()
-        self.gumbelInstructions.Show()
-        self.gumbelSampleLabel.Show()
-        self.gumbelSampleText.Show()
-        self.gumbelBurninLabel.Show()
-        self.gumbelBurninText.Show()
-        self.gumbelTrimLabel.Show()
-        self.gumbelTrimText.Show()
-        self.gumbelReadLabel.Show()
-        self.gumbelReadChoice.Show()
-        self.gumbelRepLabel.Show()
-        self.gumbelRepChoice.Show()
-        self.gumbelButton.Show()
-        self.gumbelProgress.Show()
-
-
-    def HideBinomialOptions(self):
-        self.binomialLabel.Hide()
-        self.binomialInstructions.Hide()
-        self.binomialSampleLabel.Hide()
-        self.binomialSampleText.Hide()
-        self.binomialBurninLabel.Hide()
-        self.binomialBurninText.Hide()
-        self.binomialButton.Hide()
-        self.binomialProgress.Hide()
-
-
-    def ShowBinomialOptions(self):
-        self.binomialLabel.Show()
-        self.binomialInstructions.Show()
-        self.binomialSampleLabel.Show()
-        self.binomialSampleText.Show()
-        self.binomialBurninLabel.Show()
-        self.binomialBurninText.Show()
-        self.binomialButton.Show()
-        self.binomialProgress.Show()
-
-
-
-    def HideHMMOptions(self):
-        self.hmmLabel.Hide()
-        self.hmmInstructions.Hide()
-        self.hmmRepLabel.Hide()
-        self.hmmRepChoice.Hide()
-        self.hmmButton.Hide()
-        self.hmmLoessPrev.Hide()
-        self.hmmLoessCheck.Hide()
-        self.hmmProgress.Hide()
-
-    
-    def ShowHMMOptions(self):
-        self.hmmLabel.Show()
-        self.hmmInstructions.Show()
-        self.hmmRepLabel.Show()
-        self.hmmRepChoice.Show()
-        self.hmmButton.Show()
-        self.hmmLoessPrev.Show()
-        self.hmmLoessCheck.Show()
-        self.hmmProgress.Show()
-
-
-    def HideResamplingOptions(self):
-        self.resamplingLabel.Hide()
-        self.resamplingInstructions.Hide()
-        self.resamplingSampleLabel.Hide()
-        self.resamplingSampleText.Hide()
-        self.resamplingNormLabel.Hide()
-        self.resamplingNormChoice.Hide()
-        self.resamplingLoessCheck.Hide()
-        self.resamplingLoessPrev.Hide()
-        self.resamplingHistCheck.Hide()
-        self.resamplingAdaptiveCheck.Hide()
-        self.resamplingButton.Hide()
-        self.resamplingProgress.Hide()
-    
-
-    def ShowResamplingOptions(self):
-        self.resamplingLabel.Show()
-        self.resamplingInstructions.Show()
-        self.resamplingSampleLabel.Show()
-        self.resamplingSampleText.Show()
-        self.resamplingNormLabel.Show()
-        self.resamplingNormChoice.Show()
-        self.resamplingLoessCheck.Show()
-        self.resamplingLoessPrev.Show()
-        self.resamplingHistCheck.Show()
-        self.resamplingAdaptiveCheck.Show()
-        self.resamplingButton.Show()
-        self.resamplingProgress.Show()
- 
-
-    def HideDEHMMOptions(self):
-        self.dehmmLabel.Hide()
-        self.dehmmInstructions.Hide()
-        self.dehmmClusterPenaltyLabel.Hide()
-        self.dehmmClusterPenaltyText.Hide()
-        self.dehmmSitesPenaltyLabel.Hide()
-        self.dehmmSitesPenaltyText.Hide()
-        self.dehmmButton.Hide()
-        self.dehmmLoessPrev.Hide()
-        self.dehmmLoessCheck.Hide()
-        self.dehmmProgress.Hide()
-
-    
-    def ShowDEHMMOptions(self):
-        self.dehmmLabel.Show()
-        self.dehmmInstructions.Show()
-        self.dehmmClusterPenaltyLabel.Show()
-        self.dehmmClusterPenaltyText.Show()
-        self.dehmmSitesPenaltyLabel.Show()
-        self.dehmmSitesPenaltyText.Show()
-        self.dehmmButton.Show()
-        self.dehmmLoessPrev.Show()
-        self.dehmmLoessCheck.Show()
-        self.dehmmProgress.Show()
-
-
 
 
     def SaveFile(self, DIR=None, FILE="", WC=""):
@@ -692,61 +479,30 @@ class TnSeekFrame(transit_gui.MainFrame):
         
     def MethodSelectFunc(self, event):
         X = self.methodChoice.GetCurrentSelection()
-        method = self.methodChoice.GetString(X)
+        selected_name = self.methodChoice.GetString(X)
 
-
-        self.progressLabel.Show()
+        #If empty is selected
         if X == 0:
             self.HideAllOptions()
-            self.progressLabel.Hide()
             self.mainInstructions.Show()
-        elif method == "Gumbel":
-            self.mainInstructions.Hide()
+            self.mainInstructions.SetLabel(mainInstructions)
+            self.mainInstructions.Wrap(method_wrap_width)
+            mainInstructions
+        else:
             self.ShowGlobalOptions()
-            self.ShowGumbelOptions()
-            self.HideBinomialOptions()
-            self.HideHMMOptions()
-            self.HideResamplingOptions()
-            self.HideDEHMMOptions()
-        elif method == "Binomial":
-            self.mainInstructions.Hide()
-            self.ShowGlobalOptions()
-            self.ShowBinomialOptions()
-            self.HideGumbelOptions()
-            self.HideHMMOptions()
-            self.HideResamplingOptions()
-            self.HideDEHMMOptions()
-        elif method == "HMM":
-            self.mainInstructions.Hide()
-            self.ShowGlobalOptions()
-            self.ShowHMMOptions()
-            self.HideGumbelOptions()
-            self.HideBinomialOptions()
-            self.HideResamplingOptions()
-            self.HideDEHMMOptions()
-        elif method == "Resampling":
-            self.mainInstructions.Hide()
-            self.ShowGlobalOptions()
-            self.ShowResamplingOptions()
-            self.HideGumbelOptions()
-            self.HideBinomialOptions()
-            self.HideHMMOptions()
-            self.HideDEHMMOptions()
-        elif method == "DE-HMM":
-            self.mainInstructions.Hide()
-            self.ShowGlobalOptions()
-            self.ShowDEHMMOptions()
-            self.HideGumbelOptions()
-            self.HideBinomialOptions()
-            self.HideHMMOptions()
-            self.HideResamplingOptions()
-
-
+            #Show Selected Method and hide Others
+            for name,method in methodsDict.items():
+                if name == selected_name:
+                    self.mainInstructions.SetLabel(method.getInstructions())
+                    self.mainInstructions.Wrap(method_wrap_width)
+                    method.Show(self)
+                else:
+                    method.Hide(self)
 
         self.Layout()
-
         if self.verbose:
-            print transit_prefix, "Selected Method (%d): %s" % (X, method)
+            print transit_prefix, "Selected Method (%d): %s" % (X, selected_name)
+
 
 
     def displayFileFunc(self, event):
@@ -1253,9 +1009,15 @@ class TnSeekFrame(transit_gui.MainFrame):
 
                  
 
+    def RunMethod(self, event):
+        X = self.methodChoice.GetCurrentSelection()
+        selected_name = self.methodChoice.GetString(X)
+        methodsDict[selected_name].Run(self) 
+
                 
     def RunGumbelFunc(self, event):
 
+        print "LOLOLOLO!111"
         #Get options
         next = self.list_ctrl.GetNextSelected(-1)
         all_selected = self.ctrlSelected()
@@ -1322,299 +1084,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         thread.start()
 
 
-    def RunBinomialFunc(self, event):
 
-        #Get options
-        next = self.list_ctrl.GetNextSelected(-1)
-        all_selected = self.ctrlSelected()
-        if len(all_selected) ==0:
-            self.ShowError("Error: No dataset selected.")
-            return
-
-        annotationPath = self.annotationFilePicker.GetPath()
-        if not annotationPath:
-            self.ShowError("Error: No annotation file selected.")
-            return
-
-
-        pathCol = self.list_ctrl.GetColumnCount() - 1
-        readPath = self.list_ctrl.GetItem(next, pathCol).GetText()
-        readPathList = all_selected
-        name = transit_tools.basename(readPath)
-        samples = int(self.binomialSampleText.GetValue())
-        burnin = int(self.binomialBurninText.GetValue())
-        ignoreCodon = True
-        ignoreNTerm = float(self.globalNTerminusText.GetValue())
-        ignoreCTerm = float(self.globalCTerminusText.GetValue())
-
-
-        #Get Default file name
-        defaultFile = "binomial_%s_s%d_b%d.dat" % (".".join(name.split(".")[:-1]), samples, burnin)
-
-        #Get Default directory
-        #defaultDir = os.path.dirname(os.path.realpath(__file__))
-        defaultDir = os.getcwd()
-
-        #Ask user for output:        
-        outputPath = self.SaveFile(defaultDir, defaultFile)
-
-        if outputPath:
-            output = open(outputPath, "w")
-        else:
-            return
-
-        self.statusBar.SetStatusText("Running Binomial Method")
-        self.binomial_count = 0
-        self.binomialProgress.SetRange(samples+burnin)
-        self.binomialButton.Disable()
-
-        kwargs = {}
-        kwargs["readPathList"] = readPathList
-        kwargs["annotationPath"] = annotationPath
-        kwargs["samples"] = samples
-        kwargs["burnin"] = burnin
-        kwargs["ignoreCodon"] = ignoreCodon
-        kwargs["ignoreNTerm"] = ignoreNTerm
-        kwargs["ignoreCTerm"] = ignoreCTerm
-        kwargs["output"] = output
-
-        thread = threading.Thread(target=betabinomial.runBinomial, args=(wx, pub.sendMessage), kwargs=kwargs)
-        thread.setDaemon(True)
-        thread.start()
-
-
-
-
-    def RunHMMFunc(self, event):
-        next = self.list_ctrl.GetNextSelected(-1)
-        annotationPath = self.annotationFilePicker.GetPath()
-        all_selected = self.ctrlSelected()
-        if len(all_selected) == 0:
-            self.ShowError("Error: No dataset selected.")
-            return
-        if not annotationPath:
-            self.ShowError("Error: No annotation file selected.")
-            return
-
-        pathCol = self.list_ctrl.GetColumnCount() - 1
-        readPath = self.list_ctrl.GetItem(next, pathCol).GetText()
-        readPathList = all_selected
-        name = transit_tools.basename(readPath)
-        repchoice = self.hmmRepChoice.GetString(self.hmmRepChoice.GetCurrentSelection())
-        ignoreCodon = True
-        ignoreNTerm = float(self.globalNTerminusText.GetValue())
-        ignoreCTerm = float(self.globalCTerminusText.GetValue())
-        doLOESS = self.hmmLoessCheck.GetValue()
-
-        
-
-
-        #Get Default file name
-        defaultFile = "hmm_%s_sites.dat" % (".".join(name.split(".")[:-1]))
-
-        #Get Default directory
-        #defaultDir = os.path.dirname(os.path.realpath(__file__))
-        defaultDir = os.getcwd()
-
-        #Ask user for output:
-        outputPath = self.SaveFile(defaultDir, defaultFile)
-
-        if outputPath:
-            output = open(outputPath, "w")
-        else:
-            return
-
-        self.statusBar.SetStatusText("Running HMM Method")
-        self.hmm_count = 0
-        T = len([1 for line in open(readPath).readlines() if not line.startswith("#")])
-        self.hmmProgress.SetRange(T*4 +1)
-
-        self.hmmButton.Disable()
-
-        kwargs = {}
-        kwargs["readPathList"] = readPathList
-        kwargs["annotationPath"] = annotationPath
-        kwargs["repchoice"] = repchoice
-        kwargs["ignoreCodon"] = ignoreCodon
-        kwargs["ignoreNTerm"] = ignoreNTerm
-        kwargs["ignoreCTerm"] = ignoreCTerm
-        kwargs["doLOESS"] = doLOESS
-        kwargs["output"] = output
-
-        #HMMThread(readPathList, annotationPath, repchoice, ignoreCodon, ignoreNTerm, ignoreCTerm, output)
-        thread = threading.Thread(target=hmm_geom.runHMM, args=(wx, pub.sendMessage), kwargs=kwargs)
-        thread.setDaemon(True)
-        thread.start()
-
-
-
-    def RunResamplingFunc(self, event):
-        selected_ctrl = self.ctrlSelected()
-        selected_exp = self.expSelected()
-
-        if len(selected_ctrl) == 0 and len(selected_exp) == 0:
-            self.ShowError("Error: No datasets selected.")
-            return
-
-        elif len(selected_ctrl) == 0:
-            self.ShowError("Error: No control datasets selected.")
-            return
-
-        elif len(selected_exp) == 0:
-            self.ShowError("Error: No experimental datasets selected.")
-            return
-        annotationPath = self.annotationFilePicker.GetPath()
-        if not annotationPath:
-            self.ShowError("Error: No annotation file selected.")
-            return
-
-
-        #Get Default file name
-        defaultFile = "resampling_results.dat"
-
-        #Get Default directory
-        #defaultDir = os.path.dirname(os.path.realpath(__file__))
-        defaultDir = os.getcwd()
-
-        #Ask user for output:        
-        outputPath = self.SaveFile(defaultDir, defaultFile)
-
-        if outputPath:
-            output = open(outputPath, "w")
-        else:
-            return
-
-        #Check if user wants individual histograms
-        if self.resamplingHistCheck.GetValue():
-            histPath = os.path.join(os.path.dirname(outputPath), transit_tools.fetch_name(outputPath)+"_histograms")
-            if not os.path.isdir(histPath):
-                os.makedirs(histPath)
-        else:
-            histPath = ""
-
-        doAdaptive= self.resamplingAdaptiveCheck.GetValue()
-        doLOESS = self.resamplingLoessCheck.GetValue()
-        normalize = self.resamplingNormChoice.GetString(self.resamplingNormChoice.GetCurrentSelection())
-        ignoreCodon = True
-        ignoreNTerm = float(self.globalNTerminusText.GetValue())
-        ignoreCTerm = float(self.globalCTerminusText.GetValue())
-
-        ctrlString = ",".join(selected_ctrl)
-        expString = ",".join(selected_exp)
-
-        if self.verbose:
-            print transit_prefix, "Control String:", ctrlString
-            print transit_prefix, "Experim String:", expString
-            print transit_prefix, "outputPath:", outputPath
-            print transit_prefix, "histPath:", histPath
-         
-
-        sampleSize = int(self.resamplingSampleText.GetValue())
- 
-        self.statusBar.SetStatusText("Running Resampling Method")
-        self.resampling_count = 0
-        T = len([1 for line in open(annotationPath).readlines() if not line.startswith("geneID")])
-        self.resamplingProgress.SetRange(T+1)
-
-        self.resamplingButton.Disable()
-
-        kwargs = {}
-        kwargs["ctrlList"] = ctrlString.split(",")
-        kwargs["expList"] = expString.split(",")
-        kwargs["annotationPath"] = annotationPath
-        kwargs["sampleSize"] = sampleSize
-        kwargs["histPath"] = histPath
-        kwargs["doAdaptive"] = doAdaptive
-        kwargs["ignoreCodon"] = ignoreCodon
-        kwargs["ignoreNTerm"] = ignoreNTerm
-        kwargs["ignoreCTerm"] = ignoreCTerm
-        kwargs["normalize"] = normalize
-        kwargs["doLOESS"] = doLOESS
-        kwargs["output"] = output
-
-
-        thread = threading.Thread(target=resampling.runResampling, args=(wx, pub.sendMessage), kwargs=kwargs)
-        thread.setDaemon(True)
-        thread.start()
-
-
-
-
-    def RunDEHMMFunc(self, event):
-        selected_ctrl = self.ctrlSelected()
-        selected_exp = self.expSelected()
-
-        if len(selected_ctrl) == 0 and len(selected_exp) == 0:
-            self.ShowError("Error: No datasets selected.")
-            return
-
-        elif len(selected_ctrl) == 0:
-            self.ShowError("Error: No control datasets selected.")
-            return
-
-        elif len(selected_exp) == 0:
-            self.ShowError("Error: No experimental datasets selected.")
-            return
-        annotationPath = self.annotationFilePicker.GetPath()
-        if not annotationPath:
-            self.ShowError("Error: No annotation file selected.")
-            return
-
-
-        clusterPenalty = float(self.dehmmClusterPenaltyText.GetValue())
-        sitesPenalty = float(self.dehmmSitesPenaltyText.GetValue())
-
-        #Get Default file name
-        defaultFile = "dehmm_results_cluster%1.1f_sites%1.1f.dat" % (clusterPenalty, sitesPenalty)
-
-        #Get Default directory
-        #defaultDir = os.path.dirname(os.path.realpath(__file__))
-        defaultDir = os.getcwd()
-
-        #Ask user for output:        
-        outputPath = self.SaveFile(defaultDir, defaultFile)
-
-        if outputPath:
-            output = open(outputPath, "w")
-        else:
-            return
-
-
-        clusterPenalty = float(self.dehmmClusterPenaltyText.GetValue())
-        sitesPenalty = float(self.dehmmSitesPenaltyText.GetValue())
-        doLOESS = self.dehmmLoessCheck.GetValue()
-
-        ctrlString = ",".join(selected_ctrl)
-        expString = ",".join(selected_exp)
-
-
-        if self.verbose:
-            print transit_prefix, "Control String:", ctrlString
-            print transit_prefix, "Experim String:", expString
-            print transit_prefix, "outputPath:", outputPath
-
-        self.statusBar.SetStatusText("Running DE-HMM Method")
-        self.dehmm_count = 0
-
-        readPath = selected_ctrl[0]
-        T = len([1 for line in open(readPath).readlines() if not line.startswith("#")])
-        self.dehmmProgress.SetRange(3*(T*4+1))
-        self.dehmmButton.Disable()
-
-        kwargs = {}
-        kwargs["ctrlList"] = ctrlString.split(",")
-        kwargs["expList"] = expString.split(",")
-        kwargs["annotationPath"] = annotationPath
-        kwargs["normalize"] = "TTR"
-        kwargs["doLOESS"] = doLOESS
-        kwargs["clusterPenalty"]  = clusterPenalty
-        kwargs["sitesPenalty"] = sitesPenalty
-        kwargs["output"] = output
-
-
-        thread = threading.Thread(target=dehmm.runDEHMM, args=(wx, pub.sendMessage), kwargs=kwargs)
-        thread.setDaemon(True)
-        thread.start()
 
 
 
