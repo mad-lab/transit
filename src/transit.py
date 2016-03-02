@@ -42,6 +42,8 @@ import matplotlib.pyplot as plt
 import multiprocessing as mp
 import math
 
+import traceback
+
 # trash view stuff
 import trash
 import transit_gui
@@ -69,7 +71,7 @@ mainInstructions = """Instructions:
 """
 
 method_wrap_width = 250
-methodsDict = {"Gumbel":gumbel}
+methodsDict = {"Gumbel":{"module":gumbel, "method":gumbel.Gumbel}}
 
 wildcard = "Python source (*.py)|*.py|" \
             "All files (*.*)|*.*"
@@ -117,11 +119,11 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.verbose = True
 
 
+        self.progress.SetRange(50)
+        self.statusBar.SetStatusText("Welcome to TRANSIT")
         self.progress_count = 0
-        self.gumbel_count = 0
-        self.hmm_count = 0
-        self.resampling_count = 0
-        pub.subscribe(self.updateProgress, "update")
+        pub.subscribe(self.updateProgress, "progress")
+        pub.subscribe(self.updateStatus, "status")
         pub.subscribe(self.addFile, "file")
         pub.subscribe(self.finishRun, "finish")
         pub.subscribe(self.saveHistogram, "histogram")   
@@ -131,7 +133,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.progress.Hide()
 
         methodChoiceChoices = [ "[Choose Method]"]
-        for name,method in methodsDict.items():
+        for name in methodsDict:
             methodChoiceChoices.append(name)
         self.methodChoice.SetItems(methodChoiceChoices)
         self.methodChoice.SetSelection( 0 )
@@ -148,12 +150,22 @@ class TnSeekFrame(transit_gui.MainFrame):
     def updateProgress(self, msg):
         """"""
         if newWx:
-            method, text, count = msg
+            method, count = msg
         else:
-            method, text, count = msg.data
-        method.updateProgressBar(count)
-        self.statusBar.SetStatusText(text)
+            method, count = msg.data
+        self.progress_count = count
+        try:
+            self.progress.SetValue(self.progress_count)
+        except:
+            pass
 
+    def updateStatus(self, msg):
+        """"""
+        if newWx:
+            method, text = msg 
+        else:
+            method, text = msg.data
+        self.statusBar.SetStatusText(text)
 
     
     def saveHistogram(self, msg):
@@ -189,7 +201,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def finishRun(self,msg):
         if not newWx: msg = msg.data
-        methodsDict[msg].enableButton()
+        methodsDict[msg]["module"].enableButton(self)
         
 
 
@@ -200,7 +212,8 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def HideAllOptions(self):
         self.HideGlobalOptions()
-        for name,method in methodsDict.items():
+        for name in methodsDict:
+            method = methodsDict["method"]
             method.Hide(self)
 
 
@@ -491,13 +504,14 @@ class TnSeekFrame(transit_gui.MainFrame):
         else:
             self.ShowGlobalOptions()
             #Show Selected Method and hide Others
-            for name,method in methodsDict.items():
+            for name in methodsDict:
+                module = methodsDict[name]["module"]
                 if name == selected_name:
-                    self.mainInstructions.SetLabel(method.getInstructions())
+                    self.mainInstructions.SetLabel(module.getInstructions())
                     self.mainInstructions.Wrap(method_wrap_width)
-                    method.Show(self)
+                    module.Show(self)
                 else:
-                    method.Hide(self)
+                    module.Hide(self)
 
         self.Layout()
         if self.verbose:
@@ -1010,78 +1024,19 @@ class TnSeekFrame(transit_gui.MainFrame):
                  
 
     def RunMethod(self, event):
+        #FLORF
         X = self.methodChoice.GetCurrentSelection()
         selected_name = self.methodChoice.GetString(X)
-        methodsDict[selected_name].Run(self) 
-
-                
-    def RunGumbelFunc(self, event):
-
-        print "LOLOLOLO!111"
-        #Get options
-        next = self.list_ctrl.GetNextSelected(-1)
-        all_selected = self.ctrlSelected()
-        if len(all_selected) ==0:
-            self.ShowError("Error: No dataset selected.")
-            return
-
-        annotationPath = self.annotationFilePicker.GetPath()
-        if not annotationPath:
-            self.ShowError("Error: No annotation file selected.")
-            return
-        
-        
-        pathCol = self.list_ctrl.GetColumnCount() - 1
-        readPath = self.list_ctrl.GetItem(next, pathCol).GetText()
-        readPathList = all_selected
-        name = transit_tools.basename(readPath)
-        min_read = int(self.gumbelReadChoice.GetString(self.gumbelReadChoice.GetCurrentSelection()))
-        samples = int(self.gumbelSampleText.GetValue())
-        burnin = int(self.gumbelBurninText.GetValue())
-        trim = int(self.gumbelTrimText.GetValue())
-        repchoice = self.gumbelRepChoice.GetString(self.gumbelRepChoice.GetCurrentSelection())
-        ignoreCodon = True
-        ignoreNTerm = float(self.globalNTerminusText.GetValue())
-        ignoreCTerm = float(self.globalCTerminusText.GetValue())
-
-
-        #Get Default file name
-        defaultFile = "gumbel_%s_s%d_b%d_t%d.dat" % (".".join(name.split(".")[:-1]), samples, burnin, trim)
-
-        #Get Default directory
-        #defaultDir = os.path.dirname(os.path.realpath(__file__))
-        defaultDir = os.getcwd()
-
-
-        #Ask user for output:        
-        outputPath = self.SaveFile(defaultDir, defaultFile)
-        
-        if outputPath: 
-            output = open(outputPath, "w")
-        else:
-            return
-
-        self.statusBar.SetStatusText("Running Gumbel Method")
-        self.gumbel_count = 0
-        self.gumbelProgress.SetRange(samples+burnin)
-        self.gumbelButton.Disable()
-
-        kwargs = {}
-        kwargs["readPathList"] = readPathList
-        kwargs["annotationPath"] = annotationPath
-        kwargs["min_read"] = min_read
-        kwargs["samples"] = samples
-        kwargs["burnin"] = burnin
-        kwargs["trim"] = trim
-        kwargs["repchoice"] = repchoice
-        kwargs["ignoreCodon"] = ignoreCodon
-        kwargs["ignoreNTerm"] = ignoreNTerm
-        kwargs["ignoreCTerm"] = ignoreCTerm
-        kwargs["output"] = output
-
-        thread = threading.Thread(target=gumbelMH.runGumbel, args=(wx, pub.sendMessage), kwargs=kwargs)
-        thread.setDaemon(True)
-        thread.start()
+        method =  methodsDict[selected_name]["method"]
+        try:
+            M = method.fromGUI(self)
+            if M: 
+                thread = threading.Thread(target=M.Run())
+                thread.setDaemon(True)
+                thread.start()
+        except Exception as e:
+            print transit_prefix, "Error:", str(e)
+            traceback.print_exc()
 
 
 
