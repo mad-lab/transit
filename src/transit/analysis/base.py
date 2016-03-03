@@ -47,14 +47,12 @@ class AnalysisMethod:
             else:
                 wx.CallAfter(pub.sendMessage, "file", data)
 
-
     def finish(self):
         if self.wxobj:
             if newWx:
                 wx.CallAfter(pub.sendMessage,"finish", msg=self.short_name)
             else:
                 wx.CallAfter(pub.sendMessage,"finish", self.short_name)
-
 
     def progress_update(self, text, count):
         if self.wxobj:
@@ -63,21 +61,29 @@ class AnalysisMethod:
             else:
                 wx.CallAfter(pub.sendMessage, "progress", (self.short_name, count))
             wx.Yield()
-        else:
-            sys.stdout.write("[%s] %s   \r" % (self.short_name, text) )
-            sys.stdout.flush()
-        
+
     def status_message(self, text):
-        self.console_message(text) 
         if self.wxobj:
             if newWx:
                 wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text))
             else:
                 wx.CallAfter(pub.sendMessage, "status", (self.short_name, text))
+            wx.Yield()
 
     def console_message(self, text):
-        print "[%s] %s" % (self.short_name, text)
+        sys.stdout.write("[%s] %s\n" % (self.short_name, text))
 
+    def console_message_inplace(self, text):
+        sys.stdout.write("[%s] %s   \r" % (self.short_name, text) )
+        sys.stdout.flush()
+
+    def transit_message(self, text):
+        self.console_message(text)
+        self.status_message(text)
+
+    def transit_message_inplace(self, text):
+        self.console_message_inplace(text)
+        self.status_message(text)
 
     
 

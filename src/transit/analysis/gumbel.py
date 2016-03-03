@@ -280,8 +280,8 @@ class Gumbel(base.SingleConditionMethod):
         start_time = time.time()
         
         #Get orf data
-        self.status_message("Reading Annotation")
-        self.status_message("Getting Data")
+        self.transit_message("Reading Annotation")
+        self.transit_message("Getting Data")
 
         G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=self.minread, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
 
@@ -293,16 +293,14 @@ class Gumbel(base.SingleConditionMethod):
         S = G.local_gap_span()[ii_good]
         T = G.local_gene_span()[ii_good]
 
-        
-
-        self.status_message("Doing Regression")
+        self.transit_message("Doing Regression")
         mu_s, temp, sigma_s = stat_tools.regress(R, S) # Linear regression to estimate mu_s, sigma_s for span data
         mu_r, temp, sigma_r = stat_tools.regress(S, R) # Linear regression to estimate mu_r, sigma_r for run data
 
         N_GENES = len(G)
         N_GOOD = sum(ii_good)
 
-        self.status_message("Setting Initial Class")
+        self.transit_message("Setting Initial Class")
         Z_sample = numpy.zeros((N_GOOD, self.samples))
         Z = [self.classify(g.n, g.r, 0.5)   for g in G if self.good_orf(g)]
         Z_sample[:,0] = Z
@@ -322,9 +320,7 @@ class Gumbel(base.SingleConditionMethod):
             # PHI
             acc = 1.0
             phi_new  = phi_old + random.gauss(mu_c, sigma_c)
-            #i0 = numpy.logical_and(Z_sample[:,i-1] == 0, ii_good)
             i0 = Z_sample[:,i-1] == 0
-
             if phi_new > 1 or phi_new <= 0 or (self.F_non(phi_new, N[i0], R[i0]) - self.F_non(phi_old, N[i0], R[i0])) < math.log(random.uniform(0,1)):
                 phi_new = phi_old
                 acc = 0.0
@@ -345,14 +341,11 @@ class Gumbel(base.SingleConditionMethod):
                 Z_sample[:,i] = Z
                 i+=1
             
-            
             phi_old = phi_new
-            
-            
             #Update progress
             text = "Running Gumbel Method... %2.0f%%" % (100.0*(count+1)/(self.samples+self.burnin))
-            self.progress_update(text, count)
-        
+            #self.progress_update(text, count)
+            self.transit_message_inplace(text)
 
 
         ZBAR = numpy.apply_along_axis(numpy.mean, 1, Z_sample)
@@ -395,11 +388,11 @@ class Gumbel(base.SingleConditionMethod):
             self.output.write(line)
         self.output.close()
 
-        self.status_message("") # Printing empty line to flush stdout 
-        self.status_message("Adding File: %s" % (self.output.name))
+        self.transit_message("") # Printing empty line to flush stdout 
+        self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file()
         self.finish()
-        self.status_message("Finished Gumbel Method") 
+        self.transit_message("Finished Gumbel Method") 
 
 
     def good_orf(self, gene):
@@ -447,7 +440,6 @@ class Gumbel(base.SingleConditionMethod):
 
 
 
-
 if __name__ == "__main__":
 
 
@@ -455,8 +447,8 @@ if __name__ == "__main__":
     G = Gumbel("results_gumbel_test.dat",
                 "H37Rv.prot_table",
                 ["glycerol_H37Rv_merged.wig"],
-                samples=10000,
-                burnin=500,
+                samples=100,
+                burnin=5,
                 trim=1,
                 minread=1,
                 replicates="Sum",
