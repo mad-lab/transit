@@ -1,3 +1,4 @@
+import sys
 import wx
 import os
 import time
@@ -9,6 +10,10 @@ import datetime
 
 import base
 import transit_tools
+
+import tnseq_tools
+import norm_tools
+import stat_tools
 
 method_name = "Gumbel"
 
@@ -272,37 +277,34 @@ class Gumbel(base.SingleConditionMethod):
         phi_start = 0.3
         sigma_c = 0.01 
         
-        #Get orf data
-        self.status_message("Reading Annotation") 
-        orf2info = transit_tools.get_gene_info(self.annotation_path)
-        hash = transit_tools.get_pos_hash(self.annotation_path)
-
-        self.status_message("Getting Data")
-        (data, position) = transit_tools.get_data(self.ctrldata)
-        orf2reads, orf2pos = transit_tools.get_gene_reads(hash, data, position, orf2info, ignoreCodon=self.ignoreCodon, ignoreNTerm=self.NTerminus, ignoreCTerm=self.CTerminus, orf_list=orf2info.keys())
-
         start_time = time.time()
-        (ORF_all, K_all, N_all, R_all, S_all, T_all) = self.get_orf_data(orf2reads, orf2pos, orf2info, self.minread)
-        bad_orf_set = set([ORF_all[g] for g in xrange(len(N_all)) if not self.good_orf(N_all[g], T_all[g])]);
-        bad_orf_set.add("Rvnr01");
-        (ORF, K, N, R, S, T) = self.get_orf_data(orf2reads, orf2pos, orf2info, self.minread, bad=bad_orf_set)
         
-        orf2name = {}; orf2desc = {}
-        for line in open(self.annotation_path):
-            if line.startswith("#"): continue
-            tmp = line.strip().split("\t")
-            orf = tmp[8]; name = tmp[7]; desc = tmp[0];
-            orf2name[orf] = name; orf2desc[orf] = desc
+        #Get orf data
+        self.status_message("Reading Annotation")
+        self.status_message("Getting Data")
+
+        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=self.minread, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
+
+        ii_good = numpy.array([self.good_orf(g) for g in G]) # Gets index of the genes that can be analyzed
+
+        K = G.local_insertions()[ii_good]
+        N = G.local_sites()[ii_good]
+        R = G.local_runs()[ii_good]
+        S = G.local_gap_span()[ii_good]
+        T = G.local_gene_span()[ii_good]
+
+        
 
         self.status_message("Doing Regression")
-        mu_s, temp, sigma_s = self.regress(R,S) # Linear regression to estimate mu_s, sigma_s for span data
-        mu_r, temp, sigma_r = self.regress(S, R) # Linear regression to estimate mu_r, sigma_r for run data
+        mu_s, temp, sigma_s = stat_tools.regress(R, S) # Linear regression to estimate mu_s, sigma_s for span data
+        mu_r, temp, sigma_r = stat_tools.regress(S, R) # Linear regression to estimate mu_r, sigma_r for run data
 
-        N_GENES = len(N)
+        N_GENES = len(G)
+        N_GOOD = sum(ii_good)
 
         self.status_message("Setting Initial Class")
-        Z_sample = numpy.zeros((N_GENES, self.samples))
-        Z = [self.classify(N[g], R[g], 0.5)   for g in xrange(N_GENES)]
+        Z_sample = numpy.zeros((N_GOOD, self.samples))
+        Z = [self.classify(g.n, g.r, 0.5)   for g in G if self.good_orf(g)]
         Z_sample[:,0] = Z
         N_ESS = numpy.sum(Z_sample[:,0] == 1)
         
@@ -311,9 +313,7 @@ class Gumbel(base.SingleConditionMethod):
         phi_old = phi_start
         phi_new = 0.00
         
-        SIG = numpy.zeros(len(S))
-        for g in range(len(S)):
-            SIG[g] = self.sigmoid(S[g], T[g]) * scipy.stats.norm.pdf(R[g], mu_r*S[g], sigma_r)
+        SIG = numpy.array([self.sigmoid(g.s, g.t) * scipy.stats.norm.pdf(g.r, mu_r*g.s, sigma_r) for g in G if self.good_orf(g)])
 
 
         i = 1; count = 0;
@@ -322,7 +322,9 @@ class Gumbel(base.SingleConditionMethod):
             # PHI
             acc = 1.0
             phi_new  = phi_old + random.gauss(mu_c, sigma_c)
+            #i0 = numpy.logical_and(Z_sample[:,i-1] == 0, ii_good)
             i0 = Z_sample[:,i-1] == 0
+
             if phi_new > 1 or phi_new <= 0 or (self.F_non(phi_new, N[i0], R[i0]) - self.F_non(phi_old, N[i0], R[i0])) < math.log(random.uniform(0,1)):
                 phi_new = phi_old
                 acc = 0.0
@@ -333,7 +335,7 @@ class Gumbel(base.SingleConditionMethod):
             
             # w1
             N_ESS = sum(Z == 1)
-            w1 = scipy.stats.beta.rvs(N_ESS + ALPHA_w, N_GENES - N_ESS + BETA_w)
+            w1 = scipy.stats.beta.rvs(N_ESS + ALPHA_w, N_GOOD - N_ESS + BETA_w)
             
             count +=1
             acctot+=acc
@@ -354,7 +356,7 @@ class Gumbel(base.SingleConditionMethod):
 
 
         ZBAR = numpy.apply_along_axis(numpy.mean, 1, Z_sample)
-        (ess_t, non_t) = transit_tools.fdr_post_prob(ZBAR)
+        (ess_t, non_t) = stat_tools.bayesian_ess_thresholds(ZBAR)
 
         VERBOSE = False
         #Orf    k   n   r   s   zbar
@@ -368,106 +370,47 @@ class Gumbel(base.SingleConditionMethod):
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         if VERBOSE: self.output.write("#Orf\tName\tDesc\tk\tn\tr\ts\tzbar\tCall\tSample\n")
         else: self.output.write("#Orf\tName\tDesc\tk\tn\tr\ts\tzbar\tCall\n")
-        i = -1
-        for g in xrange(len(ORF_all)):
-            k = K_all[g]; n = N_all[g];  r = R_all[g]; s = S_all[g]; orf=ORF_all[g];
-            if orf not in bad_orf_set:
-                i+=1; zbar = ZBAR[i]; sample_str = "\t"+ ",".join(["%d" % x for x in Z_sample[i,:]]);
+        i = 0
+        data = []
+        for g in G:
+
+            if not self.good_orf(g):
+                zbar = -1.0
             else:
-                zbar = -1.0; sample_str = "\t" + "-1";
-            if not VERBOSE: sample_str = ""
-        
-            if zbar > ess_t: call = "E"
-            elif non_t <= zbar <= ess_t: call = "U"
-            elif 0 <= zbar < non_t: call = "NE"
-            else: call = "S"
-
-            self.output.write("%s\t%s\t%s\t%d\t%d\t%d\t%d\t%f\t%s%s\n" % (orf, orf2name.get(orf,"-"), orf2desc.get(orf,"-"), k, n, r, s, zbar, call, sample_str))
-
+                zbar = ZBAR[i]
+                i+=1
+            sample_str = ""
+            if VERBOSE: sample_str = "\t"+ ",".join(["%d" % x for x in Z_sample[i,:]])
+            if zbar > ess_t:
+                call = "E"
+            elif non_t <= zbar <= ess_t:
+                call = "U"
+            elif 0 <= zbar < non_t:
+                call = "NE"
+            else:
+                call = "S"
+            data.append("%s\t%s\t%s\t%d\t%d\t%d\t%d\t%f\t%s%s\n" % (g.orf, g.name, g.desc, g.k, g.n, g.r, g.s, zbar, call, sample_str))
+        data.sort()
+        for line in data:
+            self.output.write(line)
         self.output.close()
 
-
+        self.status_message("") # Printing empty line to flush stdout 
         self.status_message("Adding File: %s" % (self.output.name))
         self.add_file()
         self.finish()
         self.status_message("Finished Gumbel Method") 
 
 
-
-
-
-
-
-
-    def get_orf_data(self, orf2reads, orf2pos, orf2info, min_read, repchoice="Sum", bad=set()):
-        G = len([orf for orf in orf2reads if orf not in bad]); g = 0;
-        K = numpy.zeros(G); N = numpy.zeros(G); R = numpy.zeros(G);
-        S = numpy.zeros(G); T = numpy.zeros(G); ORF = [];
-        
-        for orf in sorted(orf2reads):
-            if orf in bad: continue
-            run = [0,0,0]; maxrun = [0,0,0]; k = 0; n = 0; s = 0;
-            start = orf2info.get(orf,[0,0,0,0])[2]; end = orf2info.get(orf,[0,0,0,0])[3]; length = end-start
-            for i,rdrow in enumerate(orf2reads[orf]):
-                pos = orf2pos[orf][i]
-                if repchoice == "Sum":
-                    rd = numpy.sum(rdrow)
-                elif repchoice == "Mean":
-                    rd = numpy.mean(rdrow)
-                else:
-                    rd = rdrow[0]
-                
-                n += 1
-                if rd < min_read:
-                    run[0] +=1
-                    if run[0] == 1: run[1] = pos
-                    run[2] = pos
-                else:
-                    k += 1
-                    maxrun = max(run,maxrun)
-                    run = [0,0,0]
-            maxrun = max(run, maxrun)
-            r = maxrun[0]
-            if r > 0: s = maxrun[2] + 2  - maxrun[1]
-            else: s = 0
-            t = 0
-            if orf2reads[orf]:
-                t = max(orf2pos[orf]) + 2  - min(orf2pos[orf])
-            
-            K[g]=k; N[g]=n; R[g]=r; S[g]=s; T[g]=t;
-            ORF.append(orf)
-            g+=1
-        return((ORF,K,N,R,S,T))
-
-
-    def good_orf(self, n, s):
-        return (n >= 3 and s >= 150)
-
-
-    def regress(self, X,Y):
-        N = len(X)
-        xbar = numpy.average(X)
-        ybar = numpy.average(Y)
-        xybar = numpy.average([X[i]*Y[i] for i in range(N)])
-        x2bar = numpy.average([X[i]*X[i] for i in range(N)])
-        B = (xybar - xbar*ybar)/(x2bar - xbar*xbar)
-        A0 = ybar - B*xbar
-        
-        yfit = [ A0 + B *X[i] for i in range(N)]
-        yres = [Y[i] - (A0 + B *X[i]) for i in range(N)]
-        var = sum([math.pow(yres[i],2) for i in range(N) ])/(N-2)
-        std = math.sqrt(var)
-
-        return(B, A0, std)
-
+    def good_orf(self, gene):
+        return (gene.n >= 3 and gene.t >= 150)
 
     def classify(self, n,r,p):
+        if n == 0: return 0
         q = 1-p; B = 1/math.log(1/p); u = math.log(n*q,1/p);
         pval = 1 - scipy.stats.gumbel_r.cdf(r,u,B)
         if pval < 0.05: return(1)
         else: return(0)
-
-
 
     def F_non(self, p, N, R):
         q = 1.0 - p
@@ -476,20 +419,16 @@ class Gumbel(base.SingleConditionMethod):
         sigma = 1/math.log(1/p);
         total+= numpy.sum(numpy.log(scipy.stats.gumbel_r.pdf(R, mu, sigma)))
         return(total)
-
     
     def sample_Z(self, p, w1, N, R, S, T, mu_s, sigma_s, SIG):
-        G = len(N); h1 = numpy.zeros(G)
-        q = 1-p
-        mu = numpy.log(N*q) / numpy.log(1/p)
-        sigma = 1/math.log(1/p);
+        G = len(N)
+        q = 1.0-p
+        mu = numpy.log(N*q) / numpy.log(1.0/p)
+        sigma = 1.0/math.log(1.0/p);
         h0 = ((scipy.stats.gumbel_r.pdf(R,mu,sigma)) * scipy.stats.norm.pdf(S, mu_s*R, sigma_s)  * (1-w1))
         h1 = SIG * w1
         p_z1 = h1/(h0+h1)
-        new_Z = scipy.stats.binom.rvs(1, p_z1, size=G)
-        return(new_Z)
-
-
+        return scipy.stats.binom.rvs(1, p_z1, size=G)
 
     def sigmoid(self,d,n):
         Kn = 0.1
@@ -513,11 +452,11 @@ if __name__ == "__main__":
 
 
     
-    G = Gumbel("gumbel_test.dat",
+    G = Gumbel("results_gumbel_test.dat",
                 "H37Rv.prot_table",
                 ["glycerol_H37Rv_merged.wig"],
-                samples=100,
-                burnin=50,
+                samples=10000,
+                burnin=500,
                 trim=1,
                 minread=1,
                 replicates="Sum",
