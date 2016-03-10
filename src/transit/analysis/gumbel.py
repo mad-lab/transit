@@ -15,7 +15,7 @@ import tnseq_tools
 import norm_tools
 import stat_tools
 
-method_name = "Gumbel"
+#method_name = "Gumbel"
 
 
 ############# GUI ELEMENTS ##################
@@ -24,6 +24,10 @@ def Hide(wxobj):
 
 def Show(wxobj):
     wxobj.gumbelPanel.Show()
+
+
+def enableButton(wxobj):
+    wxobj.gumbelButton.Show()
 
 def getInstructions():
         return """Instructions:
@@ -39,8 +43,8 @@ def getInstructions():
 
 def getPanel(wxobj):
     wxobj.gumbelPanel = wx.Panel( wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-    wxobj.gumbelPanel.SetMinSize( wx.Size( 50,1 ) )
-    wxobj.gumbelPanel.SetMaxSize( wx.Size( 250,-1 ) )
+    #wxobj.gumbelPanel.SetMinSize( wx.Size( 50,1 ) )
+    #wxobj.gumbelPanel.SetMaxSize( wx.Size( 250,-1 ) )
 
     gumbelSection = wx.BoxSizer( wx.VERTICAL )
 
@@ -108,15 +112,6 @@ def getPanel(wxobj):
     wxobj.gumbelButton = wx.Button( wxobj.gumbelPanel, wx.ID_ANY, u"Run Gumbel", wx.DefaultPosition, wx.DefaultSize, 0 )
     gumbelSection.Add( wxobj.gumbelButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-    wxobj.progressLabel1 = wx.StaticText( wxobj.gumbelPanel, wx.ID_ANY, u"Progress", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.progressLabel1.Wrap( -1 )
-    gumbelSection.Add( wxobj.progressLabel1, 0, wx.ALL, 5 )
-
-    wxobj.gumbelProgress = wx.Gauge( wxobj.gumbelPanel, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
-    wxobj.gumbelProgress.SetValue( 0 )
-    gumbelSection.Add( wxobj.gumbelProgress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-
     wxobj.gumbelPanel.SetSizer( gumbelSection )
     wxobj.gumbelPanel.Layout()
     gumbelSection.Fit( wxobj.gumbelPanel )
@@ -126,16 +121,6 @@ def getPanel(wxobj):
     wxobj.gumbelButton.Bind( wx.EVT_BUTTON, wxobj.RunMethod )
 
     return wxobj.gumbelPanel
-
-
-def updateProgressBar(wxobj, count):
-    wxobj.gumbelProgress.SetValue(count)
-
-def SetProgressRange(wxobj, X):
-    wxobj.gumbelProgress.SetRange(X)
-
-def enableButton(wxobj):
-    wxobj.gumbelButton.Enable()
 
 
 
@@ -151,9 +136,9 @@ class Gumbel(base.SingleConditionMethod):
  
     """
     def __init__(self,
-                output_file,
-                annotation_path,
                 ctrldata,
+                annotation_path,
+                output_file,
                 samples=10000,
                 burnin=500,
                 trim=1,
@@ -165,7 +150,7 @@ class Gumbel(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, "Gumbel", "Gumbel Method", "Gumbel method from DeJesus et al. (Bioinformatics, 2013)", output_file, annotation_path, ctrldata, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, "Gumbel", "Gumbel Method", "Gumbel method from DeJesus et al. (Bioinformatics, 2013)", ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
         self.samples = samples
         self.burnin = burnin
         self.trim = trim
@@ -216,9 +201,9 @@ class Gumbel(base.SingleConditionMethod):
 
 
 
-        return self(output_file,
+        return self(ctrldata,
                 annotationPath,
-                ctrldata,
+                output_file,
                 samples,
                 burnin,
                 trim,
@@ -231,22 +216,27 @@ class Gumbel(base.SingleConditionMethod):
                 CTerminus, wxobj)
 
     @classmethod
-    def fromconsole(self,
-                output_path,
-                annotation_path,
-                ctrldata,
-                samples=10000,
-                burnin=500,
-                trim=1,
-                minread=1,
-                replicates="Sum",
-                normalization=None,
-                LOESS=False,
-                ignoreCodon=True,
-                NTerminus=0.0,
-                CTerminus=0.0):
+    def fromconsole(self):
+
+        (args, kwargs) = transit_tools.cleanargs(sys.argv[1:])
+
+        ctrldata = args[0].split(",")
+        annotationPath = args[1]
+        outpath = args[2]
+
+        samples = int(kwargs.get("s", 10000))
+        burnin = int(kwargs.get("b", 500))
+        trim = int(kwargs.get("t", 1))
+        minread = int(kwargs.get("m", 1))
+        replicates = "Sum"
+        normalization = None
+        LOESS = False
+        ignoreCodon = True
+        NTerminus = 0.0
+        CTerminus = 0.0
 
         return self(ctrldata,
+                annotationPath,
                 outpath,
                 samples,
                 burnin,
@@ -258,8 +248,6 @@ class Gumbel(base.SingleConditionMethod):
                 ignoreCodon,
                 NTerminus,
                 CTerminus)
-
-
 
     def Run(self):
 
@@ -278,10 +266,14 @@ class Gumbel(base.SingleConditionMethod):
         sigma_c = 0.01 
         
         start_time = time.time()
+       
+        self.progress_range(self.samples+self.burnin)
         
         #Get orf data
         self.transit_message("Reading Annotation")
         self.transit_message("Getting Data")
+
+        
 
         G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=self.minread, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
 
@@ -344,7 +336,7 @@ class Gumbel(base.SingleConditionMethod):
             phi_old = phi_new
             #Update progress
             text = "Running Gumbel Method... %2.0f%%" % (100.0*(count+1)/(self.samples+self.burnin))
-            #self.progress_update(text, count)
+            self.progress_update(text, count)
             self.transit_message_inplace(text)
 
 
@@ -354,7 +346,17 @@ class Gumbel(base.SingleConditionMethod):
         VERBOSE = False
         #Orf    k   n   r   s   zbar
         self.output.write("#Gumbel\n")
-        #self.output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
+        if self.wxobj:
+            members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
+            memberstr = ""
+            for m in members:
+                memberstr += "%s = %s, " % (m, getattr(self, m))
+            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s, samples=%s, minread=%s, trim=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output, self.samples, self.minread, self.trim))
+        else:
+            self.output.write("#Console: python %s\n" % " ".join(sys.argv))
+
+        self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
+        self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#FDR Corrected thresholds: %f, %f\n" % (ess_t, non_t))
         self.output.write("#MH Acceptance-Rate:\t%2.2f%%\n" % (100.0*acctot/count))
         self.output.write("#Total Iterations Performed:\t%d\n" % count)
@@ -429,7 +431,7 @@ class Gumbel(base.SingleConditionMethod):
 
         if d == 0: return(0.00)
         f = 1./(1.+math.exp(Kn*(MEAN_DOMAIN_SPAN-d)))
-        if n in self.cache_nn: return f/self.cache_nn[n]
+        #if n in self.cache_nn: return f/self.cache_nn[n]
         tot = 0
         N = int(n+1)
         for i in range(1,N): tot += 1.0/(1.0+math.exp(Kn*(MEAN_DOMAIN_SPAN-i)))
@@ -442,21 +444,12 @@ class Gumbel(base.SingleConditionMethod):
 
 if __name__ == "__main__":
 
+    (args, kwargs) = transit_tools.cleanargs(sys.argv)
 
-    
-    G = Gumbel("results_gumbel_test.dat",
-                "H37Rv.prot_table",
-                ["glycerol_H37Rv_merged.wig"],
-                samples=100,
-                burnin=5,
-                trim=1,
-                minread=1,
-                replicates="Sum",
-                normalization=None,
-                LOESS=False,
-                ignoreCodon=True,
-                NTerminus=0.0,
-                CTerminus=0.0)
+    print "ARGS:", args
+    print "KWARGS:", kwargs
+
+    G = Gumbel.fromconsole()
 
     G.console_message("Printing the member variables:")   
     G.print_members()
