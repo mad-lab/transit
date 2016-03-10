@@ -31,7 +31,9 @@ except AttributeError as e:
     from wx.lib.pubsub import Publisher as pub
     newWx = False
 
-import transit.analysis.gumbel   
+import transit.analysis.gumbel
+import transit.analysis.example
+import transit.analysis.resampling
 from transit.analysis import *
 import os
 import time
@@ -51,11 +53,11 @@ import transit_tools
 import fileDisplay
 import qcDisplay
 
-import gumbelMH
+#import gumbelMH
 import betabinomial
 import hmm_geom
 import hmm_tools
-import resampling
+#import resampling
 import dehmm
 import imgTRANSIT
 
@@ -71,7 +73,12 @@ mainInstructions = """Instructions:
 """
 
 method_wrap_width = 250
-methodsDict = {"Gumbel":{"module":gumbel, "method":gumbel.Gumbel}}
+methodsDict = {"gumbel":{"module":gumbel, "method":gumbel.Gumbel},
+                "example":{"module":example, "method":example.Example},
+                "resampling":{"module":resampling, "method":resampling.Resampling}}
+
+#methodsDict = {"Example":{"module":example, "method":example.Example}}
+
 
 wildcard = "Python source (*.py)|*.py|" \
             "All files (*.*)|*.*"
@@ -85,6 +92,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         transit_gui.MainFrame.__init__(self,parent)
 
 
+        self.workdir = os.getcwd()
         #import pkgutil
         #print [x for x in pkgutil.iter_modules(['transit/analysis'])]
         #print gumbel.Gumbel.__bases__
@@ -122,6 +130,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.progress.SetRange(50)
         self.statusBar.SetStatusText("Welcome to TRANSIT")
         self.progress_count = 0
+        pub.subscribe(self.setProgressRange, "progressrange")
         pub.subscribe(self.updateProgress, "progress")
         pub.subscribe(self.updateStatus, "status")
         pub.subscribe(self.addFile, "file")
@@ -130,13 +139,16 @@ class TnSeekFrame(transit_gui.MainFrame):
  
         #self.outputDirPicker.SetPath(os.path.dirname(os.path.realpath(__file__)))
 
-        self.progress.Hide()
 
         methodChoiceChoices = [ "[Choose Method]"]
         for name in methodsDict:
             methodChoiceChoices.append(name)
+            module = methodsDict[name]["module"]
+            module.Hide(self)
+
         self.methodChoice.SetItems(methodChoiceChoices)
         self.methodChoice.SetSelection( 0 )
+        self.HideProgressSection()
         self.HideGlobalOptions()
 
 
@@ -158,6 +170,19 @@ class TnSeekFrame(transit_gui.MainFrame):
             self.progress.SetValue(self.progress_count)
         except:
             pass
+
+    def setProgressRange(self, msg):
+        """"""
+        if newWx:
+            count = msg
+        else:
+            count = msg.data
+        try:
+            self.progress.SetRange(count)
+        except:
+            pass
+
+    
 
     def updateStatus(self, msg):
         """"""
@@ -212,9 +237,10 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def HideAllOptions(self):
         self.HideGlobalOptions()
+        self.HideProgressSection()
         for name in methodsDict:
-            method = methodsDict["method"]
-            method.Hide(self)
+            module = methodsDict[name]["module"]
+            module.Hide(self)
 
 
     def HideGlobalOptions(self):
@@ -231,6 +257,15 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.globalCTerminusLabel.Show()
         self.globalNTerminusText.Show()
         self.globalCTerminusText.Show()
+
+    def HideProgressSection(self):
+        self.progressLabel.Hide()
+        self.progress.Hide()
+
+
+    def ShowProgressSection(self):
+        self.progressLabel.Show()
+        self.progress.Show()
 
 
     def SaveFile(self, DIR=None, FILE="", WC=""):
@@ -330,46 +365,70 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def loadCtrlFileFunc(self, event):
         try:
-            fullpath = self.ctrlFilePicker.GetPath()
-            name = transit_tools.basename(fullpath)
-            (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = transit_tools.get_wig_stats(fullpath)
-            self.list_ctrl.InsertStringItem(self.index_ctrl, name)
-            self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
-            if self.verbose:
-                print transit_prefix, "Adding control item (%d): %s" % (self.index_ctrl, name)
-            self.index_ctrl+=1
+        
+            dlg = wx.FileDialog(
+                self, message="Choose a file",
+                defaultDir=self.workdir,
+                defaultFile="",
+                wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*",
+                style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                )
+            if dlg.ShowModal() == wx.ID_OK:
+                paths = dlg.GetPaths()
+                print "You chose the following Control file(s):"
+                for fullpath in paths:
+                    print "\t%s" % fullpath
+                    name = transit_tools.basename(fullpath)
+                    (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = transit_tools.get_wig_stats(fullpath)
+                    self.list_ctrl.InsertStringItem(self.index_ctrl, name)
+                    self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+                    self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+                    self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+                    self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
+                    self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+                    self.index_ctrl+=1
+            dlg.Destroy()
         except Exception as e:
             print transit_prefix, "Error:", e
+            print "PATH", fullpath
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
 
-        
 
 
     def loadExpFileFunc(self, event):
         try:
-            fullpath = self.expFilePicker.GetPath()
-            name = transit_tools.basename(fullpath)
-            (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = transit_tools.get_wig_stats(fullpath)
-            self.list_exp.InsertStringItem(self.index_exp, name)
-            self.list_exp.SetStringItem(self.index_exp, 1, "%d" % (totalrd))
-            self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
-            self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
-            self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
-            self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
-            if self.verbose:
-                print transit_prefix, "Adding experimental item (%d): %s" % (self.index_exp, name)
-            self.index_exp+=1
+
+            dlg = wx.FileDialog(
+                self, message="Choose a file",
+                defaultDir=self.workdir,
+                defaultFile="",
+                wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*",
+                style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                )
+            if dlg.ShowModal() == wx.ID_OK:
+                paths = dlg.GetPaths()
+                print "You chose the following Experimental file(s):"
+                for fullpath in paths:
+                    print "\t%s" % fullpath
+                    name = transit_tools.basename(fullpath)
+                    (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = transit_tools.get_wig_stats(fullpath)
+                    self.list_exp.InsertStringItem(self.index_exp, name)
+                    self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
+                    self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
+                    self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
+                    self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
+                    self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+                    self.index_exp+=1
+            dlg.Destroy()
         except Exception as e:
             print transit_prefix, "Error:", e
+            print "PATH", fullpath
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
+
 
 
     def ctrlRemoveFunc(self, event):
@@ -381,7 +440,9 @@ class TnSeekFrame(transit_gui.MainFrame):
             next = self.list_ctrl.GetNextSelected(-1)
             self.index_ctrl-=1 
 
- 
+     
+
+
     def expRemoveFunc(self, event):
         next = self.list_exp.GetNextSelected(-1)
         while next != -1:
@@ -512,7 +573,7 @@ class TnSeekFrame(transit_gui.MainFrame):
                     module.Show(self)
                 else:
                     module.Hide(self)
-
+            self.ShowProgressSection()
         self.Layout()
         if self.verbose:
             print transit_prefix, "Selected Method (%d): %s" % (X, selected_name)
@@ -1057,7 +1118,9 @@ if __name__ == "__main__":
 
     #If no arguments, show GUI:
     if len(sys.argv) == 1:
-        #refer manual for details
+   
+        print transit_prefix, "Running in GUI Mode"
+         
         app = wx.App(False)
 
         #create an object of CalcFrame
@@ -1068,116 +1131,16 @@ if __name__ == "__main__":
         app.MainLoop()
 
     else:
-        parser = argparse.ArgumentParser(usage=msg())
-        #parser = argparse.ArgumentParser()
-        subparsers = parser.add_subparsers(help='Methods', dest='command')
-        
-        # A gumbel command
-        gumbel_parser = subparsers.add_parser('gumbel', help='Gumbel method')
-        gumbel_parser.add_argument("annotation", help="Path to the annotation file in .prot_table format.")
-        gumbel_parser.add_argument("control_files", help="Comma separated list of paths for replicate CONTROL files.")
-        
-        
-        gumbel_parser.add_argument("output_file", help="Output filename.")
-        gumbel_parser.add_argument("-m", "--minread", help="Smallest read-count considered to be an insertion. Default is 1.", default=1, type=int)
-        gumbel_parser.add_argument("-s", "--samples", help="Number of samples performed by the MH sampler. Default is 10000.", default=10000, type=int)
-
-        
-        gumbel_parser.add_argument("-b", "--burnin", help="Burn in period, Skips this number of samples before getting estimates. See documentation. Default is 500.", default=500, type=int)
-        gumbel_parser.add_argument("-t", "--trim", help="Number of samples to trim. See documentation. Default is 1.", default=1, type=int)
-        gumbel_parser.add_argument("-r", "--rep", help="How to handle replicates: 'Sum' or 'Mean'. Default is Sum.", default="Sum", type=str)
-        gumbel_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus. Default is 0%%.", default=0.0, type=float)
-        gumbel_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus. Default is 0%%.", default=0.0, type=float)
-        
-        # A hmm command
-        hmm_parser = subparsers.add_parser('hmm', help='HMM method')
-        hmm_parser.add_argument("annotation", help="Path to the annotation file in .prot_table format.")
-        hmm_parser.add_argument("control_files", help="Comma separated list of paths for replicate CONTROL files.")
-        hmm_parser.add_argument("output_file", help="Output filename.")
-        hmm_parser.add_argument("-r", "--rep", help="How to handle replicates: 'Sum' or 'Mean'. Default is Sum.", default="Sum")
-        hmm_parser.add_argument("-L", "--loess", help="Perform LOESS Correction; Helps remove possible genomic position bias.", action='store_true')
-        hmm_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus. Default is 0%%.", default=0.0, type=float)
-        hmm_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus. Default is 0%%.", default=0.0, type=float)
-       
-        # A resampling command
-        resampling_parser = subparsers.add_parser('resampling', help='Resampling method')
-        resampling_parser.add_argument("annotation", help="Path to the annotation file in .prot_table format.")
-        resampling_parser.add_argument("control_files", help="Comma separated list of paths for replicate CONTROL files.")
-        resampling_parser.add_argument("exp_files", help="Comma separated list of paths for replicate EXPERIMENTAL files.")
-        resampling_parser.add_argument("output_file", help="Output filename.")
-        resampling_parser.add_argument("-s", "--samples", help="Number of permutation samples obtained for each gene. Default is 10000.", default=10000, type=int)
-        resampling_parser.add_argument("-H", "--hist", help="Number of samples to trim. See documentation. Default is to NOT create histograms.", action='store_true')
-        resampling_parser.add_argument("-a", "--adaptive", help="Adaptive resampling; faster at the risk of lower accuracy. Default is off (i.e. regular resampling).", action='store_true')
-        resampling_parser.add_argument("-N", "--normalize", help="Choose the normalization method: 'nzmean', 'totread', 'TTR', 'zinfnb', 'quantile', 'betageom', 'nonorm'. Default is 'nzmean'. See documentation for an explanation", default="nzmean", type=str)
-        resampling_parser.add_argument("-L", "--loess", help="Perform LOESS Correction; Helps remove possible genomic position bias.", action='store_true')
-        resampling_parser.add_argument("-iN", "--ignoreN", help="Ignore TAs occuring at X%% of the N terminus. Default is 0%%.", default=0.0, type=float)
-        resampling_parser.add_argument("-iC", "--ignoreC", help="Ignore TAs occuring at X%% of the C terminus. Default is 0%%.", default=0.0, type=float)
-        
-        args = parser.parse_args()
-
-        if args.command == "gumbel":
-            #prepare kwargs
-            kwargs = {}
-            kwargs["readPathList"] = args.control_files.split(",")
-            kwargs["annotationPath"] = args.annotation
-            kwargs["min_read"] = args.minread
-            kwargs["samples"] = args.samples
-            kwargs["burnin"] = args.burnin
-            kwargs["trim"] = args.trim
-            kwargs["repchoice"] = args.rep
-            kwargs["ignoreCodon"] = True
-            kwargs["ignoreNTerm"] = args.ignoreN
-            kwargs["ignoreCTerm"] = args.ignoreC
-            kwargs["output"] = open(args.output_file, "w")
-    
-            #thread = threading.Thread(target=gumbelMH.runGumbel, args=(None, None), kwargs=kwargs)
-            #thread.start()
-            gumbelMH.runGumbel(None, None, **kwargs)
-            
-        elif args.command == "hmm":
-            kwargs = {}
-            kwargs["readPathList"] = args.control_files.split(",")
-            kwargs["annotationPath"] = args.annotation
-            kwargs["repchoice"] = args.rep
-            kwargs["ignoreCodon"] = True
-            kwargs["ignoreNTerm"] = args.ignoreN
-            kwargs["ignoreCTerm"] = args.ignoreC
-            kwargs["doLOESS"] = args.loess
-            kwargs["output"] = open(args.output_file, "w")
-
-            #thread = threading.Thread(target=hmm_geom.runHMM, args=(None, None), kwargs=kwargs)
-            #thread.start()
-            hmm_geom.runHMM(None, None, **kwargs)
-
-        elif args.command == "resampling":
-            kwargs = {}
-            kwargs["ctrlList"] = args.control_files.split(",")
-            kwargs["expList"] = args.exp_files.split(",")
-            kwargs["annotationPath"] = args.annotation
-            kwargs["sampleSize"] = args.samples
-           
-            if args.hist:
-                histPath = os.path.join(os.path.dirname(args.output_file), transit_tools.fetch_name(args.output_file)+"_histograms")
-                if not os.path.isdir(histPath):
-                    os.makedirs(histPath)
-            else:
-                histPath = ""
-            kwargs["histPath"] = histPath
-
-            kwargs["doAdaptive"] = args.adaptive
-            kwargs["ignoreCodon"] = True
-            kwargs["ignoreNTerm"] = args.ignoreN
-            kwargs["ignoreCTerm"] = args.ignoreC
-            kwargs["normalize"] = args.normalize
-            kwargs["doLOESS"] = args.loess
-            kwargs["output"] = open(args.output_file, "w")
-            
-            #thread = threading.Thread(target=resampling.runResampling, args=(None, None), kwargs=kwargs)
-            #thread.start()
-            resampling.runResampling(None, None, **kwargs)
+        method_name = sys.argv[1]
+        if method_name not in methodsDict:
+            print "Error: The '%s' method is unknown." % method_name
+            print "Please use one of the known methods (or see documentation to add a new one):"
+            for m in methodsDict:
+                print "\t - %s" % m
 
         else:
-            print "Error: Command not recognized!"
+            methodobj = methodsDict[method_name]["method"].fromconsole()
+            methodobj.Run()            
 
 
 

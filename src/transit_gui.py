@@ -10,6 +10,8 @@
 import wx
 import wx.xrc
 import transit.analysis.gumbel
+from wx.lib.buttons import GenBitmapTextButton
+
 ###########################################################################
 ## Class MainFrame
 ###########################################################################
@@ -69,7 +71,13 @@ class MainFrame ( wx.Frame ):
         
         bSizer2.Add( self.ctrlScatter, 0, wx.ALL, 5 )
         
-        self.ctrlFilePicker = wx.FilePickerCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.EmptyString, u"Select a file", u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
+        bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_OTHER, (16, 16))
+        self.ctrlFilePicker = GenBitmapTextButton(self.m_scrolledWindow2, 1, bmp, '[Click to add Control Dataset(s)]', size= wx.Size(400, 30))
+        #self.ctrlFilePicker = wx.FilePickerCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.EmptyString, u"Select a file", u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
+
+        #self.ctrlFilePicker = wx.FilePickerCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.EmptyString, u"Select a file", u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FD_MULTIPLE )
+        #self.ctrlFilePicker = wx.FileDialog( self.m_scrolledWindow2, message=u"Select a file", wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", style=wx.FD_MULTIPLE )
+
         bSizer2.Add( self.ctrlFilePicker, 1, wx.ALL, 5 )
         
         self.m_panel21 = wx.Panel( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
@@ -103,8 +111,11 @@ class MainFrame ( wx.Frame ):
         self.expScatter.Hide()
         
         bSizer3.Add( self.expScatter, 0, wx.ALL, 5 )
-        
-        self.expFilePicker = wx.FilePickerCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.EmptyString, u"Select a .wig file", u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
+       
+
+        bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_OTHER, (16, 16))
+        self.expFilePicker = GenBitmapTextButton(self.m_scrolledWindow2, 1, bmp, '[Click to add Experimental Dataset(s)]', size= wx.Size(400, 30))
+        #self.expFilePicker = wx.FilePickerCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.EmptyString, u"Select a .wig file", u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
         bSizer3.Add( self.expFilePicker, 1, wx.ALL, 5 )
         
         self.m_panel22 = wx.Panel( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
@@ -189,11 +200,7 @@ class MainFrame ( wx.Frame ):
         self.methodChoice = wx.Choice( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, methodChoiceChoices, 0 )
         self.methodChoice.SetSelection( 0 )
         methodSizer.Add( self.methodChoice, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-        
-        self.progress = wx.Gauge( self.m_scrolledWindow1, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
-        self.progress.SetValue( 0 ) 
-        methodSizer.Add( self.progress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-        
+       
         self.mainInstructions = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Instructions:\n\n1. Choose the annotation file (\"prot table\") that corresponds to the datasets to be analyzed.\n2. Add the desired Control and Experimental datasets.\n3. (Optional) If you wish to visualize their read counts, select the desired datasets and click on the \"View\" button.\n4. Select the desired analysis method from the dropdown menu on the top-right of the window, and follow its instructions.\n", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.mainInstructions.Wrap( 250 )
         methodSizer.Add( self.mainInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
@@ -247,20 +254,42 @@ class MainFrame ( wx.Frame ):
         self.globalPanel.Layout()
         bSizer1431.Fit( self.globalPanel )
         methodSizer.Add( self.globalPanel, 0, wx.ALL|wx.EXPAND, 5 )
-        
-        #G = transit.analysis.gumbel.Gumbel("Gumbel", "Gumbel", "Gumbel Bayesian method", [])
-        #methodSizer.Add( self.gumbelPanel, 1, wx.EXPAND |wx.ALL, 5 )
-        #methodSizer.Add( G.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
+
+
+        #Add Methods        
         methodSizer.Add( transit.analysis.gumbel.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
+        methodSizer.Add( transit.analysis.example.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
+        methodSizer.Add( transit.analysis.resampling.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
         
-        
-        
+
+
+        #-------------------#
+        # Progress
+
+        self.progressPanel = wx.Panel( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        progressSizer = wx.BoxSizer( wx.VERTICAL )
+
+        self.progressLabel = wx.StaticText( self.progressPanel, wx.ID_ANY, u"Progress", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.progressLabel.Wrap( -1 )
+        progressSizer.Add( self.progressLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        self.progress = wx.Gauge( self.progressPanel, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
+        progressSizer.Add( self.progress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        self.progressPanel.SetSizer( progressSizer )
+        self.progressPanel.Layout()
+        progressSizer.Fit( self.progressPanel )
+        methodSizer.Add( self.progressPanel, 1, wx.EXPAND |wx.ALL, 5 )
+
+        #--------------------#
+
         self.m_scrolledWindow1.SetSizer( methodSizer )
         self.m_scrolledWindow1.Layout()
         methodSizer.Fit( self.m_scrolledWindow1 )
         bSizer1.Add( self.m_scrolledWindow1, 0, wx.ALL, 5 )
         
-        
+        #--------------------#        
+
         self.SetSizer( bSizer1 )
         self.Layout()
         self.m_menubar1 = wx.MenuBar( 0 )
@@ -329,24 +358,16 @@ class MainFrame ( wx.Frame ):
         self.ctrlRemoveButton.Bind( wx.EVT_BUTTON, self.ctrlRemoveFunc )
         self.ctrlView.Bind( wx.EVT_BUTTON, self.allViewFunc )
         self.ctrlScatter.Bind( wx.EVT_BUTTON, self.scatterFunc )
-        self.ctrlFilePicker.Bind( wx.EVT_FILEPICKER_CHANGED, self.loadCtrlFileFunc )
+        self.ctrlFilePicker.Bind( wx.EVT_BUTTON, self.loadCtrlFileFunc )
         self.expSizer.Bind( wx.EVT_BUTTON, self.expRemoveFunc )
         self.expView.Bind( wx.EVT_BUTTON, self.allViewFunc )
         self.expScatter.Bind( wx.EVT_BUTTON, self.scatterFunc )
-        self.expFilePicker.Bind( wx.EVT_FILEPICKER_CHANGED, self.loadExpFileFunc )
+        self.expFilePicker.Bind( wx.EVT_BUTTON, self.loadExpFileFunc )
         self.displayButton.Bind( wx.EVT_BUTTON, self.displayFileFunc )
         self.graphFileButton.Bind( wx.EVT_BUTTON, self.graphFileFunc )
         self.addFileButton.Bind( wx.EVT_BUTTON, self.addFileFunc )
         self.graphFileChoice.Bind( wx.EVT_CHOICE, self.graphFileFunc )
         self.methodChoice.Bind( wx.EVT_CHOICE, self.MethodSelectFunc )
-        #self.gumbelButton.Bind( wx.EVT_BUTTON, self.RunGumbelFunc )
-        #self.binomialButton.Bind( wx.EVT_BUTTON, self.RunBinomialFunc )
-        #self.hmmLoessPrev.Bind( wx.EVT_BUTTON, self.LoessPrevFunc )
-        #self.hmmButton.Bind( wx.EVT_BUTTON, self.RunHMMFunc )
-        #self.resamplingLoessPrev.Bind( wx.EVT_BUTTON, self.LoessPrevFunc )
-        #self.resamplingButton.Bind( wx.EVT_BUTTON, self.RunResamplingFunc )
-        #self.dehmmLoessPrev.Bind( wx.EVT_BUTTON, self.LoessPrevFunc )
-        #self.dehmmButton.Bind( wx.EVT_BUTTON, self.RunDEHMMFunc )
         self.Bind( wx.EVT_MENU, self.ctrlToIGV, id = self.ctrlExportIGVMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.expToIGV, id = self.expExportIGVMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.allToIGV, id = self.allExportIGVMenuItem.GetId() )
