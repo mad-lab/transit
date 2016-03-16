@@ -40,10 +40,13 @@ class AnalysisMethod:
         raise NotImplementedError
 
     
-    def fromconsole(self):
+    def fromargs(self):
         #TODO: write docstring
         raise NotImplementedError
 
+    def fromconsole(self):
+        #TODO: write docstring
+        return self.fromargs(sys.argv[:1])
     
     def Run(self):
         #TODO write docstring

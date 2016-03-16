@@ -142,8 +142,8 @@ class Example(base.SingleConditionMethod):
                 CTerminus, wxobj)
 
     @classmethod
-    def fromconsole(self): 
-        (args, kwargs) = transit_tools.cleanargs(sys.argv[1:])
+    def fromargs(self, rawargs): 
+        (args, kwargs) = transit_tools.cleanargs(rawargs)
 
         print "ARGS:", args
         print "KWARGS:", kwargs
@@ -231,7 +231,7 @@ if __name__ == "__main__":
     print "ARGS:", args
     print "KWARGS:", kwargs
 
-    G = Example.fromconsole()
+    G = Example.fromargs(sys.argv)
 
     G.console_message("Printing the member variables:")   
     G.print_members()

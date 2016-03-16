@@ -216,9 +216,9 @@ class Gumbel(base.SingleConditionMethod):
                 CTerminus, wxobj)
 
     @classmethod
-    def fromconsole(self):
+    def fromargs(self,rawargs):
 
-        (args, kwargs) = transit_tools.cleanargs(sys.argv[1:])
+        (args, kwargs) = transit_tools.cleanargs(rawargs)
 
         ctrldata = args[0].split(",")
         annotationPath = args[1]
@@ -449,7 +449,7 @@ if __name__ == "__main__":
     print "ARGS:", args
     print "KWARGS:", kwargs
 
-    G = Gumbel.fromconsole()
+    G = Gumbel.fromargs(sys.argv)
 
     G.console_message("Printing the member variables:")   
     G.print_members()
