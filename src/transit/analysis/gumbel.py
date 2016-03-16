@@ -223,7 +223,8 @@ class Gumbel(base.SingleConditionMethod):
         ctrldata = args[0].split(",")
         annotationPath = args[1]
         outpath = args[2]
-
+        output_file = open(outpath, "w")
+    
         samples = int(kwargs.get("s", 10000))
         burnin = int(kwargs.get("b", 500))
         trim = int(kwargs.get("t", 1))
@@ -237,7 +238,7 @@ class Gumbel(base.SingleConditionMethod):
 
         return self(ctrldata,
                 annotationPath,
-                outpath,
+                output_file,
                 samples,
                 burnin,
                 trim,

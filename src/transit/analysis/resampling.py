@@ -165,12 +165,15 @@ class Resampling(base.DualConditionMethod):
 
 
         #Read the parameters from the wxPython widgets
-        ctrldata = all_selected
         ignoreCodon = True
-        wxobj.resamplingNormChoice.GetString(wxobj.resamplingNormChoice.GetCurrentSelection())
+        samples = int(wxobj.resamplingSampleText.GetValue())
+        normalization = wxobj.resamplingNormChoice.GetString(wxobj.resamplingNormChoice.GetCurrentSelection())
+        replicates="Sum"
+        adaptive = False
+        doHistogram = False
+
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
         CTerminus = float(wxobj.globalCTerminusText.GetValue())
-        normalization = None
         LOESS = False
 
         #Get output path
@@ -181,12 +184,15 @@ class Resampling(base.DualConditionMethod):
         output_file = open(output_path, "w")
 
 
-
         return self(ctrl_selected,
                 exp_selected,
                 annotationPath,
                 output_file,
                 normalization,
+                samples,
+                adaptive,
+                doHistogram,
+                replicates,
                 LOESS,
                 ignoreCodon,
                 NTerminus,
@@ -195,6 +201,7 @@ class Resampling(base.DualConditionMethod):
     @classmethod
     def fromargs(self, rawargs):
 
+        print "RAW:", rawargs
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
         print "ARGS:", args
@@ -203,12 +210,14 @@ class Resampling(base.DualConditionMethod):
         ctrldata = args[0].split(",")
         expdata = args[1].split(",")
         annotationPath = args[2]
-        outpath = args[3]
+        output_path = args[3]
+        output_file = open(output_path, "w")
 
         normalization = kwargs.get("n", "TTR")
         samples = int(kwargs.get("s", 10000))
         adaptive = kwargs.get("a", False)
         doHistogram = kwargs.get("h", False)
+        replicates = kwargs.get("r", "Sum")
     
         
         LOESS = kwargs.get("l", False)
@@ -219,11 +228,12 @@ class Resampling(base.DualConditionMethod):
         return self(ctrldata,
                 expdata,
                 annotationPath,
-                outpath,
+                output_file,
                 normalization,
                 samples,
                 adaptive,
                 doHistogram,
+                replicates,
                 LOESS,
                 ignoreCodon,
                 NTerminus,
@@ -291,6 +301,7 @@ class Resampling(base.DualConditionMethod):
 
 
         #
+        self.transit_message("") # Printing empty line to flush stdout 
         self.transit_message("Performing Benjamini-Hochberg Correction")
         data.sort() 
         qval = stat_tools.BH_fdr_correction([row[-1] for row in data])
@@ -316,7 +327,6 @@ class Resampling(base.DualConditionMethod):
             self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.2f\t%1.2f\t%1.5f\t%1.5f\n" % (orf, name, desc, n, mean1, mean2, test_obs, log2FC, pval_2tail, qval[i]))
         self.output.close()
 
-        self.transit_message("") # Printing empty line to flush stdout 
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file()
         self.finish()

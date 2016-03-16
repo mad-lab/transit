@@ -151,6 +151,7 @@ class Example(base.SingleConditionMethod):
         ctrldata = args[0].split(",")
         annotationPath = args[1]
         outpath = args[2]
+        output_file = open(outpath, "w")
 
         normalization = None
         LOESS = False

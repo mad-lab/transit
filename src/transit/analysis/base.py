@@ -21,10 +21,7 @@ class AnalysisMethod:
         self.short_name = short_name
         self.long_name = long_name
         self.description = description
-        if type(output) == type("string"):
-            self.output = open(output, "w")
-        else:
-            self.output = output
+        self.output = output
         self.annotation_path = annotation_path
 
         self.newWx = newWx
@@ -34,19 +31,20 @@ class AnalysisMethod:
         #TODO: write docstring
         return "%s (%s): %s" % (self.long_name, self.short_name, self.description)
 
-    
+    @classmethod 
     def fromGUI(self, wxobj):
         #TODO: write docstring
         raise NotImplementedError
 
-    
-    def fromargs(self):
+    @classmethod
+    def fromargs(self, rawargs):
         #TODO: write docstring
         raise NotImplementedError
 
+    @classmethod
     def fromconsole(self):
         #TODO: write docstring
-        return self.fromargs(sys.argv[:1])
+        return self.fromargs(sys.argv[1:])
     
     def Run(self):
         #TODO write docstring
