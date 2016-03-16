@@ -161,7 +161,7 @@ class Example(base.SingleConditionMethod):
 
         return self(ctrldata,
                 annotationPath,
-                outpath,
+                output_file,
                 normalization,
                 LOESS,
                 ignoreCodon,
