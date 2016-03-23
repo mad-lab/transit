@@ -222,8 +222,8 @@ class Resampling(base.DualConditionMethod):
         
         LOESS = kwargs.get("l", False)
         ignoreCodon = True
-        NTerminus = 0.0
-        CTerminus = 0.0
+        NTerminus = float(kwargs.get("iN", 0.00))
+        CTerminus = float(kwargs.get("iC", 0.00))
 
         return self(ctrldata,
                 expdata,
@@ -331,6 +331,21 @@ class Resampling(base.DualConditionMethod):
         self.add_file()
         self.finish()
         self.transit_message("Finished resampling Method") 
+
+
+    @classmethod
+    def usage_string(self):
+        return """python %s resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table> <output file> [Optional Arguments]
+    
+        Optional Arguments:
+        -s <integer>    :=  Number of samples. Default: -s 10000
+        -n <string>     :=  Normalization method. Default: -n TTR
+        -h              :=  Output histogram of the permutations for each gene. Default: Turned Off.
+        -a              :=  Perform adaptive resampling. Default: Turned Off.
+        -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.
+        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
+        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        """ % (sys.argv[0])
 
 
 

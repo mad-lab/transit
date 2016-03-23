@@ -44,8 +44,26 @@ class AnalysisMethod:
     @classmethod
     def fromconsole(self):
         #TODO: write docstring
-        return self.fromargs(sys.argv[1:])
-    
+        try:
+            return self.fromargs(sys.argv[1:])
+        except IndexError as e:
+            print self.usage_string()
+        except TypeError as e:
+            print "Error: %s" % str(e)
+            print self.usage_string()
+        except ValueError as e:
+            print "Error: %s" % str(e)
+            print self.usage_string()
+        except Exception as e:
+            print "Error: %s" % str(e)
+            print self.usage_string()
+        sys.exit() 
+
+    @classmethod
+    def usage_string(self):
+        #TODO: write docstring
+        raise NotImplementedError
+
     def Run(self):
         #TODO write docstring
         raise NotImplementedError
@@ -58,9 +76,13 @@ class AnalysisMethod:
             print "%s = %s" % (m, getattr(self, m))
 
 
-    def add_file(self):
+    def add_file(self, path=None):
         #TODO: write docstring
-        data = {"path":self.output.name, "type":self.short_name, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+        if not path:
+            data = {"path":self.output.name, "type":self.short_name, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+        else:
+            data = {"path":path, "type":self.short_name, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+
         if self.wxobj:
             if newWx:
                 wx.CallAfter(pub.sendMessage, "file", data=data)

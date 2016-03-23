@@ -229,12 +229,12 @@ class Gumbel(base.SingleConditionMethod):
         burnin = int(kwargs.get("b", 500))
         trim = int(kwargs.get("t", 1))
         minread = int(kwargs.get("m", 1))
-        replicates = "Sum"
+        replicates = kwargs.get("r", "Sum")
         normalization = None
         LOESS = False
         ignoreCodon = True
-        NTerminus = 0.0
-        CTerminus = 0.0
+        NTerminus = float(kwargs.get("iN", 0.0))
+        CTerminus = float(kwargs.get("iC", 0.0))
 
         return self(ctrldata,
                 annotationPath,
@@ -397,6 +397,19 @@ class Gumbel(base.SingleConditionMethod):
         self.finish()
         self.transit_message("Finished Gumbel Method") 
 
+    @classmethod
+    def usage_string(self):
+        return """python %s gumbel <comma-separated .wig files> <annotation .prot_table> <output file> [Optional Arguments]
+    
+        Optional Arguments:
+        -s <integer>    :=  Number of samples. Default: -s 10000
+        -b <integer>    :=  Number of Burn-in samples. Default -b 500
+        -m <integer>    :=  Smallest read-count to consider. Default: -m 1
+        -t <integer>    :=  Trims all but every t-th value. Default: -t 1
+        -r <string>     :=  How to handle replicates. Sum or Mean. Default: -r Sum
+        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
+        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        """ % (sys.argv[0])
 
     def good_orf(self, gene):
         return (gene.n >= 3 and gene.t >= 150)

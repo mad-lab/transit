@@ -222,7 +222,9 @@ class Example(base.SingleConditionMethod):
         self.finish()
         self.transit_message("Finished Example Method") 
 
-
+    @classmethod
+    def usage_string(self):
+        return """python %s example <comma-separated .wig files> <annotation .prot_table> <output file>""" % (sys.argv[0])
 
 
 if __name__ == "__main__":
