@@ -49,6 +49,23 @@ def getPanel(wxobj):
     exampleSection.Add( wxobj.exampleLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
     exampleSizer1 = wx.BoxSizer( wx.HORIZONTAL )
+    #exampleSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+    #exampleLabelSizer = wx.BoxSizer( wx.VERTICAL )
+    #exampleControlSizer = wx.BoxSizer( wx.VERTICAL )
+    
+    
+    #wxobj.exampleRepLabel = wx.StaticText( wxobj.examplePanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
+    #wxobj.exampleRepLabel.Wrap(-1)
+    #exampleLabelSizer.Add(wxobj.exampleRepLabel, 1, wx.ALL, 5)
+    #exampleRepChoiceChoices = [ u"Sum", u"Mean", "TTRMean" ]
+    #wxobj.exampleRepChoice = wx.Choice( wxobj.examplePanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, exampleRepChoiceChoices, 0 )
+    #wxobj.exampleRepChoice.SetSelection( 2 )
+    #exampleControlSizer.Add(wxobj.exampleRepChoice, 0, wx.ALL|wx.EXPAND, 5)
+    #exampleSizer2.Add(exampleLabelSizer, 1, wx.EXPAND, 5)
+    #exampleSizer2.Add(exampleControlSizer, 1, wx.EXPAND, 5)
+    #exampleSizer1.Add(exampleSizer2, 1, wx.EXPAND, 5 )
+
+
     exampleSection.Add( exampleSizer1, 1, wx.EXPAND, 5 )
 
     wxobj.exampleButton = wx.Button( wxobj.examplePanel, wx.ID_ANY, u"Run Example", wx.DefaultPosition, wx.DefaultSize, 0 )
