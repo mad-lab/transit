@@ -257,8 +257,9 @@ class MainFrame ( wx.Frame ):
 
 
         #Add Methods        
-        methodSizer.Add( transit.analysis.gumbel.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
         methodSizer.Add( transit.analysis.example.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
+        methodSizer.Add( transit.analysis.gumbel.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
+        methodSizer.Add( transit.analysis.binomial.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
         methodSizer.Add( transit.analysis.hmm.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
         methodSizer.Add( transit.analysis.resampling.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
         
