@@ -34,6 +34,7 @@ except AttributeError as e:
 import transit.analysis.gumbel
 import transit.analysis.example
 import transit.analysis.resampling
+import transit.analysis.hmm
 from transit.analysis import *
 import os
 import time
@@ -75,6 +76,7 @@ mainInstructions = """Instructions:
 method_wrap_width = 250
 methodsDict = {"gumbel":{"module":gumbel, "method":gumbel.Gumbel},
                 "example":{"module":example, "method":example.Example},
+                "hmm":{"module":hmm, "method":hmm.HMM},
                 "resampling":{"module":resampling, "method":resampling.Resampling}}
 
 #methodsDict = {"Example":{"module":example, "method":example.Example}}

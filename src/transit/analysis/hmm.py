@@ -49,10 +49,36 @@ def getPanel(wxobj):
     hmmSection.Add( wxobj.hmmLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
     hmmSizer1 = wx.BoxSizer( wx.HORIZONTAL )
+    hmmSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+    hmmLabelSizer = wx.BoxSizer( wx.VERTICAL )
+    hmmControlSizer = wx.BoxSizer( wx.VERTICAL )
+
+
+    wxobj.hmmRepLabel = wx.StaticText( wxobj.hmmPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
+    wxobj.hmmRepLabel.Wrap(-1)
+    hmmLabelSizer.Add(wxobj.hmmRepLabel, 1, wx.ALL, 5)
+
+
+    hmmRepChoiceChoices = [ u"Sum", u"Mean", "TTRMean" ]
+    wxobj.hmmRepChoice = wx.Choice( wxobj.hmmPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, hmmRepChoiceChoices, 0 )
+    wxobj.hmmRepChoice.SetSelection( 2 )
+
+    hmmControlSizer.Add(wxobj.hmmRepChoice, 0, wx.ALL|wx.EXPAND, 5)
+
+
+    hmmSizer2.Add(hmmLabelSizer, 1, wx.EXPAND, 5)
+    hmmSizer2.Add(hmmControlSizer, 1, wx.EXPAND, 5)
+            
+    hmmSizer1.Add(hmmSizer2, 1, wx.EXPAND, 5 )
+
+
     hmmSection.Add( hmmSizer1, 1, wx.EXPAND, 5 )
 
     wxobj.hmmButton = wx.Button( wxobj.hmmPanel, wx.ID_ANY, u"Run HMM", wx.DefaultPosition, wx.DefaultSize, 0 )
     hmmSection.Add( wxobj.hmmButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+
+
 
     wxobj.hmmPanel.SetSizer( hmmSection )
     wxobj.hmmPanel.Layout()
@@ -88,13 +114,14 @@ class HMM(base.SingleConditionMethod):
                 ctrldata,
                 annotation_path,
                 output_file,
+                replicates="TTRMean",
                 normalization=None,
                 LOESS=False,
                 ignoreCodon=True,
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, "HMM", "HMM Method", "The HMM method described in 2013 by DeJesus et al.", ctrldata, annotation_path, output_file, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, "HMM", "HMM Method", "The HMM method described in 2013 by DeJesus et al.", ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         try:
             T = len([1 for line in open(ctrldata[0]).readlines() if not line.startswith("#")])
@@ -122,6 +149,7 @@ class HMM(base.SingleConditionMethod):
 
         #Read the parameters from the wxPython widgets
         ctrldata = all_selected
+        replicates = wxobj.hmmRepChoice.GetString(wxobj.hmmRepChoice.GetCurrentSelection()) 
         ignoreCodon = True
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
         CTerminus = float(wxobj.globalCTerminusText.GetValue())
@@ -141,6 +169,7 @@ class HMM(base.SingleConditionMethod):
         return self(ctrldata,
                 annotationPath,
                 output_file,
+                replicates,
                 normalization,
                 LOESS,
                 ignoreCodon,
@@ -156,15 +185,17 @@ class HMM(base.SingleConditionMethod):
         outpath = args[2]
         output_file = open(outpath, "w")
 
+        replicates = kwargs.get("r", "TTRMean")
         normalization = None
-        LOESS = False
+        LOESS = kwargs.get("l", False)
         ignoreCodon = True
-        NTerminus = 0.0
-        CTerminus = 0.0
+        NTerminus = float(kwargs.get("iN", 0.0))
+        CTerminus = float(kwargs.get("iC", 0.0))
 
         return self(ctrldata,
                 annotationPath,
                 output_file,
+                replicates,
                 normalization,
                 LOESS,
                 ignoreCodon,
@@ -318,9 +349,17 @@ class HMM(base.SingleConditionMethod):
         self.finish()
         self.transit_message("Finished HMM Method") 
 
+
     @classmethod
     def usage_string(self):
-        return """python %s hmm <comma-separated .wig files> <annotation .prot_table> <output file>""" % (sys.argv[0])
+        return """python %s hmm <comma-separated .wig files> <annotation .prot_table> <output file>
+
+        Optional Arguments:
+            -r <string>     :=  How to handle replicates. Sum, Mean, TTRMean. Default: -r TTRMean
+            -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Off.
+            -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
+            -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        """ % (sys.argv[0])
 
 
 
