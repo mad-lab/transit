@@ -214,20 +214,7 @@ class HMM(base.SingleConditionMethod):
         rv2info = transit_tools.get_gene_info(self.annotation_path)
         self.transit_message("Combining Replicates as '%s'" % self.replicates)
 
-        if self.replicates == "Sum":
-            O = numpy.round(numpy.sum(data,0))
-        elif self.replicates == "Mean":
-            O = numpy.round(numpy.mean(data,0))
-        elif self.replicates == "TTRMean":
-            factors = transit_tools.TTR_factors(data)
-            data = factors * data
-            target_factors = transit_tools.norm_to_target(data, 100)
-            data = target_factors * data
-            O = numpy.round(numpy.mean(data,0))
-        else:
-            O = data[0,:]
-
-        O = O + 1 # Adding 1 to because of shifted geometric in scipy
+        O = transit_tools.combine_replicates(data, method=self.replicates) + 1 # Adding 1 to because of shifted geometric in scipy
 
         #Parameters
         Nstates = 4
