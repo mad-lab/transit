@@ -105,13 +105,14 @@ class Example(base.SingleConditionMethod):
                 ctrldata,
                 annotation_path,
                 output_file,
+                replicates="Sum",
                 normalization=None,
                 LOESS=False,
                 ignoreCodon=True,
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, "Example", "Example Method", "A basic Example method to show how you could add your own method to TRANSIT.", ctrldata, annotation_path, output_file, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, "Example", "Example Method", "A basic Example method to show how you could add your own method to TRANSIT.", ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
 
 
@@ -136,6 +137,7 @@ class Example(base.SingleConditionMethod):
         ignoreCodon = True
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
         CTerminus = float(wxobj.globalCTerminusText.GetValue())
+        replicates="Sum"
         normalization = None
         LOESS = False
 
@@ -152,6 +154,7 @@ class Example(base.SingleConditionMethod):
         return self(ctrldata,
                 annotationPath,
                 output_file,
+                replicates,
                 normalization,
                 LOESS,
                 ignoreCodon,
@@ -170,6 +173,7 @@ class Example(base.SingleConditionMethod):
         outpath = args[2]
         output_file = open(outpath, "w")
 
+        replicates = "Sum"
         normalization = None
         LOESS = False
         ignoreCodon = True
@@ -179,6 +183,7 @@ class Example(base.SingleConditionMethod):
         return self(ctrldata,
                 annotationPath,
                 output_file,
+                replicates,
                 normalization,
                 LOESS,
                 ignoreCodon,
