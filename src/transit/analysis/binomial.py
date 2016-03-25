@@ -404,15 +404,18 @@ class Binomial(base.SingleConditionMethod):
         self.output.write("#Orf\tName\tDescription\tMean Insertion\tSites per Replicate\tTotal Insertions\tTotal Sites\tthetabar\tzbar\tCall\n")
 
 
+        data = []
         for g,gene in enumerate(G):
             c = "Uncertain"
             if z_bar[g] > ess_threshold:
                 c = "Essential"
             if z_bar[g] < noness_threshold:
                 c = "Non-Essential"    
+            data.append("%s\t%s\t%s\t%1.1f\t%d\t%d\t%d\t%f\t%f\t%s" % (gene.orf, gene.name, gene.desc, K[g]/float(numReps), N[g]/numReps, K[g], N[g], theta_bar[g], z_bar[g], c))
 
-            self.output.write("%s\t%s\t%s\t%1.1f\t%d\t%d\t%d\t%f\t%f\t%s\n" % (gene.orf, gene.name, gene.desc, K[g]/float(numReps), N[g]/numReps, K[g], N[g], theta_bar[g], z_bar[g], c))
-
+        data.sort()
+        for row in data:
+            self.output.write("%s\n" % row)
         self.output.close()
 
         self.transit_message("") # Printing empty line to flush stdout 
