@@ -45,7 +45,7 @@ class AnalysisMethod:
     def fromconsole(self):
         #TODO: write docstring
         try:
-            return self.fromargs(sys.argv[1:])
+            return self.fromargs(sys.argv[2:])
         except IndexError as e:
             print self.usage_string()
         except TypeError as e:

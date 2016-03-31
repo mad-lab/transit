@@ -446,7 +446,7 @@ if __name__ == "__main__":
     print "ARGS:", args
     print "KWARGS:", kwargs
 
-    G = Binomial.fromargs(sys.argv)
+    G = Binomial.fromargs(sys.argv[1:])
 
     G.console_message("Printing the member variables:")   
     G.print_members()

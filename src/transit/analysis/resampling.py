@@ -359,7 +359,7 @@ if __name__ == "__main__":
 
     #TODO: Figure out issue with inputs (transit requires initial method name, running as script does not !!!!)
 
-    G = Resampling.fromargs(sys.argv)
+    G = Resampling.fromargs(sys.argv[1:])
 
     G.console_message("Printing the member variables:")   
     G.print_members()

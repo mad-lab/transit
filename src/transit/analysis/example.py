@@ -251,12 +251,12 @@ class Example(base.SingleConditionMethod):
 
 if __name__ == "__main__":
 
-    (args, kwargs) = transit_tools.cleanargs(sys.argv)
+    (args, kwargs) = transit_tools.cleanargs(sys.argv[1:])
 
     print "ARGS:", args
     print "KWARGS:", kwargs
 
-    G = Example.fromargs(sys.argv)
+    G = Example.fromargs(sys.argv[1:])
 
     G.console_message("Printing the member variables:")   
     G.print_members()

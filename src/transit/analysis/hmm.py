@@ -515,7 +515,7 @@ if __name__ == "__main__":
     print "ARGS:", args
     print "KWARGS:", kwargs
 
-    G = HMM.fromargs(sys.argv)
+    G = HMM.fromargs(sys.argv[1:])
 
     G.console_message("Printing the member variables:")   
     G.print_members()
