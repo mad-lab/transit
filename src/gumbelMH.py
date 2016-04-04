@@ -85,10 +85,10 @@ def runGumbel(wx, pubmsg, **kwargs):
 
 
     start_time = time.time()
-    (ORF_all, K_all, N_all, R_all, S_all, T_all) = get_orf_data_transit(orf2reads, orf2pos, orf2info, MINIMUM_READ)
+    (ORF_all, K_all, N_all, R_all, S_all, T_all) = get_orf_data_transit(orf2reads, orf2pos, orf2info, MINIMUM_READ, REPCHOICE)
     bad_orf_set = set([ORF_all[g] for g in xrange(len(N_all)) if not good_orf(N_all[g], T_all[g])]);
     bad_orf_set.add("Rvnr01");
-    (ORF, K, N, R, S, T) = get_orf_data_transit(orf2reads, orf2pos, orf2info, MINIMUM_READ, bad=bad_orf_set)
+    (ORF, K, N, R, S, T) = get_orf_data_transit(orf2reads, orf2pos, orf2info, MINIMUM_READ, REPCHOICE, bad=bad_orf_set)
 
 
     orf2name = {}; orf2desc = {}
@@ -166,15 +166,7 @@ def runGumbel(wx, pubmsg, **kwargs):
 
     #Orf	k	n	r	s	zbar
     output.write("#Gumbel\n")
-    #output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
-    if wx:
-        variables = dict([(key,val) for (key,val) in kwargs.items() if not callable(val)])
-        variables["output"] = output.name
-        variables["readPathList"]= ",".join(PATH)
-        output.write("#GUI with: %s\n" % (" ".join(["%s=%s" % (key,val) for (key,val) in variables.items()])))
-    else:
-        output.write("#Console: python %s\n" % " ".join(sys.argv))
-
+    output.write("#Command: python transit.py %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
     #output.write("#Command used:\tpython %s\n" % (" ".join(sys.argv)))
     output.write("#FDR Corrected thresholds: %f, %f\n" % (ess_t, non_t))
     output.write("#MH Acceptance-Rate:\t%2.2f%%\n" % (100.0*acctot/count))
