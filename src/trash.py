@@ -77,6 +77,7 @@ class TrashFrame(view_trash.MainFrame):
         self.orf2data = draw_trash.read_prot_table(annotation)
         self.hash = draw_trash.hash_prot_genes(annotation)
 
+        self.features = []
 
         #Data to facilitate search
         self.name2id = {}
@@ -248,6 +249,12 @@ class TrashFrame(view_trash.MainFrame):
             finished_image.SaveFile(output_path, wx.BITMAP_TYPE_PNG)
         print track_prefix, "Image saved to the following path:", output_path
     
+
+    def addFeatureFunc(self, event):
+        pass
+
+
+
 
     def searchFunc(self, event):
 
