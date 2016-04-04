@@ -318,7 +318,7 @@ def get_orf_data_transit(orf2reads, orf2pos, orf2info, min_read, repchoice="Sum"
                 rd = numpy.mean(rdrow)
             else:
                 rd = rdrow[0]
- 
+
             n += 1
             if rd < min_read:
                 run[0] +=1

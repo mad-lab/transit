@@ -2226,7 +2226,7 @@
                         <event name="OnSetFocus"></event>
                         <event name="OnSize"></event>
                         <event name="OnUpdateUI"></event>
-                        <object class="wxStaticBoxSizer" expanded="0">
+                        <object class="wxStaticBoxSizer" expanded="1">
                             <property name="id">wxID_ANY</property>
                             <property name="label">Methods</property>
                             <property name="minimum_size">250,-1</property>
@@ -2499,7 +2499,7 @@
                                     <property name="caption"></property>
                                     <property name="caption_visible">1</property>
                                     <property name="center_pane">0</property>
-                                    <property name="choices">&quot;[Choose Method]&quot; &quot;Gumbel&quot; &quot;Binomial&quot; &quot;HMM&quot; &quot;Resampling&quot; &quot;DE-HMM&quot;</property>
+                                    <property name="choices">&quot;[Choose Method]&quot; &quot;Gumbel&quot; &quot;Binomial&quot; &quot;HMM&quot; &quot;Resampling&quot;</property>
                                     <property name="close_button">1</property>
                                     <property name="context_help"></property>
                                     <property name="context_menu">1</property>

@@ -53,7 +53,7 @@ import betabinomial
 import hmm_geom
 import hmm_tools
 import resampling
-import dehmm
+#import dehmm
 import imgTRANSIT
 
 import argparse
