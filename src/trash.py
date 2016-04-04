@@ -50,7 +50,10 @@ def PilImageToWxBitmap( myPilImage ) :
 
 def PilImageToWxImage( myPilImage ):
     myWxImage = wx.EmptyImage( myPilImage.size[0], myPilImage.size[1] )
-    myWxImage.SetData( myPilImage.convert( 'RGB' ).tostring() )
+    try:
+        myWxImage.SetData( myPilImage.convert( 'RGB' ).tostring() )
+    except:
+        myWxImage.SetData( myPilImage.convert( 'RGB' ).tobytes() )
     return myWxImage
 
 def WxImageToWxBitmap( myWxImage ) :
