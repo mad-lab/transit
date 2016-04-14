@@ -9,11 +9,10 @@ import scipy.stats
 import datetime
 
 import base
-import transit_tools
-
-import tnseq_tools
-import norm_tools
-import stat_tools
+import transit.transit_tools as transit_tools
+import transit.tnseq_tools as tnseq_tools
+import transit.norm_tools as norm_tools
+import transit.stat_tools as stat_tools
 
 #method_name = "griffin"
 

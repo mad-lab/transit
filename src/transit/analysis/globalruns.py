@@ -9,7 +9,6 @@ import scipy.stats
 import datetime
 
 import base
-import transit
 import transit.transit_tools as transit_tools
 import transit.tnseq_tools as tnseq_tools
 import transit.norm_tools as norm_tools

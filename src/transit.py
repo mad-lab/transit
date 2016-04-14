@@ -55,19 +55,17 @@ import traceback
 # trash view stuff
 import trash
 import transit_gui
-import transit_tools
+import transit.transit_tools as transit_tools
 import fileDisplay
 import qcDisplay
 
 #import gumbelMH
-import betabinomial
-import hmm_geom
-import hmm_tools
+#import betabinomial
+#import hmm_geom
+#import hmm_tools
 #import resampling
-import dehmm
+#import dehmm
 import imgTRANSIT
-
-import argparse
 
 
 mainInstructions = """Instructions:
