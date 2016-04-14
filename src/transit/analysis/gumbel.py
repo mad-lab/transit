@@ -276,7 +276,7 @@ class Gumbel(base.SingleConditionMethod):
 
         
 
-        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=self.minread, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
+        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=self.minread, reps=self.replicates, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
 
         ii_good = numpy.array([self.good_orf(g) for g in G]) # Gets index of the genes that can be analyzed
 
