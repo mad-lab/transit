@@ -652,32 +652,198 @@ def griffin_analysis(genes_obj, pins):
             results.append([gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, exprun, pval])
     return(results)
 
+def combine_wigs(wig_data, method, min_read):
+    replicates = wig_data[0]
+    num_replicates = numpy.size(replicates, 1)
+    if num_replicates <= 1:
+        return None
+       
+    # Combine all wigs into one
+    if method.lower() == 'sum':
+        data = replicates.sum(axis=0)
+    elif method.lower() == 'mean':
+        data = replicates.mean(axis=0)
+    else:
+        # Just sum as a default
+        data = replicates.sum(axis=0)
+    
+    # Filter out reads below threshold
+    data[data < min_read] = 0;
+    
+    return (data, wig_data[1])
 
+
+def genome_theta(combined):
+    """Returns global insertion frequency of the whole genome including non-coding sequences"""
+    
+    # Get the number of insertions
+    counts = combined[0]
+    counts[counts > 0] = 1
+    num_sites = numpy.size(counts)
+    num_insertions = counts.sum()
+    
+    return float(num_insertions)/num_sites
+
+def runs_w_info(data):
+    """Return list of all the runs of consecutive non-insertions with the start and end locations."""
+    runs = []
+    start = 1
+    current_r = 0
+    for read in data:
+        if read > 0: # If ending a run of zeros
+            if current_r > 0: # If we were in a run, add to list
+                end = start + current_r - 1
+                runs.append(dict(length = current_r, start = start, end = end))
+            start = start + (current_r + 1)
+            current_r = 0
+        else:
+            current_r += 1
+    
+    # If we ended in a run, add it
+    if current_r > 0:
+        end = start + current_r - 1
+        runs.append(dict(length = current_r, start = start, end = end))
+    return runs
+
+def get_genes_for_range(pos_hash, start, end):
+    genes = []
+    for pos in range(start, end + 1):
+        if pos in pos_hash:
+            genes.extend(pos_hash[pos])
+
+    return list(set(genes))
+
+def intersect_size(intv1, intv2):
+    first = intv1 if intv1[0] < intv2[0] else intv2
+    second = intv1 if first == intv2 else intv2
+    
+    if first[1] < second[0]:
+        return 0
+    
+    right_ovr = min(first[1], second[1])
+    left_ovr = max(first[0], second[0])
+    
+    return right_ovr - left_ovr
+
+def calc_overlap(run_interv, gene_interv):
+    first = run_interv if run_interv[0] < gene_interv[0] else gene_interv
+    second = run_interv if first == gene_interv else gene_interv
+    
+    if second[0] > first[0] and second[1] < first[1]:
+        return 1.0
+    
+    intersect = intersect_size(run_interv, gene_interv)
+    return float(intersect)/(gene_interv[1] - gene_interv[0])
+
+def global_run_griffin_analysis(wig_data, genes_obj, prot_tab_path, pins):
+    """Implements a modified Gumbel analysis of runs of non-insertion as described
+     in Griffin et al. 2011.
+
+    This analysis method calculates a p-value of observing the maximun run of
+    TA sites without insertions in a row (i.e. a "run", r). Unusually long
+    runs are indicative of an essential gene or protein domain. Assumes that
+    there is a constant, global probability of observing an insertion
+    (tantamount to a Bernoulli probability of success). Unlike the original 
+    method, this method will consider runs throughout the whole genome, including
+    regions outside of individual genes. 
+
+    Args:
+        wig_data (list): A list of read counts for each location
+        genes_obj (Genes): An object of the Genes class defining the genes.
+        prot_tab_path (string): The location of the prot table file.
+        pins (float): The probability of insertion.
+
+    Returns:
+        list. List of lists with results and information for the genes. The
+            elements of the list are as follows:
+            - ORF ID.
+            - Gene Name.
+            - Gene Description.
+            - Number of TA sites with insertions within the gene.
+            - Number of TA sites within the gene.
+            - Length of largest run of non-insertion within the gene.
+            - Length of largest overlapping run of non-insertions with this gene.
+            - Size of the intersection for the largest overlapping run with this gene.
+            - Length of the run with the largest intersection with this gene.
+            - Difference between length of run with the largest overlap and 2 standard deviations above the expected max run length over the whole genome
+            - Boolean - is the difference negative?
+            - p-value of the observed run.
+    """
+    
+    pnon = 1.0 - pins
+    
+    # Combine all wigs
+    combined = combine_wigs(wig_data)
+    counts = combined[0]
+    counts[counts > 0] = 1
+    num_sites = numpy.size(counts)
+    
+    # Calculate stats of runs
+    exprun = ExpectedRuns(num_sites, pnon)
+    varrun = VarR(num_sites, pnon)
+    stddevrun = math.sqrt(varrun)
+    exp_cutoff = exprun + 2*stddevrun
+
+    # Get the runs
+    run_arr = runs_w_info(counts)
+    pos_hash = get_pos_hash(prot_tab_path)
+
+    # Finally, calculate the results
+    results_per_gene = {}
+    for gene in genes_obj.genes:
+        results_per_gene[gene.orf] = (gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, 0, 0, 0, 0, 1)
+    
+    for run in run_arr: 
+        genes = get_genes_for_range(pos_hash, run['start'], run['end'])
+        for gene_orf in genes:
+            gene = genes_obj[gene_orf]
+            inter_sz = intersect_size([run['start'], run['end']], [gene.start, gene.end]) + 1
+            percent_overlap = calc_overlap([run['start'], run['end']], [gene.start, gene.end])
+            run_len = run['length']
+            diff = run_len - exp_cutoff
+            ess = 0 if diff < 0 else 1
+            B = 1.0/math.log(1.0/pnon)
+            u = math.log(num_sites*pins, 1.0/pnon)
+            pval = 1.0 - GumbelCDF(run['length'], u, B)
+            
+            curr_val = results_per_gene[gene.orf]
+            curr_inter_sz = curr_val[6]
+            curr_len = curr_val[7]
+            if inter_sz > curr_inter_sz:
+                results_per_gene[gene.orf] = (gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, inter_sz, run_len, diff, ess, pval)
+            
+    return list(results_per_gene.values())
 
 
 
 if __name__ == "__main__":
 
     G = Genes(sys.argv[1].split(","), sys.argv[2], norm="TTR")
+    theta = G.global_theta()
+    # Use complete genome expected run length?
+    if len(sys.argv) >= 4 and (sys.argv[3] == "g" or sys.argv[3] == "G"):
+        print('Using theta calculation by whole genome\n')
+        wig_data = get_data(sys.argv[1].split(","))
+        theta = genome_theta(combine_wigs(wig_data))
+        griffin_results = global_run_griffin_analysis(wig_data, G, sys.argv[2], theta)
+        print('ORF\tName\tDescription\tNumber of Insertions\tGene Size\tLongest Run within Gene\tLargest Overlap with a Run\tLength of Run with Largest Overlap\tDiff between expected + 2*stddev\tDiff < 0?\tpval')
+        for res in sorted(griffin_results, key=lambda x: x[0]):
+            print("%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%d\t%d\t%1.5f" % (res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], res[9], res[10]))
+        sys.exit();
+    else:
+        print('Using theta calculation by individual gene\n')
+    
     print "#Insertion: %s" % G.global_insertion()
     print "#Sites: %s" % G.global_sites()
     print "#Run: %s" % G.global_run()
-    print "#Theta: %1.4f" % G.global_theta()
+    print "#Theta: %1.4f" % theta
     print "#Phi: %1.4f" % G.global_phi()
     print "#"
 
-    #g = G["Rv1968"]
-    #print g
-    #print g.runs
-    #print runindex(g.runs)
-    
-    #sys.exit()
-
-    griffin_results = griffin_analysis(G, G.global_theta())
+    griffin_results = griffin_analysis(G, theta)
     for i,gene in enumerate(sorted(G)):
         pos = gene.position
         exprun, pval = griffin_results[i][-2:]
         print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%1.1f\t%1.5f" % (gene.orf, gene.name, gene.k, gene.n, gene.r, gene.s, gene.t, exprun, pval)
-
 
 
