@@ -33,6 +33,7 @@ except AttributeError as e:
 
 import transit.analysis.gumbel
 import transit.analysis.example
+import transit.analysis.globalruns
 import transit.analysis.binomial
 import transit.analysis.griffin
 import transit.analysis.resampling
@@ -77,6 +78,7 @@ mainInstructions = """Instructions:
 
 method_wrap_width = 250
 methodsDict = {"gumbel":{"module":gumbel, "method":gumbel.Gumbel},
+                "global gumbel":{"module":globalruns, "method":globalruns.GlobalGumbel},
                 "example":{"module":example, "method":example.Example},
                 "binomial":{"module":binomial, "method":binomial.Binomial},
                 "griffin":{"module":griffin, "method":griffin.Griffin},
