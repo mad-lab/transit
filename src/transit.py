@@ -37,6 +37,8 @@ import transit.analysis.binomial
 import transit.analysis.griffin
 import transit.analysis.resampling
 import transit.analysis.hmm
+import transit.analysis.rankproduct
+
 from transit.analysis import *
 import os
 import time
@@ -76,12 +78,14 @@ mainInstructions = """Instructions:
 """
 
 method_wrap_width = 250
-methodsDict = {"gumbel":{"module":gumbel, "method":gumbel.Gumbel},
-                "example":{"module":example, "method":example.Example},
-                "binomial":{"module":binomial, "method":binomial.Binomial},
-                "griffin":{"module":griffin, "method":griffin.Griffin},
-                "hmm":{"module":hmm, "method":hmm.HMM},
-                "resampling":{"module":resampling, "method":resampling.Resampling}}
+methodsDict = {}
+methodsDict["gumbel"] = {"module":gumbel, "method":gumbel.Gumbel}
+methodsDict["example"] = {"module":example, "method":example.Example}
+methodsDict["binomial"] = {"module":binomial, "method":binomial.Binomial}
+methodsDict["griffin"] = {"module":griffin, "method":griffin.Griffin}
+methodsDict["hmm"] = {"module":hmm, "method":hmm.HMM}
+methodsDict["resampling"] = {"module":resampling, "method":resampling.Resampling}
+methodsDict["rankproduct"] = {"module":rankproduct, "method":rankproduct.Rankproduct}
 
 #methodsDict = {"Example":{"module":example, "method":example.Example}}
 
