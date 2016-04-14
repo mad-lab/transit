@@ -87,6 +87,7 @@ methodsDict["griffin"] = {"module":griffin, "method":griffin.Griffin}
 methodsDict["hmm"] = {"module":hmm, "method":hmm.HMM}
 methodsDict["resampling"] = {"module":resampling, "method":resampling.Resampling}
 methodsDict["rankproduct"] = {"module":rankproduct, "method":rankproduct.Rankproduct}
+methodsDict["globalruns"] = {"module":globalruns, "method":globalruns.GlobalGumbel}
 
 #methodsDict = {"Example":{"module":example, "method":example.Example}}
 
