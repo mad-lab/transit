@@ -264,6 +264,7 @@ class MainFrame ( wx.Frame ):
         methodSizer.Add( transit.analysis.hmm.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
         methodSizer.Add( transit.analysis.resampling.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
         methodSizer.Add( transit.analysis.rankproduct.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
+        methodSizer.Add( transit.analysis.globalruns.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
         
 
 

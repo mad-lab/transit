@@ -33,6 +33,7 @@ except AttributeError as e:
 
 import transit.analysis.gumbel
 import transit.analysis.example
+import transit.analysis.globalruns
 import transit.analysis.binomial
 import transit.analysis.griffin
 import transit.analysis.resampling
