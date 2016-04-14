@@ -1,0 +1,460 @@
+import sys
+import wx
+import os
+import time
+import math
+import random
+import numpy
+import scipy.stats
+import datetime
+
+import matplotlib.pyplot as plt
+
+import base
+import transit_tools
+
+import tnseq_tools
+import norm_tools
+import stat_tools
+
+
+
+############# GUI ELEMENTS ##################
+def Hide(wxobj):
+    wxobj.rankproductPanel.Hide()
+
+def Show(wxobj):
+    wxobj.rankproductPanel.Show()
+
+def getInstructions():
+        return """Instructions:
+
+1. Make sure you have one control sample selected.
+2. Modify the options as desired.
+3. Click on the "Run rankproduct" button.
+4. Choose a name for the output file.
+5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.
+                """
+
+
+
+def getPanel(wxobj):
+    wxobj.rankproductPanel = wx.Panel( wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+    #wxobj.rankproductPanel.SetMinSize( wx.Size( 50,1 ) )
+    #wxobj.rankproductPanel.SetMaxSize( wx.Size( 250,-1 ) )
+
+
+    rankproductSizer = wx.BoxSizer( wx.VERTICAL )
+
+    wxobj.rankproductLabel = wx.StaticText( wxobj.rankproductPanel, wx.ID_ANY, u"rankproduct Options", wx.DefaultPosition, wx.DefaultSize, 0 )
+    wxobj.rankproductLabel.Wrap( -1 )
+    rankproductSizer.Add( wxobj.rankproductLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+    rankproductTopSizer = wx.BoxSizer( wx.HORIZONTAL )
+
+    rankproductTopSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+
+    rankproductLabelSizer = wx.BoxSizer( wx.VERTICAL )
+
+    wxobj.rankproductSampleLabel = wx.StaticText( wxobj.rankproductPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
+    wxobj.rankproductSampleLabel.Wrap( -1 )
+    rankproductLabelSizer.Add( wxobj.rankproductSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+    wxobj.rankproductNormLabel = wx.StaticText( wxobj.rankproductPanel, wx.ID_ANY, u"Normalization", wx.DefaultPosition, wx.DefaultSize, 0 )
+    wxobj.rankproductNormLabel.Wrap( -1 )
+    rankproductLabelSizer.Add( wxobj.rankproductNormLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+    rankproductTopSizer2.Add( rankproductLabelSizer, 1, wx.EXPAND, 5 )
+
+    rankproductControlSizer = wx.BoxSizer( wx.VERTICAL )
+
+    wxobj.rankproductSampleText = wx.TextCtrl( wxobj.rankproductPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
+    rankproductControlSizer.Add( wxobj.rankproductSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+    rankproductNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
+    wxobj.rankproductNormChoice = wx.Choice( wxobj.rankproductPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, rankproductNormChoiceChoices, 0 )
+    wxobj.rankproductNormChoice.SetSelection( 0 )
+    rankproductControlSizer.Add( wxobj.rankproductNormChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+
+    rankproductTopSizer2.Add( rankproductControlSizer, 1, wx.EXPAND, 5 )
+
+    rankproductTopSizer.Add( rankproductTopSizer2, 1, wx.EXPAND, 5 )
+
+    rankproductSizer.Add( rankproductTopSizer, 1, wx.EXPAND, 5 )
+
+    wxobj.rankproductButton = wx.Button( wxobj.rankproductPanel, wx.ID_ANY, u"Run rankproduct", wx.DefaultPosition, wx.DefaultSize, 0 )
+    rankproductSizer.Add( wxobj.rankproductButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+ 
+    wxobj.rankproductPanel.SetSizer( rankproductSizer )
+    wxobj.rankproductPanel.Layout()
+    rankproductSizer.Fit( wxobj.rankproductPanel )
+
+    #Connect events
+    wxobj.rankproductButton.Bind( wx.EVT_BUTTON, wxobj.RunMethod )
+
+    return wxobj.rankproductPanel
+
+
+def updateProgressBar(wxobj, count):
+    wxobj.rankproductProgress.SetValue(count)
+
+def SetProgressRange(wxobj, X):
+    wxobj.rankproductProgress.SetRange(X)
+
+def enableButton(wxobj):
+    wxobj.rankproductButton.Enable()
+
+
+
+
+
+########## CLASS #######################
+
+class Rankproduct(base.DualConditionMethod):
+    """   
+    rankproduct
+ 
+    """
+    def __init__(self,
+                ctrldata,
+                expdata,
+                annotation_path,
+                output_file,
+                normalization="TTR",
+                samples=10000,
+                adaptive=False,
+                doHistogram=False,
+                replicates="Sum",
+                LOESS=False,
+                ignoreCodon=True,
+                NTerminus=0.0,
+                CTerminus=0.0, wxobj=None):
+
+        base.DualConditionMethod.__init__(self, "rankproduct", "rankproduct Method", "A rank-based test to determine change in read-counts between conditions.", ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+
+        self.samples = samples
+        self.adaptive = adaptive
+        self.doHistogram = doHistogram
+        
+
+
+
+
+    @classmethod
+    def fromGUI(self, wxobj):
+        """ """
+        #Get selected ctrl files
+        ctrl_selected = wxobj.ctrlSelected()
+        if len(ctrl_selected) ==0:
+            wxobj.ShowError("Error: No Control dataset selected.")
+            return None
+
+        exp_selected = wxobj.expSelected()
+        if len(exp_selected) ==0:
+            wxobj.ShowError("Error: No Experimental dataset selected.")
+            return None
+
+
+        #Get Annotation file
+        annotationPath = wxobj.annotationFilePicker.GetPath()
+        if not annotationPath:
+            wxobj.ShowError("Error: No annotation file selected.")
+            return None
+
+
+        #Read the parameters from the wxPython widgets
+        ignoreCodon = True
+        samples = int(wxobj.rankproductSampleText.GetValue())
+        normalization = wxobj.rankproductNormChoice.GetString(wxobj.rankproductNormChoice.GetCurrentSelection())
+        replicates="Sum"
+        adaptive = False
+        doHistogram = False
+
+        NTerminus = float(wxobj.globalNTerminusText.GetValue())
+        CTerminus = float(wxobj.globalCTerminusText.GetValue())
+        LOESS = False
+
+        #Get output path
+        defaultFileName = "rankproduct_output.dat"
+        defaultDir = os.getcwd()
+        output_path = wxobj.SaveFile(defaultDir, defaultFileName)
+        if not output_path: return None
+        output_file = open(output_path, "w")
+
+
+        return self(ctrl_selected,
+                exp_selected,
+                annotationPath,
+                output_file,
+                normalization,
+                samples,
+                adaptive,
+                doHistogram,
+                replicates,
+                LOESS,
+                ignoreCodon,
+                NTerminus,
+                CTerminus, wxobj)
+
+    @classmethod
+    def fromargs(self, rawargs):
+
+        print "RAW:", rawargs
+        (args, kwargs) = transit_tools.cleanargs(rawargs)
+
+        print "ARGS:", args
+        print "KWARGS:", kwargs
+
+        ctrldata = args[0].split(",")
+        expdata = args[1].split(",")
+        annotationPath = args[2]
+        output_path = args[3]
+        output_file = open(output_path, "w")
+
+        normalization = kwargs.get("n", "TTR")
+        samples = int(kwargs.get("s", 100))
+        adaptive = kwargs.get("a", False)
+        doHistogram = kwargs.get("h", False)
+        replicates = kwargs.get("r", "Sum")
+    
+        
+        LOESS = kwargs.get("l", False)
+        ignoreCodon = True
+        NTerminus = float(kwargs.get("iN", 0.00))
+        CTerminus = float(kwargs.get("iC", 0.00))
+
+        return self(ctrldata,
+                expdata,
+                annotationPath,
+                output_file,
+                normalization,
+                samples,
+                adaptive,
+                doHistogram,
+                replicates,
+                LOESS,
+                ignoreCodon,
+                NTerminus,
+                CTerminus)
+
+
+
+    def Run(self):
+
+        self.transit_message("Starting rankproduct Method")
+        start_time = time.time()
+               
+
+
+        Kctrl = len(self.ctrldata)
+        Kexp = len(self.expdata)
+        #Get orf data
+        self.transit_message("Getting Data")
+        (data, position) = tnseq_tools.get_data(self.ctrldata+self.expdata)
+        if self.normalization != "none":
+            self.transit_message("Normalizing using: %s" % self.normalization)
+
+            (data, factors) = norm_tools.normalize_data(data, self.normalization, self.ctrldata+self.expdata, self.annotation_path)           
+         
+
+        Gctrl= tnseq_tools.Genes(self.ctrldata + self.expdata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data[:Kctrl,:], position=position)
+
+        Gexp= tnseq_tools.Genes(self.ctrldata + self.expdata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data[Kctrl:,:], position=position)
+
+
+        Ngenes = len(Gctrl)
+
+
+        #print numpy.log2(30/10)
+
+
+        """
+
+        types_list = set([])
+        for x in [numpy.mean(g.reads+1.0,1) for g in Gctrl]:
+            types_list.add(type(x[0]))
+
+        print [numpy.mean(g.reads+1.0,1) for g in Gctrl]
+        print "FLORF", types_list
+        """
+            
+        #print Gctrl[0].reads.shape
+        #print numpy.ones((Kctrl,1)).shape
+
+        T = numpy.ones((Kctrl,1))
+
+        meanCtrl = numpy.zeros((Kctrl, Ngenes))
+        meanExp = numpy.zeros((Kexp, Ngenes))
+
+        for i in range(Ngenes):
+            if numpy.any(Gctrl[i].reads):
+                meanCtrl[:,i] = numpy.mean(Gctrl[i].reads,1)
+            else:
+                meanCtrl[:,i] = numpy.zeros(Kctrl)
+            
+            if numpy.any(Gexp[i].reads):
+                meanExp[:,i] = numpy.mean(Gexp[i].reads,1)
+            else:
+                meanExp[:,i] = numpy.zeros(Kexp)
+
+            
+        #meanCtrl = numpy.array([numpy.mean(numpy.concatenate((g.reads, numpy.ones((Kctrl,1))),1),1) for g in Gctrl])
+        #meanExp = numpy.array([numpy.mean(numpy.concatenate((g.reads, numpy.ones((Kexp,1))),1),1) for g in Gexp])
+
+        #meanExp = numpy.nan_to_num(numpy.array([numpy.mean(g.reads+1.0,1) for g in Gexp]))
+
+        #meanCtrl[numpy.isnan(meanCtrl)]
+
+        #print type(meanCtrl[0][0])
+        #print type(meanExp[0][0])
+        #print type(meanExp[0][0]/meanCtrl[0][0])
+
+        #print numpy.log2(meanExp[0][0]/meanCtrl[0][0])
+
+        """
+        logFC2 = numpy.zeros((Ngenes, len(meanCtrl[0])))
+        for i,ratio in enumerate(meanExp/meanCtrl):
+            #print i, ratio, numpy.log2(ratio)
+            logFC2[i] = numpy.log2(ratio)
+        """
+    
+        #print "meanCtrl"
+        #print meanCtrl
+
+    
+        #print "meanExp"
+        #print meanExp
+
+
+        logFC2 = numpy.log2((meanExp+0.0001)/(meanCtrl+0.0001))
+        rank = numpy.array([scipy.stats.rankdata(Lvec)/float(Ngenes) for Lvec in logFC2])
+        obsRP = numpy.prod(rank,0)
+
+
+        #print "logFC2"
+        #print logFC2
+
+        #print "rank"
+        #print numpy.array([scipy.stats.rankdata(Lvec) for Lvec in logFC2])
+        
+
+        #print "obsRP"
+        #print obsRP
+
+
+        permutations = numpy.zeros((self.samples, Ngenes))
+        tempranks = scipy.array([numpy.arange(1,Ngenes+1) for rep in range(Kctrl)])
+        for s in range(self.samples):
+            rankperm = numpy.array([numpy.random.permutation(tr)/float(Ngenes) for tr in tempranks])
+            #print numpy.prod(rankperm,0)
+            permutations[s] = numpy.prod(rankperm,0)
+            
+
+        #print "permutations"
+        #print permutations
+
+
+        rankRP = scipy.stats.rankdata(obsRP)
+
+
+
+
+        #rankproduct
+        data = []
+        count = 0
+        self.progress_range(Ngenes)
+        for i,gene in enumerate(Gctrl):
+            count+=1
+            #print gene, obsRP[i]
+
+            meanctrl = numpy.mean(Gctrl[i].reads)
+            meanexp = numpy.mean(Gexp[i].reads)
+            log2fc = numpy.log2((meanexp+0.0001)/(meanctrl+0.0001))
+            #countbetter = numpy.sum(permutations < obsRP[i])
+            countbetter = numpy.sum(permutations < obsRP[i])
+            
+            pval = countbetter/float(self.samples*Ngenes)
+            q_paper = pval/rankRP[i]
+ 
+            data.append([gene.orf, gene.name, gene.desc, gene.n, meanctrl, meanexp, log2fc, obsRP[i], q_paper, pval])
+            self.progress_update("rankproduct", count)
+            self.transit_message_inplace("Running rankproduct Method... %1.1f%%" % (100.0*count/Ngenes))
+
+
+        #
+        self.transit_message("") # Printing empty line to flush stdout 
+        self.transit_message("Performing Benjamini-Hochberg Correction")
+        data.sort() 
+        qval = stat_tools.BH_fdr_correction([row[-1] for row in data])
+       
+ 
+        self.output.write("#rankproduct\n")
+        if self.wxobj:
+            members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
+            memberstr = ""
+            for m in members:
+                memberstr += "%s = %s, " % (m, getattr(self, m))
+            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output))
+        else:
+            self.output.write("#Console: python %s\n" % " ".join(sys.argv))
+
+        self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
+        self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
+        self.output.write("#Time: %s\n" % (time.time() - start_time))
+        self.output.write("#Orf\tName\tDesc\tSites\tMean Ctrl\tMean Exp\tlog2FC\tObs RP\tpvalue\tadj. pvalue\n")
+
+        for i,row in enumerate(data):
+            (orf, name, desc, n, mean1, mean2, log2FCgene, obsRPgene, q_paper, pval_2tail) = row
+            self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.2f\t%1.7f\t%1.7f\t%1.7f\t%1.7f\n" % (orf, name, desc, n, mean1, mean2,log2FCgene, obsRPgene, pval_2tail, qval[i], q_paper))
+        self.output.close()
+
+        self.transit_message("Adding File: %s" % (self.output.name))
+        self.add_file()
+        self.finish()
+        self.transit_message("Finished rankproduct Method") 
+
+
+    @classmethod
+    def usage_string(self):
+        return """python %s rankproduct <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table> <output file> [Optional Arguments]
+    
+        Optional Arguments:
+        -s <integer>    :=  Number of samples. Default: -s 100
+        -n <string>     :=  Normalization method. Default: -n TTR
+        -h              :=  Output histogram of the permutations for each gene. Default: Turned Off.
+        -a              :=  Perform adaptive rankproduct. Default: Turned Off.
+        -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.
+        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
+        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        """ % (sys.argv[0])
+
+
+
+
+
+    
+
+
+
+if __name__ == "__main__":
+
+    (args, kwargs) = transit_tools.cleanargs(sys.argv)
+
+    print "ARGS:", args
+    print "KWARGS:", kwargs
+
+    #TODO: Figure out issue with inputs (transit requires initial method name, running as script does not !!!!)
+
+    G = Rankproduct.fromargs(sys.argv[1:])
+
+    G.console_message("Printing the member variables:")   
+    G.print_members()
+
+    print ""
+    print "Running:"
+
+    G.Run()
+
+
