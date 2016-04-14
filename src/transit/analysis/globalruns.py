@@ -9,11 +9,11 @@ import scipy.stats
 import datetime
 
 import base
-import transit_tools
-
-import tnseq_tools
-import norm_tools
-import stat_tools
+import transit
+import transit.transit_tools as transit_tools
+import transit.tnseq_tools as tnseq_tools
+import transit.norm_tools as norm_tools
+import transit.stat_tools as stat_tools
 
 #method_name = "example"
 
@@ -239,13 +239,14 @@ class GlobalGumbel(base.SingleConditionMethod):
         genes_obj = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
         
         # Combine all wigs
-        wig_data = tnseq_tools.get_data(self.ctrldata)
-        combined = tnseq_tools.combine_wigs(wig_data, self.replicates, self.minread)
-        counts = combined[0]
+        (data,position) = tnseq_tools.get_data(self.ctrldata)
+        combined = tnseq_tools.combine_replicates(data, method=self.replicates)
+        combined[combined < self.minread] = 0
+        counts = combined
         counts[counts > 0] = 1
-        num_sites = numpy.size(counts)
+        num_sites = counts.size
         
-        pins = tnseq_tools.genome_theta(combined)
+        pins = numpy.mean(counts)
         pnon = 1.0 - pins
 
         # Calculate stats of runs
@@ -272,11 +273,11 @@ class GlobalGumbel(base.SingleConditionMethod):
         for run in run_arr: 
             accum += run['length']
             count += 1
-            genes = tnseq_tools.get_genes_for_range(pos_hash, run['start'], run['end'])
+            genes = tnseq_tools.get_genes_in_range(pos_hash, run['start'], run['end'])
             for gene_orf in genes:
                 gene = genes_obj[gene_orf]
-                inter_sz = tnseq_tools.intersect_size([run['start'], run['end']], [gene.start, gene.end]) + 1
-                percent_overlap = tnseq_tools.calc_overlap([run['start'], run['end']], [gene.start, gene.end])
+                inter_sz = self.intersect_size([run['start'], run['end']], [gene.start, gene.end]) + 1
+                percent_overlap = self.calc_overlap([run['start'], run['end']], [gene.start, gene.end])
                 run_len = run['length']
                 B = 1.0/math.log(1.0/pnon)
                 u = math.log(num_sites*pins, 1.0/pnon)
@@ -340,6 +341,33 @@ class GlobalGumbel(base.SingleConditionMethod):
     @classmethod
     def usage_string(self):
         return """python %s globalruns <comma-separated .wig files> <annotation .prot_table> <output file>""" % (sys.argv[0])
+
+
+
+    def intersect_size(self, intv1, intv2):
+        first = intv1 if intv1[0] < intv2[0] else intv2
+        second = intv1 if first == intv2 else intv2
+
+        if first[1] < second[0]:
+            return 0
+        
+        right_ovr = min(first[1], second[1])
+        left_ovr = max(first[0], second[0])
+
+        return right_ovr - left_ovr
+
+
+    def calc_overlap(self, run_interv, gene_interv):
+        first = run_interv if run_interv[0] < gene_interv[0] else gene_interv
+        second = run_interv if first == gene_interv else gene_interv
+        
+        if second[0] > first[0] and second[1] < first[1]:
+            return 1.0
+        
+        intersect = self.intersect_size(run_interv, gene_interv)
+        return float(intersect)/(gene_interv[1] - gene_interv[0])
+
+
 
 
 if __name__ == "__main__":
