@@ -93,7 +93,7 @@
                 <property name="name">bSizer1</property>
                 <property name="orient">wxHORIZONTAL</property>
                 <property name="permission">none</property>
-                <object class="sizeritem" expanded="0">
+                <object class="sizeritem" expanded="1">
                     <property name="border">5</property>
                     <property name="flag">wxALL|wxEXPAND</property>
                     <property name="proportion">1</property>
@@ -2499,7 +2499,7 @@
                                     <property name="caption"></property>
                                     <property name="caption_visible">1</property>
                                     <property name="center_pane">0</property>
-                                    <property name="choices">&quot;[Choose Method]&quot; &quot;Gumbel&quot; &quot;Binomial&quot; &quot;HMM&quot; &quot;Resampling&quot; &quot;DE-HMM&quot;</property>
+                                    <property name="choices">&quot;[Choose Method]&quot; &quot;Gumbel&quot; &quot;Binomial&quot; &quot;HMM&quot; &quot;Resampling&quot;</property>
                                     <property name="close_button">1</property>
                                     <property name="context_help"></property>
                                     <property name="context_menu">1</property>
