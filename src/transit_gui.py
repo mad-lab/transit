@@ -256,15 +256,9 @@ class MainFrame ( wx.Frame ):
         methodSizer.Add( self.globalPanel, 0, wx.ALL|wx.EXPAND, 5 )
 
 
-        #Add Methods        
-        methodSizer.Add( transit.analysis.example.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
-        methodSizer.Add( transit.analysis.gumbel.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
-        methodSizer.Add( transit.analysis.binomial.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
-        methodSizer.Add( transit.analysis.griffin.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
-        methodSizer.Add( transit.analysis.hmm.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
-        methodSizer.Add( transit.analysis.resampling.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
-        methodSizer.Add( transit.analysis.rankproduct.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
-        methodSizer.Add( transit.analysis.globalruns.getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
+        #Add Methods
+        for method in transit.analysis.methods:
+            methodSizer.Add( transit.analysis.methods[method]["module"].getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
         
 
 

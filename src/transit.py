@@ -31,16 +31,18 @@ except AttributeError as e:
     from wx.lib.pubsub import Publisher as pub
     newWx = False
 
-import transit.analysis.gumbel
-import transit.analysis.example
-import transit.analysis.globalruns
-import transit.analysis.binomial
-import transit.analysis.griffin
-import transit.analysis.resampling
-import transit.analysis.hmm
-import transit.analysis.rankproduct
+import transit
+import transit.analysis
+#import transit.analysis.gumbel
+#import transit.analysis.example
+#import transit.analysis.globalruns
+#import transit.analysis.binomial
+#import transit.analysis.griffin
+#import transit.analysis.resampling
+#import transit.analysis.hmm
+#import transit.analysis.rankproduct
 
-from transit.analysis import *
+#from transit.analysis import *
 import os
 import time
 import datetime
@@ -59,12 +61,6 @@ import transit.transit_tools as transit_tools
 import fileDisplay
 import qcDisplay
 
-#import gumbelMH
-#import betabinomial
-#import hmm_geom
-#import hmm_tools
-#import resampling
-#import dehmm
 import imgTRANSIT
 
 
@@ -77,17 +73,7 @@ mainInstructions = """Instructions:
 """
 
 method_wrap_width = 250
-methodsDict = {}
-methodsDict["gumbel"] = {"module":gumbel, "method":gumbel.Gumbel}
-methodsDict["example"] = {"module":example, "method":example.Example}
-methodsDict["binomial"] = {"module":binomial, "method":binomial.Binomial}
-methodsDict["griffin"] = {"module":griffin, "method":griffin.Griffin}
-methodsDict["hmm"] = {"module":hmm, "method":hmm.HMM}
-methodsDict["resampling"] = {"module":resampling, "method":resampling.Resampling}
-methodsDict["rankproduct"] = {"module":rankproduct, "method":rankproduct.Rankproduct}
-methodsDict["globalruns"] = {"module":globalruns, "method":globalruns.GlobalGumbel}
-
-#methodsDict = {"Example":{"module":example, "method":example.Example}}
+methods = transit.analysis.methods
 
 
 wildcard = "Python source (*.py)|*.py|" \
@@ -151,9 +137,9 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
         methodChoiceChoices = [ "[Choose Method]"]
-        for name in methodsDict:
+        for name in methods:
             methodChoiceChoices.append(name)
-            module = methodsDict[name]["module"]
+            module = methods[name]["module"]
             module.Hide(self)
 
         self.methodChoice.SetItems(methodChoiceChoices)
@@ -236,7 +222,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def finishRun(self,msg):
         if not newWx: msg = msg.data
-        methodsDict[msg]["module"].enableButton(self)
+        methods[msg]["module"].enableButton(self)
         
 
 
@@ -248,8 +234,8 @@ class TnSeekFrame(transit_gui.MainFrame):
     def HideAllOptions(self):
         self.HideGlobalOptions()
         self.HideProgressSection()
-        for name in methodsDict:
-            module = methodsDict[name]["module"]
+        for name in methods:
+            module = methods[name]["module"]
             module.Hide(self)
 
 
@@ -575,8 +561,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         else:
             self.ShowGlobalOptions()
             #Show Selected Method and hide Others
-            for name in methodsDict:
-                module = methodsDict[name]["module"]
+            for name in methods:
+                module = methods[name]["module"]
                 if name == selected_name:
                     self.mainInstructions.SetLabel(module.getInstructions())
                     self.mainInstructions.Wrap(method_wrap_width)
@@ -1098,7 +1084,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         #FLORF
         X = self.methodChoice.GetCurrentSelection()
         selected_name = self.methodChoice.GetString(X)
-        method =  methodsDict[selected_name]["method"]
+        method =  methods[selected_name]["method"]
         try:
             M = method.fromGUI(self)
             if M: 
@@ -1142,14 +1128,14 @@ if __name__ == "__main__":
 
     else:
         method_name = sys.argv[1]
-        if method_name not in methodsDict:
+        if method_name not in methods:
             print "Error: The '%s' method is unknown." % method_name
             print "Please use one of the known methods (or see documentation to add a new one):"
-            for m in methodsDict:
+            for m in methods:
                 print "\t - %s" % m
 
         else:
-            methodobj = methodsDict[method_name]["method"].fromconsole()
+            methodobj = methods[method_name]["method"].fromconsole()
             methodobj.Run()            
 
 
