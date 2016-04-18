@@ -31,18 +31,6 @@ except AttributeError as e:
     from wx.lib.pubsub import Publisher as pub
     newWx = False
 
-import transit
-import transit.analysis
-#import transit.analysis.gumbel
-#import transit.analysis.example
-#import transit.analysis.globalruns
-#import transit.analysis.binomial
-#import transit.analysis.griffin
-#import transit.analysis.resampling
-#import transit.analysis.hmm
-#import transit.analysis.rankproduct
-
-#from transit.analysis import *
 import os
 import time
 import datetime
@@ -55,13 +43,15 @@ import math
 import traceback
 
 # trash view stuff
-import trash
-import transit_gui
-import transit.transit_tools as transit_tools
-import fileDisplay
-import qcDisplay
+import transit
+import transit.analysis
 
-import imgTRANSIT
+import transit.trash
+import transit.transit_gui as transit_gui
+import transit.transit_tools as transit_tools
+import transit.fileDisplay as fileDisplay
+import transit.qcDisplay as qcDisplay
+import transit.images as images
 
 
 mainInstructions = """Instructions:
@@ -93,7 +83,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         #print [x for x in pkgutil.iter_modules(['transit/analysis'])]
         #print gumbel.Gumbel.__bases__
 
-        self.logoImg.SetBitmap(imgTRANSIT.TRANSIT.GetImage().ConvertToBitmap())
+        self.logoImg.SetBitmap(images.TRANSIT.GetImage().ConvertToBitmap())
 
         self.index_ctrl = 0
         self.list_ctrl.InsertColumn(0, 'File', width=210)
