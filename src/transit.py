@@ -46,7 +46,7 @@ import traceback
 import transit
 import transit.analysis
 
-import transit.trash
+import transit.trash as trash
 import transit.transit_gui as transit_gui
 import transit.transit_tools as transit_tools
 import transit.fileDisplay as fileDisplay
@@ -574,7 +574,8 @@ class TnSeekFrame(transit_gui.MainFrame):
                 print transit_prefix, "Displaying results:", self.list_files.GetItem(next, 0).GetText()
 
             try:
-                fileWindow = fileDisplay.FileFrame(self, dataset, self.list_files.GetItem(next, 1).GetText())
+                #fileWindow = fileDisplay.FileFrame(self, dataset, self.list_files.GetItem(next, 1).GetText())
+                fileWindow = fileDisplay.TransitGridFrame(self, dataset)
                 fileWindow.Show()
             except Exception as e:
                 print "Error occurred displaying file", e
@@ -775,9 +776,9 @@ class TnSeekFrame(transit_gui.MainFrame):
     #DE-HMM - Sites
     #DE-HMM - Segments
 """
-                self.ShowError(msg)
-                return
-            
+                #self.ShowError(msg)
+                #return
+                type = "Unknown"
             data = {"path":path, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
             if newWx:
                 wx.CallAfter(pub.sendMessage, "file", data=data)

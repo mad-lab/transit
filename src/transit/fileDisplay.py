@@ -26,6 +26,11 @@ import os
 import sys
 import trash
 
+import wx.grid
+
+import transit
+import transit.analysis
+
 def fetch_name(filepath):
     return os.path.splitext(ntpath.basename(filepath))[0]
 
@@ -782,4 +787,163 @@ class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
 
         else:
             print "Menu choice not recognized"
+
+
+
+def unknownColNames(path):
+    colNames = []
+    for line in open(path):
+        if line.startswith("#"):
+            colNames = line.split("\t")
+    return colNames
+
+def unknownTableData(path):
+    colnames = unknownColNames(path)
+    row = 0
+    data = []
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.strip().split("\t")
+        rowdict = dict([(colnames[i], tmp[i]) for i in range(len(colnames))])
+        data.append((row, rowdict))
+        row+=1
+
+    return data
+
+
+def getInfoFromFileType(X):
+    for method in transit.analysis.methods:
+        try:
+            if X in transit.analysis.methods[method]["module"].FileTypes:
+                (tableFunc, colFunc) = transit.analysis.methods[method]["module"].FileTypes[X]
+                return (method, tableFunc, colFunc)
+        except:
+            continue
+
+    return ("unknown", unknownTableData, unknownColNames)
+    
+
+class TransitTable(wx.grid.PyGridTableBase):
+    """
+    A custom wx.Grid Table using user supplied data
+    """
+    def __init__(self, data, colnames):
+        """data is a list of the form
+        [(rowname, dictionary),
+        dictionary.get(colname, None) returns the data for column
+        colname
+        """
+        # The base class must be initialized *first*
+        wx.grid.PyGridTableBase.__init__(self)
+        self.data = data
+        self.colnames = colnames
+        # XXX
+        # we need to store the row length and column length to
+        # see if the table has changed size
+        self._rows = self.GetNumberRows()
+        self._cols = self.GetNumberCols()
+        self.sorted_col = None
+        self.sorted_dir = None
+
+
+
+    def GetNumberCols(self):
+        return len(self.colnames)
+
+    def GetNumberRows(self):
+        return len(self.data)
+
+    def GetColLabelValue(self, col):
+        return self.colnames[col]
+
+    def GetRowLabelValue(self, row):
+        return "R%d" % int(self.data[row][0])
+
+    def GetValue(self, row, col):
+        return str(self.data[row][1].get(self.GetColLabelValue(col), ""))
+
+    def GetRawValue(self, row, col):
+        return self.data[row][1].get(self.GetColLabelValue(col), "")
+
+    def SetValue(self, row, col, value):
+        self.data[row][1][self.GetColLabelValue(col)] = value
+
+
+    def SortColumn(self, col):
+        if self.sorted_col == col:
+            self.sorted_dir = not self.sorted_dir
+        else:
+            self.sorted_col = col
+            self.sorted_dir = False
+
+        name = self.colnames[col]
+        tempdata = []
+
+        for row in self.data:
+            rowname, entry = row
+            tempdata.append((entry.get(name, None), row))
+
+        tempdata.sort(reverse=self.sorted_dir)
+        self.data = []
+
+        for sortvalue, row in tempdata:
+            self.data.append(row)
+
+
+
+class TransitGridFrame(wx.Frame):
+
+    def __init__(self, parent, path, size=(-1,-1)):
+
+        wx.Frame.__init__(self, parent, size=size)
+
+        bSizer1 = wx.BoxSizer( wx.VERTICAL )
+
+        sbSizer1 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Information" ), wx.HORIZONTAL )
+
+
+        line = open(path).readline().strip()
+        (method, getTableData, getColumnNames) = getInfoFromFileType(line)
+
+        print (method, getTableData, getColumnNames)
+
+        if method == "unknown":
+            columnlabels = getColumnNames(path)
+        else:
+            columnlabels = getColumnNames()
+        data = getTableData(path)
+        header_list = []
+      
+
+        wxheader_list = []
+        for H in header_list:
+            wxheader_list.append(wx.StaticText( self, wx.ID_ANY, H, wx.DefaultPosition, wx.DefaultSize, 0 ))
+            wxheader_list[-1].Wrap( -1 )
+            sbSizer1.Add( wxheader_list[-1], 0, wx.ALL, 5 )
+
+
+        self.grid = wx.grid.Grid(self, -1)
+
+        bSizer1.Add( sbSizer1, 0, wx.EXPAND, 5 )
+        bSizer1.Add( self.grid, 0, wx.EXPAND, 5 )
+        self.SetSizer( bSizer1 )
+        self.Centre( wx.BOTH )
+        #self.Layout()
+
+        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_DCLICK, self.OnLabelDoubleClicked)
+
+        mytable = TransitTable(data, columnlabels)
+        self.grid.SetTable(mytable)
+
+        self.grid.EnableEditing(False)
+        self.grid.AdjustScrollbars()
+        self.grid.ForceRefresh()
+
+        self.Show()
+
+    def OnLabelDoubleClicked(self, evt):
+        col = evt.GetCol()
+        if col != -1:
+            self.grid.GetTable().SortColumn(col)
+            self.grid.ForceRefresh()
 
