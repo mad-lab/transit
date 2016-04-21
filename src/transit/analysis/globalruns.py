@@ -126,6 +126,28 @@ def enableButton(wxobj):
 
 
 
+def getColumnNames():
+    return ["Orf","Name","Desc","k","n","r","ovr","lenovr","pval","padj","call"]
+
+def getFileHeaderText(path):
+    ess=0; unc=0; non=0; short=0
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.strip().split("\t")
+        if tmp[-1] == "Essential": ess+=1
+        if tmp[-1] == "Non-Essential": non+=1
+
+    text = """Results:
+    Essentials: %s
+    Non-Essential: %s
+        """ % (ess, non)
+    return text
+
+
+FileTypes = {}
+FileTypes["#Global Gumbel"] = (transit_tools.getTabTableData, getColumnNames, [getFileHeaderText])
+
+
 
 
 ########## CLASS #######################
@@ -325,7 +347,8 @@ class GlobalGumbel(base.SingleConditionMethod):
         self.output.write("#Minimum significant run length: %d\n" % (min_sig_len))
         self.output.write("#Expected run length: %1.5f\n" % (exp_run_len))
         self.output.write("#Expected max run length: %s\n" % (exprunmax))
-        self.output.write("#Orf\tName\tDesc\tk\tn\tr\tovr\tlenovr\tpval\tpadj\tcall\n")
+        self.output.write("#%s\n" % "\t".join(getColumnNames()))
+        #self.output.write("#Orf\tName\tDesc\tk\tn\tr\tovr\tlenovr\tpval\tpadj\tcall\n")
 
         for res in data:
             self.output.write("%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%1.5f\t%1.5f\t%s\n" % (res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], res[9], res[10]))

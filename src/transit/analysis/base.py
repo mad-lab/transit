@@ -27,6 +27,7 @@ class AnalysisMethod:
         self.newWx = newWx
         self.wxobj = wxobj
 
+
     def __str__(self):
         #TODO: write docstring
         return "%s (%s): %s" % (self.long_name, self.short_name, self.description)

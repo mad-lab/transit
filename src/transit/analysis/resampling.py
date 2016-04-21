@@ -108,6 +108,35 @@ def enableButton(wxobj):
 
 
 
+def getColumnNames():
+    return ["Orf","Name","Desc","Sites","Mean A","Mean B","Delta sum","log2FC","pvalue","adj. pvalue"]
+
+def getFileHeaderText(path):
+    DE=0; poslogfc=0; neglogfc=0;
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.strip().split("\t")
+        if float(tmp[-1]) < 0.05:
+            DE +=1
+            if float(tmp[-3]) > 0:
+                poslogfc+=1
+            else:
+                neglogfc+=1
+
+    text = """Results:
+    Conditionally - Essentials: %s
+        More Essential in Experimental datasets: %s
+        Less Essential in Experimental datasets: %s
+        """ % (DE, poslogfc, neglogfc)
+    return text
+
+
+
+FileTypes = {}
+FileTypes["#Resampling"] = (transit_tools.getTabTableData, getColumnNames, [getFileHeaderText])
+
+
+
 
 ########## CLASS #######################
 
@@ -319,7 +348,7 @@ class Resampling(base.DualConditionMethod):
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Time: %s\n" % (time.time() - start_time))
-        self.output.write("#Orf\tName\tDesc\tSites\tMean A\tMean B\tDelta sum\tlog2FC\tpvalue\tadj. pvalue\n")
+        self.output.write("#%s\n" % "\t".join(getColumnNames()))
 
         for i,row in enumerate(data):
             (orf, name, desc, n, mean1, mean2, test_obs, log2FC, pval_2tail) = row

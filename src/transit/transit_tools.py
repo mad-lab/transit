@@ -635,6 +635,18 @@ def get_gene_name(path):
     
 
 
+def getTabTableData(path, colnames):
+    row = 0
+    data = []
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.split("\t")
+        tmp[-1] = tmp[-1].strip()
+        rowdict = dict([(colnames[i], tmp[i]) for i in range(len(colnames))])
+        data.append((row, rowdict))
+        row+=1
+
+    return data
 
 
 

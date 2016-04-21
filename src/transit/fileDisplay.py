@@ -93,734 +93,50 @@ class ImgFrame(wx.Frame):
 
 
 
-class FileFrame(wx.Frame, listmix.ColumnSorterMixin):
-    #constructor
-    def __init__(self, parent, filePath, method="Gumbel"):
-
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = "%s - %s" % (method, ntpath.basename(filePath)), pos = wx.DefaultPosition, size = wx.Size( 1150,740 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
-
-        self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
-
-        bSizer1 = wx.BoxSizer( wx.VERTICAL )
-
-        sbSizer1 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Stats" ), wx.HORIZONTAL )
-
-        self.headerText1 = wx.StaticText( self, wx.ID_ANY, u" ", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.headerText1.Wrap( -1 )
-        sbSizer1.Add( self.headerText1, 0, wx.ALL, 5 )
-
-
-        self.headerText2 = wx.StaticText( self, wx.ID_ANY, u" ", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.headerText2.Wrap( -1 )
-        sbSizer1.Add( self.headerText2, 0, wx.ALL, 5 )
-
-
-        self.headerText3 = wx.StaticText( self, wx.ID_ANY, u" ", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.headerText3.Wrap( -1 )
-        sbSizer1.Add( self.headerText3, 0, wx.ALL, 5 )
-
-
-
-        bSizer1.Add( sbSizer1, 0, wx.EXPAND, 5 )
-
-        bSizer3 = wx.BoxSizer( wx.VERTICAL )
-
-        #Get file path
-        self.filePath = filePath
-
-        # Check which method was used and assign settings
-        self.index_data = 0
-        if method == "Gumbel":
-            self.list_data = SortableListCtrl(self, size=(-1,100),
-                         style=wx.LC_REPORT
-                         |wx.BORDER_SUNKEN
-                         |wx.LC_SORT_ASCENDING
-                         )
-            self.initializeGumbel()
-            self.populateGumbel(filePath)
-            listmix.ColumnSorterMixin.__init__(self, len(self.itemDataMap[0]))
-            menu_titles = ["Display in Track View",]
-            self.menu_title_by_id = {}
-            for title in menu_titles:
-                self.menu_title_by_id[ wx.NewId() ] = title
-
-            self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
-            self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick_gumbel, self.list_data)
-
-
-        elif method == "Binomial":
-            self.list_data = SortableListCtrl(self, size=(-1,100),
-                         style=wx.LC_REPORT
-                         |wx.BORDER_SUNKEN
-                         |wx.LC_SORT_ASCENDING
-                         )
-            self.initializeBinomial()
-            self.populateBinomial(filePath)
-            listmix.ColumnSorterMixin.__init__(self, len(self.itemDataMap[0]))
-            menu_titles = ["Display in Track View",]
-            self.menu_title_by_id = {}
-            for title in menu_titles:
-                self.menu_title_by_id[ wx.NewId() ] = title
-
-            self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
-            self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick_binomial, self.list_data)
-
-        elif method == "DE-HMM - Sites":
-            self.list_data = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
-            self.initializeDEHMMSites()
-            self.populateDEHMMSites(filePath)
-
-        elif method == "DE-HMM - Segments":
-            self.list_data = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
-            self.initializeDEHMMSegments()
-            self.populateDEHMMSegments(filePath)
-
-
-        elif method == "HMM - Sites":
-            self.list_data = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
-            self.initializeHMMSites()
-            self.populateHMMSites(filePath)
-
-        elif method == "HMM - Genes":
-            self.list_data = SortableListCtrl(self, size=(-1,100),
-                         style=wx.LC_REPORT
-                         |wx.BORDER_SUNKEN
-                         |wx.LC_SORT_ASCENDING
-                         )
-            self.initializeHMMGenes()
-            self.populateHMMGenes(filePath)
-            listmix.ColumnSorterMixin.__init__(self, len(self.itemDataMap[0]))
-
-            menu_titles = ["Display in Track View",]
-            self.menu_title_by_id = {}
-            for title in menu_titles:
-                self.menu_title_by_id[ wx.NewId() ] = title
-
-            self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
-            self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick_hmm_genes, self.list_data)
-
-        elif method == "Resampling":
-            try:
-                self.list_data = SortableListCtrl(self, size=(-1,100),
-                         style=wx.LC_REPORT
-                         |wx.BORDER_SUNKEN
-                         |wx.LC_SORT_ASCENDING
-                         )
-                self.initializeResampling()
-                self.populateResampling(filePath)
-                listmix.ColumnSorterMixin.__init__(self, len(self.itemDataMap[0]))
-
-                menu_titles = [ "Display Histogram",
-                "Display in Track View",]
-                self.menu_title_by_id = {}
-                for title in menu_titles:
-                    self.menu_title_by_id[ wx.NewId() ] = title
-
-                self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
-                self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnDoubleClick_resampling, self.list_data)
-                self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick_resampling, self.list_data)
-            except Exception as e:
-                print "Error", e
-
-
-
-        #self.list_data = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
-        #self.list_data = SortableListCtrl( self) #, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
-        #self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick, self.list_data)
-
-        bSizer3.Add( self.list_data, 1, wx.ALL|wx.EXPAND, 5 )
-
-
-
-        bSizer1.Add( bSizer3, 1, wx.EXPAND, 5 )
-
-
-        self.SetSizer( bSizer1 )
-        self.Layout()
-
-        self.Centre( wx.BOTH )
- 
-        """
-        self.index_data = 0
-        if method == "Gumbel":
-            self.initializeGumbel()
-            self.populateGumbel(filePath)
-
-        elif method == "HMM - Sites":
-            self.initializeHMMSites()
-            self.populateHMMSites(filePath)
-
-        elif method == "HMM - Genes":
-            self.initializeHMMGenes()
-            self.populateHMMGenes(filePath)
-            
-        elif method == "Resampling":
-            self.initializeResampling()
-            self.populateResampling(filePath)
-        """
-
-            
-
-    def initializeGumbel(self):
-        self.list_data.InsertColumn(0, 'Orf', width=100)
-        self.list_data.InsertColumn(1, 'Name', width=85)
-        self.list_data.InsertColumn(2, 'Description', width=220)
-        #self.list_data.InsertColumn(2, 'Description', width=wx.LIST_AUTOSIZE_USEHEADER)
-        self.list_data.InsertColumn(3, 'k', width=75)
-        self.list_data.InsertColumn(4, 'n', width=75)
-        self.list_data.InsertColumn(5, 'r', width=75)
-        self.list_data.InsertColumn(6, 's', width=75)
-        self.list_data.InsertColumn(7, 'zbar', width=100)
-        self.list_data.InsertColumn(8, 'Call', width=50)
-    
-
-    def populateGumbel(self, path):
-
-        self.itemDataMap = {}
-        ess=0; unc=0; non=0; short=0
-        
-        data = []
-        for line in open(path):
-            if line.startswith("#"): continue
-            tmp = line.strip().split("\t")
-            data.append([tmp[0].upper()]+tmp)
-            
-        data.sort()
-        
-        for tmp in data:
-            if not tmp: continue
-            if len(tmp) < 3: continue
-            self.list_data.InsertStringItem(self.index_data, tmp[1])
-            actual_data = [tmp[1]]
-            for i,cell in enumerate(tmp[2:]):
-                self.list_data.SetStringItem(self.index_data, i+1, cell)
-                try:
-                    actual_data.append(float(cell))
-                except:
-                    actual_data.append(cell)
-
-            self.list_data.SetItemData(self.index_data, self.index_data)
-            self.itemDataMap[self.index_data] = actual_data
-
-            self.index_data+=1
-            if tmp[-1] == "E": ess+=1
-            if tmp[-1] == "U": unc+=1
-            if tmp[-1] == "NE": non+=1
-            if tmp[-1] == "S": short+=1
-
-        text = """Results:
-    Essentials: %s
-    Uncertain: %s
-    Non-Essential: %s
-    Short: %s
-        """ % (ess, unc, non, short)
-        self.headerText1.SetLabel(text)
-
-    
-
-    def initializeBinomial(self):
-        self.list_data.InsertColumn(0, 'Orf', width=100)
-        self.list_data.InsertColumn(1, 'Name', width=85)
-        self.list_data.InsertColumn(2, 'Description', width=220)
-        self.list_data.InsertColumn(3, 'Mean Insertion', width=75)
-        self.list_data.InsertColumn(4, 'Sites per Replicate', width=75)
-        self.list_data.InsertColumn(5, 'Total Insertions', width=75)
-        self.list_data.InsertColumn(6, 'Total Sites', width=75)
-        self.list_data.InsertColumn(7, 'thetabar', width=100)
-        self.list_data.InsertColumn(8, 'zbar', width=100)
-        self.list_data.InsertColumn(9, 'Call', width=50)
-
-
-
-
-    def populateBinomial(self, path):
-
-        self.itemDataMap = {}
-        ess=0; unc=0; non=0; short=0
-
-        data = []
-        for line in open(path):
-            if line.startswith("#"): continue
-            tmp = line.strip().split("\t")
-            data.append([tmp[0].upper()]+tmp)
-
-        data.sort()
-
-        for tmp in data:
-            if not tmp: continue
-            if len(tmp) < 3: continue
-            self.list_data.InsertStringItem(self.index_data, tmp[1])
-            actual_data = [tmp[1]]
-            for i,cell in enumerate(tmp[2:]):
-                self.list_data.SetStringItem(self.index_data, i+1, cell)
-                try:
-                    actual_data.append(float(cell))
-                except:
-                    actual_data.append(cell)
-
-            self.list_data.SetItemData(self.index_data, self.index_data)
-            self.itemDataMap[self.index_data] = actual_data
-
-            self.index_data+=1
-            if tmp[-1] == "Essential": ess+=1
-            if tmp[-1] == "Uncertain": unc+=1
-            if tmp[-1] == "Non-Essential": non+=1
-
-        text = """Results:
-    Essentials: %s
-    Uncertain: %s
-    Non-Essential: %s
-        """ % (ess, unc, non)
-        self.headerText1.SetLabel(text)
-
-
-
-
-
-
-
-    def initializeHMMSites(self):
-        self.list_data.InsertColumn(0, 'Location', width=100)
-        self.list_data.InsertColumn(1, 'Read Count', width=85)
-        self.list_data.InsertColumn(2, 'Probability - ES', width=120)
-        self.list_data.InsertColumn(3, 'Probability - GD', width=120)
-        self.list_data.InsertColumn(4, 'Probability - NE', width=120)
-        self.list_data.InsertColumn(5, 'Probability - GA', width=120)
-        self.list_data.InsertColumn(6, 'State', width=75)
-        self.list_data.InsertColumn(7, 'Gene', width=75)
-
-
-    def populateHMMSites(self, path):
-        #self.itemDataMap = {}
-        T = 0; es=0; gd=0; ne=0; ga=0;
-        for line in open(path, "r"):
-            if line.startswith("#"): continue
-            tmp = line.split("\t")
-            tmp[-1] = tmp[-1].strip()
-
-            #print tmp
-
-            if not tmp: continue        
-
-            n = len(tmp)
-            self.list_data.InsertStringItem(self.index_data, tmp[0])
-            for i,cell in enumerate(tmp[1:]):
-                self.list_data.SetStringItem(self.index_data, i+1, cell)
-            #self.list_data.SetItemData(self.index_data, self.index_data)
-            #self.itemDataMap[self.index_data] = tmp
-            self.index_data+=1
-
-            if len(tmp) < 5: continue
-            if tmp[-2] == "ES": es+=1
-            if tmp[-2] == "GD": gd+=1
-            if tmp[-2] == "NE": ne+=1
-            if tmp[-2] == "GA": ga+=1
-            T+=1
-            text = """Results:
-    Essential: %1.1f%%
-    Growth-Defect: %1.1f%%
-    Non-Essential: %1.1f%%
-    Growth-Advantage: %1.1f%%
-        """ % (100.0*es/T, 100.0*gd/T, 100.0*ne/T, 100.0*ga/T)
-        self.headerText1.SetLabel(text)
-    
-
-
-    def initializeHMMGenes(self):
-        self.list_data.InsertColumn(0, 'Orf', width=100)
-        self.list_data.InsertColumn(1, 'Name', width=85)
-        self.list_data.InsertColumn(2, 'Description', width=140)
-        self.list_data.InsertColumn(3, 'N', width=75)
-        self.list_data.InsertColumn(4, 'n0', width=75)
-        self.list_data.InsertColumn(5, 'n1', width=75)
-        self.list_data.InsertColumn(6, 'n2', width=75)
-        self.list_data.InsertColumn(7, 'n3', width=75)
-        self.list_data.InsertColumn(8, 'Avg. Insertions', width=75)
-        self.list_data.InsertColumn(9, 'Avg. Reads', width=75)
-        self.list_data.InsertColumn(10, 'State Call', width=75)
-        
-
-    def populateHMMGenes(self, path):
-
-        self.itemDataMap = {}
-        es=0; gd=0; ne=0; ga=0;
-        data=[]
-        for line in open(path):
-            if line.startswith("#"): continue
-            tmp = line.strip().split("\t")
-            data.append([tmp[0].upper()] + tmp)
-            
-        data.sort()
-        for tmp in data:
-            self.list_data.InsertStringItem(self.index_data, tmp[1])
-            actual_data = [tmp[1]]
-            for i,cell in enumerate(tmp[2:]):
-                self.list_data.SetStringItem(self.index_data, i+1, cell)
-                try:
-                    actual_data.append(float(cell))
-                except:
-                    actual_data.append(cell)
-
-            self.list_data.SetItemData(self.index_data, self.index_data)
-            self.itemDataMap[self.index_data] = actual_data
-            self.index_data+=1
-            if len(tmp) < 5: continue
-            if tmp[-1] == "ES": es+=1
-            if tmp[-1] == "GD": gd+=1
-            if tmp[-1] == "NE": ne+=1
-            if tmp[-1] == "GA": ga+=1
-
-        text = """Results:
-    Essential: %s
-    Growth-Defect: %s
-    Non-Essential: %s
-    Growth-Advantage: %s
-        """ % (es, gd, ne, ga)
-        self.headerText1.SetLabel(text)
-
-
-    def initializeResampling(self):
-        self.list_data.InsertColumn(0, 'Orf', width=100)
-        self.list_data.InsertColumn(1, 'Name', width=85)
-        self.list_data.InsertColumn(2, 'Description', width=140)
-        self.list_data.InsertColumn(3, 'N', width=85)
-        self.list_data.InsertColumn(4, 'TAs Hit', width=100)
-        self.list_data.InsertColumn(5, 'Sum Read 1', width=100)
-        self.list_data.InsertColumn(6, 'Sum Read 2', width=100)
-        self.list_data.InsertColumn(7, 'Delta Sum', width=100)
-        self.list_data.InsertColumn(8, 'log2 FC', width=100)
-        self.list_data.InsertColumn(9, 'p-value', width=75)
-        self.list_data.InsertColumn(10, 'q-value', width=75)
-
-
-    def populateResampling(self, path):
-        self.itemDataMap = {}
-        de05=0; de01 = 0; count = 0;
-        data=[]
-        for line in open(path):
-            if line.startswith("#"): continue
-            tmp = line.strip().split("\t")
-            data.append([tmp[0].upper()] + tmp)
-            
-        data.sort()
-        
-        for tmp in data:
-            self.list_data.InsertStringItem(self.index_data, tmp[1])
-            actual_data = [tmp[1]]
-            for i,cell in enumerate(tmp[2:]):
-                self.list_data.SetStringItem(self.index_data, i+1, cell)
-                try:
-                    actual_data.append(float(cell))
-                except:
-                    actual_data.append(cell)
-                    
-            self.list_data.SetItemData(self.index_data, self.index_data)
-            self.itemDataMap[self.index_data] = actual_data
-            self.index_data+=1
-            if float(tmp[-1]) < 0.05: de05+=1
-            if float(tmp[-1]) < 0.01: de01+=1
-            count +=1
-        
-        text = """Results:
-    Significant Hits (q<0.05): %s
-    Significant Hits (q<0.01): %s
-        """ % (de05, de01)
-        self.headerText1.SetLabel(text)
-        text2 = """         Notes:
-            TAs Hit:   Number of TA sites with insertions combined across conditions.
-            Sum Reads: Sum of read-counts normalized with the Non-Zero Mean normalization method.
-            log2 FC:  Log fold change (base 2) of the sum of reads. Sums of zero have a pseudo-count of 1 added.
-            [Double click on a gene to display it's histogram, if available]"""
-        self.headerText2.SetLabel(text2)
-
-
-        
-
-
-    def initializeDEHMMSites(self):
-        self.list_data.InsertColumn(0, 'Location', width=100)
-        self.list_data.InsertColumn(1, 'Read Count Ctrl', width=85)
-        self.list_data.InsertColumn(2, 'Read Count Exp', width=85)
-        self.list_data.InsertColumn(3, 'LL Ctrl', width=80)
-        self.list_data.InsertColumn(4, 'LL Exp', width=80)
-        self.list_data.InsertColumn(5, 'LLR', width=80)
-        self.list_data.InsertColumn(6, 'Segment', width=80)
-        self.list_data.InsertColumn(7, 'Gene(s)', width=75)
-
-
-    def populateDEHMMSites(self, path):
-        #self.itemDataMap = {}
-        T = 0; de=0;
-        for line in open(path, "r"):
-            if line.startswith("#"): continue
-            tmp = line.split("\t")
-            tmp[-1] = tmp[-1].strip()
-
-            #print tmp
-
-            if not tmp: continue
-
-            n = len(tmp)
-            self.list_data.InsertStringItem(self.index_data, tmp[0])
-            for i,cell in enumerate(tmp[1:]):
-                self.list_data.SetStringItem(self.index_data, i+1, cell)
-            #self.list_data.SetItemData(self.index_data, self.index_data)
-            #self.itemDataMap[self.index_data] = tmp
-            self.index_data+=1
-
-            if tmp[-1] == "1": de+=1
-            T+=1
-            text = """Results:
-    DE Regions: %1.1f%%
-        """ % (100.0*de/T)
-        self.headerText1.SetLabel(text)
-
-
-
-
-    def initializeDEHMMSegments(self):
-        self.list_data.InsertColumn(0, 'ID', width=100)
-        self.list_data.InsertColumn(1, 'Number of Sites', width=85)
-        self.list_data.InsertColumn(2, 'Start', width=140)
-        self.list_data.InsertColumn(3, 'End', width=75)
-        self.list_data.InsertColumn(4, 'Length', width=75)
-        self.list_data.InsertColumn(5, 'Number of Genes', width=75)
-        self.list_data.InsertColumn(6, 'Genes', width=75)
-        self.list_data.InsertColumn(7, 'Sum Ctrl', width=75)
-        self.list_data.InsertColumn(8, 'Sum Exp', width=75)
-        self.list_data.InsertColumn(9, 'log2FC', width=75)
-        self.list_data.InsertColumn(10, 'p-value', width=75)
-        self.list_data.InsertColumn(11, 'q-value', width=75)
-
-
-    def populateDEHMMSegments(self, path):
-
-        self.itemDataMap = {}
-        segments = 0; segments05 = 0; segments01 = 0;
-        data=[]
-        for line in open(path):
-            if line.startswith("#"): continue
-            tmp = line.strip().split("\t")
-            data.append(["ID"+tmp[0].upper()] + tmp)
-
-        data.sort()
-        for tmp in data:
-            self.list_data.InsertStringItem(self.index_data, tmp[1])
-            actual_data = [tmp[1]]
-            for i,cell in enumerate(tmp[2:]):
-                if not cell:
-                    cell = "N/A"
-                self.list_data.SetStringItem(self.index_data, i+1, cell)
-                try:
-                    actual_data.append(float(cell))
-                except:
-                    actual_data.append(cell)
-
-            self.list_data.SetItemData(self.index_data, self.index_data)
-            self.itemDataMap[self.index_data] = actual_data
-            self.index_data+=1
-            if len(tmp) < 5: continue
-            segments+=1
-            if float(tmp[-1]) < 0.05: segments05+=1
-            if float(tmp[-1]) < 0.01: segments01+=1
-
-        text = """Results:
-    Segments: %s
-    Segments q-val < 0.05: %s
-    Segments q-val < 0.01: %s
-        """ % (segments, segments05, segments01)
-        self.headerText1.SetLabel(text)
-
-
-
-
-
-
-#----------------------------------------------------------------------
-    # Used by the ColumnSorterMixin, see wx/lib/mixins/listctrl.py
-    def GetListCtrl(self):
-        return self.list_data
- 
-    #----------------------------------------------------------------------
-    def OnColClick(self, event):
-        #print "column clicked self:", self
-        #print "column clicked event:", event
-        #self.list_data.SortItems(sortColumn)
-        event.Skip()
- 
-    ########
-    def OnDoubleClick_resampling(self, event):
-
-        
-        filepath = os.path.join(ntpath.dirname(self.filePath), fetch_name(self.filePath)+"_histograms")
-        filename = os.path.join(filepath, event.GetText()+".png")
-        if os.path.exists(filename):
-            imgWindow = ImgFrame(None, filename)
-            imgWindow.Show()
-        else:
-            ShowError(MSG="Error Displaying File. Histogram image not found. Make sure results were obtained with the histogram option turned on.")
-            print "Error Displaying File. Histogram image does not exist."
-        
-
-    def OnRightClick_gumbel(self, event):
-
-        self.list_item_clicked = right_click_context = event.GetText()
-        menu = wx.Menu()
-        for (id,title) in self.menu_title_by_id.items():
-            ### 3. Launcher packs menu with Append. ###
-            menu.Append( id, title )
-            ### 4. Launcher registers menu handlers with EVT_MENU, on the menu. ###
-            wx.EVT_MENU( menu, id, self.MenuSelection_gumbel )
-
-        position = self.ScreenToClient(wx.GetMousePosition())
-        self.PopupMenu( menu, position )
-        menu.Destroy() # destroy to avoid mem leak
-
-
-    def MenuSelection_gumbel( self, event ):
-        # do something
-        operation = self.menu_title_by_id[ event.GetId() ]
-        target    = self.list_item_clicked
-        parent = self.GetParent()
-
-        if operation == "Display in Track View":
-            parent.allViewFunc(None,target)
-        else:
-            print "Menu choice not recognized"
-
-
-    def OnRightClick_binomial(self, event):
-
-        self.list_item_clicked = right_click_context = event.GetText()
-        menu = wx.Menu()
-        for (id,title) in self.menu_title_by_id.items():
-            ### 3. Launcher packs menu with Append. ###
-            menu.Append( id, title )
-            ### 4. Launcher registers menu handlers with EVT_MENU, on the menu. ###
-            wx.EVT_MENU( menu, id, self.MenuSelection_binomial )
-
-        position = self.ScreenToClient(wx.GetMousePosition())
-        self.PopupMenu( menu, position )
-        menu.Destroy() # destroy to avoid mem leak
-
-
-    def MenuSelection_binomial( self, event ):
-        # do something
-        operation = self.menu_title_by_id[ event.GetId() ]
-        target    = self.list_item_clicked
-        parent = self.GetParent()
-
-        if operation == "Display in Track View":
-            parent.allViewFunc(None,target)
-        else:
-            print "Menu choice not recognized"
-
-
-
-
-    def OnRightClick_hmm_genes(self, event):
-
-        self.list_item_clicked = right_click_context = event.GetText()
-        menu = wx.Menu()
-        for (id,title) in self.menu_title_by_id.items():
-            ### 3. Launcher packs menu with Append. ###
-            menu.Append( id, title )
-            ### 4. Launcher registers menu handlers with EVT_MENU, on the menu. ###
-            wx.EVT_MENU( menu, id, self.MenuSelection_hmm_genes )
-
-        position = self.ScreenToClient(wx.GetMousePosition())
-        self.PopupMenu( menu, position )
-        menu.Destroy() # destroy to avoid mem leak
-
-
-    def MenuSelection_hmm_genes( self, event ):
-        # do something
-        operation = self.menu_title_by_id[ event.GetId() ]
-        target    = self.list_item_clicked
-        parent = self.GetParent()
-
-        if operation == "Display in Track View":
-            parent.allViewFunc(None,target)
-        else:
-            print "Menu choice not recognized"
-
-
-
-    
-
-
-
-
-
-    def OnRightClick_resampling(self, event):
-        
-        self.list_item_clicked = right_click_context = event.GetText()
-        menu = wx.Menu()
-        for (id,title) in self.menu_title_by_id.items():
-            ### 3. Launcher packs menu with Append. ###
-            menu.Append( id, title )
-            ### 4. Launcher registers menu handlers with EVT_MENU, on the menu. ###
-            wx.EVT_MENU( menu, id, self.MenuSelection_resampling )
-
-        position = self.ScreenToClient(wx.GetMousePosition())
-        self.PopupMenu( menu, position )
-        menu.Destroy() # destroy to avoid mem leak
-
-
-    def MenuSelection_resampling( self, event ):
-        # do something
-        operation = self.menu_title_by_id[ event.GetId() ]
-        target    = self.list_item_clicked
-        parent = self.GetParent()
-
-        if operation == "Display in Track View":
-            parent.allViewFunc(None,target)
-        elif operation == "Display Histogram":
-            filepath = os.path.join(ntpath.dirname(self.filePath), fetch_name(self.filePath))
-            filename = os.path.join(filepath, target+".png")
-            if os.path.exists(filename):
-                imgWindow = ImgFrame(None, filename)
-                imgWindow.Show()
-            else:
-                ShowError(MSG="Error Displaying File. Histogram image not found. Make sure results were obtained with the histogram option turned on.")
-                print "Error Displaying File. Histogram image does not exist."
-
-        else:
-            print "Menu choice not recognized"
-
-
 
 def unknownColNames(path):
     colNames = []
     for line in open(path):
         if line.startswith("#"):
             colNames = line.split("\t")
+        else:
+            final_line = line
+    tmp = final_line.split("\t")
+    if len(colNames) < len(tmp):
+        colNames = ["Col%d" % (i) for i in range(len(tmp))]
     return colNames
 
-def unknownTableData(path):
-    colnames = unknownColNames(path)
+
+def unknownTableData(path, colnames):
     row = 0
     data = []
     for line in open(path):
         if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
+        tmp = line.split("\t")
+        tmp[-1] = tmp[-1].strip()
         rowdict = dict([(colnames[i], tmp[i]) for i in range(len(colnames))])
         data.append((row, rowdict))
         row+=1
-
     return data
+
+
+def unknownFileHeaderText(path):
+    return "Unknown results file."
 
 
 def getInfoFromFileType(X):
     for method in transit.analysis.methods:
         try:
             if X in transit.analysis.methods[method]["module"].FileTypes:
-                (tableFunc, colFunc) = transit.analysis.methods[method]["module"].FileTypes[X]
-                return (method, tableFunc, colFunc)
+                (tableFunc, colFunc, textHeaderList) = transit.analysis.methods[method]["module"].FileTypes[X]
+                return (method, tableFunc, colFunc, textHeaderList)
         except:
             continue
 
-    return ("unknown", unknownTableData, unknownColNames)
+    return ("unknown", unknownTableData, unknownColNames, [unknownFileHeaderText])
+
+
+
     
 
 class TransitTable(wx.grid.PyGridTableBase):
@@ -891,6 +207,8 @@ class TransitTable(wx.grid.PyGridTableBase):
 
 
 
+
+
 class TransitGridFrame(wx.Frame):
 
     def __init__(self, parent, path, size=(-1,-1)):
@@ -903,21 +221,18 @@ class TransitGridFrame(wx.Frame):
 
 
         line = open(path).readline().strip()
-        (method, getTableData, getColumnNames) = getInfoFromFileType(line)
-
-        print (method, getTableData, getColumnNames)
+        (method, getTableData, getColumnNames, textHeaderList) = getInfoFromFileType(line)
 
         if method == "unknown":
-            columnlabels = getColumnNames(path)
+            self.columnlabels = getColumnNames(path)
         else:
-            columnlabels = getColumnNames()
-        data = getTableData(path)
-        header_list = []
-      
+            self.columnlabels = getColumnNames()
+        data = getTableData(path, self.columnlabels)
 
         wxheader_list = []
-        for H in header_list:
-            wxheader_list.append(wx.StaticText( self, wx.ID_ANY, H, wx.DefaultPosition, wx.DefaultSize, 0 ))
+        for headerFunc in textHeaderList:
+            text = headerFunc(path)
+            wxheader_list.append(wx.StaticText( self, wx.ID_ANY, text, wx.DefaultPosition, wx.DefaultSize, 0 ))
             wxheader_list[-1].Wrap( -1 )
             sbSizer1.Add( wxheader_list[-1], 0, wx.ALL, 5 )
 
@@ -932,14 +247,41 @@ class TransitGridFrame(wx.Frame):
 
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_DCLICK, self.OnLabelDoubleClicked)
 
-        mytable = TransitTable(data, columnlabels)
+        mytable = TransitTable(data, self.columnlabels)
         self.grid.SetTable(mytable)
+
 
         self.grid.EnableEditing(False)
         self.grid.AdjustScrollbars()
+        self.grid.SetColLabelSize(wx.grid.GRID_AUTOSIZE)
+
+        #self.grid.AutoSizeColumns()
+        self.AutoResizeCols()
         self.grid.ForceRefresh()
 
+        (width, height) = bSizer1.GetMinSize()
+        max_width = 1500
+        max_height = 800
+        width = min(width+50, max_width)
+        height = min(height, max_height)
+        
+        self.SetMinSize((width, height))
+        
+
+        self.Layout()
         self.Show()
+
+
+    def AutoResizeCols(self):
+        max_column_size = 200
+        min_column_size = 100
+        self.grid.AutoSizeColumns(False)
+        for i,label in enumerate(self.columnlabels):
+            size = self.grid.GetColSize(i)            
+            if size > max_column_size:
+                self.grid.SetColSize(i, max_column_size)
+            elif size < min_column_size:
+                self.grid.SetColSize(i, min_column_size)
 
     def OnLabelDoubleClicked(self, evt):
         col = evt.GetCol()

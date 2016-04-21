@@ -98,6 +98,29 @@ def enableButton(wxobj):
 
 
 
+def getColumnNames():
+    return ["Orf","Name","Description","Mean Insertion","Sites per Replicate","Total Insertions","Total Sites","thetabar", "zbar", "Call"]
+
+
+def getFileHeaderText(path):
+    ess=0; unc=0; non=0; short=0
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.strip().split("\t")
+        if tmp[-1] == "Essential": ess+=1
+        if tmp[-1] == "Uncertain": unc+=1
+        if tmp[-1] == "Non-Essential": non+=1
+
+    text = """Results:
+    Essentials: %s
+    Uncertain: %s
+    Non-Essential: %s
+        """ % (ess, unc, non)
+    return text
+
+
+FileTypes = {}
+FileTypes["#Binomial"] = (transit_tools.getTabTableData, getColumnNames, [getFileHeaderText])
 
 
 ########## CLASS #######################
@@ -399,9 +422,7 @@ class Binomial(base.SingleConditionMethod):
         self.output.write("#rho1 Acceptance Rate:\t%f%%\n" % ((100.0*acc_p1)/sample_size))
         self.output.write("#Kp1  Acceptance Rate:\t%f%%\n" % ((100.0*acc_k1)/sample_size))
 
-
-        self.output.write("#Orf\tName\tDescription\tMean Insertion\tSites per Replicate\tTotal Insertions\tTotal Sites\tthetabar\tzbar\tCall\n")
-
+        self.output.write("#%s\n" % "\t".join(getColumnNames()))
 
         data = []
         for g,gene in enumerate(G):

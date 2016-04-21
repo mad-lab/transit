@@ -93,6 +93,34 @@ def enableButton(wxobj):
 
 
 
+def getColumnNames():
+    return ["Orf","Name","Desc","k","n","r","s","t","Expected Run","p-value", "p-adjusted"]
+
+
+def getFileHeaderText(path):
+    ess=0; unc=0; non=0; short=0
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.strip().split("\t")
+        if float(tmp[-1]) < 0.05:
+            ess+=1
+        else:
+            non+=1
+
+    text = """Results:
+    Essentials: %s
+    Non-Essential: %s
+        """ % (ess,non)
+    return text
+
+
+
+FileTypes = {}
+FileTypes["#griffin"] = (transit_tools.getTabTableData, getColumnNames, [getFileHeaderText])
+
+
+
+
 ########## CLASS #######################
 
 class Griffin(base.SingleConditionMethod):
@@ -240,7 +268,7 @@ class Griffin(base.SingleConditionMethod):
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Time: %s\n" % (time.time() - start_time))
-        self.output.write("#Orf\tName\tDesc\tk\tn\tr\ts\tt\tExpected Run\tp-value\n")
+        self.output.write("#%s\n" % "\t".join(getColumnNames()))
         
         for (gene, exprun, pval, padj) in results:
             self.output.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%1.1f\t%1.5f\t%1.5f\n" % (gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, gene.s, gene.t, exprun, pval, padj))

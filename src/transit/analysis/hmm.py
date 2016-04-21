@@ -101,6 +101,65 @@ def enableButton(wxobj):
 
 
 
+def getColumnNamesSites():
+    return ["Location","Read Count","Probability - ES","Probability - GD","Probability - NE","Probability - GA","State","Gene"]
+
+def getFileHeaderTextSites(path):
+    es=0; gd=0; ne=0; ga=0; T=0;
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.strip().split("\t")
+        if len(tmp) == 7:
+            col = -1
+        else:
+            col = -2
+        if tmp[col] == "ES": es+=1
+        elif tmp[col] == "GD": gd+=1
+        elif tmp[col] == "NE": ne+=1
+        elif tmp[col] == "GA": ga+=1
+        else: print tmp
+        T+=1
+
+    text = """Results:
+    Essential: %1.1f%%
+    Growth-Defect: %1.1f%%
+    Non-Essential: %1.1f%%
+    Growth-Advantage: %1.1f%%
+        """ % (100.0*es/T, 100.0*gd/T, 100.0*ne/T, 100.0*ga/T)
+    return text
+
+
+
+def getColumnNamesGenes():
+    return ["Orf","Name","Description","N","n0","n1","n2","n3", "Avg. Insertions", "Avg. Reads", "State Call"]
+
+
+def getFileHeaderTextGenes(path):
+    es=0; gd=0; ne=0; ga=0; T=0;
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.strip().split("\t")
+        if len(tmp) < 5: continue
+        if tmp[-1] == "ES": es+=1
+        if tmp[-1] == "GD": gd+=1
+        if tmp[-1] == "NE": ne+=1
+        if tmp[-1] == "GA": ga+=1
+
+    text = """Results:
+    Essential: %s
+    Growth-Defect: %s
+    Non-Essential: %s
+    Growth-Advantage: %s
+        """ % (es, gd, ne, ga)
+
+    return text
+
+
+FileTypes = {}
+FileTypes["#HMM - Sites"] = (transit_tools.getTabTableData, getColumnNamesSites, [getFileHeaderTextSites])
+FileTypes["#HMM - Genes"] = (transit_tools.getTabTableData, getColumnNamesGenes, [getFileHeaderTextGenes])
+
+
 
 ########## CLASS #######################
 
@@ -466,7 +525,8 @@ class HMM(base.SingleConditionMethod):
         pos2state = dict([(position[t],states[t]) for t in range(len(states))])
         theta = numpy.mean(data > 0)
         G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, data=data, position=position)
-        
+
+        output.write("#HMM - Genes\n")        
         for gene in G:
             
             reads_nz = [c for c in gene.reads.flatten() if c > 0]

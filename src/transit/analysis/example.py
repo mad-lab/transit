@@ -35,7 +35,6 @@ def getInstructions():
                 """
 
 
-
 def getPanel(wxobj):
     wxobj.examplePanel = wx.Panel( wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
     #wxobj.examplePanel.SetMinSize( wx.Size( 50,1 ) )
@@ -90,6 +89,18 @@ def enableButton(wxobj):
     wxobj.exampleButton.Enable()
 
 
+
+
+def getColumnNames():
+    return ["Orf","Name","Desc","k","n","mean","nzmean"]
+
+def getFileHeaderText(path):
+    text = """This is file contains mean counts for each gene. Nzmean is mean accross non-zero sites."""
+    return text
+
+
+FileTypes = {}
+FileTypes["#Example"] = (transit_tools.getTabTableData, getColumnNames, [getFileHeaderText])
 
 
 
@@ -230,7 +241,7 @@ class Example(base.SingleConditionMethod):
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Time: %s\n" % (time.time() - start_time))
-        self.output.write("#Orf\tName\tDesc\tk\tn\tmean\tnzmean\n")
+        self.output.write("#%s\n" % "\t".join(getColumnNames()))
 
         data.sort()
         for line in data:

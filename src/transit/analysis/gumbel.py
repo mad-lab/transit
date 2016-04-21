@@ -39,8 +39,6 @@ def getInstructions():
 5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.
                 """
 
-
-
 def getPanel(wxobj):
     wxobj.gumbelPanel = wx.Panel( wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
     #wxobj.gumbelPanel.SetMinSize( wx.Size( 50,1 ) )
@@ -124,6 +122,31 @@ def getPanel(wxobj):
 
 
 
+def getColumnNames():
+    return ["Orf","Name","Desc","k","n","r","s","zbar", "Call"]
+
+def getFileHeaderText(path):
+    ess=0; unc=0; non=0; short=0
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.strip().split("\t")
+        if tmp[-1] == "E": ess+=1
+        if tmp[-1] == "U": unc+=1
+        if tmp[-1] == "NE": non+=1
+        if tmp[-1] == "S": short+=1
+
+    text = """Results:
+    Essentials: %s
+    Uncertain: %s
+    Non-Essential: %s
+    Short: %s
+        """ % (ess, unc, non, short)
+    return text
+
+
+
+FileTypes = {}
+FileTypes["#Gumbel"] = (transit_tools.getTabTableData, getColumnNames, [getFileHeaderText])
 
 
 ########## CLASS #######################
@@ -344,7 +367,6 @@ class Gumbel(base.SingleConditionMethod):
         ZBAR = numpy.apply_along_axis(numpy.mean, 1, Z_sample)
         (ess_t, non_t) = stat_tools.bayesian_ess_thresholds(ZBAR)
 
-        VERBOSE = False
         #Orf    k   n   r   s   zbar
         self.output.write("#Gumbel\n")
         if self.wxobj:
@@ -364,19 +386,15 @@ class Gumbel(base.SingleConditionMethod):
         self.output.write("#Sample Size:\t%d\n" % i)
         self.output.write("#phi estimate:\t%f\n" % numpy.average(phi_sample))
         self.output.write("#Time: %s\n" % (time.time() - start_time))
-        if VERBOSE: self.output.write("#Orf\tName\tDesc\tk\tn\tr\ts\tzbar\tCall\tSample\n")
-        else: self.output.write("#Orf\tName\tDesc\tk\tn\tr\ts\tzbar\tCall\n")
+        self.output.write("#%s\n" % "\t".join(getColumnNames()))
         i = 0
         data = []
         for g in G:
-
             if not self.good_orf(g):
                 zbar = -1.0
             else:
                 zbar = ZBAR[i]
                 i+=1
-            sample_str = ""
-            if VERBOSE: sample_str = "\t"+ ",".join(["%d" % x for x in Z_sample[i,:]])
             if zbar > ess_t:
                 call = "E"
             elif non_t <= zbar <= ess_t:
@@ -385,7 +403,7 @@ class Gumbel(base.SingleConditionMethod):
                 call = "NE"
             else:
                 call = "S"
-            data.append("%s\t%s\t%s\t%d\t%d\t%d\t%d\t%f\t%s%s\n" % (g.orf, g.name, g.desc, g.k, g.n, g.r, g.s, zbar, call, sample_str))
+            data.append("%s\t%s\t%s\t%d\t%d\t%d\t%d\t%f\t%s\n" % (g.orf, g.name, g.desc, g.k, g.n, g.r, g.s, zbar, call))
         data.sort()
         for line in data:
             self.output.write(line)
