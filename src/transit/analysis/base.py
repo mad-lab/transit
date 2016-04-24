@@ -47,7 +47,13 @@ class AnalysisGUI:
 
 
     def getInstructions(self):
-        return """Instructions:
+        return """ Description: 
+    %s
+                """ % (self.description)
+
+
+    def getInstructions_old(self):
+        return """Instruction:
 
 1. Make sure you have one control sample selected.
 2. Modify the options as desired.

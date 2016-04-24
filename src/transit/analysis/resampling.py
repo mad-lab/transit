@@ -22,7 +22,7 @@ import transit.stat_tools as stat_tools
 
 short_name = "resampling"
 long_name = "Resampling test of conditional essentiality."
-description = "Resampling method based on the permutation test"
+description = """Method for determining conditional essentiality based on resampling (i.e. permutation test). Identifies significant changes in mean-readcounts after normalization."""
 
 
 class resamplingGUI(base.AnalysisGUI):

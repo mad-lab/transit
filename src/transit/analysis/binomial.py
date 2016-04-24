@@ -20,7 +20,10 @@ import transit.stat_tools as stat_tools
 
 short_name = "binomial"
 long_name = "Hierarchical binomial model of essentiality with individual frequencies."
-description = "Hierarchical Binomial Method"
+description = """Hierarchical bayesian model of essentiality based on the binomial distribution. Estimates individual probabilities for insertion, leading to more conservative predictions.
+
+Reference: DeJesus and Ioerger (2014; IEEE TCBB)
+"""
 
 
 class BinomialGUI(base.AnalysisGUI):

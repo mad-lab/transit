@@ -20,7 +20,9 @@ import transit.stat_tools as stat_tools
 
 short_name = "gumbel"
 long_name = "Bayesian analysis of essentiality based on long gaps."
-description = "Bayesian Methods of gaps."
+description = """Bayesian methods of analyzing longest runs of non-insertions in a row. Estimates the parameters using the MCMC sampling, and estimates posterior probabilities of essentiality. 
+
+Reference: DeJesus et al. (2013; Bioinformatics)"""
 
 
 class GumbelGUI(base.AnalysisGUI):

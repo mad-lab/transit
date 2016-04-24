@@ -21,7 +21,10 @@ import transit.stat_tools as stat_tools
 
 short_name = "hmm"
 long_name = "Analysis of genomic regions using a Hidden Markov Model"
-description = "Analysis of entire regions using HMM"
+description = """Analysis of essentiality in the entire genome using a Hidden Markov Model. Capable of determining regions with different levels of essentiality representing Essential, Growth-Defect, Non-Essential and Growth-Advantage regions.
+
+Reference: DeJesus et al. (2013; BMC Bioinformatics)
+"""
 
 class hmmGUI(base.AnalysisGUI):
 
