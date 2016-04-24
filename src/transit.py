@@ -113,7 +113,6 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.verbose = True
 
 
-        self.progress.SetRange(50)
         self.statusBar.SetStatusText("Welcome to TRANSIT")
         self.progress_count = 0
         pub.subscribe(self.setProgressRange, "progressrange")
@@ -125,17 +124,39 @@ class TnSeekFrame(transit_gui.MainFrame):
  
         #self.outputDirPicker.SetPath(os.path.dirname(os.path.realpath(__file__)))
 
+        self.gui = transit.analysis.defineGUI(self)
 
         methodChoiceChoices = [ "[Choose Method]"]
         for name in methods:
-            methodChoiceChoices.append(name)
-            module = methods[name]["module"]
-            module.Hide(self)
+            self.gui[name].Hide()
+            methodChoiceChoices.append(self.gui[name].fullname())
 
         self.methodChoice.SetItems(methodChoiceChoices)
         self.methodChoice.SetSelection( 0 )
+
+        #progress
+        self.progressPanel = wx.Panel( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        progressSizer = wx.BoxSizer( wx.VERTICAL )
+
+        self.progressLabel = wx.StaticText( self.progressPanel, wx.ID_ANY, u"Progress", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.progressLabel.Wrap( -1 )
+        progressSizer.Add( self.progressLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        self.progress = wx.Gauge( self.progressPanel, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
+        progressSizer.Add( self.progress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        self.progressPanel.SetSizer( progressSizer )
+        self.progressPanel.Layout()
+        progressSizer.Fit( self.progressPanel )
+        self.methodSizer.Add( self.progressPanel, 1, wx.EXPAND |wx.ALL, 5 )
+        self.progress.SetRange(50)
+        #########
+        
+
         self.HideProgressSection()
         self.HideGlobalOptions()
+
+    
 
 
     def Exit(self, event):
@@ -212,7 +233,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def finishRun(self,msg):
         if not newWx: msg = msg.data
-        methods[msg]["module"].enableButton(self)
+        self.gui[msg].Enable()
         
 
 
@@ -225,8 +246,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.HideGlobalOptions()
         self.HideProgressSection()
         for name in methods:
-            module = methods[name]["module"]
-            module.Hide(self)
+            self.gui[name].Hide()
 
 
     def HideGlobalOptions(self):
@@ -528,7 +548,8 @@ class TnSeekFrame(transit_gui.MainFrame):
                 qcWindow = qcDisplay.qcFrame(self, datasets)
                 qcWindow.Show()
             except Exception as e:
-                print "Error occurred displaying file", e
+                print transit_prefix, "Error occured displaying file:", str(e)
+                traceback.print_exc()
 
 
 
@@ -552,13 +573,13 @@ class TnSeekFrame(transit_gui.MainFrame):
             self.ShowGlobalOptions()
             #Show Selected Method and hide Others
             for name in methods:
-                module = methods[name]["module"]
-                if name == selected_name:
-                    self.mainInstructions.SetLabel(module.getInstructions())
+                gui = self.gui[name]
+                if gui.fullname() == selected_name:
+                    self.mainInstructions.SetLabel(gui.getInstructions())
                     self.mainInstructions.Wrap(method_wrap_width)
-                    module.Show(self)
+                    gui.Show()
                 else:
-                    module.Hide(self)
+                    gui.Hide()
             self.ShowProgressSection()
         self.Layout()
         if self.verbose:
@@ -578,7 +599,9 @@ class TnSeekFrame(transit_gui.MainFrame):
                 fileWindow = fileDisplay.TransitGridFrame(self, dataset)
                 fileWindow.Show()
             except Exception as e:
-                print "Error occurred displaying file", e
+                print transit_prefix, "Error occurred displaying file:", str(e)
+                traceback.print_exc()
+
         else:
             if self.verbose:
                 print transit_prefix, "No results selected to display!"
@@ -640,7 +663,8 @@ class TnSeekFrame(transit_gui.MainFrame):
                self.ShowError(MSG="Need to select a 'Resampling' results file for this type of plot.")
 
         except Exception as e:
-            print "Error occurred creating plot:", str(e)
+            print transit_prefix, "Error occurred creating plot:", str(e)
+            traceback.print_exc()
 
 
 
@@ -1075,7 +1099,9 @@ class TnSeekFrame(transit_gui.MainFrame):
         #FLORF
         X = self.methodChoice.GetCurrentSelection()
         selected_name = self.methodChoice.GetString(X)
-        method =  methods[selected_name]["method"]
+        for name in methods:
+            if  self.gui[name].fullname() == selected_name:
+                method = methods[name]["method"]
         try:
             M = method.fromGUI(self)
             if M: 

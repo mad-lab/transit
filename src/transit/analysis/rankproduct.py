@@ -19,92 +19,71 @@ import transit.stat_tools as stat_tools
 
 
 ############# GUI ELEMENTS ##################
-def Hide(wxobj):
-    wxobj.rankproductPanel.Hide()
 
-def Show(wxobj):
-    wxobj.rankproductPanel.Show()
+short_name = "rankproduct"
+long_name = "Rank Product test for determining conditional essentiality."
+description = "Differential Comparison based on ranks"
 
-def getInstructions():
-        return """Instructions:
+class rankproductGUI(base.AnalysisGUI):
 
-1. Make sure you have one control sample selected.
-2. Modify the options as desired.
-3. Click on the "Run rankproduct" button.
-4. Choose a name for the output file.
-5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.
-                """
+    def __init__(self, wxobj):
+        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
 
 
+    def getPanel(self):
+        rankproductPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+    
+        rankproductSizer = wx.BoxSizer( wx.VERTICAL )
 
-def getPanel(wxobj):
-    wxobj.rankproductPanel = wx.Panel( wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-    #wxobj.rankproductPanel.SetMinSize( wx.Size( 50,1 ) )
-    #wxobj.rankproductPanel.SetMaxSize( wx.Size( 250,-1 ) )
+        rankproductLabel = wx.StaticText( rankproductPanel, wx.ID_ANY, u"rankproduct Options", wx.DefaultPosition, wx.DefaultSize, 0 )
+        rankproductLabel.Wrap( -1 )
+        rankproductSizer.Add( rankproductLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
+        rankproductTopSizer = wx.BoxSizer( wx.HORIZONTAL )
 
-    rankproductSizer = wx.BoxSizer( wx.VERTICAL )
+        rankproductTopSizer2 = wx.BoxSizer( wx.HORIZONTAL )
 
-    wxobj.rankproductLabel = wx.StaticText( wxobj.rankproductPanel, wx.ID_ANY, u"rankproduct Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.rankproductLabel.Wrap( -1 )
-    rankproductSizer.Add( wxobj.rankproductLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        rankproductLabelSizer = wx.BoxSizer( wx.VERTICAL )
 
-    rankproductTopSizer = wx.BoxSizer( wx.HORIZONTAL )
+        rankproductSampleLabel = wx.StaticText( rankproductPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
+        rankproductSampleLabel.Wrap( -1 )
+        rankproductLabelSizer.Add( rankproductSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
-    rankproductTopSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+        rankproductNormLabel = wx.StaticText( rankproductPanel, wx.ID_ANY, u"Normalization", wx.DefaultPosition, wx.DefaultSize, 0 )
+        rankproductNormLabel.Wrap( -1 )
+        rankproductLabelSizer.Add( rankproductNormLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
-    rankproductLabelSizer = wx.BoxSizer( wx.VERTICAL )
+        rankproductTopSizer2.Add( rankproductLabelSizer, 1, wx.EXPAND, 5 )
 
-    wxobj.rankproductSampleLabel = wx.StaticText( wxobj.rankproductPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.rankproductSampleLabel.Wrap( -1 )
-    rankproductLabelSizer.Add( wxobj.rankproductSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        rankproductControlSizer = wx.BoxSizer( wx.VERTICAL )
 
-    wxobj.rankproductNormLabel = wx.StaticText( wxobj.rankproductPanel, wx.ID_ANY, u"Normalization", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.rankproductNormLabel.Wrap( -1 )
-    rankproductLabelSizer.Add( wxobj.rankproductNormLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        self.wxobj.rankproductSampleText = wx.TextCtrl( rankproductPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
+        rankproductControlSizer.Add( self.wxobj.rankproductSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 
-    rankproductTopSizer2.Add( rankproductLabelSizer, 1, wx.EXPAND, 5 )
-
-    rankproductControlSizer = wx.BoxSizer( wx.VERTICAL )
-
-    wxobj.rankproductSampleText = wx.TextCtrl( wxobj.rankproductPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
-    rankproductControlSizer.Add( wxobj.rankproductSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-    rankproductNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
-    wxobj.rankproductNormChoice = wx.Choice( wxobj.rankproductPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, rankproductNormChoiceChoices, 0 )
-    wxobj.rankproductNormChoice.SetSelection( 0 )
-    rankproductControlSizer.Add( wxobj.rankproductNormChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+        rankproductNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
+        self.wxobj.rankproductNormChoice = wx.Choice( rankproductPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, rankproductNormChoiceChoices, 0 )
+        self.wxobj.rankproductNormChoice.SetSelection( 0 )
+        rankproductControlSizer.Add( self.wxobj.rankproductNormChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 
 
-    rankproductTopSizer2.Add( rankproductControlSizer, 1, wx.EXPAND, 5 )
+        rankproductTopSizer2.Add( rankproductControlSizer, 1, wx.EXPAND, 5 )
 
-    rankproductTopSizer.Add( rankproductTopSizer2, 1, wx.EXPAND, 5 )
+        rankproductTopSizer.Add( rankproductTopSizer2, 1, wx.EXPAND, 5 )
 
-    rankproductSizer.Add( rankproductTopSizer, 1, wx.EXPAND, 5 )
+        rankproductSizer.Add( rankproductTopSizer, 1, wx.EXPAND, 5 )
 
-    wxobj.rankproductButton = wx.Button( wxobj.rankproductPanel, wx.ID_ANY, u"Run rankproduct", wx.DefaultPosition, wx.DefaultSize, 0 )
-    rankproductSizer.Add( wxobj.rankproductButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        rankproductButton = wx.Button( rankproductPanel, wx.ID_ANY, u"Run rankproduct", wx.DefaultPosition, wx.DefaultSize, 0 )
+        rankproductSizer.Add( rankproductButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
  
-    wxobj.rankproductPanel.SetSizer( rankproductSizer )
-    wxobj.rankproductPanel.Layout()
-    rankproductSizer.Fit( wxobj.rankproductPanel )
+        rankproductPanel.SetSizer( rankproductSizer )
+        rankproductPanel.Layout()
+        rankproductSizer.Fit( rankproductPanel )
 
-    #Connect events
-    wxobj.rankproductButton.Bind( wx.EVT_BUTTON, wxobj.RunMethod )
+        #Connect events
+        rankproductButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
-    return wxobj.rankproductPanel
-
-
-def updateProgressBar(wxobj, count):
-    wxobj.rankproductProgress.SetValue(count)
-
-def SetProgressRange(wxobj, X):
-    wxobj.rankproductProgress.SetRange(X)
-
-def enableButton(wxobj):
-    wxobj.rankproductButton.Enable()
-
+        return rankproductPanel
 
 
 
@@ -131,7 +110,7 @@ class Rankproduct(base.DualConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.DualConditionMethod.__init__(self, "rankproduct", "rankproduct Method", "A rank-based test to determine change in read-counts between conditions.", ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.DualConditionMethod.__init__(self, short_name, long_name, description, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         self.samples = samples
         self.adaptive = adaptive

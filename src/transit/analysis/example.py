@@ -14,80 +14,12 @@ import transit.tnseq_tools as tnseq_tools
 import transit.norm_tools as norm_tools
 import transit.stat_tools as stat_tools
 
-#method_name = "example"
-
 
 ############# GUI ELEMENTS ##################
-def Hide(wxobj):
-    wxobj.examplePanel.Hide()
 
-def Show(wxobj):
-    wxobj.examplePanel.Show()
-
-def getInstructions():
-        return """Instructions:
-
-1. Make sure you have one control sample selected.
-2. Modify the options as desired.
-3. Click on the "Run Example" button.
-4. Choose a name for the output file.
-5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.
-                """
-
-
-def getPanel(wxobj):
-    wxobj.examplePanel = wx.Panel( wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-    #wxobj.examplePanel.SetMinSize( wx.Size( 50,1 ) )
-    #wxobj.examplePanel.SetMaxSize( wx.Size( 250,-1 ) )
-
-    exampleSection = wx.BoxSizer( wx.VERTICAL )
-
-    wxobj.exampleLabel = wx.StaticText( wxobj.examplePanel, wx.ID_ANY, u"Example Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.exampleLabel.Wrap( -1 )
-    exampleSection.Add( wxobj.exampleLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-    exampleSizer1 = wx.BoxSizer( wx.HORIZONTAL )
-    #exampleSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-    #exampleLabelSizer = wx.BoxSizer( wx.VERTICAL )
-    #exampleControlSizer = wx.BoxSizer( wx.VERTICAL )
-    
-    
-    #wxobj.exampleRepLabel = wx.StaticText( wxobj.examplePanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
-    #wxobj.exampleRepLabel.Wrap(-1)
-    #exampleLabelSizer.Add(wxobj.exampleRepLabel, 1, wx.ALL, 5)
-    #exampleRepChoiceChoices = [ u"Sum", u"Mean", "TTRMean" ]
-    #wxobj.exampleRepChoice = wx.Choice( wxobj.examplePanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, exampleRepChoiceChoices, 0 )
-    #wxobj.exampleRepChoice.SetSelection( 2 )
-    #exampleControlSizer.Add(wxobj.exampleRepChoice, 0, wx.ALL|wx.EXPAND, 5)
-    #exampleSizer2.Add(exampleLabelSizer, 1, wx.EXPAND, 5)
-    #exampleSizer2.Add(exampleControlSizer, 1, wx.EXPAND, 5)
-    #exampleSizer1.Add(exampleSizer2, 1, wx.EXPAND, 5 )
-
-
-    exampleSection.Add( exampleSizer1, 1, wx.EXPAND, 5 )
-
-    wxobj.exampleButton = wx.Button( wxobj.examplePanel, wx.ID_ANY, u"Run Example", wx.DefaultPosition, wx.DefaultSize, 0 )
-    exampleSection.Add( wxobj.exampleButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-    wxobj.examplePanel.SetSizer( exampleSection )
-    wxobj.examplePanel.Layout()
-    exampleSection.Fit( wxobj.examplePanel )
-
-    #Connect events
-    wxobj.exampleButton.Bind( wx.EVT_BUTTON, wxobj.RunMethod )
-
-    return wxobj.examplePanel
-
-
-def updateProgressBar(wxobj, count):
-    wxobj.exampleProgress.SetValue(count)
-
-def SetProgressRange(wxobj, X):
-    wxobj.exampleProgress.SetRange(X)
-
-def enableButton(wxobj):
-    wxobj.exampleButton.Enable()
-
+short_name = "example"
+long_name = "Example method that calculates mean read-counts per gene."
+description = "A method made to serve as an example to implementing other methods."
 
 
 
@@ -103,10 +35,18 @@ FileTypes = {}
 FileTypes["#Example"] = (transit_tools.getTabTableData, getColumnNames, [getFileHeaderText])
 
 
+########## GUI ##################
 
-########## CLASS #######################
+class ExampleGUI(base.AnalysisGUI):
 
-class Example(base.SingleConditionMethod):
+    def __init__(self, wxobj):
+        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
+
+    
+
+########## METHOD #######################
+
+class ExampleMethod(base.SingleConditionMethod):
     """   
     Example
  
@@ -122,7 +62,7 @@ class Example(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, "Example", "Example Method", "A basic Example method to show how you could add your own method to TRANSIT.", ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
 
 
@@ -268,6 +208,7 @@ if __name__ == "__main__":
 
     G = Example.fromargs(sys.argv[1:])
 
+    print G
     G.console_message("Printing the member variables:")   
     G.print_members()
 

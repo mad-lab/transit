@@ -18,111 +18,78 @@ import transit.stat_tools as stat_tools
 
 
 ############# GUI ELEMENTS ##################
-def Hide(wxobj):
-    wxobj.globalGumbelPanel.Hide()
 
-def Show(wxobj):
-    wxobj.globalGumbelPanel.Show()
-
-def getInstructions():
-        return """Instructions:
-
-1. Make sure you have one control sample selected.
-2. Modify the options as desired.
-3. Click on the "Run Global Gumbel" button.
-4. Choose a name for the output file.
-5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.
-                """
+short_name = "globalruns"
+long_name = "Analysis of essentiality on gaps in entire genome (Tn5)."
+description = "A analysis method using the Gumbel extreme value distribution that uses longest runs over a whole genome instead of individual genes."
 
 
+class globalrunsGUI(base.AnalysisGUI):
 
-def getPanel(wxobj):
-    wxobj.globalGumbelPanel = wx.Panel( wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-    #wxobj.examplePanel.SetMinSize( wx.Size( 50,1 ) )
-    #wxobj.examplePanel.SetMaxSize( wx.Size( 250,-1 ) )
+    def __init__(self, wxobj):
+        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
 
-    globalGumbelSection = wx.BoxSizer( wx.VERTICAL )
 
-    wxobj.globalGumbelLabel = wx.StaticText( wxobj.globalGumbelPanel, wx.ID_ANY, u"Global Gumbel Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.globalGumbelLabel.Wrap( -1 )
-    globalGumbelSection.Add( wxobj.globalGumbelLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+    def getPanel(self):
+        globalGumbelPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
-    globalGumbelSizer1 = wx.BoxSizer( wx.HORIZONTAL )
-    #exampleSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-    #exampleLabelSizer = wx.BoxSizer( wx.VERTICAL )
-    #exampleControlSizer = wx.BoxSizer( wx.VERTICAL )
+        globalGumbelSection = wx.BoxSizer( wx.VERTICAL )
+
+        globalGumbelLabel = wx.StaticText( globalGumbelPanel, wx.ID_ANY, u"Global Gumbel Options", wx.DefaultPosition, wx.DefaultSize, 0 )
+        globalGumbelLabel.Wrap( -1 )
+        globalGumbelSection.Add( globalGumbelLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        globalGumbelSizer1 = wx.BoxSizer( wx.HORIZONTAL )
     
+        # Min read option
+        globalGumbelSizer2 = wx.BoxSizer( wx.HORIZONTAL )
     
-    #wxobj.exampleRepLabel = wx.StaticText( wxobj.examplePanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
-    #wxobj.exampleRepLabel.Wrap(-1)
-    #exampleLabelSizer.Add(wxobj.exampleRepLabel, 1, wx.ALL, 5)
-    #exampleRepChoiceChoices = [ u"Sum", u"Mean", "TTRMean" ]
-    #wxobj.exampleRepChoice = wx.Choice( wxobj.examplePanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, exampleRepChoiceChoices, 0 )
-    #wxobj.exampleRepChoice.SetSelection( 2 )
-    #exampleControlSizer.Add(wxobj.exampleRepChoice, 0, wx.ALL|wx.EXPAND, 5)
-    #exampleSizer2.Add(exampleLabelSizer, 1, wx.EXPAND, 5)
-    #exampleSizer2.Add(exampleControlSizer, 1, wx.EXPAND, 5)
-    #exampleSizer1.Add(exampleSizer2, 1, wx.EXPAND, 5 )
+        globalGumbelSizer2_1 = wx.BoxSizer( wx.VERTICAL )
+        globalGumbelReadLabel = wx.StaticText( globalGumbelPanel, wx.ID_ANY, u"Minimum Read", wx.DefaultPosition, wx.DefaultSize, 0 )
+        globalGumbelReadLabel.Wrap( -1 )
+        globalGumbelSizer2_1.Add( globalGumbelReadLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
     
-    # Min read option
-    globalGumbelSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+        globalGumbelSizer2_2 = wx.BoxSizer( wx.VERTICAL )
+        globalGumbelReadChoiceChoices = [ u"1", u"2", u"3", u"4", u"5" ]
+        self.wxobj.globalGumbelReadChoice = wx.Choice( globalGumbelPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, globalGumbelReadChoiceChoices, 0 )
+        self.wxobj.globalGumbelReadChoice.SetSelection( 0 )
+        globalGumbelSizer2_2.Add( self.wxobj.globalGumbelReadChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+        globalGumbelSizer2.Add(globalGumbelSizer2_1, 1, wx.EXPAND, 5)
+        globalGumbelSizer2.Add(globalGumbelSizer2_2, 1, wx.EXPAND, 5)
     
-    globalGumbelSizer2_1 = wx.BoxSizer( wx.VERTICAL )
-    wxobj.globalGumbelReadLabel = wx.StaticText( wxobj.globalGumbelPanel, wx.ID_ANY, u"Minimum Read", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.globalGumbelReadLabel.Wrap( -1 )
-    globalGumbelSizer2_1.Add( wxobj.globalGumbelReadLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        # Replicates option
+        globalGumbelSizer3 = wx.BoxSizer( wx.HORIZONTAL )
     
-    globalGumbelSizer2_2 = wx.BoxSizer( wx.VERTICAL )
-    globalGumbelReadChoiceChoices = [ u"1", u"2", u"3", u"4", u"5" ]
-    wxobj.globalGumbelReadChoice = wx.Choice( wxobj.globalGumbelPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, globalGumbelReadChoiceChoices, 0 )
-    wxobj.globalGumbelReadChoice.SetSelection( 0 )
-    globalGumbelSizer2_2.Add( wxobj.globalGumbelReadChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-    globalGumbelSizer2.Add(globalGumbelSizer2_1, 1, wx.EXPAND, 5)
-    globalGumbelSizer2.Add(globalGumbelSizer2_2, 1, wx.EXPAND, 5)
+        globalGumbelSizer3_1 = wx.BoxSizer( wx.VERTICAL )
+        globalGumbelRepLabel = wx.StaticText( globalGumbelPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
+        globalGumbelRepLabel.Wrap( -1 )
+        globalGumbelSizer3_1.Add( globalGumbelRepLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
     
-    # Replicates option
-    globalGumbelSizer3 = wx.BoxSizer( wx.HORIZONTAL )
-    
-    globalGumbelSizer3_1 = wx.BoxSizer( wx.VERTICAL )
-    wxobj.globalGumbelRepLabel = wx.StaticText( wxobj.globalGumbelPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.globalGumbelRepLabel.Wrap( -1 )
-    globalGumbelSizer3_1.Add( wxobj.globalGumbelRepLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-    
-    globalGumbelSizer3_2 = wx.BoxSizer( wx.VERTICAL )
-    globalGumbelRepChoiceChoices = [ u"Sum", u"Mean" ]
-    wxobj.globalGumbelRepChoice = wx.Choice( wxobj.globalGumbelPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, globalGumbelRepChoiceChoices, 0 )
-    wxobj.globalGumbelRepChoice.SetSelection( 0 )
-    globalGumbelSizer3_2.Add( wxobj.globalGumbelRepChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+        globalGumbelSizer3_2 = wx.BoxSizer( wx.VERTICAL )
+        globalGumbelRepChoiceChoices = [ u"Sum", u"Mean" ]
+        self.wxobj.globalGumbelRepChoice = wx.Choice( globalGumbelPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, globalGumbelRepChoiceChoices, 0 )
+        self.wxobj.globalGumbelRepChoice.SetSelection( 0 )
+        globalGumbelSizer3_2.Add( self.wxobj.globalGumbelRepChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 
-    globalGumbelSizer3.Add(globalGumbelSizer3_1, 1, wx.EXPAND, 5)
-    globalGumbelSizer3.Add(globalGumbelSizer3_2, 1, wx.EXPAND, 5)
+        globalGumbelSizer3.Add(globalGumbelSizer3_1, 1, wx.EXPAND, 5)
+        globalGumbelSizer3.Add(globalGumbelSizer3_2, 1, wx.EXPAND, 5)
 
-    globalGumbelSection.Add( globalGumbelSizer1, 1, wx.EXPAND, 5 )
-    globalGumbelSection.Add( globalGumbelSizer2, 1, wx.EXPAND, 5 )
-    globalGumbelSection.Add( globalGumbelSizer3, 1, wx.EXPAND, 5 )
+        globalGumbelSection.Add( globalGumbelSizer1, 1, wx.EXPAND, 5 )
+        globalGumbelSection.Add( globalGumbelSizer2, 1, wx.EXPAND, 5 )
+        globalGumbelSection.Add( globalGumbelSizer3, 1, wx.EXPAND, 5 )
 
-    wxobj.globalGumbelButton = wx.Button( wxobj.globalGumbelPanel, wx.ID_ANY, u"Run Global Gumbel", wx.DefaultPosition, wx.DefaultSize, 0 )
-    globalGumbelSection.Add( wxobj.globalGumbelButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        globalGumbelButton = wx.Button( globalGumbelPanel, wx.ID_ANY, u"Run Global Gumbel", wx.DefaultPosition, wx.DefaultSize, 0 )
+        globalGumbelSection.Add( globalGumbelButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-    wxobj.globalGumbelPanel.SetSizer( globalGumbelSection )
-    wxobj.globalGumbelPanel.Layout()
-    globalGumbelSection.Fit( wxobj.globalGumbelPanel )
+        globalGumbelPanel.SetSizer( globalGumbelSection )
+        globalGumbelPanel.Layout()
+        globalGumbelSection.Fit( globalGumbelPanel )
 
-    #Connect events
-    wxobj.globalGumbelButton.Bind( wx.EVT_BUTTON, wxobj.RunMethod )
+        #Connect events
+        globalGumbelButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
-    return wxobj.globalGumbelPanel
-
-
-def updateProgressBar(wxobj, count):
-    wxobj.globalGumbelProgress.SetValue(count)
-
-def SetProgressRange(wxobj, X):
-    wxobj.globalGumbelProgress.SetRange(X)
-
-def enableButton(wxobj):
-    wxobj.globalGumbelButton.Enable()
+        return globalGumbelPanel
 
 
 
@@ -169,7 +136,7 @@ class GlobalGumbel(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, "Global Gumbel", "Global Gumbel Method", "A analysis method using the Gumbel extreme value distribution that uses longest runs over a whole genome instead of individual genes.", ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
         self.minread = minread
 
 

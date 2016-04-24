@@ -12,12 +12,91 @@ except AttributeError as e:
     newWx = False
 
 
+
+
+class AnalysisGUI:
+    
+    def __init__(self, sn, ln, desc, wxobj):
+        self.wxobj =  wxobj
+        self.short_name = sn
+        self.long_name = ln
+        self.description = desc
+        self.wxobj = wxobj
+        self.panel = self.getPanel()
+        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
+
+
+    def __str__(self):
+        return """Method GUI:
+    short name: %s
+    long name: %s
+    description: %s""" % (self.short_name, self.long_name, self.description)
+
+    def fullname(self):
+        return "[%s]  -  %s" % (self.short_name, self.long_name)
+
+    def Hide(self):
+        self.panel.Hide()
+
+    def Show(self):
+        self.panel.Show()
+
+    def Enable(self):
+        #self.panel.Button.Enable()
+        self.panel.Enable()
+
+
+    def getInstructions(self):
+        return """Instructions:
+
+1. Make sure you have one control sample selected.
+2. Modify the options as desired.
+3. Click on the "Run" button.
+4. Choose a name for the output file.
+5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.
+                """
+
+
+
+    def getPanel(self):
+        #TODO: write docstring
+        #raise NotImplementedError
+        wPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+
+        Section = wx.BoxSizer( wx.VERTICAL )
+
+        #print self.wxobj
+        #print wx.ID_ANY
+        Label = wx.StaticText(wPanel, id=wx.ID_ANY, label=str("Options"), pos=wx.DefaultPosition, size=wx.DefaultSize, style=0 )
+        Label.Wrap( -1 )
+        Section.Add( Label, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        
+        Sizer1 = wx.BoxSizer( wx.HORIZONTAL )
+
+        Section.Add( Sizer1, 1, wx.EXPAND, 5 )
+        
+        Button = wx.Button( wPanel, wx.ID_ANY, u"Run", wx.DefaultPosition, wx.DefaultSize, 0 )
+        Section.Add( Button, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        
+        wPanel.SetSizer( Section )
+        wPanel.Layout()
+        Section.Fit( wPanel )
+
+        #Connect events
+        Button.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
+
+
+        return wPanel
+
+
+
+
 class AnalysisMethod:
     '''
     Basic class for analysis methods. Inherited by SingleMethod and ComparisonMethod.
     '''
     
-    def __init__(self,short_name, long_name, description, output, annotation_path, wxobj=None):
+    def __init__(self, short_name, long_name, description, output, annotation_path, wxobj=None):
         self.short_name = short_name
         self.long_name = long_name
         self.description = description

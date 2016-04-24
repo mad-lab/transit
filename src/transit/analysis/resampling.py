@@ -19,91 +19,72 @@ import transit.stat_tools as stat_tools
 
 
 ############# GUI ELEMENTS ##################
-def Hide(wxobj):
-    wxobj.resamplingPanel.Hide()
 
-def Show(wxobj):
-    wxobj.resamplingPanel.Show()
-
-def getInstructions():
-        return """Instructions:
-
-1. Make sure you have one control sample selected.
-2. Modify the options as desired.
-3. Click on the "Run Resampling" button.
-4. Choose a name for the output file.
-5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.
-                """
+short_name = "resampling"
+long_name = "Resampling test of conditional essentiality."
+description = "Resampling method based on the permutation test"
 
 
+class resamplingGUI(base.AnalysisGUI):
 
-def getPanel(wxobj):
-    wxobj.resamplingPanel = wx.Panel( wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-    #wxobj.resamplingPanel.SetMinSize( wx.Size( 50,1 ) )
-    #wxobj.resamplingPanel.SetMaxSize( wx.Size( 250,-1 ) )
-
-
-    resamplingSizer = wx.BoxSizer( wx.VERTICAL )
-
-    wxobj.resamplingLabel = wx.StaticText( wxobj.resamplingPanel, wx.ID_ANY, u"resampling Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.resamplingLabel.Wrap( -1 )
-    resamplingSizer.Add( wxobj.resamplingLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-    resamplingTopSizer = wx.BoxSizer( wx.HORIZONTAL )
-
-    resamplingTopSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-
-    resamplingLabelSizer = wx.BoxSizer( wx.VERTICAL )
-
-    wxobj.resamplingSampleLabel = wx.StaticText( wxobj.resamplingPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.resamplingSampleLabel.Wrap( -1 )
-    resamplingLabelSizer.Add( wxobj.resamplingSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-    wxobj.resamplingNormLabel = wx.StaticText( wxobj.resamplingPanel, wx.ID_ANY, u"Normalization", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.resamplingNormLabel.Wrap( -1 )
-    resamplingLabelSizer.Add( wxobj.resamplingNormLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-    resamplingTopSizer2.Add( resamplingLabelSizer, 1, wx.EXPAND, 5 )
-
-    resamplingControlSizer = wx.BoxSizer( wx.VERTICAL )
-
-    wxobj.resamplingSampleText = wx.TextCtrl( wxobj.resamplingPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
-    resamplingControlSizer.Add( wxobj.resamplingSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-    resamplingNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
-    wxobj.resamplingNormChoice = wx.Choice( wxobj.resamplingPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, resamplingNormChoiceChoices, 0 )
-    wxobj.resamplingNormChoice.SetSelection( 0 )
-    resamplingControlSizer.Add( wxobj.resamplingNormChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+    def __init__(self, wxobj):
+        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
 
 
-    resamplingTopSizer2.Add( resamplingControlSizer, 1, wx.EXPAND, 5 )
+    def getPanel(self):
+        resamplingPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
-    resamplingTopSizer.Add( resamplingTopSizer2, 1, wx.EXPAND, 5 )
+        resamplingSizer = wx.BoxSizer( wx.VERTICAL )
 
-    resamplingSizer.Add( resamplingTopSizer, 1, wx.EXPAND, 5 )
+        resamplingLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"resampling Options", wx.DefaultPosition, wx.DefaultSize, 0 )
+        resamplingLabel.Wrap( -1 )
+        resamplingSizer.Add( resamplingLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-    wxobj.resamplingButton = wx.Button( wxobj.resamplingPanel, wx.ID_ANY, u"Run resampling", wx.DefaultPosition, wx.DefaultSize, 0 )
-    resamplingSizer.Add( wxobj.resamplingButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        resamplingTopSizer = wx.BoxSizer( wx.HORIZONTAL )
+
+        resamplingTopSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+
+        resamplingLabelSizer = wx.BoxSizer( wx.VERTICAL )
+
+        resamplingSampleLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
+        resamplingSampleLabel.Wrap( -1 )
+        resamplingLabelSizer.Add( resamplingSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+        resamplingNormLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Normalization", wx.DefaultPosition, wx.DefaultSize, 0 )
+        resamplingNormLabel.Wrap( -1 )
+        resamplingLabelSizer.Add( resamplingNormLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+        resamplingTopSizer2.Add( resamplingLabelSizer, 1, wx.EXPAND, 5 )
+
+        resamplingControlSizer = wx.BoxSizer( wx.VERTICAL )
+
+        self.wxobj.resamplingSampleText = wx.TextCtrl( resamplingPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
+        resamplingControlSizer.Add( self.wxobj.resamplingSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+        resamplingNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
+        self.wxobj.resamplingNormChoice = wx.Choice( resamplingPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, resamplingNormChoiceChoices, 0 )
+        self.wxobj.resamplingNormChoice.SetSelection( 0 )
+        resamplingControlSizer.Add( self.wxobj.resamplingNormChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+
+        resamplingTopSizer2.Add( resamplingControlSizer, 1, wx.EXPAND, 5 )
+
+        resamplingTopSizer.Add( resamplingTopSizer2, 1, wx.EXPAND, 5 )
+
+        resamplingSizer.Add( resamplingTopSizer, 1, wx.EXPAND, 5 )
+
+        resamplingButton = wx.Button( resamplingPanel, wx.ID_ANY, u"Run resampling", wx.DefaultPosition, wx.DefaultSize, 0 )
+        resamplingSizer.Add( resamplingButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
  
-    wxobj.resamplingPanel.SetSizer( resamplingSizer )
-    wxobj.resamplingPanel.Layout()
-    resamplingSizer.Fit( wxobj.resamplingPanel )
+        resamplingPanel.SetSizer( resamplingSizer )
+        resamplingPanel.Layout()
+        resamplingSizer.Fit( resamplingPanel )
 
-    #Connect events
-    wxobj.resamplingButton.Bind( wx.EVT_BUTTON, wxobj.RunMethod )
+        #Connect events
+        resamplingButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
-    return wxobj.resamplingPanel
-
-
-def updateProgressBar(wxobj, count):
-    wxobj.resamplingProgress.SetValue(count)
-
-def SetProgressRange(wxobj, X):
-    wxobj.resamplingProgress.SetRange(X)
-
-def enableButton(wxobj):
-    wxobj.resamplingButton.Enable()
+        return resamplingPanel
 
 
 
@@ -160,7 +141,7 @@ class Resampling(base.DualConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.DualConditionMethod.__init__(self, "Resampling", "resampling Method", "The permutation test to determing change in read-counts between conditions.", ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.DualConditionMethod.__init__(self, short_name, long_name, description, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         self.samples = samples
         self.adaptive = adaptive

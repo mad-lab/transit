@@ -30,7 +30,30 @@ class MainFrame ( wx.Frame ):
         self.m_scrolledWindow2.SetMinSize( wx.Size( 700,-1 ) )
         
         bSizer4 = wx.BoxSizer( wx.VERTICAL )
+       
+
+        #Method choice
+        choiceSizer = wx.StaticBoxSizer( wx.StaticBox( self.m_scrolledWindow2, wx.ID_ANY, u"Method" ), wx.VERTICAL )
+
+        choiceSizer_H = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.methodChoiceStaticText = wx.StaticText( self.m_scrolledWindow2, wx.ID_ANY, u"Method Choice:", wx.DefaultPosition, wx.DefaultSize, 0 ) 
+        self.methodChoiceStaticText.Wrap( -1 )
+
+        choiceSizer_H.Add(self.methodChoiceStaticText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+
+        methodChoiceChoices = [ u"[Choose Method]"]
+        self.methodChoice = wx.Choice( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, methodChoiceChoices, 0 )
+        self.methodChoice.SetSelection( 0 )
+        choiceSizer_H.Add( self.methodChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
         
+        
+        choiceSizer.Add(choiceSizer_H, 1, wx.EXPAND, 5 )
+        bSizer4.Add( choiceSizer, 0, wx.EXPAND, 5 )
+
+
+        # Organism
         orgSizer = wx.StaticBoxSizer( wx.StaticBox( self.m_scrolledWindow2, wx.ID_ANY, u"Organism" ), wx.VERTICAL )
         
         bSizer10 = wx.BoxSizer( wx.HORIZONTAL )
@@ -47,7 +70,6 @@ class MainFrame ( wx.Frame ):
         self.m_panel2.SetMaxSize( wx.Size( 150,-1 ) )
         
         bSizer10.Add( self.m_panel2, 1, wx.EXPAND |wx.ALL, 5 )
-        
         
         orgSizer.Add( bSizer10, 1, wx.EXPAND, 5 )
         
@@ -177,42 +199,42 @@ class MainFrame ( wx.Frame ):
         self.m_scrolledWindow1.SetScrollRate( 5, 5 )
         self.m_scrolledWindow1.SetMinSize( wx.Size( 310,1000 ) )
         
-        methodSizer = wx.StaticBoxSizer( wx.StaticBox( self.m_scrolledWindow1, wx.ID_ANY, u"Methods" ), wx.VERTICAL )
+        self.methodSizer = wx.StaticBoxSizer( wx.StaticBox( self.m_scrolledWindow1, wx.ID_ANY, u"Methods" ), wx.VERTICAL )
         
-        methodSizer.SetMinSize( wx.Size( 250,-1 ) ) 
+        self.methodSizer.SetMinSize( wx.Size( 250,-1 ) ) 
         self.m_staticText13 = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Tn-Seq\nAnalysis", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText13.Wrap( -1 )
         self.m_staticText13.SetFont( wx.Font( 20, 74, 90, 92, False, "Sans" ) )
         self.m_staticText13.Hide()
         
-        methodSizer.Add( self.m_staticText13, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        self.methodSizer.Add( self.m_staticText13, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
         self.logoImg = wx.StaticBitmap( self.m_scrolledWindow1, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-        methodSizer.Add( self.logoImg, 0, wx.ALL, 5 )
+        self.methodSizer.Add( self.logoImg, 0, wx.ALL, 5 )
         
         self.versionLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"v1.4.3", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
         self.versionLabel.Wrap( -1 )
         self.versionLabel.SetFont( wx.Font( 10, 74, 90, 92, False, "Sans" ) )
         
-        methodSizer.Add( self.versionLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        self.methodSizer.Add( self.versionLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
-        methodChoiceChoices = [ u"[Choose Method]"]
-        self.methodChoice = wx.Choice( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, methodChoiceChoices, 0 )
-        self.methodChoice.SetSelection( 0 )
-        methodSizer.Add( self.methodChoice, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        #methodChoiceChoices = [ u"[Choose Method]"]
+        #self.methodChoice = wx.Choice( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, methodChoiceChoices, 0 )
+        #self.methodChoice.SetSelection( 0 )
+        #methodSizer.Add( self.methodChoice, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
        
         self.mainInstructions = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Instructions:\n\n1. Choose the annotation file (\"prot table\") that corresponds to the datasets to be analyzed.\n2. Add the desired Control and Experimental datasets.\n3. (Optional) If you wish to visualize their read counts, select the desired datasets and click on the \"View\" button.\n4. Select the desired analysis method from the dropdown menu on the top-right of the window, and follow its instructions.\n", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.mainInstructions.Wrap( 250 )
-        methodSizer.Add( self.mainInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        self.methodSizer.Add( self.mainInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
         self.m_panel1 = wx.Panel( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.m_panel1.SetMinSize( wx.Size( 50,1 ) )
         
-        methodSizer.Add( self.m_panel1, 0, wx.ALL, 5 )
+        self.methodSizer.Add( self.m_panel1, 0, wx.ALL, 5 )
         
         self.globalLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Global Options", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalLabel.Wrap( -1 )
-        methodSizer.Add( self.globalLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        self.methodSizer.Add( self.globalLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
         self.globalPanel = wx.Panel( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.globalPanel.SetMinSize( wx.Size( 50,90 ) )
@@ -253,38 +275,40 @@ class MainFrame ( wx.Frame ):
         self.globalPanel.SetSizer( bSizer1431 )
         self.globalPanel.Layout()
         bSizer1431.Fit( self.globalPanel )
-        methodSizer.Add( self.globalPanel, 0, wx.ALL|wx.EXPAND, 5 )
+        self.methodSizer.Add( self.globalPanel, 0, wx.ALL|wx.EXPAND, 5 )
 
 
+        #print self.gui
+        #gui = transit.analysis.defineGUI()
         #Add Methods
-        for method in transit.analysis.methods:
-            methodSizer.Add( transit.analysis.methods[method]["module"].getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
+        #for method in transit.analysis.methods:
+        #    methodSizer.Add( transit.analysis.methods[method]["module"].getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
         
 
 
         #-------------------#
         # Progress
 
-        self.progressPanel = wx.Panel( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        progressSizer = wx.BoxSizer( wx.VERTICAL )
+        #self.progressPanel = wx.Panel( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        #self.progressSizer = wx.BoxSizer( wx.VERTICAL )
 
-        self.progressLabel = wx.StaticText( self.progressPanel, wx.ID_ANY, u"Progress", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.progressLabel.Wrap( -1 )
-        progressSizer.Add( self.progressLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        #self.progressLabel = wx.StaticText( self.progressPanel, wx.ID_ANY, u"Progress", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #self.progressLabel.Wrap( -1 )
+        #self.progressSizer.Add( self.progressLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-        self.progress = wx.Gauge( self.progressPanel, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
-        progressSizer.Add( self.progress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        #self.progress = wx.Gauge( self.progressPanel, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
+        #self.progressSizer.Add( self.progress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-        self.progressPanel.SetSizer( progressSizer )
-        self.progressPanel.Layout()
-        progressSizer.Fit( self.progressPanel )
-        methodSizer.Add( self.progressPanel, 1, wx.EXPAND |wx.ALL, 5 )
+        #self.progressPanel.SetSizer( self.progressSizer )
+        #self.progressPanel.Layout()
+        #self.progressSizer.Fit( self.progressPanel )
+        #self.methodSizer.Add( self.progressPanel, 1, wx.EXPAND |wx.ALL, 5 )
 
         #--------------------#
 
-        self.m_scrolledWindow1.SetSizer( methodSizer )
+        self.m_scrolledWindow1.SetSizer( self.methodSizer )
         self.m_scrolledWindow1.Layout()
-        methodSizer.Fit( self.m_scrolledWindow1 )
+        self.methodSizer.Fit( self.m_scrolledWindow1 )
         bSizer1.Add( self.m_scrolledWindow1, 0, wx.ALL, 5 )
         
         #--------------------#        

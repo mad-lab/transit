@@ -16,85 +16,66 @@ import transit.stat_tools as stat_tools
 
 #method_name = "binomial"
 
-
 ############# GUI ELEMENTS ##################
-def Hide(wxobj):
-    wxobj.binomialPanel.Hide()
 
-def Show(wxobj):
-    wxobj.binomialPanel.Show()
-
-def getInstructions():
-        return """Instructions:
-
-1. Make sure you have one control sample selected.
-2. Modify the options as desired.
-3. Click on the "Run binomial" button.
-4. Choose a name for the output file.
-5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.
-                """
+short_name = "binomial"
+long_name = "Hierarchical binomial model of essentiality with individual frequencies."
+description = "Hierarchical Binomial Method"
 
 
+class BinomialGUI(base.AnalysisGUI):
 
-def getPanel(wxobj):
-    wxobj.binomialPanel = wx.Panel( wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-    #wxobj.binomialPanel.SetMinSize( wx.Size( 50,1 ) )
-    #wxobj.binomialPanel.SetMaxSize( wx.Size( 250,-1 ) )
+    def __init__(self, wxobj):
+        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
 
-    binomialSection = wx.BoxSizer( wx.VERTICAL )
 
-    wxobj.binomialLabel = wx.StaticText( wxobj.binomialPanel, wx.ID_ANY, u"Binomial Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.binomialLabel.Wrap( -1 )
-    binomialSection.Add( wxobj.binomialLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+    def getPanel(self):
+        binomialPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
-    binomialSizer1 = wx.BoxSizer( wx.HORIZONTAL )
-    binomialSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-    binomialLabelSizer = wx.BoxSizer( wx.VERTICAL )
-    binomialControlSizer = wx.BoxSizer( wx.VERTICAL )
+        binomialSection = wx.BoxSizer( wx.VERTICAL )
+
+        binomialLabel = wx.StaticText( binomialPanel, wx.ID_ANY, u"Binomial Options", wx.DefaultPosition, wx.DefaultSize, 0 )
+        binomialLabel.Wrap( -1 )
+        binomialSection.Add( binomialLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        binomialSizer1 = wx.BoxSizer( wx.HORIZONTAL )
+        binomialSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+        binomialLabelSizer = wx.BoxSizer( wx.VERTICAL )
+        binomialControlSizer = wx.BoxSizer( wx.VERTICAL )
     
-    #Samples 
-    wxobj.binomialSampleLabel = wx.StaticText( wxobj.binomialPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.binomialSampleLabel.Wrap(-1)
-    binomialLabelSizer.Add(wxobj.binomialSampleLabel, 1, wx.ALL, 5)
-    wxobj.binomialSampleText = wx.TextCtrl( wxobj.binomialPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
-    binomialControlSizer.Add(wxobj.binomialSampleText, 0, wx.ALL|wx.EXPAND, 5)
+        #Samples 
+        binomialSampleLabel = wx.StaticText( binomialPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
+        binomialSampleLabel.Wrap(-1)
+        binomialLabelSizer.Add(binomialSampleLabel, 1, wx.ALL, 5)
+        self.wxobj.binomialSampleText = wx.TextCtrl( binomialPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
+        binomialControlSizer.Add(self.wxobj.binomialSampleText, 0, wx.ALL|wx.EXPAND, 5)
 
-    #Burnin 
-    wxobj.binomialBurnLabel = wx.StaticText( wxobj.binomialPanel, wx.ID_ANY, u"Burn-in", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.binomialBurnLabel.Wrap(-1)
-    binomialLabelSizer.Add(wxobj.binomialBurnLabel, 1, wx.ALL, 5)
-    wxobj.binomialBurnText = wx.TextCtrl( wxobj.binomialPanel, wx.ID_ANY, u"500", wx.DefaultPosition, wx.DefaultSize, 0 )
-    binomialControlSizer.Add(wxobj.binomialBurnText, 0, wx.ALL|wx.EXPAND, 5)
-
-
-    binomialSizer2.Add(binomialLabelSizer, 1, wx.EXPAND, 5)
-    binomialSizer2.Add(binomialControlSizer, 1, wx.EXPAND, 5)
-    binomialSizer1.Add(binomialSizer2, 1, wx.EXPAND, 5 )
+        #Burnin 
+        binomialBurnLabel = wx.StaticText( binomialPanel, wx.ID_ANY, u"Burn-in", wx.DefaultPosition, wx.DefaultSize, 0 )
+        binomialBurnLabel.Wrap(-1)
+        binomialLabelSizer.Add(binomialBurnLabel, 1, wx.ALL, 5)
+        self.wxobj.binomialBurnText = wx.TextCtrl( binomialPanel, wx.ID_ANY, u"500", wx.DefaultPosition, wx.DefaultSize, 0 )
+        binomialControlSizer.Add(self.wxobj.binomialBurnText, 0, wx.ALL|wx.EXPAND, 5)
 
 
-    binomialSection.Add( binomialSizer1, 1, wx.EXPAND, 5 )
-
-    wxobj.binomialButton = wx.Button( wxobj.binomialPanel, wx.ID_ANY, u"Run binomial", wx.DefaultPosition, wx.DefaultSize, 0 )
-    binomialSection.Add( wxobj.binomialButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-    wxobj.binomialPanel.SetSizer( binomialSection )
-    wxobj.binomialPanel.Layout()
-    binomialSection.Fit( wxobj.binomialPanel )
-
-    #Connect events
-    wxobj.binomialButton.Bind( wx.EVT_BUTTON, wxobj.RunMethod )
-
-    return wxobj.binomialPanel
+        binomialSizer2.Add(binomialLabelSizer, 1, wx.EXPAND, 5)
+        binomialSizer2.Add(binomialControlSizer, 1, wx.EXPAND, 5)
+        binomialSizer1.Add(binomialSizer2, 1, wx.EXPAND, 5 )
 
 
-def updateProgressBar(wxobj, count):
-    wxobj.binomialProgress.SetValue(count)
+        binomialSection.Add( binomialSizer1, 1, wx.EXPAND, 5 )
 
-def SetProgressRange(wxobj, X):
-    wxobj.binomialProgress.SetRange(X)
+        binomialButton = wx.Button( binomialPanel, wx.ID_ANY, u"Run binomial", wx.DefaultPosition, wx.DefaultSize, 0 )
+        binomialSection.Add( binomialButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-def enableButton(wxobj):
-    wxobj.binomialButton.Enable()
+        binomialPanel.SetSizer( binomialSection )
+        binomialPanel.Layout()
+        binomialSection.Fit( binomialPanel )
+
+        #Connect events
+        binomialButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
+
+        return binomialPanel
 
 
 
@@ -143,7 +124,7 @@ class Binomial(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, "binomial", "Binomial Method", "A basic binomial method to show how you could add your own method to TRANSIT.", ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         self.samples = samples
         self.burnin = burnin

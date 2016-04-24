@@ -18,85 +18,64 @@ import transit.stat_tools as stat_tools
 
 
 ############# GUI ELEMENTS ##################
-def Hide(wxobj):
-    wxobj.hmmPanel.Hide()
 
-def Show(wxobj):
-    wxobj.hmmPanel.Show()
+short_name = "hmm"
+long_name = "Analysis of genomic regions using a Hidden Markov Model"
+description = "Analysis of entire regions using HMM"
 
-def getInstructions():
-        return """Instructions:
+class hmmGUI(base.AnalysisGUI):
 
-1. Make sure you have one control sample selected.
-2. Modify the options as desired.
-3. Click on the "Run HMM" button.
-4. Choose a name for the output file.
-5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.
-                """
+    def __init__(self, wxobj):
+        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
 
 
+    def getPanel(self):
+        hmmPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
-def getPanel(wxobj):
-    wxobj.hmmPanel = wx.Panel( wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-    #wxobj.hmmPanel.SetMinSize( wx.Size( 50,1 ) )
-    #wxobj.hmmPanel.SetMaxSize( wx.Size( 250,-1 ) )
+        hmmSection = wx.BoxSizer( wx.VERTICAL )
 
-    hmmSection = wx.BoxSizer( wx.VERTICAL )
+        hmmLabel = wx.StaticText( hmmPanel, wx.ID_ANY, u"HMM Options", wx.DefaultPosition, wx.DefaultSize, 0 )
+        hmmLabel.Wrap( -1 )
+        hmmSection.Add( hmmLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-    wxobj.hmmLabel = wx.StaticText( wxobj.hmmPanel, wx.ID_ANY, u"HMM Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.hmmLabel.Wrap( -1 )
-    hmmSection.Add( wxobj.hmmLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-    hmmSizer1 = wx.BoxSizer( wx.HORIZONTAL )
-    hmmSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-    hmmLabelSizer = wx.BoxSizer( wx.VERTICAL )
-    hmmControlSizer = wx.BoxSizer( wx.VERTICAL )
+        hmmSizer1 = wx.BoxSizer( wx.HORIZONTAL )
+        hmmSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+        hmmLabelSizer = wx.BoxSizer( wx.VERTICAL )
+        hmmControlSizer = wx.BoxSizer( wx.VERTICAL )
 
 
-    wxobj.hmmRepLabel = wx.StaticText( wxobj.hmmPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.hmmRepLabel.Wrap(-1)
-    hmmLabelSizer.Add(wxobj.hmmRepLabel, 1, wx.ALL, 5)
+        hmmRepLabel = wx.StaticText( hmmPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
+        hmmRepLabel.Wrap(-1)
+        hmmLabelSizer.Add(hmmRepLabel, 1, wx.ALL, 5)
 
 
-    hmmRepChoiceChoices = [ u"Sum", u"Mean", "TTRMean" ]
-    wxobj.hmmRepChoice = wx.Choice( wxobj.hmmPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, hmmRepChoiceChoices, 0 )
-    wxobj.hmmRepChoice.SetSelection( 2 )
+        hmmRepChoiceChoices = [ u"Sum", u"Mean", "TTRMean" ]
+        self.wxobj.hmmRepChoice = wx.Choice( hmmPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, hmmRepChoiceChoices, 0 )
+        self.wxobj.hmmRepChoice.SetSelection( 2 )
 
-    hmmControlSizer.Add(wxobj.hmmRepChoice, 0, wx.ALL|wx.EXPAND, 5)
+        hmmControlSizer.Add(self.wxobj.hmmRepChoice, 0, wx.ALL|wx.EXPAND, 5)
 
 
-    hmmSizer2.Add(hmmLabelSizer, 1, wx.EXPAND, 5)
-    hmmSizer2.Add(hmmControlSizer, 1, wx.EXPAND, 5)
+        hmmSizer2.Add(hmmLabelSizer, 1, wx.EXPAND, 5)
+        hmmSizer2.Add(hmmControlSizer, 1, wx.EXPAND, 5)
             
-    hmmSizer1.Add(hmmSizer2, 1, wx.EXPAND, 5 )
+        hmmSizer1.Add(hmmSizer2, 1, wx.EXPAND, 5 )
 
 
-    hmmSection.Add( hmmSizer1, 1, wx.EXPAND, 5 )
+        hmmSection.Add( hmmSizer1, 1, wx.EXPAND, 5 )
 
-    wxobj.hmmButton = wx.Button( wxobj.hmmPanel, wx.ID_ANY, u"Run HMM", wx.DefaultPosition, wx.DefaultSize, 0 )
-    hmmSection.Add( wxobj.hmmButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-
+        hmmButton = wx.Button( hmmPanel, wx.ID_ANY, u"Run HMM", wx.DefaultPosition, wx.DefaultSize, 0 )
+        hmmSection.Add( hmmButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
 
-    wxobj.hmmPanel.SetSizer( hmmSection )
-    wxobj.hmmPanel.Layout()
-    hmmSection.Fit( wxobj.hmmPanel )
+        hmmPanel.SetSizer( hmmSection )
+        hmmPanel.Layout()
+        hmmSection.Fit( hmmPanel )
 
-    #Connect events
-    wxobj.hmmButton.Bind( wx.EVT_BUTTON, wxobj.RunMethod )
+        #Connect events
+        hmmButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
-    return wxobj.hmmPanel
-
-
-def updateProgressBar(wxobj, count):
-    wxobj.hmmProgress.SetValue(count)
-
-def SetProgressRange(wxobj, X):
-    wxobj.hmmProgress.SetRange(X)
-
-def enableButton(wxobj):
-    wxobj.hmmButton.Enable()
+        return hmmPanel
 
 
 
@@ -179,7 +158,7 @@ class HMM(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, "HMM", "HMM Method", "The HMM method described in 2013 by DeJesus et al.", ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         try:
             T = len([1 for line in open(ctrldata[0]).readlines() if not line.startswith("#")])

@@ -18,78 +18,40 @@ import transit.stat_tools as stat_tools
 
 
 ############# GUI ELEMENTS ##################
-def Hide(wxobj):
-    wxobj.griffinPanel.Hide()
 
-def Show(wxobj):
-    wxobj.griffinPanel.Show()
+short_name = "griffin"
+long_name = "Basic frequentist analysis of essentiality using gaps."
+description = "Analysis of gaps used in Griffin et al. 2011"
 
-def getInstructions():
-        return """Instructions:
+class GriffinGUI(base.AnalysisGUI):
 
-1. Make sure you have one control sample selected.
-2. Modify the options as desired.
-3. Click on the "Run griffin" button.
-4. Choose a name for the output file.
-5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.
-                """
+    def __init__(self, wxobj):
+        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
 
+    def getPanel(self):
+        griffinPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
+        griffinSection = wx.BoxSizer( wx.VERTICAL )
 
-def getPanel(wxobj):
-    wxobj.griffinPanel = wx.Panel( wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-    #wxobj.griffinPanel.SetMinSize( wx.Size( 50,1 ) )
-    #wxobj.griffinPanel.SetMaxSize( wx.Size( 250,-1 ) )
+        griffinLabel = wx.StaticText( griffinPanel, wx.ID_ANY, u"griffin Options", wx.DefaultPosition, wx.DefaultSize, 0 )
+        griffinLabel.Wrap( -1 )
+        griffinSection.Add( griffinLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-    griffinSection = wx.BoxSizer( wx.VERTICAL )
+        griffinSizer1 = wx.BoxSizer( wx.HORIZONTAL )
 
-    wxobj.griffinLabel = wx.StaticText( wxobj.griffinPanel, wx.ID_ANY, u"griffin Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.griffinLabel.Wrap( -1 )
-    griffinSection.Add( wxobj.griffinLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        griffinSection.Add( griffinSizer1, 1, wx.EXPAND, 5 )
 
-    griffinSizer1 = wx.BoxSizer( wx.HORIZONTAL )
-    #griffinSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-    #griffinLabelSizer = wx.BoxSizer( wx.VERTICAL )
-    #griffinControlSizer = wx.BoxSizer( wx.VERTICAL )
-    
-    
-    #wxobj.griffinRepLabel = wx.StaticText( wxobj.griffinPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
-    #wxobj.griffinRepLabel.Wrap(-1)
-    #griffinLabelSizer.Add(wxobj.griffinRepLabel, 1, wx.ALL, 5)
-    #griffinRepChoiceChoices = [ u"Sum", u"Mean", "TTRMean" ]
-    #wxobj.griffinRepChoice = wx.Choice( wxobj.griffinPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, griffinRepChoiceChoices, 0 )
-    #wxobj.griffinRepChoice.SetSelection( 2 )
-    #griffinControlSizer.Add(wxobj.griffinRepChoice, 0, wx.ALL|wx.EXPAND, 5)
-    #griffinSizer2.Add(griffinLabelSizer, 1, wx.EXPAND, 5)
-    #griffinSizer2.Add(griffinControlSizer, 1, wx.EXPAND, 5)
-    #griffinSizer1.Add(griffinSizer2, 1, wx.EXPAND, 5 )
+        griffinButton = wx.Button( griffinPanel, wx.ID_ANY, u"Run griffin", wx.DefaultPosition, wx.DefaultSize, 0 )
+        griffinSection.Add( griffinButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
+        griffinPanel.SetSizer( griffinSection )
+        griffinPanel.Layout()
+        griffinSection.Fit( griffinPanel )
 
-    griffinSection.Add( griffinSizer1, 1, wx.EXPAND, 5 )
+        #Connect events
+        griffinButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
-    wxobj.griffinButton = wx.Button( wxobj.griffinPanel, wx.ID_ANY, u"Run griffin", wx.DefaultPosition, wx.DefaultSize, 0 )
-    griffinSection.Add( wxobj.griffinButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-    wxobj.griffinPanel.SetSizer( griffinSection )
-    wxobj.griffinPanel.Layout()
-    griffinSection.Fit( wxobj.griffinPanel )
-
-    #Connect events
-    wxobj.griffinButton.Bind( wx.EVT_BUTTON, wxobj.RunMethod )
-
-    return wxobj.griffinPanel
-
-
-def updateProgressBar(wxobj, count):
-    wxobj.griffinProgress.SetValue(count)
-
-def SetProgressRange(wxobj, X):
-    wxobj.griffinProgress.SetRange(X)
-
-def enableButton(wxobj):
-    wxobj.griffinButton.Enable()
-
-
+        return griffinPanel
 
 
 
@@ -139,7 +101,7 @@ class Griffin(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, "griffin", "griffin Method", "A basic griffin method to show how you could add your own method to TRANSIT.", ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
 
 

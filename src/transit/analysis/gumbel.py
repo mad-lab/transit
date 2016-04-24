@@ -15,110 +15,97 @@ import transit.norm_tools as norm_tools
 import transit.stat_tools as stat_tools
 
 
-#method_name = "Gumbel"
-
 
 ############# GUI ELEMENTS ##################
-def Hide(wxobj):
-    wxobj.gumbelPanel.Hide()
 
-def Show(wxobj):
-    wxobj.gumbelPanel.Show()
-
-
-def enableButton(wxobj):
-    wxobj.gumbelButton.Show()
-
-def getInstructions():
-        return """Instructions:
-
-1. Make sure you have one control sample selected.
-2. Modify the options as desired.
-3. Click on the "Run Gumbel" button.
-4. Choose a name for the output file.
-5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.
-                """
-
-def getPanel(wxobj):
-    wxobj.gumbelPanel = wx.Panel( wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-    #wxobj.gumbelPanel.SetMinSize( wx.Size( 50,1 ) )
-    #wxobj.gumbelPanel.SetMaxSize( wx.Size( 250,-1 ) )
-
-    gumbelSection = wx.BoxSizer( wx.VERTICAL )
-
-    wxobj.gumbelLabel = wx.StaticText( wxobj.gumbelPanel, wx.ID_ANY, u"Gumbel Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.gumbelLabel.Wrap( -1 )
-    gumbelSection.Add( wxobj.gumbelLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-    bSizer14 = wx.BoxSizer( wx.HORIZONTAL )
-
-    bSizer15 = wx.BoxSizer( wx.HORIZONTAL )
-
-    bSizer16 = wx.BoxSizer( wx.VERTICAL )
-
-    wxobj.gumbelSampleLabel = wx.StaticText( wxobj.gumbelPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.gumbelSampleLabel.Wrap( -1 )
-    bSizer16.Add( wxobj.gumbelSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-    wxobj.gumbelBurninLabel = wx.StaticText( wxobj.gumbelPanel, wx.ID_ANY, u"Burn-In", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.gumbelBurninLabel.Wrap( -1 )
-    bSizer16.Add( wxobj.gumbelBurninLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-    wxobj.gumbelTrimLabel = wx.StaticText( wxobj.gumbelPanel, wx.ID_ANY, u"Trim", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.gumbelTrimLabel.Wrap( -1 )
-    bSizer16.Add( wxobj.gumbelTrimLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-    wxobj.gumbelReadLabel = wx.StaticText( wxobj.gumbelPanel, wx.ID_ANY, u"Minimum Read", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.gumbelReadLabel.Wrap( -1 )
-    bSizer16.Add( wxobj.gumbelReadLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-    wxobj.gumbelRepLabel = wx.StaticText( wxobj.gumbelPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
-    wxobj.gumbelRepLabel.Wrap( -1 )
-    bSizer16.Add( wxobj.gumbelRepLabel, 1, wx.ALL, 5 )
-
-    bSizer15.Add( bSizer16, 1, wx.EXPAND, 5 )
-
-    bSizer17 = wx.BoxSizer( wx.VERTICAL )
-
-    wxobj.gumbelSampleText = wx.TextCtrl( wxobj.gumbelPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
-    bSizer17.Add( wxobj.gumbelSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-    wxobj.gumbelBurninText = wx.TextCtrl( wxobj.gumbelPanel, wx.ID_ANY, u"500", wx.DefaultPosition, wx.DefaultSize, 0 )
-    bSizer17.Add( wxobj.gumbelBurninText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-    wxobj.gumbelTrimText = wx.TextCtrl( wxobj.gumbelPanel, wx.ID_ANY, u"1", wx.DefaultPosition, wx.DefaultSize, 0 )
-    bSizer17.Add( wxobj.gumbelTrimText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-    gumbelReadChoiceChoices = [ u"1", u"2", u"3", u"4", u"5" ]
-    wxobj.gumbelReadChoice = wx.Choice( wxobj.gumbelPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, gumbelReadChoiceChoices, 0 )
-    wxobj.gumbelReadChoice.SetSelection( 0 )
-    bSizer17.Add( wxobj.gumbelReadChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-    gumbelRepChoiceChoices = [ u"Sum", u"Mean" ]
-    wxobj.gumbelRepChoice = wx.Choice( wxobj.gumbelPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, gumbelRepChoiceChoices, 0 )
-    wxobj.gumbelRepChoice.SetSelection( 0 )
-    bSizer17.Add( wxobj.gumbelRepChoice, 0, wx.ALL|wx.EXPAND, 5 )
+short_name = "gumbel"
+long_name = "Bayesian analysis of essentiality based on long gaps."
+description = "Bayesian Methods of gaps."
 
 
-    bSizer15.Add( bSizer17, 1, wx.EXPAND, 5 )
+class GumbelGUI(base.AnalysisGUI):
 
+    def __init__(self, wxobj):
+        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
 
-    bSizer14.Add( bSizer15, 1, wx.EXPAND, 5 )
+    def getPanel(self):
+        gumbelPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        #wxobj.gumbelPanel.SetMinSize( wx.Size( 50,1 ) )
+        #wxobj.gumbelPanel.SetMaxSize( wx.Size( 250,-1 ) )
         
-    gumbelSection.Add( bSizer14, 1, wx.EXPAND, 5 )
+        gumbelSection = wx.BoxSizer( wx.VERTICAL )
+        
+        gumbelLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Gumbel Options", wx.DefaultPosition, wx.DefaultSize, 0 )
+        gumbelLabel.Wrap( -1 )
+        gumbelSection.Add( gumbelLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        
+        bSizer14 = wx.BoxSizer( wx.HORIZONTAL )
+        
+        bSizer15 = wx.BoxSizer( wx.HORIZONTAL )
 
-    wxobj.gumbelButton = wx.Button( wxobj.gumbelPanel, wx.ID_ANY, u"Run Gumbel", wx.DefaultPosition, wx.DefaultSize, 0 )
-    gumbelSection.Add( wxobj.gumbelButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        bSizer16 = wx.BoxSizer( wx.VERTICAL )
+        
+        gumbelSampleLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
+        gumbelSampleLabel.Wrap( -1 )
+        bSizer16.Add( gumbelSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        
+        gumbelBurninLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Burn-In", wx.DefaultPosition, wx.DefaultSize, 0 )
+        gumbelBurninLabel.Wrap( -1 )
+        bSizer16.Add( gumbelBurninLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
-    wxobj.gumbelPanel.SetSizer( gumbelSection )
-    wxobj.gumbelPanel.Layout()
-    gumbelSection.Fit( wxobj.gumbelPanel )
+        gumbelTrimLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Trim", wx.DefaultPosition, wx.DefaultSize, 0 )
+        gumbelTrimLabel.Wrap( -1 )
+        bSizer16.Add( gumbelTrimLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+        gumbelReadLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Minimum Read", wx.DefaultPosition, wx.DefaultSize, 0 )
+        gumbelReadLabel.Wrap( -1 )
+        bSizer16.Add( gumbelReadLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+        gumbelRepLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
+        gumbelRepLabel.Wrap( -1 )
+        bSizer16.Add( gumbelRepLabel, 1, wx.ALL, 5 )
+
+        bSizer15.Add( bSizer16, 1, wx.EXPAND, 5 )
+
+        bSizer17 = wx.BoxSizer( wx.VERTICAL )
+
+        self.wxobj.gumbelSampleText = wx.TextCtrl( gumbelPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer17.Add( self.wxobj.gumbelSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+        self.wxobj.gumbelBurninText = wx.TextCtrl( gumbelPanel, wx.ID_ANY, u"500", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer17.Add( self.wxobj.gumbelBurninText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+        self.wxobj.gumbelTrimText = wx.TextCtrl( gumbelPanel, wx.ID_ANY, u"1", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer17.Add( self.wxobj.gumbelTrimText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+        gumbelReadChoiceChoices = [ u"1", u"2", u"3", u"4", u"5" ]
+        self.wxobj.gumbelReadChoice = wx.Choice( gumbelPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, gumbelReadChoiceChoices, 0 )
+        self.wxobj.gumbelReadChoice.SetSelection( 0 )
+        bSizer17.Add( self.wxobj.gumbelReadChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+        gumbelRepChoiceChoices = [ u"Sum", u"Mean" ]
+        self.wxobj.gumbelRepChoice = wx.Choice( gumbelPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, gumbelRepChoiceChoices, 0 )
+        self.wxobj.gumbelRepChoice.SetSelection( 0 )
+        bSizer17.Add( self.wxobj.gumbelRepChoice, 0, wx.ALL|wx.EXPAND, 5 )
+
+        bSizer15.Add( bSizer17, 1, wx.EXPAND, 5 )
+
+        bSizer14.Add( bSizer15, 1, wx.EXPAND, 5 )
+        
+        gumbelSection.Add( bSizer14, 1, wx.EXPAND, 5 )
+
+        gumbelButton = wx.Button( gumbelPanel, wx.ID_ANY, u"Run Gumbel", wx.DefaultPosition, wx.DefaultSize, 0 )
+        gumbelSection.Add( gumbelButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        gumbelPanel.SetSizer( gumbelSection )
+        gumbelPanel.Layout()
+        gumbelSection.Fit( gumbelPanel )
 
 
-    #Connect events
-    wxobj.gumbelButton.Bind( wx.EVT_BUTTON, wxobj.RunMethod )
+        #Connect events
+        gumbelButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
-    return wxobj.gumbelPanel
+        return gumbelPanel
 
 
 
@@ -173,7 +160,7 @@ class Gumbel(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, "Gumbel", "Gumbel Method", "Gumbel method from DeJesus et al. (Bioinformatics, 2013)", ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
         self.samples = samples
         self.burnin = burnin
         self.trim = trim
