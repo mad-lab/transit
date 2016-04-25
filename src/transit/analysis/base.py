@@ -14,26 +14,38 @@ except AttributeError as e:
 
 
 
+class TransitFile:
+    #TODO write docstring
+
+    def __init__(self, identifier="#Unknown", colnames=[]):
+        #TODO write docstring
+        self.identifier = identifier
+        self.colnames = colnames
+
+    def getData(self, path, colnames):
+        #TODO write docstring
+        row = 0
+        data = []
+        for line in open(path):
+            if line.startswith("#"): continue
+            tmp = line.split("\t")
+            tmp[-1] = tmp[-1].strip()
+            rowdict = dict([(colnames[i], tmp[i]) for i in range(len(colnames))])
+            data.append((row, rowdict))
+            row+=1
+        return data
+
+    def getHeader(self, path):
+        #TODO write docstring
+        return "Generic Transit File Type."
+
+
 class AnalysisGUI:
     
-    def __init__(self, sn, ln, desc, wxobj):
-        self.wxobj =  wxobj
-        self.short_name = sn
-        self.long_name = ln
-        self.description = desc
-        self.wxobj = wxobj
-        self.panel = self.getPanel()
-        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
-
-
-    def __str__(self):
-        return """Method GUI:
-    short name: %s
-    long name: %s
-    description: %s""" % (self.short_name, self.long_name, self.description)
-
-    def fullname(self):
-        return "[%s]  -  %s" % (self.short_name, self.long_name)
+    def __init__(self):
+        self.wxobj = None
+        self.panel = None
+        #self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
 
     def Hide(self):
         self.panel.Hide()
@@ -42,17 +54,10 @@ class AnalysisGUI:
         self.panel.Show()
 
     def Enable(self):
-        #self.panel.Button.Enable()
         self.panel.Enable()
 
 
     def getInstructions(self):
-        return """ Description: 
-    %s
-                """ % (self.description)
-
-
-    def getInstructions_old(self):
         return """Instruction:
 
 1. Make sure you have one control sample selected.
@@ -64,21 +69,19 @@ class AnalysisGUI:
 
 
 
-    def getPanel(self):
+    def definePanel(self, wxobj):
         #TODO: write docstring
-        #raise NotImplementedError
+        
+        self.wxobj = wxobj
         wPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
         Section = wx.BoxSizer( wx.VERTICAL )
 
-        #print self.wxobj
-        #print wx.ID_ANY
         Label = wx.StaticText(wPanel, id=wx.ID_ANY, label=str("Options"), pos=wx.DefaultPosition, size=wx.DefaultSize, style=0 )
         Label.Wrap( -1 )
         Section.Add( Label, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
         Sizer1 = wx.BoxSizer( wx.HORIZONTAL )
-
         Section.Add( Sizer1, 1, wx.EXPAND, 5 )
         
         Button = wx.Button( wPanel, wx.ID_ANY, u"Run", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -90,10 +93,8 @@ class AnalysisGUI:
 
         #Connect events
         Button.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
-
-
-        return wPanel
-
+        self.panel = wPanel
+        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
 
 
 
@@ -112,10 +113,6 @@ class AnalysisMethod:
         self.newWx = newWx
         self.wxobj = wxobj
 
-
-    def __str__(self):
-        #TODO: write docstring
-        return "%s (%s): %s" % (self.long_name, self.short_name, self.description)
 
     @classmethod 
     def fromGUI(self, wxobj):
@@ -267,6 +264,35 @@ class DualConditionMethod(AnalysisMethod):
         self.CTerminus = CTerminus
 
 
+
+class TransitAnalysis:
+    def __init__(self, sn, ln, desc, tn, method_class=AnalysisMethod, gui_class=AnalysisGUI, filetypes=[TransitFile]):
+        self.short_name = sn
+        self.long_name = ln
+        self.description = desc
+        self.transposons = tn
+        self.method = method_class
+        self.gui = gui_class()
+        self.filetypes = filetypes
+
+
+    def __str__(self):
+        return """Analysis Method:
+    Short Name:  %s
+    Long Name:   %s
+    Description: %s
+    Method:      %s
+    GUI:         %s""" % (self.short_name, self.long_name, self.description, self.method, self.gui)
+
+
+    def fullname(self):
+        return "[%s]  -  %s" % (self.short_name, self.long_name)
+
+
+
+
+if __name__ == "__main__":
+    pass
 
 
 

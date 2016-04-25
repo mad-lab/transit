@@ -126,16 +126,12 @@ def unknownFileHeaderText(path):
 
 def getInfoFromFileType(X):
     for method in transit.analysis.methods:
-        try:
-            if X in transit.analysis.methods[method]["module"].FileTypes:
-                (tableFunc, colFunc, textHeaderList) = transit.analysis.methods[method]["module"].FileTypes[X]
-                return (method, tableFunc, colFunc, textHeaderList)
-        except:
-            continue
+        for filetype in transit.analysis.methods[method].filetypes:
+            FT = filetype()
+            if X == FT.identifier:
+                return (method, FT)
 
-    return ("unknown", unknownTableData, unknownColNames, [unknownFileHeaderText])
-
-
+    return ("unknown", transit.analysis.base.TransitFile())
 
     
 
@@ -221,20 +217,21 @@ class TransitGridFrame(wx.Frame):
 
 
         line = open(path).readline().strip()
-        (method, getTableData, getColumnNames, textHeaderList) = getInfoFromFileType(line)
+        (method, FT) = getInfoFromFileType(line)
 
-        if method == "unknown":
-            self.columnlabels = getColumnNames(path)
+        
+        if FT.identifier == "#Unknown":
+            self.columnlabels = unknownColNames(path)
         else:
-            self.columnlabels = getColumnNames()
-        data = getTableData(path, self.columnlabels)
+            self.columnlabels = FT.colnames
+
+        data = FT.getData(path, self.columnlabels)
 
         wxheader_list = []
-        for headerFunc in textHeaderList:
-            text = headerFunc(path)
-            wxheader_list.append(wx.StaticText( self, wx.ID_ANY, text, wx.DefaultPosition, wx.DefaultSize, 0 ))
-            wxheader_list[-1].Wrap( -1 )
-            sbSizer1.Add( wxheader_list[-1], 0, wx.ALL, 5 )
+        text = FT.getHeader(path)
+        wxheader_list.append(wx.StaticText( self, wx.ID_ANY, text, wx.DefaultPosition, wx.DefaultSize, 0 ))
+        wxheader_list[-1].Wrap( -1 )
+        sbSizer1.Add( wxheader_list[-1], 0, wx.ALL, 5 )
 
 
         self.grid = wx.grid.Grid(self, -1)

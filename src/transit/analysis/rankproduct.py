@@ -23,14 +23,32 @@ import transit.stat_tools as stat_tools
 short_name = "rankproduct"
 long_name = "Rank Product test for determining conditional essentiality."
 description = "Differential Comparison based on ranks"
-
-class rankproductGUI(base.AnalysisGUI):
-
-    def __init__(self, wxobj):
-        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
+transposons = ["himar1", "tn5"]
+columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC","Obs RP","pvalue","adj. pvalue"]
 
 
-    def getPanel(self):
+
+############# Analysis Method ##############
+
+class RankProductAnalysis(base.TransitAnalysis):
+    def __init__(self):
+        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, RankProductMethod, RankProductGUI, [RankProductFile])
+
+
+################## FILE ###################
+
+class RankProductFile(base.TransitFile):
+
+    def __init__(self):
+        base.TransitFile.__init__(self, "#RankProduct", columns)
+
+
+############# GUI ##################
+
+class RankProductGUI(base.AnalysisGUI):
+
+    def definePanel(self, wxobj):
+        self.wxobj = wxobj
         rankproductPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
     
         rankproductSizer = wx.BoxSizer( wx.VERTICAL )
@@ -83,14 +101,15 @@ class rankproductGUI(base.AnalysisGUI):
         #Connect events
         rankproductButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
-        return rankproductPanel
+        self.panel = rankproductPanel
+        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
 
 
 
 
 ########## CLASS #######################
 
-class Rankproduct(base.DualConditionMethod):
+class RankProductMethod(base.DualConditionMethod):
     """   
     rankproduct
  
@@ -368,7 +387,7 @@ class Rankproduct(base.DualConditionMethod):
         qval = stat_tools.BH_fdr_correction([row[-1] for row in data])
        
  
-        self.output.write("#rankproduct\n")
+        self.output.write("#RankProduct\n")
         if self.wxobj:
             members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
             memberstr = ""
@@ -381,11 +400,11 @@ class Rankproduct(base.DualConditionMethod):
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Time: %s\n" % (time.time() - start_time))
-        self.output.write("#Orf\tName\tDesc\tSites\tMean Ctrl\tMean Exp\tlog2FC\tObs RP\tpvalue\tadj. pvalue\n")
+        self.output.write("#%s\n" % (columns))
 
         for i,row in enumerate(data):
             (orf, name, desc, n, mean1, mean2, log2FCgene, obsRPgene, q_paper, pval_2tail) = row
-            self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.2f\t%1.7f\t%1.7f\t%1.7f\t%1.7f\n" % (orf, name, desc, n, mean1, mean2,log2FCgene, obsRPgene, pval_2tail, qval[i], q_paper))
+            self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.2f\t%1.7f\t%1.7f\t%1.7f\n" % (orf, name, desc, n, mean1, mean2,log2FCgene, obsRPgene, pval_2tail, qval[i]))
         self.output.close()
 
         self.transit_message("Adding File: %s" % (self.output.name))
@@ -425,7 +444,7 @@ if __name__ == "__main__":
 
     #TODO: Figure out issue with inputs (transit requires initial method name, running as script does not !!!!)
 
-    G = Rankproduct.fromargs(sys.argv[1:])
+    G = RankProductMethod.fromargs(sys.argv[1:])
 
     G.console_message("Printing the member variables:")   
     G.print_members()

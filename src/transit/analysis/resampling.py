@@ -24,14 +24,49 @@ short_name = "resampling"
 long_name = "Resampling test of conditional essentiality."
 description = """Method for determining conditional essentiality based on resampling (i.e. permutation test). Identifies significant changes in mean-readcounts after normalization."""
 
+transposons = ["himar1", "tn5"]
+columns = ["Orf","Name","Desc","Sites","Mean A","Mean B","Delta sum","log2FC","pvalue","adj. pvalue"]
 
-class resamplingGUI(base.AnalysisGUI):
+class ResamplingAnalysis(base.TransitAnalysis):
+    def __init__(self):
+        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, ResamplingMethod, ResamplingGUI, [ResamplingFile])
 
-    def __init__(self, wxobj):
-        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
 
 
-    def getPanel(self):
+############# FILE ##################
+
+class ResamplingFile(base.TransitFile):
+
+    def __init__(self):
+        base.TransitFile.__init__(self, "#Resampling", columns)
+
+    def getHeader(self, path):
+        DE=0; poslogfc=0; neglogfc=0;
+        for line in open(path):
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            if float(tmp[-1]) < 0.05:
+                DE +=1
+                if float(tmp[-3]) > 0:
+                    poslogfc+=1
+                else:
+                    neglogfc+=1
+
+        text = """Results:
+    Conditionally - Essentials: %s
+        More Essential in Experimental datasets: %s
+        Less Essential in Experimental datasets: %s
+            """ % (DE, poslogfc, neglogfc)
+        return text
+
+        
+
+############# GUI ##################
+
+class ResamplingGUI(base.AnalysisGUI):
+
+    def definePanel(self, wxobj):
+        self.wxobj = wxobj
         resamplingPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
         resamplingSizer = wx.BoxSizer( wx.VERTICAL )
@@ -84,44 +119,15 @@ class resamplingGUI(base.AnalysisGUI):
         #Connect events
         resamplingButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
-        return resamplingPanel
-
-
-
-
-def getColumnNames():
-    return ["Orf","Name","Desc","Sites","Mean A","Mean B","Delta sum","log2FC","pvalue","adj. pvalue"]
-
-def getFileHeaderText(path):
-    DE=0; poslogfc=0; neglogfc=0;
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        if float(tmp[-1]) < 0.05:
-            DE +=1
-            if float(tmp[-3]) > 0:
-                poslogfc+=1
-            else:
-                neglogfc+=1
-
-    text = """Results:
-    Conditionally - Essentials: %s
-        More Essential in Experimental datasets: %s
-        Less Essential in Experimental datasets: %s
-        """ % (DE, poslogfc, neglogfc)
-    return text
-
-
-
-FileTypes = {}
-FileTypes["#Resampling"] = (transit_tools.getTabTableData, getColumnNames, [getFileHeaderText])
+        self.panel = resamplingPanel
+        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
 
 
 
 
 ########## CLASS #######################
 
-class Resampling(base.DualConditionMethod):
+class ResamplingMethod(base.DualConditionMethod):
     """   
     resampling
  
@@ -368,7 +374,7 @@ if __name__ == "__main__":
 
     #TODO: Figure out issue with inputs (transit requires initial method name, running as script does not !!!!)
 
-    G = Resampling.fromargs(sys.argv[1:])
+    G = ResamplingMethod.fromargs(sys.argv[1:])
 
     G.console_message("Printing the member variables:")   
     G.print_members()

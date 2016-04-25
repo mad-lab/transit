@@ -124,12 +124,11 @@ class TnSeekFrame(transit_gui.MainFrame):
  
         #self.outputDirPicker.SetPath(os.path.dirname(os.path.realpath(__file__)))
 
-        self.gui = transit.analysis.defineGUI(self)
-
         methodChoiceChoices = [ "[Choose Method]"]
         for name in methods:
-            self.gui[name].Hide()
-            methodChoiceChoices.append(self.gui[name].fullname())
+            methods[name].gui.definePanel(self)
+            methods[name].gui.Hide()
+            methodChoiceChoices.append(methods[name].fullname())
 
         self.methodChoice.SetItems(methodChoiceChoices)
         self.methodChoice.SetSelection( 0 )
@@ -246,7 +245,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.HideGlobalOptions()
         self.HideProgressSection()
         for name in methods:
-            self.gui[name].Hide()
+            methods[name].gui.Hide()
 
 
     def HideGlobalOptions(self):
@@ -573,13 +572,13 @@ class TnSeekFrame(transit_gui.MainFrame):
             self.ShowGlobalOptions()
             #Show Selected Method and hide Others
             for name in methods:
-                gui = self.gui[name]
-                if gui.fullname() == selected_name:
-                    self.mainInstructions.SetLabel(gui.getInstructions())
+                methods[name].gui.Hide()
+                if methods[name].fullname() == selected_name:
+                    self.mainInstructions.SetLabel(methods[name].description)
                     self.mainInstructions.Wrap(method_wrap_width)
-                    gui.Show()
+                    methods[name].gui.Show()
                 else:
-                    gui.Hide()
+                    methods[name].gui.Hide()
             self.ShowProgressSection()
         self.Layout()
         if self.verbose:
@@ -1100,10 +1099,10 @@ class TnSeekFrame(transit_gui.MainFrame):
         X = self.methodChoice.GetCurrentSelection()
         selected_name = self.methodChoice.GetString(X)
         for name in methods:
-            if  self.gui[name].fullname() == selected_name:
-                method = methods[name]["method"]
+            if  methods[name].fullname() == selected_name:
+                methodobj = methods[name].method
         try:
-            M = method.fromGUI(self)
+            M = methodobj.fromGUI(self)
             if M: 
                 thread = threading.Thread(target=M.Run())
                 thread.setDaemon(True)
@@ -1152,7 +1151,7 @@ if __name__ == "__main__":
                 print "\t - %s" % m
 
         else:
-            methodobj = methods[method_name]["method"].fromconsole()
+            methodobj = methods[method_name].method.fromconsole()
             methodobj.Run()            
 
 

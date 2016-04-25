@@ -22,13 +22,48 @@ import transit.stat_tools as stat_tools
 short_name = "griffin"
 long_name = "Basic frequentist analysis of essentiality using gaps."
 description = "Analysis of gaps used in Griffin et al. 2011"
+transposons = ["himar1"]
+columns = ["Orf","Name","Desc","k","n","r","s","t","Expected Run","p-value", "p-adjusted"]
+
+
+
+############# Analysis Method ##############
+
+class GriffinAnalysis(base.TransitAnalysis):
+    def __init__(self):
+        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, GriffinMethod, GriffinGUI, [GriffinFile])
+
+
+################## FILE ###################
+
+class GriffinFile(base.TransitFile):
+
+    def __init__(self):
+        base.TransitFile.__init__(self, "#Griffin", columns)
+
+    def getHeader(self, path):
+        ess=0; unc=0; non=0; short=0
+        for line in open(path):
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            if float(tmp[-1]) < 0.05:
+                ess+=1
+            else:
+                non+=1
+
+        text = """Results:
+    Essentials: %s
+    Non-Essential: %s
+            """ % (ess,non)
+        return text
+
+
+################## GUI ###################
 
 class GriffinGUI(base.AnalysisGUI):
 
-    def __init__(self, wxobj):
-        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
-
-    def getPanel(self):
+    def definePanel(self, wxobj):
+        self.wxobj = wxobj
         griffinPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
         griffinSection = wx.BoxSizer( wx.VERTICAL )
@@ -51,41 +86,16 @@ class GriffinGUI(base.AnalysisGUI):
         #Connect events
         griffinButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
-        return griffinPanel
+        self.panel = griffinPanel
+        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
 
-
-
-def getColumnNames():
-    return ["Orf","Name","Desc","k","n","r","s","t","Expected Run","p-value", "p-adjusted"]
-
-
-def getFileHeaderText(path):
-    ess=0; unc=0; non=0; short=0
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        if float(tmp[-1]) < 0.05:
-            ess+=1
-        else:
-            non+=1
-
-    text = """Results:
-    Essentials: %s
-    Non-Essential: %s
-        """ % (ess,non)
-    return text
-
-
-
-FileTypes = {}
-FileTypes["#griffin"] = (transit_tools.getTabTableData, getColumnNames, [getFileHeaderText])
 
 
 
 
 ########## CLASS #######################
 
-class Griffin(base.SingleConditionMethod):
+class GriffinMethod(base.SingleConditionMethod):
     """   
     griffin
  
@@ -217,7 +227,7 @@ class Griffin(base.SingleConditionMethod):
             results[i].append(padj[i])
         results.sort()
         
-        self.output.write("#griffin\n")
+        self.output.write("#Griffin\n")
         if self.wxobj:
             members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
             memberstr = ""
@@ -255,7 +265,7 @@ if __name__ == "__main__":
     print "ARGS:", args
     print "KWARGS:", kwargs
 
-    G = Griffin.fromargs(sys.argv[1:])
+    G = GriffinMethod.fromargs(sys.argv[1:])
 
     G.console_message("Printing the member variables:")   
     G.print_members()

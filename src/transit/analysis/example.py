@@ -15,34 +15,39 @@ import transit.norm_tools as norm_tools
 import transit.stat_tools as stat_tools
 
 
-############# GUI ELEMENTS ##################
+############# Description ##################
 
 short_name = "example"
 long_name = "Example method that calculates mean read-counts per gene."
 description = "A method made to serve as an example to implementing other methods."
+transposons = ["himar1", "tn5"]
+columns = ["Orf","Name","Desc","k","n","mean","nzmean"]
+
+############# Analysis Method ##############
+
+class ExampleAnalysis(base.TransitAnalysis):
+    def __init__(self):
+        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, ExampleMethod, ExampleGUI, [ExampleFile])
 
 
+################## FILE ###################
 
-def getColumnNames():
-    return ["Orf","Name","Desc","k","n","mean","nzmean"]
+class ExampleFile(base.TransitFile):
 
-def getFileHeaderText(path):
-    text = """This is file contains mean counts for each gene. Nzmean is mean accross non-zero sites."""
-    return text
+    def __init__(self):
+        base.TransitFile.__init__(self, "#Example", columns)
 
-
-FileTypes = {}
-FileTypes["#Example"] = (transit_tools.getTabTableData, getColumnNames, [getFileHeaderText])
+    def getHeader(self, path):
+        text = """This is file contains mean counts for each gene. Nzmean is mean accross non-zero sites."""
+        return text
 
 
-########## GUI ##################
+################# GUI ##################
 
 class ExampleGUI(base.AnalysisGUI):
 
-    def __init__(self, wxobj):
-        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
-
-    
+    def __init__(self):
+        base.AnalysisGUI.__init__(self)
 
 ########## METHOD #######################
 
@@ -181,7 +186,7 @@ class ExampleMethod(base.SingleConditionMethod):
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Time: %s\n" % (time.time() - start_time))
-        self.output.write("#%s\n" % "\t".join(getColumnNames()))
+        self.output.write("#%s\n" % "\t".join(columns))
 
         data.sort()
         for line in data:

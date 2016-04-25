@@ -23,14 +23,46 @@ short_name = "globalruns"
 long_name = "Analysis of essentiality on gaps in entire genome (Tn5)."
 description = "A analysis method using the Gumbel extreme value distribution that uses longest runs over a whole genome instead of individual genes."
 
-
-class globalrunsGUI(base.AnalysisGUI):
-
-    def __init__(self, wxobj):
-        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
+transposons = ["tn5"]
+columns = ["Orf","Name","Desc","k","n","r","ovr","lenovr","pval","padj","call"]
 
 
-    def getPanel(self):
+
+############# Analysis Method ##############
+
+class GlobalGumbelAnalysis(base.TransitAnalysis):
+    def __init__(self):
+        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, GlobalGumbelMethod, GlobalGumbelGUI, [GlobalGumbelFile])
+
+
+################## FILE ###################
+
+class GlobalGumbelFile(base.TransitFile):
+
+    def __init__(self):
+        base.TransitFile.__init__(self, "#Global Gumbel", columns)
+
+    def getHeader(self, path):
+        ess=0; unc=0; non=0; short=0
+        for line in open(path):
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            if tmp[-1] == "Essential": ess+=1
+            if tmp[-1] == "Non-essential": non+=1
+
+        text = """Results:
+    Essentials: %s
+    Non-Essential: %s
+            """ % (ess, non)
+        return text
+
+
+################## GUI ###################
+
+class GlobalGumbelGUI(base.AnalysisGUI):
+
+    def getPanel(self, wxobj):
+        self.wxobj = wxobj
         globalGumbelPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
         globalGumbelSection = wx.BoxSizer( wx.VERTICAL )
@@ -89,37 +121,15 @@ class globalrunsGUI(base.AnalysisGUI):
         #Connect events
         globalGumbelButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
-        return globalGumbelPanel
-
-
-
-def getColumnNames():
-    return ["Orf","Name","Desc","k","n","r","ovr","lenovr","pval","padj","call"]
-
-def getFileHeaderText(path):
-    ess=0; unc=0; non=0; short=0
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        if tmp[-1] == "Essential": ess+=1
-        if tmp[-1] == "Non-Essential": non+=1
-
-    text = """Results:
-    Essentials: %s
-    Non-Essential: %s
-        """ % (ess, non)
-    return text
-
-
-FileTypes = {}
-FileTypes["#Global Gumbel"] = (transit_tools.getTabTableData, getColumnNames, [getFileHeaderText])
+        self.panel = globalGumbelPanel
+        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
 
 
 
 
 ########## CLASS #######################
 
-class GlobalGumbel(base.SingleConditionMethod):
+class GlobalGumbelMethod(base.SingleConditionMethod):
     """   
     Example
  
@@ -366,7 +376,7 @@ if __name__ == "__main__":
     print "ARGS:", args
     print "KWARGS:", kwargs
 
-    G = Example.fromargs(sys.argv[1:])
+    G = GlobalGumbelMethod.fromargs(sys.argv[1:])
 
     G.console_message("Printing the member variables:")   
     G.print_members()

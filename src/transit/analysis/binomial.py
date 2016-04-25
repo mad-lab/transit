@@ -24,15 +24,46 @@ description = """Hierarchical bayesian model of essentiality based on the binomi
 
 Reference: DeJesus and Ioerger (2014; IEEE TCBB)
 """
+transposons = ["himar1"]
+columns = ["Orf","Name","Description","Mean Insertion","Sites per Replicate","Total Insertions","Total Sites","thetabar", "zbar", "Call"]
 
+############# Analysis Method ##############
+
+class BinomialAnalysis(base.TransitAnalysis):
+    def __init__(self):
+        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, BinomialMethod, BinomialGUI, [BinomialFile])
+
+
+################## FILE ###################
+
+class BinomialFile(base.TransitFile):
+
+    def __init__(self):
+        base.TransitFile.__init__(self, "#Binomial", columns)
+
+    def getHeader(self, path):
+        ess=0; unc=0; non=0; short=0
+        for line in open(path):
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            if tmp[-1] == "Essential": ess+=1
+            if tmp[-1] == "Uncertain": unc+=1
+            if tmp[-1] == "Non-Essential": non+=1
+
+        text = """Results:
+    Essentials: %s
+    Uncertain: %s
+    Non-Essential: %s
+            """ % (ess, unc, non)
+        return text
+
+
+################## GUI ###################
 
 class BinomialGUI(base.AnalysisGUI):
 
-    def __init__(self, wxobj):
-        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
-
-
-    def getPanel(self):
+    def definePanel(self, wxobj):
+        self.wxobj = wxobj
         binomialPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
         binomialSection = wx.BoxSizer( wx.VERTICAL )
@@ -78,38 +109,16 @@ class BinomialGUI(base.AnalysisGUI):
         #Connect events
         binomialButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
-        return binomialPanel
+        self.panel = binomialPanel
+        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
 
 
 
-def getColumnNames():
-    return ["Orf","Name","Description","Mean Insertion","Sites per Replicate","Total Insertions","Total Sites","thetabar", "zbar", "Call"]
-
-
-def getFileHeaderText(path):
-    ess=0; unc=0; non=0; short=0
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        if tmp[-1] == "Essential": ess+=1
-        if tmp[-1] == "Uncertain": unc+=1
-        if tmp[-1] == "Non-Essential": non+=1
-
-    text = """Results:
-    Essentials: %s
-    Uncertain: %s
-    Non-Essential: %s
-        """ % (ess, unc, non)
-    return text
-
-
-FileTypes = {}
-FileTypes["#Binomial"] = (transit_tools.getTabTableData, getColumnNames, [getFileHeaderText])
 
 
 ########## CLASS #######################
 
-class Binomial(base.SingleConditionMethod):
+class BinomialMethod(base.SingleConditionMethod):
     """   
     binomial
  
@@ -450,7 +459,7 @@ if __name__ == "__main__":
     print "ARGS:", args
     print "KWARGS:", kwargs
 
-    G = Binomial.fromargs(sys.argv[1:])
+    G = BinomialMethod.fromargs(sys.argv[1:])
 
     G.console_message("Printing the member variables:")   
     G.print_members()

@@ -23,14 +23,52 @@ long_name = "Bayesian analysis of essentiality based on long gaps."
 description = """Bayesian methods of analyzing longest runs of non-insertions in a row. Estimates the parameters using the MCMC sampling, and estimates posterior probabilities of essentiality. 
 
 Reference: DeJesus et al. (2013; Bioinformatics)"""
+transposons = ["himar1"]
+columns = ["Orf","Name","Desc","k","n","r","s","zbar", "Call"]
 
+
+############# Analysis Method ##############
+
+class GumbelAnalysis(base.TransitAnalysis):
+    def __init__(self):
+        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, GumbelMethod, GumbelGUI, [GumbelFile])
+
+
+################## FILE ###################
+
+class GumbelFile(base.TransitFile):
+
+    def __init__(self):
+        base.TransitFile.__init__(self, "#Gumbel", columns)
+
+    def getHeader(self, path):
+        ess=0; unc=0; non=0; short=0
+        for line in open(path):
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            if tmp[-1] == "E": ess+=1
+            if tmp[-1] == "U": unc+=1
+            if tmp[-1] == "NE": non+=1
+            if tmp[-1] == "S": short+=1
+
+        text = """Results:
+    Essentials: %s
+    Uncertain: %s
+    Non-Essential: %s
+    Short: %s
+        """ % (ess, unc, non, short)
+        return text
+
+
+
+
+################# GUI ##################
 
 class GumbelGUI(base.AnalysisGUI):
 
-    def __init__(self, wxobj):
-        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
 
-    def getPanel(self):
+    def definePanel(self, wxobj):
+        self.wxobj = wxobj
         gumbelPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         #wxobj.gumbelPanel.SetMinSize( wx.Size( 50,1 ) )
         #wxobj.gumbelPanel.SetMaxSize( wx.Size( 250,-1 ) )
@@ -107,42 +145,17 @@ class GumbelGUI(base.AnalysisGUI):
         #Connect events
         gumbelButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
-        return gumbelPanel
+        self.panel = gumbelPanel
+        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
 
 
 
-def getColumnNames():
-    return ["Orf","Name","Desc","k","n","r","s","zbar", "Call"]
 
-def getFileHeaderText(path):
-    ess=0; unc=0; non=0; short=0
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        if tmp[-1] == "E": ess+=1
-        if tmp[-1] == "U": unc+=1
-        if tmp[-1] == "NE": non+=1
-        if tmp[-1] == "S": short+=1
-
-    text = """Results:
-    Essentials: %s
-    Uncertain: %s
-    Non-Essential: %s
-    Short: %s
-        """ % (ess, unc, non, short)
-    return text
-
-
-
-FileTypes = {}
-FileTypes["#Gumbel"] = (transit_tools.getTabTableData, getColumnNames, [getFileHeaderText])
-
-
-########## CLASS #######################
+########## METHOD #######################
 
 ALPHA = 1
 BETA = 1
-class Gumbel(base.SingleConditionMethod):
+class GumbelMethod(base.SingleConditionMethod):
     """   
     Gumbel
  
@@ -375,7 +388,7 @@ class Gumbel(base.SingleConditionMethod):
         self.output.write("#Sample Size:\t%d\n" % i)
         self.output.write("#phi estimate:\t%f\n" % numpy.average(phi_sample))
         self.output.write("#Time: %s\n" % (time.time() - start_time))
-        self.output.write("#%s\n" % "\t".join(getColumnNames()))
+        self.output.write("#%s\n" % "\t".join(columns))
         i = 0
         data = []
         for g in G:
@@ -470,7 +483,7 @@ if __name__ == "__main__":
     print "ARGS:", args
     print "KWARGS:", kwargs
 
-    G = Gumbel.fromargs(sys.argv[1:])
+    G = GumbelMethod.fromargs(sys.argv[1:])
 
     G.console_message("Printing the member variables:")   
     G.print_members()

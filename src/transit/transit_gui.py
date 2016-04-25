@@ -37,6 +37,12 @@ class MainFrame ( wx.Frame ):
 
         choiceSizer_H = wx.BoxSizer( wx.HORIZONTAL )
 
+
+        self.methodCheckBoxHimar = wx.CheckBox(self.m_scrolledWindow2, label = 'Himar1',pos = (10,10))
+        self.methodCheckBoxTn5 = wx.CheckBox(self.m_scrolledWindow2, label = 'Tn5',pos = (10,10))
+        choiceSizer_H.Add(self.methodCheckBoxHimar, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        choiceSizer_H.Add(self.methodCheckBoxTn5, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
         self.methodChoiceStaticText = wx.StaticText( self.m_scrolledWindow2, wx.ID_ANY, u"Method Choice:", wx.DefaultPosition, wx.DefaultSize, 0 ) 
         self.methodChoiceStaticText.Wrap( -1 )
 

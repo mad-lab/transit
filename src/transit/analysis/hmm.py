@@ -25,14 +25,83 @@ description = """Analysis of essentiality in the entire genome using a Hidden Ma
 
 Reference: DeJesus et al. (2013; BMC Bioinformatics)
 """
-
-class hmmGUI(base.AnalysisGUI):
-
-    def __init__(self, wxobj):
-        base.AnalysisGUI.__init__(self, short_name, long_name, description, wxobj)
+transposons = ["himar1"]
+columns_sites = ["Location","Read Count","Probability - ES","Probability - GD","Probability - NE","Probability - GA","State","Gene"]
+columns_genes = ["Orf","Name","Description","N","n0","n1","n2","n3", "Avg. Insertions", "Avg. Reads", "State Call"] 
 
 
-    def getPanel(self):
+############# Analysis Method ##############
+
+class HMMAnalysis(base.TransitAnalysis):
+    def __init__(self):
+        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, HMMMethod, HMMGUI, [HMMSitesFile, HMMGenesFile])
+
+
+################## FILE ###################
+
+class HMMSitesFile(base.TransitFile):
+
+    def __init__(self):
+        base.TransitFile.__init__(self, "#HMM - Sites", columns_sites)
+
+    def getHeader(self, path):
+        es=0; gd=0; ne=0; ga=0; T=0;
+        for line in open(path):
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            if len(tmp) == 7:
+                col = -1
+            else:
+                col = -2
+            if tmp[col] == "ES": es+=1
+            elif tmp[col] == "GD": gd+=1
+            elif tmp[col] == "NE": ne+=1
+            elif tmp[col] == "GA": ga+=1
+            else: print tmp
+            T+=1
+
+        text = """Results:
+    Essential: %1.1f%%
+    Growth-Defect: %1.1f%%
+    Non-Essential: %1.1f%%
+    Growth-Advantage: %1.1f%%
+            """ % (100.0*es/T, 100.0*gd/T, 100.0*ne/T, 100.0*ga/T)
+        return text
+
+
+
+class HMMGenesFile(base.TransitFile):
+
+    def __init__(self):
+        base.TransitFile.__init__(self, "#HMM - Genes", columns_sites)
+
+    def getHeader(self, path):
+        es=0; gd=0; ne=0; ga=0; T=0;
+        for line in open(path):
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            if len(tmp) < 5: continue
+            if tmp[-1] == "ES": es+=1
+            if tmp[-1] == "GD": gd+=1
+            if tmp[-1] == "NE": ne+=1
+            if tmp[-1] == "GA": ga+=1
+
+        text = """Results:
+    Essential: %s
+    Growth-Defect: %s
+    Non-Essential: %s
+    Growth-Advantage: %s
+            """ % (es, gd, ne, ga)
+
+        return text
+
+
+############# GUI ##################
+
+class HMMGUI(base.AnalysisGUI):
+
+    def definePanel(self, wxobj):
+        self.wxobj = wxobj
         hmmPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
         hmmSection = wx.BoxSizer( wx.VERTICAL )
@@ -78,74 +147,15 @@ class hmmGUI(base.AnalysisGUI):
         #Connect events
         hmmButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
-        return hmmPanel
+        self.panel =  hmmPanel
+        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
 
-
-
-
-def getColumnNamesSites():
-    return ["Location","Read Count","Probability - ES","Probability - GD","Probability - NE","Probability - GA","State","Gene"]
-
-def getFileHeaderTextSites(path):
-    es=0; gd=0; ne=0; ga=0; T=0;
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        if len(tmp) == 7:
-            col = -1
-        else:
-            col = -2
-        if tmp[col] == "ES": es+=1
-        elif tmp[col] == "GD": gd+=1
-        elif tmp[col] == "NE": ne+=1
-        elif tmp[col] == "GA": ga+=1
-        else: print tmp
-        T+=1
-
-    text = """Results:
-    Essential: %1.1f%%
-    Growth-Defect: %1.1f%%
-    Non-Essential: %1.1f%%
-    Growth-Advantage: %1.1f%%
-        """ % (100.0*es/T, 100.0*gd/T, 100.0*ne/T, 100.0*ga/T)
-    return text
-
-
-
-def getColumnNamesGenes():
-    return ["Orf","Name","Description","N","n0","n1","n2","n3", "Avg. Insertions", "Avg. Reads", "State Call"]
-
-
-def getFileHeaderTextGenes(path):
-    es=0; gd=0; ne=0; ga=0; T=0;
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        if len(tmp) < 5: continue
-        if tmp[-1] == "ES": es+=1
-        if tmp[-1] == "GD": gd+=1
-        if tmp[-1] == "NE": ne+=1
-        if tmp[-1] == "GA": ga+=1
-
-    text = """Results:
-    Essential: %s
-    Growth-Defect: %s
-    Non-Essential: %s
-    Growth-Advantage: %s
-        """ % (es, gd, ne, ga)
-
-    return text
-
-
-FileTypes = {}
-FileTypes["#HMM - Sites"] = (transit_tools.getTabTableData, getColumnNamesSites, [getFileHeaderTextSites])
-FileTypes["#HMM - Genes"] = (transit_tools.getTabTableData, getColumnNamesGenes, [getFileHeaderTextGenes])
 
 
 
 ########## CLASS #######################
 
-class HMM(base.SingleConditionMethod):
+class HMMMethod(base.SingleConditionMethod):
     """   
     HMM
  
@@ -556,7 +566,7 @@ if __name__ == "__main__":
     print "ARGS:", args
     print "KWARGS:", kwargs
 
-    G = HMM.fromargs(sys.argv[1:])
+    G = HMMMethod.fromargs(sys.argv[1:])
 
     G.console_message("Printing the member variables:")   
     G.print_members()
