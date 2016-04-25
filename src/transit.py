@@ -90,7 +90,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.list_ctrl.InsertColumn(0, 'File', width=210)
         self.list_ctrl.InsertColumn(1, 'Total Reads', width=85)
         self.list_ctrl.InsertColumn(2, 'Density', width=85)
-        self.list_ctrl.InsertColumn(3, 'Mean Count', width=85)
+        self.list_ctrl.InsertColumn(3, 'Mean Count', width=90)
         self.list_ctrl.InsertColumn(4, 'Max Count', width=85)
         self.list_ctrl.InsertColumn(5, 'Full Path', width=403)
 
@@ -99,7 +99,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.list_exp.InsertColumn(0, 'File', width=210)
         self.list_exp.InsertColumn(1, 'Total Reads', width=85)
         self.list_exp.InsertColumn(2, 'Density', width=85)
-        self.list_exp.InsertColumn(3, 'Mean Count', width=85)
+        self.list_exp.InsertColumn(3, 'Mean Count', width=90)
         self.list_exp.InsertColumn(4, 'Max Count', width=85)
         self.list_exp.InsertColumn(5, 'Full Path',width=403)
 

@@ -120,6 +120,8 @@ class MainFrame ( wx.Frame ):
         ctrlSizer.Add( bSizer2, 0, wx.EXPAND, 5 )
         
         self.list_ctrl = wx.ListCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
+
+        self.list_ctrl.SetMaxSize(wx.Size(940,200))
         ctrlSizer.Add( self.list_ctrl, 1, wx.ALL|wx.EXPAND, 5 )
         
         
@@ -158,6 +160,7 @@ class MainFrame ( wx.Frame ):
         expSizer1.Add( bSizer3, 0, wx.EXPAND, 5 )
         
         self.list_exp = wx.ListCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
+        self.list_exp.SetMaxSize(wx.Size(940, 200))
         expSizer1.Add( self.list_exp, 1, wx.ALL|wx.EXPAND, 5 )
         
         
@@ -190,6 +193,7 @@ class MainFrame ( wx.Frame ):
         filesSizer.Add( bSizer141, 0, 0, 5 )
         
         self.list_files = wx.ListCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
+        self.list_files.SetMaxSize(wx.Size(940,200))
         filesSizer.Add( self.list_files, 1, wx.ALL|wx.EXPAND, 5 )
         
         
