@@ -766,84 +766,51 @@ class TnSeekFrame(transit_gui.MainFrame):
             plt.close()
     
 
-
-
-    def tempFileFunc(self, event):
-        file1= "gumbel_H37Rv_Sassetti_glycerol_s100_b5_t1.dat"
-        type="Gumbel"
-        data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-        if self.verbose:
-            print transit_prefix, "Adding File:", file1
-        wx.CallAfter(pub.sendMessage, "file", data=data)
-
-
-        file1= "hmm_H37Rv_Sassetti_glycerol_sites.dat"
-        type="HMM - Sites"
-        data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-        if self.verbose:
-            print transit_prefix, "Adding File:", file1
-        wx.CallAfter(pub.sendMessage, "file", data=data)
-
-
-        file1= "hmm_H37Rv_Sassetti_glycerol_genes.dat"
-        type="HMM - Genes"
-        data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-        if self.verbose:
-            print transit_prefix, "Adding File:", file1
-        wx.CallAfter(pub.sendMessage, "file", data=data)
-
-
-        file1= "resampling_results_g0g1_g2g3.dat"
-        #file1= "resampling_results_qval_test.dat"
-        type="Resampling"
-        data = {"path":file1, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-        if self.verbose:
-            print transit_prefix, "Adding File:", file1
-        wx.CallAfter(pub.sendMessage, "file", data=data)
-
-
     def addFileFunc(self, event):
 
-
         try:
-            defaultDir = os.getcwd() 
-            path = self.OpenFile(defaultDir, "")
-            line = open(path).readline()
-            if line.startswith("#Gumbel"):
-                type = "Gumbel"
-            elif line.startswith("#Binomial"):
-                type = "Binomial"
-            elif line.startswith("#HMM - Sites"):
-                type = "HMM - Sites"
-            elif line.startswith("#HMM - Genes"):
-                type = "HMM - Genes"
-            elif line.startswith("#Resampling"):
-                type = "Resampling"
-            elif line.startswith("#DE-HMM - Sites"):
-                type = "DE-HMM - Sites"
-            elif line.startswith("#DE-HMM - Segments"):
-                type = "DE-HMM - Segments"
-            else:
-                msg = """Please make sure the file has one of the following headers specifying the type of output as its first line:
-    #Gumbel
-    #Binomial
-    #HMM - Sites
-    #HMM - Genes
-    #Resampling
-    #DE-HMM - Sites
-    #DE-HMM - Segments
-"""
-                #self.ShowError(msg)
-                #return
-                type = "Unknown"
-            data = {"path":path, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-            if newWx:
-                wx.CallAfter(pub.sendMessage, "file", data=data)
-            else:
-                wx.CallAfter(pub.sendMessage, "file", data)
-        except:
-            pass
-
+            dlg = wx.FileDialog(
+                self, message="Choose a file",
+                defaultDir=self.workdir,
+                defaultFile="",
+                wildcard=u"Results Files (*.dat)|*.dat;|\nResults Files (*.txt)|*.txt;|\nAll files (*.*)|*.*",
+                style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                )
+            if dlg.ShowModal() == wx.ID_OK:
+                paths = dlg.GetPaths()
+                print "You chose the following Results file(s):"
+                for fullpath in paths:
+                    print "\t%s" % fullpath
+                    name = transit_tools.basename(fullpath)
+                    line = open(fullpath).readline()
+                    if line.startswith("#Gumbel"):
+                        type = "Gumbel"
+                    elif line.startswith("#Binomial"):
+                        type = "Binomial"
+                    elif line.startswith("#HMM - Sites"):
+                        type = "HMM - Sites"
+                    elif line.startswith("#HMM - Genes"):
+                        type = "HMM - Genes"
+                    elif line.startswith("#Resampling"):
+                        type = "Resampling"
+                    elif line.startswith("#DE-HMM - Sites"):
+                        type = "DE-HMM - Sites"
+                    elif line.startswith("#DE-HMM - Segments"):
+                        type = "DE-HMM - Segments"
+                    else:
+                        type = "Unknown"
+                    data = {"path":fullpath, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+                    if newWx:
+                        wx.CallAfter(pub.sendMessage, "file", data=data)
+                    else:
+                        wx.CallAfter(pub.sendMessage, "file", data)
+            dlg.Destroy()
+        except Exception as e:
+            print transit_prefix, "Error:", e
+            print "PATH", fullpath
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
 
 
 

@@ -175,7 +175,10 @@ class MainFrame ( wx.Frame ):
         
         bSizer141.Add( self.graphFileButton, 0, wx.ALL, 5 )
         
-        self.addFileButton = wx.Button( self.m_scrolledWindow2, wx.ID_ANY, u"Add Results File", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #self.addFileButton = wx.Button( self.m_scrolledWindow2, wx.ID_ANY, u"Add Results File", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.addFileButton = GenBitmapTextButton(self.m_scrolledWindow2, 1 , bmp, 'Add Results File', size= wx.Size(150, 30))
+
+
         bSizer141.Add( self.addFileButton, 0, wx.ALL, 5 )
         
         graphFileChoiceChoices = [ u"[Visualization Options]", u"Volcano Plot", u"Histogram of Total Gene Counts" ]
