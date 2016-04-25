@@ -38,9 +38,11 @@ class MainFrame ( wx.Frame ):
         choiceSizer_H = wx.BoxSizer( wx.HORIZONTAL )
 
 
-        self.methodCheckBoxHimar = wx.CheckBox(self.m_scrolledWindow2, label = 'Himar1',pos = (10,10))
+        self.methodCheckBoxHimar1 = wx.CheckBox(self.m_scrolledWindow2, label = 'Himar1',pos = (10,10))
+        self.methodCheckBoxHimar1.SetValue(True)
         self.methodCheckBoxTn5 = wx.CheckBox(self.m_scrolledWindow2, label = 'Tn5',pos = (10,10))
-        choiceSizer_H.Add(self.methodCheckBoxHimar, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        self.methodCheckBoxTn5.SetValue(True)
+        choiceSizer_H.Add(self.methodCheckBoxHimar1, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
         choiceSizer_H.Add(self.methodCheckBoxTn5, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
         self.methodChoiceStaticText = wx.StaticText( self.m_scrolledWindow2, wx.ID_ANY, u"Method Choice:", wx.DefaultPosition, wx.DefaultSize, 0 ) 
@@ -383,6 +385,9 @@ class MainFrame ( wx.Frame ):
         self.Centre( wx.BOTH )
         
         # Connect Events
+
+        self.methodCheckBoxHimar1.Bind(wx.EVT_CHECKBOX,self.onHimar1Checked)
+        self.methodCheckBoxTn5.Bind(wx.EVT_CHECKBOX,self.onTn5Checked)
         self.annotationFilePicker.Bind( wx.EVT_FILEPICKER_CHANGED, self.annotationFileFunc )
         self.ctrlRemoveButton.Bind( wx.EVT_BUTTON, self.ctrlRemoveFunc )
         self.ctrlView.Bind( wx.EVT_BUTTON, self.allViewFunc )
@@ -414,6 +419,13 @@ class MainFrame ( wx.Frame ):
     
     
     # Virtual event handlers, overide them in your derived class
+
+    def onHimar1Checked(self, event):
+        event.Skip()
+
+    def onTn5Checked(self, event):
+        event.Skip()
+
     def annotationFileFunc( self, event ):
         event.Skip()
     

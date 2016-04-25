@@ -79,6 +79,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
         self.workdir = os.getcwd()
+        self.transposons = ["himar1", "tn5"]
         #import pkgutil
         #print [x for x in pkgutil.iter_modules(['transit/analysis'])]
         #print gumbel.Gumbel.__bases__
@@ -271,6 +272,39 @@ class TnSeekFrame(transit_gui.MainFrame):
     def ShowProgressSection(self):
         self.progressLabel.Show()
         self.progress.Show()
+
+    def onHimar1Checked(self, event):
+        if self.methodCheckBoxHimar1.GetValue():
+            self.transposons.append("himar1")
+        else:
+            self.transposons.remove("himar1")
+        self.filterMethodsByTransposon()
+
+    def onTn5Checked(self, event):
+        if self.methodCheckBoxTn5.GetValue():
+            self.transposons.append("tn5")
+        else:
+            self.transposons.remove("tn5")
+        self.filterMethodsByTransposon()
+
+    def filterMethodsByTransposon(self):
+        newmethods = {}
+        fullmethods = transit.analysis.methods
+        goodTn = False
+        for method in fullmethods:
+            goodTn = False
+            for tn in self.transposons:
+                if tn in fullmethods[method].transposons:
+                    goodTn = True
+            if goodTn:
+                newmethods[method] = fullmethods[method]
+        
+        methodChoiceChoices = [ "[Choose Method]"]
+        for name in newmethods:
+            methodChoiceChoices.append(methods[name].fullname())
+        self.methodChoice.SetItems(methodChoiceChoices)
+        self.methodChoice.SetSelection( 0 )
+
 
 
     def SaveFile(self, DIR=None, FILE="", WC=""):
