@@ -81,25 +81,59 @@ class ResamplingGUI(base.AnalysisGUI):
 
         resamplingLabelSizer = wx.BoxSizer( wx.VERTICAL )
 
+        # Samples Label
         resamplingSampleLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
         resamplingSampleLabel.Wrap( -1 )
         resamplingLabelSizer.Add( resamplingSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
+        # Norm Label
         resamplingNormLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Normalization", wx.DefaultPosition, wx.DefaultSize, 0 )
         resamplingNormLabel.Wrap( -1 )
         resamplingLabelSizer.Add( resamplingNormLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+        # Adaptive Label 
+        resamplingAdaptiveLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Adaptive:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        resamplingAdaptiveLabel.Wrap( -1 )
+        resamplingLabelSizer.Add( resamplingAdaptiveLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+        # Histogram Label 
+        resamplingHistogramLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Histogram:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        resamplingHistogramLabel.Wrap( -1 )
+        resamplingLabelSizer.Add( resamplingHistogramLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+        # Zeros Label 
+        resamplingZerosLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Include Zeros:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        resamplingZerosLabel.Wrap( -1 )
+        resamplingLabelSizer.Add( resamplingZerosLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
 
         resamplingTopSizer2.Add( resamplingLabelSizer, 1, wx.EXPAND, 5 )
 
         resamplingControlSizer = wx.BoxSizer( wx.VERTICAL )
 
+        # Samples Text
         self.wxobj.resamplingSampleText = wx.TextCtrl( resamplingPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
         resamplingControlSizer.Add( self.wxobj.resamplingSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 
+        # Norm Choices
         resamplingNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
         self.wxobj.resamplingNormChoice = wx.Choice( resamplingPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, resamplingNormChoiceChoices, 0 )
         self.wxobj.resamplingNormChoice.SetSelection( 0 )
         resamplingControlSizer.Add( self.wxobj.resamplingNormChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+
+        # Adaptive Check
+        self.wxobj.resamplingAdaptiveCheckBox = wx.CheckBox(resamplingPanel, label = '')
+        resamplingControlSizer.Add( self.wxobj.resamplingAdaptiveCheckBox, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+        # Histogram Check
+        self.wxobj.resamplingHistogramCheckBox = wx.CheckBox(resamplingPanel, label = '')
+        resamplingControlSizer.Add( self.wxobj.resamplingHistogramCheckBox, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+        # Zeros Check
+        self.wxobj.resamplingZeroCheckBox = wx.CheckBox(resamplingPanel, label = '')
+        resamplingControlSizer.Add( self.wxobj.resamplingZeroCheckBox, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
 
 
         resamplingTopSizer2.Add( resamplingControlSizer, 1, wx.EXPAND, 5 )
@@ -141,6 +175,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 samples=10000,
                 adaptive=False,
                 doHistogram=False,
+                includeZeros=False,
                 replicates="Sum",
                 LOESS=False,
                 ignoreCodon=True,
@@ -152,7 +187,7 @@ class ResamplingMethod(base.DualConditionMethod):
         self.samples = samples
         self.adaptive = adaptive
         self.doHistogram = doHistogram
-        
+        self.includeZeros = includeZeros
 
 
 
@@ -173,7 +208,7 @@ class ResamplingMethod(base.DualConditionMethod):
 
 
         #Get Annotation file
-        annotationPath = wxobj.annotationFilePicker.GetPath()
+        annotationPath = wxobj.annotation
         if not annotationPath:
             wxobj.ShowError("Error: No annotation file selected.")
             return None
@@ -184,8 +219,10 @@ class ResamplingMethod(base.DualConditionMethod):
         samples = int(wxobj.resamplingSampleText.GetValue())
         normalization = wxobj.resamplingNormChoice.GetString(wxobj.resamplingNormChoice.GetCurrentSelection())
         replicates="Sum"
-        adaptive = False
-        doHistogram = False
+        adaptive = wxobj.resamplingAdaptiveCheckBox.GetValue()
+        doHistogram = wxobj.resamplingHistogramCheckBox.GetValue()
+
+        includeZeros = wxobj.resamplingZeroCheckBox.GetValue()
 
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
         CTerminus = float(wxobj.globalCTerminusText.GetValue())
@@ -207,6 +244,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 samples,
                 adaptive,
                 doHistogram,
+                includeZeros,
                 replicates,
                 LOESS,
                 ignoreCodon,
@@ -233,6 +271,7 @@ class ResamplingMethod(base.DualConditionMethod):
         adaptive = kwargs.get("a", False)
         doHistogram = kwargs.get("h", False)
         replicates = kwargs.get("r", "Sum")
+        includeZeros = kwargs.get("iz", False)
     
         
         LOESS = kwargs.get("l", False)
@@ -248,6 +287,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 samples,
                 adaptive,
                 doHistogram,
+                includeZeros,
                 replicates,
                 LOESS,
                 ignoreCodon,
@@ -291,7 +331,13 @@ class ResamplingMethod(base.DualConditionMethod):
             if gene.k == 0 or gene.n == 0:
                 (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) = (0, 0, 0, 0, 1.00, 1.00, 1.00, [])
             else:
-                (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(gene.reads[:Kctrl,:].flatten(), gene.reads[Kctrl:,:].flatten(), S=self.samples, testFunc=stat_tools.F_sum_diff_flat, adaptive=self.adaptive)
+
+                if not self.includeZeros:
+                    ii = numpy.sum(gene.reads,0) > 0
+                else:
+                    ii = numpy.ones(gene.n) == 1
+                
+                (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(gene.reads[:Kctrl,ii].flatten(), gene.reads[Kctrl:,ii].flatten(), S=self.samples, testFunc=stat_tools.F_sum_diff_flat, adaptive=self.adaptive)
 
 
             if self.doHistogram:
@@ -335,7 +381,7 @@ class ResamplingMethod(base.DualConditionMethod):
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Time: %s\n" % (time.time() - start_time))
-        self.output.write("#%s\n" % "\t".join(getColumnNames()))
+        self.output.write("#%s\n" % "\t".join(columns))
 
         for i,row in enumerate(data):
             (orf, name, desc, n, mean1, mean2, test_obs, log2FC, pval_2tail) = row
@@ -357,6 +403,7 @@ class ResamplingMethod(base.DualConditionMethod):
         -n <string>     :=  Normalization method. Default: -n TTR
         -h              :=  Output histogram of the permutations for each gene. Default: Turned Off.
         -a              :=  Perform adaptive resampling. Default: Turned Off.
+        -iz             :=  Include rows with zero accross conditions.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.
         -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
         -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0

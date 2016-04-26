@@ -152,7 +152,7 @@ class BinomialMethod(base.SingleConditionMethod):
             return None
 
         #Get Annotation file
-        annotationPath = wxobj.annotationFilePicker.GetPath()
+        annotationPath = wxobj.annotation
         if not annotationPath:
             wxobj.ShowError("Error: No annotation file selected.")
             return None
@@ -415,7 +415,7 @@ class BinomialMethod(base.SingleConditionMethod):
         self.output.write("#rho1 Acceptance Rate:\t%f%%\n" % ((100.0*acc_p1)/sample_size))
         self.output.write("#Kp1  Acceptance Rate:\t%f%%\n" % ((100.0*acc_k1)/sample_size))
 
-        self.output.write("#%s\n" % "\t".join(getColumnNames()))
+        self.output.write("#%s\n" % "\t".join(columns))
 
         data = []
         for g,gene in enumerate(G):

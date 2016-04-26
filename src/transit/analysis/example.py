@@ -81,7 +81,7 @@ class ExampleMethod(base.SingleConditionMethod):
             return None
 
         #Get Annotation file
-        annotationPath = wxobj.annotationFilePicker.GetPath()
+        annotationPath = wxobj.annotation
         if not annotationPath:
             wxobj.ShowError("Error: No annotation file selected.")
             return None

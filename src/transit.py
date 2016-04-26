@@ -79,6 +79,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
         self.workdir = os.getcwd()
+        self.annotation = ""
         self.transposons = ["himar1", "tn5"]
         #import pkgutil
         #print [x for x in pkgutil.iter_modules(['transit/analysis'])]
@@ -233,8 +234,15 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def finishRun(self,msg):
         if not newWx: msg = msg.data
-        self.gui[msg].Enable()
-        
+        try:
+            self.methods[msg].gui.Enable()
+        except Exception as e:
+            except Exception as e:
+            print transit_prefix, "Error:", e
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
+
 
 
     def ResetProgress(self):
@@ -494,7 +502,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def allViewFunc(self, event, gene=""):
         
-        annotationpath = self.annotationFilePicker.GetPath()
+        annotationpath = self.annotation
         datasets = self.ctrlSelected() + self.expSelected()
 
         if datasets and annotationpath:
@@ -514,7 +522,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
     def ctrlViewFunc(self, event, gene=""):
-        annotationpath = self.annotationFilePicker.GetPath()
+        annotationpath = self.annotation
         datasets = self.ctrlSelected()
         if datasets and annotationpath:
             if self.verbose:
@@ -531,7 +539,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
     def expViewFunc(self, event, gene=""):
-        annotationpath = self.annotationFilePicker.GetPath()
+        annotationpath = self.annotation
         datasets = self.expSelected()
         if datasets and annotationpath:
             if self.verbose:
@@ -549,7 +557,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def scatterFunc(self, event):
         """ """
-        #annotationpath = self.annotationFilePicker.GetPath()
+        #annotationpath = self.annotation
         datasets = self.ctrlSelected() + self.expSelected()
         if len(datasets) == 2:
             if self.verbose:
@@ -587,9 +595,15 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
     def annotationFileFunc(self, event):
-        if self.verbose:
-            print transit_prefix, "Annotation File Selected:", self.annotationFilePicker.GetPath()
-        
+
+        wc = u"Prot Table (*.prot_table)|*.prot_table;|\nProt Table (*.txt)|*.txt;|\nProt Table (*.dat)|*.dat;|\nAll files (*.*)|*.*" 
+        self.annotation = self.OpenFile(DIR=self.workdir, FILE="", WC=wc)
+        if self.annotation:
+            self.annotationFilePicker.SetLabel(transit_tools.basename(self.annotation))
+            if self.verbose:
+                print transit_prefix, "Annotation File Selected:", self.annotation
+        else:
+            self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table)]")
         
     def MethodSelectFunc(self, event):
         X = self.methodChoice.GetCurrentSelection()
@@ -846,7 +860,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
     def ctrlToIGV(self, event):
-        annotationPath = self.annotationFilePicker.GetPath()
+        annotationPath = self.annotation
         datasets = self.ctrlSelected()
         defaultFile = "read_counts.igv"
         #Get Default directory
@@ -870,7 +884,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         
 
     def expToIGV(self, event):
-        annotationPath = self.annotationFilePicker.GetPath()
+        annotationPath = self.annotation
         datasets = self.expSelected()
         defaultFile = "read_counts.igv"
         #Get Default directory
@@ -893,7 +907,7 @@ class TnSeekFrame(transit_gui.MainFrame):
  
 
     def allToIGV(self, event):
-        annotationPath = self.annotationFilePicker.GetPath()
+        annotationPath = self.annotation
         datasets = self.ctrlSelected() + self.expSelected()
         defaultFile = "read_counts.igv"
         #Get Default directory
@@ -916,7 +930,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         
     def annotationPT_to_GFF3(self, event):
-        annotationpath = self.annotationFilePicker.GetPath()
+        annotationpath = self.annotation
         defaultFile = transit_tools.fetch_name(annotationpath) + ".gff3"
         #defaultDir = os.path.dirname(os.path.realpath(__file__))
         defaultDir = os.getcwd()
@@ -957,7 +971,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def annotationPT_to_PTT(self, event):
  
-        annotationpath = self.annotationFilePicker.GetPath()
+        annotationpath = self.annotation
         defaultFile = transit_tools.fetch_name(annotationpath) + ".ptt.table"
         #defaultDir = os.path.dirname(os.path.realpath(__file__))
         defaultDir = os.getcwd()
@@ -1000,7 +1014,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def annotationPTT_to_PT(self, event):
 
-        annotationpath = self.annotationFilePicker.GetPath()
+        annotationpath = self.annotation
         defaultFile = transit_tools.fetch_name(annotationpath) + ".prot_table"
         #defaultDir = os.path.dirname(os.path.realpath(__file__))
         defaultDir = os.getcwd()
@@ -1050,7 +1064,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def annotationGFF3_to_PT(self, event):
 
-        annotationpath = self.annotationFilePicker.GetPath()
+        annotationpath = self.annotation
         defaultFile = transit_tools.fetch_name(annotationpath) + ".prot_table"
         #defaultDir = os.path.dirname(os.path.realpath(__file__))
         defaultDir = os.getcwd()

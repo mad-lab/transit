@@ -125,7 +125,7 @@ class GriffinMethod(base.SingleConditionMethod):
             return None
 
         #Get Annotation file
-        annotationPath = wxobj.annotationFilePicker.GetPath()
+        annotationPath = wxobj.annotation
         if not annotationPath:
             wxobj.ShowError("Error: No annotation file selected.")
             return None
@@ -240,7 +240,7 @@ class GriffinMethod(base.SingleConditionMethod):
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Time: %s\n" % (time.time() - start_time))
-        self.output.write("#%s\n" % "\t".join(getColumnNames()))
+        self.output.write("#%s\n" % "\t".join(columns))
         
         for (gene, exprun, pval, padj) in results:
             self.output.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%1.1f\t%1.5f\t%1.5f\n" % (gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, gene.s, gene.t, exprun, pval, padj))

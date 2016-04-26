@@ -160,7 +160,7 @@ class GlobalGumbelMethod(base.SingleConditionMethod):
             return None
 
         #Get Annotation file
-        annotationPath = wxobj.annotationFilePicker.GetPath()
+        annotationPath = wxobj.annotation
         if not annotationPath:
             wxobj.ShowError("Error: No annotation file selected.")
             return None
@@ -324,7 +324,7 @@ class GlobalGumbelMethod(base.SingleConditionMethod):
         self.output.write("#Minimum significant run length: %d\n" % (min_sig_len))
         self.output.write("#Expected run length: %1.5f\n" % (exp_run_len))
         self.output.write("#Expected max run length: %s\n" % (exprunmax))
-        self.output.write("#%s\n" % "\t".join(getColumnNames()))
+        self.output.write("#%s\n" % "\t".join(columns))
         #self.output.write("#Orf\tName\tDesc\tk\tn\tr\tovr\tlenovr\tpval\tpadj\tcall\n")
 
         for res in data:
