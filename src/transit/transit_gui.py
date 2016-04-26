@@ -33,6 +33,7 @@ class MainFrame ( wx.Frame ):
        
 
         #Method choice
+        """
         choiceSizer = wx.StaticBoxSizer( wx.StaticBox( self.m_scrolledWindow2, wx.ID_ANY, u"Method" ), wx.VERTICAL )
 
         choiceSizer_H = wx.BoxSizer( wx.HORIZONTAL )
@@ -54,12 +55,12 @@ class MainFrame ( wx.Frame ):
         methodChoiceChoices = [ u"[Choose Method]"]
         self.methodChoice = wx.Choice( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, methodChoiceChoices, 0 )
         self.methodChoice.SetSelection( 0 )
-        choiceSizer_H.Add( self.methodChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        #choiceSizer_H.Add( self.methodChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
         
         
         choiceSizer.Add(choiceSizer_H, 1, wx.EXPAND, 5 )
-        bSizer4.Add( choiceSizer, 0, wx.EXPAND, 5 )
-
+        #bSizer4.Add( choiceSizer, 0, wx.EXPAND, 5 )
+        """
 
         # Organism
         orgSizer = wx.StaticBoxSizer( wx.StaticBox( self.m_scrolledWindow2, wx.ID_ANY, u"Organism" ), wx.VERTICAL )
@@ -391,7 +392,19 @@ class MainFrame ( wx.Frame ):
         self.viewMenuItem.AppendItem( self.qcMenuItem )
         
         self.m_menubar1.Append( self.viewMenuItem, u"View" ) 
+       
+
+    
+        self.methodsMenuItem = wx.Menu()
+        self.himar1MenuItem = wx.Menu()
+        self.tn5MenuItem = wx.Menu()
         
+        
+        self.methodsMenuItem.AppendSubMenu(self.himar1MenuItem, "Himar1 Methods")
+        self.methodsMenuItem.AppendSubMenu(self.tn5MenuItem, "Tn5 Methods")
+        self.m_menubar1.Append( self.methodsMenuItem, u"Methods" )
+        
+ 
         self.SetMenuBar( self.m_menubar1 )
         
         self.statusBar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
@@ -400,8 +413,8 @@ class MainFrame ( wx.Frame ):
         
         # Connect Events
 
-        self.methodCheckBoxHimar1.Bind(wx.EVT_CHECKBOX,self.onHimar1Checked)
-        self.methodCheckBoxTn5.Bind(wx.EVT_CHECKBOX,self.onTn5Checked)
+        #self.methodCheckBoxHimar1.Bind(wx.EVT_CHECKBOX,self.onHimar1Checked)
+        #self.methodCheckBoxTn5.Bind(wx.EVT_CHECKBOX,self.onTn5Checked)
         self.annotationFilePicker.Bind( wx.EVT_BUTTON, self.annotationFileFunc )
         self.ctrlRemoveButton.Bind( wx.EVT_BUTTON, self.ctrlRemoveFunc )
         self.ctrlView.Bind( wx.EVT_BUTTON, self.allViewFunc )
@@ -415,7 +428,7 @@ class MainFrame ( wx.Frame ):
         self.graphFileButton.Bind( wx.EVT_BUTTON, self.graphFileFunc )
         self.addFileButton.Bind( wx.EVT_BUTTON, self.addFileFunc )
         self.graphFileChoice.Bind( wx.EVT_CHOICE, self.graphFileFunc )
-        self.methodChoice.Bind( wx.EVT_CHOICE, self.MethodSelectFunc )
+        #self.methodChoice.Bind( wx.EVT_CHOICE, self.MethodSelectFunc )
         self.Bind( wx.EVT_MENU, self.ctrlToIGV, id = self.ctrlExportIGVMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.expToIGV, id = self.expExportIGVMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.allToIGV, id = self.allExportIGVMenuItem.GetId() )

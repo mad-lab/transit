@@ -40,6 +40,8 @@ import matplotlib.pyplot as plt
 import multiprocessing as mp
 import math
 
+from functools import partial
+
 import traceback
 
 # trash view stuff
@@ -130,10 +132,15 @@ class TnSeekFrame(transit_gui.MainFrame):
         for name in methods:
             methods[name].gui.definePanel(self)
             methods[name].gui.Hide()
-            methodChoiceChoices.append(methods[name].fullname())
 
-        self.methodChoice.SetItems(methodChoiceChoices)
-        self.methodChoice.SetSelection( 0 )
+            if "himar1" in methods[name].transposons:
+                tempMenuItem = wx.MenuItem( self.himar1MenuItem, wx.ID_ANY, methods[name].fullname(), wx.EmptyString, wx.ITEM_NORMAL )
+                self.Bind( wx.EVT_MENU, partial(self.MethodSelectFunc,  methods[name].fullname()), tempMenuItem )
+                self.himar1MenuItem.AppendItem( tempMenuItem )
+            if "tn5" in methods[name].transposons:
+                tempMenuItem = wx.MenuItem( self.tn5MenuItem, wx.ID_ANY, methods[name].fullname(), wx.EmptyString, wx.ITEM_NORMAL )
+                self.Bind( wx.EVT_MENU, partial(self.MethodSelectFunc, methods[name].fullname()), tempMenuItem )
+                self.tn5MenuItem.AppendItem( tempMenuItem )
 
         #progress
         self.progressPanel = wx.Panel( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
@@ -235,9 +242,9 @@ class TnSeekFrame(transit_gui.MainFrame):
     def finishRun(self,msg):
         if not newWx: msg = msg.data
         try:
-            self.methods[msg].gui.Enable()
+            #methods[msg].gui.Enable()
+            pass
         except Exception as e:
-            except Exception as e:
             print transit_prefix, "Error:", e
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -605,32 +612,40 @@ class TnSeekFrame(transit_gui.MainFrame):
         else:
             self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table)]")
         
-    def MethodSelectFunc(self, event):
-        X = self.methodChoice.GetCurrentSelection()
-        selected_name = self.methodChoice.GetString(X)
+    def MethodSelectFunc(self, selected_name, test=""):
+        #X = self.methodChoice.GetCurrentSelection()
+        #selected_name = self.methodChoice.GetString(X)
 
         #If empty is selected
-        if X == 0:
+        if selected_name == "[Choose Method]":
             self.HideAllOptions()
             self.mainInstructions.Show()
             self.mainInstructions.SetLabel(mainInstructions)
             self.mainInstructions.Wrap(method_wrap_width)
-            mainInstructions
+
+            self.method_choice = ""
         else:
             self.ShowGlobalOptions()
             #Show Selected Method and hide Others
             for name in methods:
                 methods[name].gui.Hide()
                 if methods[name].fullname() == selected_name:
-                    self.mainInstructions.SetLabel(methods[name].description)
+                    text = """%s
+                       
+    %s 
+                    """ % (methods[name].fullname(), methods[name].description)
+                    self.mainInstructions.SetLabel(text)
                     self.mainInstructions.Wrap(method_wrap_width)
                     methods[name].gui.Show()
                 else:
                     methods[name].gui.Hide()
             self.ShowProgressSection()
+            self.method_choice = selected_name
+
         self.Layout()
         if self.verbose:
-            print transit_prefix, "Selected Method (%d): %s" % (X, selected_name)
+            print transit_prefix, "Selected Method: %s" % (selected_name)
+
 
 
 
@@ -826,6 +841,12 @@ class TnSeekFrame(transit_gui.MainFrame):
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
 
+
+
+    def choseMethodsMenu(self, selected_name, event):
+        if self.verbose:
+            print transit_prefix, "Selected Method: %s" % (selected_name)
+        self.MethodSelectFunc(selected_name) 
 
 
     def convertToIGV(self, dataset_list, annotationPath, path):
@@ -1111,8 +1132,9 @@ class TnSeekFrame(transit_gui.MainFrame):
 
     def RunMethod(self, event):
         #FLORF
-        X = self.methodChoice.GetCurrentSelection()
-        selected_name = self.methodChoice.GetString(X)
+        #X = self.methodChoice.GetCurrentSelection()
+        #selected_name = self.methodChoice.GetString(X)
+        selected_name = self.method_choice
         for name in methods:
             if  methods[name].fullname() == selected_name:
                 methodobj = methods[name].method
