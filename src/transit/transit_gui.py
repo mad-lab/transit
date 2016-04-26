@@ -402,7 +402,7 @@ class MainFrame ( wx.Frame ):
         
         self.methodsMenuItem.AppendSubMenu(self.himar1MenuItem, "Himar1 Methods")
         self.methodsMenuItem.AppendSubMenu(self.tn5MenuItem, "Tn5 Methods")
-        self.m_menubar1.Append( self.methodsMenuItem, u"Methods" )
+        self.m_menubar1.Append( self.methodsMenuItem, u"Analysis" )
         
  
         self.SetMenuBar( self.m_menubar1 )
