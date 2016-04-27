@@ -24,7 +24,7 @@ methods["griffin"] = {"module":griffin, "method":griffin.Griffin}
 methods["hmm"] = {"module":hmm, "method":hmm.HMM}
 methods["resampling"] = {"module":resampling, "method":resampling.Resampling}
 methods["rankproduct"] = {"module":rankproduct, "method":rankproduct.Rankproduct}
-methods["globalruns"] = {"module":globalruns, "method":globalruns.GlobalGumbel}
+methods["tn5gaps"] = {"module":tn5gaps, "method":tn5gaps.Tn5Gaps}
 
 
 

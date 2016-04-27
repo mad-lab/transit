@@ -197,7 +197,6 @@ class Genes:
         if not numpy.any(data):
             (data, position) = get_data(self.wigList)
         hash = get_pos_hash(self.protTable)
-       
 
         if not noNorm:
             (data, factors) = norm_tools.normalize_data(data, norm, self.wigList, self.protTable)
@@ -410,6 +409,22 @@ def runindex(runs):
         index_list.append(runindex)
     return index_list
 
+def get_file_types(wig_list):
+    if not wig_list:
+        return []
+    
+    types = types = ['tn5' for i in range(len(wig_list))]
+    for i, wig_filename in enumerate(wig_list):
+        with open(wig_filename) as wig_file:
+            prev_pos = 0
+            for line in wig_file:
+                if line[0] not in "0123456789": continue
+                tmp = line.split()
+                pos = int(tmp[0])
+                rd = float(tmp[1])
+                if pos != prev_pos + 1: types[i] = 'himar1'
+                prev_pos = pos
+    return types
 
 def get_data(wig_list):
     """ Returns a tuple of (data, position) containing a matrix of raw read counts, and list of coordinates. """
@@ -417,12 +432,50 @@ def get_data(wig_list):
     T = 0
 
     if not wig_list:
-        return (numpy.zeros((1,0)), numpy.zeros(0))
+        return (numpy.zeros((1,0)), numpy.zeros(0), [])
 
     for line in open(wig_list[0]):
         if line[0] not in "0123456789": continue
         T+=1
+    
+    data = numpy.zeros((K,T))
+    position = numpy.zeros(T)
+    for j,path in enumerate(wig_list):
+        reads = []
+        i = 0
+        prev_pos = 0
+        for line in open(path):
+            if line[0] not in "0123456789": continue
+            tmp = line.split()
+            pos = int(tmp[0])
+            rd = float(tmp[1])
+            prev_pos = pos
+            data[j,i] = rd
+            position[i] = pos
+            i+=1
+    return (data, position)
 
+def get_data_zero_fill(wig_list):
+    """ Returns a tuple of (data, position) containing a matrix of raw read counts, and list of coordinates. """
+    K = len(wig_list)
+    T = 0
+
+    if not wig_list:
+        return (numpy.zeros((1,0)), numpy.zeros(0), [])
+
+    #NOTE:  This might be slow as we need to find the last insertion site
+    #       over all the replicates. This might be an area to attempt to optimize.
+    last_line = ''
+    for wig_name in wig_list:
+        for line in open(wig_name):
+            if line[0] not in "0123456789": continue
+            last_line = line
+        pos = int(last_line.split()[0])
+        T = max(T,pos)
+    
+    if T == 0:
+        return (numpy.zeros((1,0)), numpy.zeros(0), [])
+    
     data = numpy.zeros((K,T))
     position = numpy.zeros(T)
     for j,path in enumerate(wig_list):
@@ -433,10 +486,19 @@ def get_data(wig_list):
             tmp = line.split()
             pos = int(tmp[0])
             rd = float(tmp[1])
+            
+            # Fill in remaining zeros
+            for fill_pos in range(i, pos - 1):
+                data[j,fill_pos] = 0
+                position[fill_pos] = i
+                i += 1
+                
+            prev_pos = pos
             data[j,i] = rd
             position[i] = pos
             i+=1
     return (data, position)
+
 
 
 def combine_replicates(data, method="Sum"):
