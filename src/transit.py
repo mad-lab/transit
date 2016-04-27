@@ -124,6 +124,8 @@ class TnSeekFrame(transit_gui.MainFrame):
         methodChoiceChoices = [ "[Choose Method]"]
         for name in methods:
             methods[name].gui.definePanel(self)
+            #methods[name].gui.panel.BackgroundColour = (0, 200, 20)
+            self.methodSizer.Add(methods[name].gui.panel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
             methods[name].gui.Hide()
 
             if "himar1" in methods[name].transposons:
@@ -146,14 +148,22 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.progress = wx.Gauge( self.progressPanel, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
         progressSizer.Add( self.progress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
+
+        #self.progressPanel.BackgroundColour = (0, 0, 250)
         self.progressPanel.SetSizer( progressSizer )
+        self.progressPanel.SetMaxSize(wx.Size(100, 100))
         self.progressPanel.Layout()
-        progressSizer.Fit( self.progressPanel )
-        self.methodSizer.Add( self.progressPanel, 1, wx.EXPAND |wx.ALL, 5 )
+
+        #progressSizer.Fit( self.progressPanel )
+        self.methodSizer.Add( self.progressPanel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        
+        self.globalLabel = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"Florf", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #self.methodSizer.Add( self.globalLabel, 1, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         #self.methodSizer.Hide()
         self.progress.SetRange(50)
         #########
         
+        self.optionsWindow.Fit()
 
         self.HideProgressSection()
         self.HideGlobalOptions()

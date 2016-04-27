@@ -194,10 +194,11 @@ class MainFrame ( wx.Frame ):
         
         bSizer1.Add( self.m_panel5, 0, wx.ALL|wx.EXPAND, 5 )
         
-        self.optionsWindow = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL )
+        self.optionsWindow = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL |wx.EXPAND)
         self.optionsWindow.SetScrollRate( 5, 5 )
-        self.optionsWindow.SetMinSize( wx.Size( 310,800 ) )
-       
+        self.optionsWindow.SetMinSize( wx.Size( 310,1000 ) )
+        #self.optionsWindow.SetMaxSize( wx.Size( 310,1000 ) )
+        #self.optionsWindow.BackgroundColour = (200, 0, 20) 
         
 
         self.optionsSizer = wx.BoxSizer( wx.VERTICAL )
@@ -240,7 +241,7 @@ class MainFrame ( wx.Frame ):
 
         # Method Options 
         self.methodSizer = wx.StaticBoxSizer( wx.StaticBox( self.optionsWindow, wx.ID_ANY, u"Method Options" ), wx.VERTICAL )
-        self.methodSizer.SetMinSize( wx.Size( 250,-1 ) ) 
+        #self.methodSizer.SetMinSize( wx.Size( 250,-1 ) ) 
         
         self.m_panel1 = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.m_panel1.SetMinSize( wx.Size( 50,1 ) )
@@ -254,7 +255,8 @@ class MainFrame ( wx.Frame ):
         self.globalPanel = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.globalPanel.SetMinSize( wx.Size( 50,90 ) )
         self.globalPanel.SetMaxSize( wx.Size( 250,-1) )
-        
+       
+        #self.globalPanel.BackgroundColour = (200, 230, 250) 
         bSizer1431 = wx.BoxSizer( wx.VERTICAL )
         
         bSizer1521 = wx.BoxSizer( wx.HORIZONTAL )
@@ -290,15 +292,18 @@ class MainFrame ( wx.Frame ):
         self.globalPanel.SetSizer( bSizer1431 )
         self.globalPanel.Layout()
         bSizer1431.Fit( self.globalPanel )
-        self.methodSizer.Add( self.globalPanel, 0, wx.ALL|wx.EXPAND, 5 )
+        self.methodSizer.Add( self.globalPanel, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
 
         #--------------------#
 
-        self.optionsSizer.Add( self.methodSizer, 1, wx.EXPAND, 5 )
+        self.optionsSizer.Add( self.methodSizer, 0, wx.EXPAND, 5 )
 
         self.optionsWindow.SetSizer( self.optionsSizer )
         self.optionsWindow.Layout()
+
+        self.optionsWindow.Fit()
+        
         #self.optionsSizer.Fit( self.optionsWindow )
         bSizer1.Add( self.optionsWindow, 0, wx.ALL, 5 )
         
