@@ -67,7 +67,7 @@ class ResamplingGUI(base.AnalysisGUI):
 
     def definePanel(self, wxobj):
         self.wxobj = wxobj
-        resamplingPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        resamplingPanel = wx.Panel( self.wxobj.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
         resamplingSizer = wx.BoxSizer( wx.VERTICAL )
 

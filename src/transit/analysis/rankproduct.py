@@ -49,7 +49,7 @@ class RankProductGUI(base.AnalysisGUI):
 
     def definePanel(self, wxobj):
         self.wxobj = wxobj
-        rankproductPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        rankproductPanel = wx.Panel( self.wxobj.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
     
         rankproductSizer = wx.BoxSizer( wx.VERTICAL )
 

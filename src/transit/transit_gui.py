@@ -12,6 +12,9 @@ import wx.xrc
 import transit.analysis.gumbel
 from wx.lib.buttons import GenBitmapTextButton
 
+
+
+
 ###########################################################################
 ## Class MainFrame
 ###########################################################################
@@ -21,67 +24,49 @@ class MainFrame ( wx.Frame ):
     def __init__( self, parent ):
         wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"TRANSIT", pos = wx.DefaultPosition, size = wx.Size( 1300,975 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
         
+
+        #Define variables
+
+        #Define Text
+        self.instructions_text = """
+1. Choose the annotation file ("prot table") that corresponds to the datasets to be analyzed.
+2. Add the desired Control and Experimental datasets.
+3. (Optional) If you wish to visualize their read counts, select the desired datasets and click on the "View" button.
+4. Select the desired analysis method from the dropdown menu on the top-right of the window, and follow its instructions.
+"""
+
+
+        # Define ART
+        bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_OTHER, (16, 16))
+
+
+
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
         
         bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.m_scrolledWindow2 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL )
-        self.m_scrolledWindow2.SetScrollRate( 5, 5 )
-        self.m_scrolledWindow2.SetMinSize( wx.Size( 700,-1 ) )
+        self.mainWindow = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL )
+        self.mainWindow.SetScrollRate( 5, 5 )
+        self.mainWindow.SetMinSize( wx.Size( 700,-1 ) )
         
         bSizer4 = wx.BoxSizer( wx.VERTICAL )
-       
-
-        #Method choice
-        """
-        choiceSizer = wx.StaticBoxSizer( wx.StaticBox( self.m_scrolledWindow2, wx.ID_ANY, u"Method" ), wx.VERTICAL )
-
-        choiceSizer_H = wx.BoxSizer( wx.HORIZONTAL )
-
-
-        self.methodCheckBoxHimar1 = wx.CheckBox(self.m_scrolledWindow2, label = 'Himar1',pos = (10,10))
-        self.methodCheckBoxHimar1.SetValue(True)
-        self.methodCheckBoxTn5 = wx.CheckBox(self.m_scrolledWindow2, label = 'Tn5',pos = (10,10))
-        self.methodCheckBoxTn5.SetValue(True)
-        choiceSizer_H.Add(self.methodCheckBoxHimar1, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-        choiceSizer_H.Add(self.methodCheckBoxTn5, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-        self.methodChoiceStaticText = wx.StaticText( self.m_scrolledWindow2, wx.ID_ANY, u"Method Choice:", wx.DefaultPosition, wx.DefaultSize, 0 ) 
-        self.methodChoiceStaticText.Wrap( -1 )
-
-        choiceSizer_H.Add(self.methodChoiceStaticText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-
-        methodChoiceChoices = [ u"[Choose Method]"]
-        self.methodChoice = wx.Choice( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, methodChoiceChoices, 0 )
-        self.methodChoice.SetSelection( 0 )
-        #choiceSizer_H.Add( self.methodChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-        
-        
-        choiceSizer.Add(choiceSizer_H, 1, wx.EXPAND, 5 )
-        #bSizer4.Add( choiceSizer, 0, wx.EXPAND, 5 )
-        """
 
         # Organism
-        orgSizer = wx.StaticBoxSizer( wx.StaticBox( self.m_scrolledWindow2, wx.ID_ANY, u"Organism" ), wx.VERTICAL )
+        orgSizer = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Organism" ), wx.VERTICAL )
         
         bSizer10 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.m_staticText5 = wx.StaticText( self.m_scrolledWindow2, wx.ID_ANY, u"Annotation File:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText5 = wx.StaticText( self.mainWindow, wx.ID_ANY, u"Annotation File:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText5.Wrap( -1 )
         bSizer10.Add( self.m_staticText5, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
         
-        #self.annotationFilePicker = wx.FilePickerCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.EmptyString, u"Select a file", u"Prot Table (*.prot_table)|*.prot_table;|\nProt Table (*.txt)|*.txt;|\nProt Table (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
 
-        bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_OTHER, (16, 16))
-        self.annotationFilePicker = GenBitmapTextButton(self.m_scrolledWindow2, 1, bmp, '[Click to add Annotation File (.prot_table)]', size= wx.Size(400, 30))
+        self.annotationFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Annotation File (.prot_table)]', size= wx.Size(400, 30))
 
-
-        #self.annotationFilePicker = wx.FilePickerCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.EmptyString, u"Select a file", u"Prot Table (*.prot_table)|*.prot_table;|\nProt Table (*.txt)|*.txt;|\nProt Table (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
 
         bSizer10.Add( self.annotationFilePicker, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
         
-        self.m_panel2 = wx.Panel( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.m_panel2 = wx.Panel( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.m_panel2.SetMinSize( wx.Size( 100,-1 ) )
         self.m_panel2.SetMaxSize( wx.Size( 150,-1 ) )
         
@@ -92,33 +77,27 @@ class MainFrame ( wx.Frame ):
         
         bSizer4.Add( orgSizer, 0, wx.EXPAND, 5 )
         
-        ctrlSizer = wx.StaticBoxSizer( wx.StaticBox( self.m_scrolledWindow2, wx.ID_ANY, u"Control Samples" ), wx.VERTICAL )
+        ctrlSizer = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Control Samples" ), wx.VERTICAL )
         
         bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.ctrlRemoveButton = wx.Button( self.m_scrolledWindow2, wx.ID_ANY, u"Remove", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.ctrlRemoveButton = wx.Button( self.mainWindow, wx.ID_ANY, u"Remove", wx.DefaultPosition, wx.DefaultSize, 0 )
         bSizer2.Add( self.ctrlRemoveButton, 0, wx.ALL, 5 )
         
-        self.ctrlView = wx.Button( self.m_scrolledWindow2, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.ctrlView = wx.Button( self.mainWindow, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.ctrlView.Hide()
         
         bSizer2.Add( self.ctrlView, 0, wx.ALL, 5 )
         
-        self.ctrlScatter = wx.Button( self.m_scrolledWindow2, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.ctrlScatter = wx.Button( self.mainWindow, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.ctrlScatter.Hide()
         
         bSizer2.Add( self.ctrlScatter, 0, wx.ALL, 5 )
         
-        bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_OTHER, (16, 16))
-        self.ctrlFilePicker = GenBitmapTextButton(self.m_scrolledWindow2, 1, bmp, '[Click to add Control Dataset(s)]', size= wx.Size(400, 30))
-        #self.ctrlFilePicker = wx.FilePickerCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.EmptyString, u"Select a file", u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
-
-        #self.ctrlFilePicker = wx.FilePickerCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.EmptyString, u"Select a file", u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FD_MULTIPLE )
-        #self.ctrlFilePicker = wx.FileDialog( self.m_scrolledWindow2, message=u"Select a file", wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", style=wx.FD_MULTIPLE )
-
+        self.ctrlFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Control Dataset(s)]', size= wx.Size(400, 30))
         bSizer2.Add( self.ctrlFilePicker, 1, wx.ALL, 5 )
         
-        self.m_panel21 = wx.Panel( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.m_panel21 = wx.Panel( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.m_panel21.SetMinSize( wx.Size( 100,-1 ) )
         self.m_panel21.SetMaxSize( wx.Size( 150,-1 ) )
         
@@ -127,7 +106,7 @@ class MainFrame ( wx.Frame ):
         
         ctrlSizer.Add( bSizer2, 0, wx.EXPAND, 5 )
         
-        self.list_ctrl = wx.ListCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
+        self.list_ctrl = wx.ListCtrl( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
 
         self.list_ctrl.SetMaxSize(wx.Size(940,200))
         ctrlSizer.Add( self.list_ctrl, 1, wx.ALL|wx.EXPAND, 5 )
@@ -135,30 +114,28 @@ class MainFrame ( wx.Frame ):
         
         bSizer4.Add( ctrlSizer, 1, wx.EXPAND, 5 )
         
-        expSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.m_scrolledWindow2, wx.ID_ANY, u"Experimental Samples" ), wx.VERTICAL )
+        expSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Experimental Samples" ), wx.VERTICAL )
         
         bSizer3 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.expSizer = wx.Button( self.m_scrolledWindow2, wx.ID_ANY, u"Remove", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.expSizer = wx.Button( self.mainWindow, wx.ID_ANY, u"Remove", wx.DefaultPosition, wx.DefaultSize, 0 )
         bSizer3.Add( self.expSizer, 0, wx.ALL, 5 )
         
-        self.expView = wx.Button( self.m_scrolledWindow2, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.expView = wx.Button( self.mainWindow, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.expView.Hide()
         
         bSizer3.Add( self.expView, 0, wx.ALL, 5 )
         
-        self.expScatter = wx.Button( self.m_scrolledWindow2, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.expScatter = wx.Button( self.mainWindow, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.expScatter.Hide()
         
         bSizer3.Add( self.expScatter, 0, wx.ALL, 5 )
        
 
-        bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_OTHER, (16, 16))
-        self.expFilePicker = GenBitmapTextButton(self.m_scrolledWindow2, 1, bmp, '[Click to add Experimental Dataset(s)]', size= wx.Size(400, 30))
-        #self.expFilePicker = wx.FilePickerCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.EmptyString, u"Select a .wig file", u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
+        self.expFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Experimental Dataset(s)]', size= wx.Size(400, 30))
         bSizer3.Add( self.expFilePicker, 1, wx.ALL, 5 )
         
-        self.m_panel22 = wx.Panel( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.m_panel22 = wx.Panel( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.m_panel22.SetMinSize( wx.Size( 100,-1 ) )
         self.m_panel22.SetMaxSize( wx.Size( 150,-1 ) )
         
@@ -167,40 +144,39 @@ class MainFrame ( wx.Frame ):
         
         expSizer1.Add( bSizer3, 0, wx.EXPAND, 5 )
         
-        self.list_exp = wx.ListCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
+        self.list_exp = wx.ListCtrl( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
         self.list_exp.SetMaxSize(wx.Size(940, 200))
         expSizer1.Add( self.list_exp, 1, wx.ALL|wx.EXPAND, 5 )
         
         
         bSizer4.Add( expSizer1, 1, wx.EXPAND, 5 )
         
-        filesSizer = wx.StaticBoxSizer( wx.StaticBox( self.m_scrolledWindow2, wx.ID_ANY, u"Results Files" ), wx.VERTICAL )
+        filesSizer = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Results Files" ), wx.VERTICAL )
         
         bSizer141 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.displayButton = wx.Button( self.m_scrolledWindow2, wx.ID_ANY, u"Display Table", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.displayButton = wx.Button( self.mainWindow, wx.ID_ANY, u"Display Table", wx.DefaultPosition, wx.DefaultSize, 0 )
         bSizer141.Add( self.displayButton, 0, wx.ALL, 5 )
         
-        self.graphFileButton = wx.Button( self.m_scrolledWindow2, wx.ID_ANY, u"Display Graph", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.graphFileButton = wx.Button( self.mainWindow, wx.ID_ANY, u"Display Graph", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.graphFileButton.Hide()
         
         bSizer141.Add( self.graphFileButton, 0, wx.ALL, 5 )
         
-        #self.addFileButton = wx.Button( self.m_scrolledWindow2, wx.ID_ANY, u"Add Results File", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.addFileButton = GenBitmapTextButton(self.m_scrolledWindow2, 1 , bmp, 'Add Results File', size= wx.Size(150, 30))
+        self.addFileButton = GenBitmapTextButton(self.mainWindow, 1 , bmp, 'Add Results File', size= wx.Size(150, 30))
 
 
         bSizer141.Add( self.addFileButton, 0, wx.ALL, 5 )
         
         graphFileChoiceChoices = [ u"[Visualization Options]", u"Volcano Plot", u"Histogram of Total Gene Counts" ]
-        self.graphFileChoice = wx.Choice( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, graphFileChoiceChoices, 0 )
+        self.graphFileChoice = wx.Choice( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, graphFileChoiceChoices, 0 )
         self.graphFileChoice.SetSelection( 0 )
         bSizer141.Add( self.graphFileChoice, 0, wx.ALL, 5 )
         
         
         filesSizer.Add( bSizer141, 0, 0, 5 )
         
-        self.list_files = wx.ListCtrl( self.m_scrolledWindow2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
+        self.list_files = wx.ListCtrl( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
         self.list_files.SetMaxSize(wx.Size(940,200))
         filesSizer.Add( self.list_files, 1, wx.ALL|wx.EXPAND, 5 )
         
@@ -208,58 +184,74 @@ class MainFrame ( wx.Frame ):
         bSizer4.Add( filesSizer, 1, wx.EXPAND, 5 )
         
         
-        self.m_scrolledWindow2.SetSizer( bSizer4 )
-        self.m_scrolledWindow2.Layout()
-        bSizer4.Fit( self.m_scrolledWindow2 )
-        bSizer1.Add( self.m_scrolledWindow2, 1, wx.ALL|wx.EXPAND, 5 )
+        self.mainWindow.SetSizer( bSizer4 )
+        self.mainWindow.Layout()
+        bSizer4.Fit( self.mainWindow )
+        bSizer1.Add( self.mainWindow, 1, wx.ALL|wx.EXPAND, 5 )
         
         self.m_panel5 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.DOUBLE_BORDER|wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL )
         self.m_panel5.SetMaxSize( wx.Size( 2,-1 ) )
         
         bSizer1.Add( self.m_panel5, 0, wx.ALL|wx.EXPAND, 5 )
         
-        self.m_scrolledWindow1 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL )
-        self.m_scrolledWindow1.SetScrollRate( 5, 5 )
-        self.m_scrolledWindow1.SetMinSize( wx.Size( 310,1000 ) )
+        self.optionsWindow = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL )
+        self.optionsWindow.SetScrollRate( 5, 5 )
+        self.optionsWindow.SetMinSize( wx.Size( 310,800 ) )
+       
         
-        self.methodSizer = wx.StaticBoxSizer( wx.StaticBox( self.m_scrolledWindow1, wx.ID_ANY, u"Methods" ), wx.VERTICAL )
-        
-        self.methodSizer.SetMinSize( wx.Size( 250,-1 ) ) 
-        self.m_staticText13 = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Tn-Seq\nAnalysis", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText13.Wrap( -1 )
-        self.m_staticText13.SetFont( wx.Font( 20, 74, 90, 92, False, "Sans" ) )
-        self.m_staticText13.Hide()
-        
-        self.methodSizer.Add( self.m_staticText13, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-        
-        self.logoImg = wx.StaticBitmap( self.m_scrolledWindow1, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.methodSizer.Add( self.logoImg, 0, wx.ALL, 5 )
-        
-        self.versionLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"v1.4.3", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
+
+        self.optionsSizer = wx.BoxSizer( wx.VERTICAL )
+
+        # Logo Section
+        self.logoImg = wx.StaticBitmap( self.optionsWindow, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.optionsSizer.Add( self.logoImg, 0, wx.ALL|wx.ALIGN_CENTER, 5 )
+
+        self.versionLabel = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"v1.4.3", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
         self.versionLabel.Wrap( -1 )
         self.versionLabel.SetFont( wx.Font( 10, 74, 90, 92, False, "Sans" ) )
+
+        self.optionsSizer.Add( self.versionLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+
+        # Method Information 
+        self.methodInfoText = wx.StaticBox( self.optionsWindow, wx.ID_ANY, u"Instructions" )
+        self.methodInfoSizer = wx.StaticBoxSizer( self.methodInfoText, wx.VERTICAL )
+
+        self.methodShortText = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.methodShortText.Wrap(250)
+        self.methodShortText.Hide()
+        self.methodInfoSizer.Add( self.methodShortText, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        self.methodLongText = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.methodLongText.Wrap(250)
+        self.methodLongText.Hide()
+        self.methodInfoSizer.Add( self.methodLongText, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        self.methodDescText = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.methodDescText.Wrap(250)
+        self.methodDescText.Hide()
+        self.methodInfoSizer.Add( self.methodDescText, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        self.methodInstructions = wx.StaticText( self.optionsWindow, wx.ID_ANY, self.instructions_text, wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.methodInstructions.Wrap( 250 )
+        self.methodInfoSizer.Add( self.methodInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        self.optionsSizer.Add( self.methodInfoSizer, 0, wx.ALL|wx.EXPAND, 5 )
+
+
+
+
+        # Method Options 
+        self.methodSizer = wx.StaticBoxSizer( wx.StaticBox( self.optionsWindow, wx.ID_ANY, u"Method Options" ), wx.VERTICAL )
+        self.methodSizer.SetMinSize( wx.Size( 250,-1 ) ) 
         
-        self.methodSizer.Add( self.versionLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-        
-        #methodChoiceChoices = [ u"[Choose Method]"]
-        #self.methodChoice = wx.Choice( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, methodChoiceChoices, 0 )
-        #self.methodChoice.SetSelection( 0 )
-        #methodSizer.Add( self.methodChoice, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-       
-        self.mainInstructions = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Instructions:\n\n1. Choose the annotation file (\"prot table\") that corresponds to the datasets to be analyzed.\n2. Add the desired Control and Experimental datasets.\n3. (Optional) If you wish to visualize their read counts, select the desired datasets and click on the \"View\" button.\n4. Select the desired analysis method from the dropdown menu on the top-right of the window, and follow its instructions.\n", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.mainInstructions.Wrap( 250 )
-        self.methodSizer.Add( self.mainInstructions, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-        
-        self.m_panel1 = wx.Panel( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.m_panel1 = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.m_panel1.SetMinSize( wx.Size( 50,1 ) )
         
         self.methodSizer.Add( self.m_panel1, 0, wx.ALL, 5 )
         
-        self.globalLabel = wx.StaticText( self.m_scrolledWindow1, wx.ID_ANY, u"Global Options", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.globalLabel = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"Global Options", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalLabel.Wrap( -1 )
         self.methodSizer.Add( self.globalLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
-        self.globalPanel = wx.Panel( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.globalPanel = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.globalPanel.SetMinSize( wx.Size( 50,90 ) )
         self.globalPanel.SetMaxSize( wx.Size( 250,-1) )
         
@@ -301,38 +293,14 @@ class MainFrame ( wx.Frame ):
         self.methodSizer.Add( self.globalPanel, 0, wx.ALL|wx.EXPAND, 5 )
 
 
-        #print self.gui
-        #gui = transit.analysis.defineGUI()
-        #Add Methods
-        #for method in transit.analysis.methods:
-        #    methodSizer.Add( transit.analysis.methods[method]["module"].getPanel(self), 1, wx.EXPAND |wx.ALL, 5 )
-        
-
-
-        #-------------------#
-        # Progress
-
-        #self.progressPanel = wx.Panel( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        #self.progressSizer = wx.BoxSizer( wx.VERTICAL )
-
-        #self.progressLabel = wx.StaticText( self.progressPanel, wx.ID_ANY, u"Progress", wx.DefaultPosition, wx.DefaultSize, 0 )
-        #self.progressLabel.Wrap( -1 )
-        #self.progressSizer.Add( self.progressLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-        #self.progress = wx.Gauge( self.progressPanel, wx.ID_ANY, 20, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
-        #self.progressSizer.Add( self.progress, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-        #self.progressPanel.SetSizer( self.progressSizer )
-        #self.progressPanel.Layout()
-        #self.progressSizer.Fit( self.progressPanel )
-        #self.methodSizer.Add( self.progressPanel, 1, wx.EXPAND |wx.ALL, 5 )
-
         #--------------------#
 
-        self.m_scrolledWindow1.SetSizer( self.methodSizer )
-        self.m_scrolledWindow1.Layout()
-        self.methodSizer.Fit( self.m_scrolledWindow1 )
-        bSizer1.Add( self.m_scrolledWindow1, 0, wx.ALL, 5 )
+        self.optionsSizer.Add( self.methodSizer, 1, wx.EXPAND, 5 )
+
+        self.optionsWindow.SetSizer( self.optionsSizer )
+        self.optionsWindow.Layout()
+        #self.optionsSizer.Fit( self.optionsWindow )
+        bSizer1.Add( self.optionsWindow, 0, wx.ALL, 5 )
         
         #--------------------#        
 
@@ -413,8 +381,6 @@ class MainFrame ( wx.Frame ):
         
         # Connect Events
 
-        #self.methodCheckBoxHimar1.Bind(wx.EVT_CHECKBOX,self.onHimar1Checked)
-        #self.methodCheckBoxTn5.Bind(wx.EVT_CHECKBOX,self.onTn5Checked)
         self.annotationFilePicker.Bind( wx.EVT_BUTTON, self.annotationFileFunc )
         self.ctrlRemoveButton.Bind( wx.EVT_BUTTON, self.ctrlRemoveFunc )
         self.ctrlView.Bind( wx.EVT_BUTTON, self.allViewFunc )
@@ -428,7 +394,6 @@ class MainFrame ( wx.Frame ):
         self.graphFileButton.Bind( wx.EVT_BUTTON, self.graphFileFunc )
         self.addFileButton.Bind( wx.EVT_BUTTON, self.addFileFunc )
         self.graphFileChoice.Bind( wx.EVT_CHOICE, self.graphFileFunc )
-        #self.methodChoice.Bind( wx.EVT_CHOICE, self.MethodSelectFunc )
         self.Bind( wx.EVT_MENU, self.ctrlToIGV, id = self.ctrlExportIGVMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.expToIGV, id = self.expExportIGVMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.allToIGV, id = self.allExportIGVMenuItem.GetId() )

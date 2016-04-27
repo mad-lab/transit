@@ -56,13 +56,6 @@ import transit.qcDisplay as qcDisplay
 import transit.images as images
 
 
-mainInstructions = """Instructions:
-
-1. Choose the annotation file ("prot table") that corresponds to the datasets to be analyzed.
-2. Add the desired Control and Experimental datasets.
-3. (Optional) If you wish to visualize their read counts, select the desired datasets and click on the "View" button.
-4. Select the desired analysis method from the dropdown menu on the top-right of the window, and follow its instructions.
-"""
 
 method_wrap_width = 250
 methods = transit.analysis.methods
@@ -143,7 +136,7 @@ class TnSeekFrame(transit_gui.MainFrame):
                 self.tn5MenuItem.AppendItem( tempMenuItem )
 
         #progress
-        self.progressPanel = wx.Panel( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.progressPanel = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         progressSizer = wx.BoxSizer( wx.VERTICAL )
 
         self.progressLabel = wx.StaticText( self.progressPanel, wx.ID_ANY, u"Progress", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -157,6 +150,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         self.progressPanel.Layout()
         progressSizer.Fit( self.progressPanel )
         self.methodSizer.Add( self.progressPanel, 1, wx.EXPAND |wx.ALL, 5 )
+        #self.methodSizer.Hide()
         self.progress.SetRange(50)
         #########
         
@@ -619,9 +613,13 @@ class TnSeekFrame(transit_gui.MainFrame):
         #If empty is selected
         if selected_name == "[Choose Method]":
             self.HideAllOptions()
-            self.mainInstructions.Show()
-            self.mainInstructions.SetLabel(mainInstructions)
-            self.mainInstructions.Wrap(method_wrap_width)
+            self.methodInfoText.SetLabel(u"Instructions")
+            self.methodInstructions.Show()
+            self.methodInstructions.SetLabel(self.instructions_text)
+            self.methodInstructions.Wrap(method_wrap_width)
+            self.methodShortText.Hide()
+            self.methodLongText.Hide()
+            self.methodDescText.Hide()
 
             self.method_choice = ""
         else:
@@ -634,8 +632,17 @@ class TnSeekFrame(transit_gui.MainFrame):
                        
     %s 
                     """ % (methods[name].fullname(), methods[name].description)
-                    self.mainInstructions.SetLabel(text)
-                    self.mainInstructions.Wrap(method_wrap_width)
+
+                    self.methodInfoText.SetLabel("%s" % methods[name].short_name)
+                    
+                    #self.methodShortText.SetLabel("[%s]" % methods[name].short_name)
+                    #self.methodShortText.Wrap(250)
+                    #self.methodLongText.SetLabel(methods[name].long_name)
+                    #self.methodLongText.Wrap(250)
+                    self.methodDescText.SetLabel(methods[name].description)
+                    self.methodDescText.Wrap(250)
+                    self.methodDescText.Show()
+                    self.methodInstructions.SetLabel("")
                     methods[name].gui.Show()
                 else:
                     methods[name].gui.Hide()

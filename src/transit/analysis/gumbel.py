@@ -69,7 +69,7 @@ class GumbelGUI(base.AnalysisGUI):
 
     def definePanel(self, wxobj):
         self.wxobj = wxobj
-        gumbelPanel = wx.Panel( self.wxobj.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        gumbelPanel = wx.Panel( self.wxobj.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         #wxobj.gumbelPanel.SetMinSize( wx.Size( 50,1 ) )
         #wxobj.gumbelPanel.SetMaxSize( wx.Size( 250,-1 ) )
         
