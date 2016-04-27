@@ -21,8 +21,8 @@ import transit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "resampling"
-long_name = "Resampling test of conditional essentiality."
-description = """Method for determining conditional essentiality based on resampling (i.e. permutation test). Identifies significant changes in mean-readcounts after normalization."""
+long_name = "Resampling test of conditional essentiality between two conditions"
+description = """Method for determining conditional essentiality based on resampling (i.e. permutation test). Identifies significant changes in mean read-counts for each gene after normalization."""
 
 transposons = ["himar1", "tn5"]
 columns = ["Orf","Name","Desc","Sites","Mean A","Mean B","Delta sum","log2FC","pvalue","adj. pvalue"]
