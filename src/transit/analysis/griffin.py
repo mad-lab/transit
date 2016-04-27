@@ -87,7 +87,6 @@ class GriffinGUI(base.AnalysisGUI):
         griffinButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
         self.panel = griffinPanel
-        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
 
 
 

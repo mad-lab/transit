@@ -87,19 +87,19 @@ class GumbelGUI(base.AnalysisGUI):
         
         gumbelSampleLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
         gumbelSampleLabel.Wrap( -1 )
-        bSizer16.Add( gumbelSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        bSizer16.Add( gumbelSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
         
         gumbelBurninLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Burn-In", wx.DefaultPosition, wx.DefaultSize, 0 )
         gumbelBurninLabel.Wrap( -1 )
-        bSizer16.Add( gumbelBurninLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        bSizer16.Add( gumbelBurninLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 
         gumbelTrimLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Trim", wx.DefaultPosition, wx.DefaultSize, 0 )
         gumbelTrimLabel.Wrap( -1 )
-        bSizer16.Add( gumbelTrimLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        bSizer16.Add( gumbelTrimLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 
         gumbelReadLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Minimum Read", wx.DefaultPosition, wx.DefaultSize, 0 )
         gumbelReadLabel.Wrap( -1 )
-        bSizer16.Add( gumbelReadLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        bSizer16.Add( gumbelReadLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 
         gumbelRepLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
         gumbelRepLabel.Wrap( -1 )
@@ -146,7 +146,6 @@ class GumbelGUI(base.AnalysisGUI):
         gumbelButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
         self.panel = gumbelPanel
-        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
 
 
 

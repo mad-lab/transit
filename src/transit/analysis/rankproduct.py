@@ -102,8 +102,6 @@ class RankProductGUI(base.AnalysisGUI):
         rankproductButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
         self.panel = rankproductPanel
-        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
-
 
 
 

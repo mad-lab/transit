@@ -148,8 +148,6 @@ class HMMGUI(base.AnalysisGUI):
         hmmButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
 
         self.panel =  hmmPanel
-        self.wxobj.methodSizer.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5 )
-
 
 
 
