@@ -24,7 +24,7 @@ methods["binomial"] = binomial.BinomialAnalysis()
 methods["griffin"] = griffin.GriffinAnalysis()
 methods["hmm"] = hmm.HMMAnalysis()
 methods["resampling"] = resampling.ResamplingAnalysis()
-methods["globalruns"] = globalruns.GlobalGumbelAnalysis()
+methods["tn5gaps"] = globalruns.GlobalGumbelAnalysis()
 methods["rankproduct"] = rankproduct.RankProductAnalysis()
 
 

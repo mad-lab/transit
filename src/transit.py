@@ -370,12 +370,16 @@ class TnSeekFrame(transit_gui.MainFrame):
         wx.MessageBox(MSG, 'Info', 
             wx.OK | wx.ICON_INFORMATION)
         
+    def ShowAskWarning(self, MSG=""):
+        dial = wx.MessageDialog(None, MSG, 'Warning', 
+            wx.OK | wx.CANCEL | wx.ICON_EXCLAMATION)
+        return dial.ShowModal()
+    
     def ShowError(self, MSG=""):
         dial = wx.MessageDialog(None, MSG, 'Error', 
             wx.OK | wx.ICON_ERROR)
         dial.ShowModal()
      
-
     def ctrlSelected(self, col=5):
         selected_ctrl = []
         current = -1

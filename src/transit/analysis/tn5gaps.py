@@ -19,10 +19,9 @@ import transit.stat_tools as stat_tools
 
 ############# GUI ELEMENTS ##################
 
-short_name = "globalruns"
+short_name = "tn5gaps"
 long_name = "Analysis of essentiality on gaps in entire genome (Tn5)."
 description = "A analysis method using the Gumbel extreme value distribution that uses longest runs over a whole genome instead of individual genes."
-
 transposons = ["tn5"]
 columns = ["Orf","Name","Desc","k","n","r","ovr","lenovr","pval","padj","call"]
 
@@ -30,17 +29,17 @@ columns = ["Orf","Name","Desc","k","n","r","ovr","lenovr","pval","padj","call"]
 
 ############# Analysis Method ##############
 
-class GlobalGumbelAnalysis(base.TransitAnalysis):
+class Tn5GapsAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, GlobalGumbelMethod, GlobalGumbelGUI, [GlobalGumbelFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, Tn5GapsMethod, Tn5GapsGUI, [Tn5GapsFile])
 
 
 ################## FILE ###################
 
-class GlobalGumbelFile(base.TransitFile):
+class Tn5GapsFile(base.TransitFile):
 
     def __init__(self):
-        base.TransitFile.__init__(self, "#Global Gumbel", columns)
+        base.TransitFile.__init__(self, "#Tn5 Gaps", columns)
 
     def getHeader(self, path):
         ess=0; unc=0; non=0; short=0
@@ -59,76 +58,62 @@ class GlobalGumbelFile(base.TransitFile):
 
 ################## GUI ###################
 
-class GlobalGumbelGUI(base.AnalysisGUI):
+class Tn5GapsGUI(base.AnalysisGUI):
 
     def getPanel(self, wxobj):
         self.wxobj = wxobj
-        globalGumbelPanel = wx.Panel( self.wxobj.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        tn5GapsPanel = wx.Panel( self.wxobj.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
-        globalGumbelSection = wx.BoxSizer( wx.VERTICAL )
+        tn5GapsSection = wx.BoxSizer( wx.VERTICAL )
 
-        globalGumbelLabel = wx.StaticText( globalGumbelPanel, wx.ID_ANY, u"Global Gumbel Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        globalGumbelLabel.Wrap( -1 )
-        globalGumbelSection.Add( globalGumbelLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        tn5GapsLabel = wx.StaticText( tn5GapsPanel, wx.ID_ANY, u"Tn5 Gaps Options", wx.DefaultPosition, wx.DefaultSize, 0 )
+        tn5GapsLabel.Wrap( -1 )
+        tn5GapsSection.Add( tn5GapsLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-        globalGumbelSizer1 = wx.BoxSizer( wx.HORIZONTAL )
+        tn5GapsSizer1 = wx.BoxSizer( wx.HORIZONTAL )
     
         # Min read option
-        globalGumbelSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+        tn5GapsSizer2 = wx.BoxSizer( wx.HORIZONTAL )
     
-        globalGumbelSizer2_1 = wx.BoxSizer( wx.VERTICAL )
-        globalGumbelReadLabel = wx.StaticText( globalGumbelPanel, wx.ID_ANY, u"Minimum Read", wx.DefaultPosition, wx.DefaultSize, 0 )
-        globalGumbelReadLabel.Wrap( -1 )
-        globalGumbelSizer2_1.Add( globalGumbelReadLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        tn5GapsSizer2_1 = wx.BoxSizer( wx.VERTICAL )
+        tn5GapsReadLabel = wx.StaticText( tn5GapsPanel, wx.ID_ANY, u"Minimum Read", wx.DefaultPosition, wx.DefaultSize, 0 )
+        tn5GapsReadLabel.Wrap( -1 )
+        tn5GapsSizer2_1.Add( tn5GapsReadLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
     
-        globalGumbelSizer2_2 = wx.BoxSizer( wx.VERTICAL )
-        globalGumbelReadChoiceChoices = [ u"1", u"2", u"3", u"4", u"5" ]
-        self.wxobj.globalGumbelReadChoice = wx.Choice( globalGumbelPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, globalGumbelReadChoiceChoices, 0 )
-        self.wxobj.globalGumbelReadChoice.SetSelection( 0 )
-        globalGumbelSizer2_2.Add( self.wxobj.globalGumbelReadChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+        tn5GapsSizer2_2 = wx.BoxSizer( wx.VERTICAL )
+        tn5GapsReadChoiceChoices = [ u"1", u"2", u"3", u"4", u"5" ]
+        self.wxobj.tn5GapsReadChoice = wx.Choice( tn5GapsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, tn5GapsReadChoiceChoices, 0 )
+        self.wxobj.tn5GapsReadChoice.SetSelection( 0 )
+        tn5GapsSizer2_2.Add( self.wxobj.tn5GapsReadChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 
-        globalGumbelSizer2.Add(globalGumbelSizer2_1, 1, wx.EXPAND, 5)
-        globalGumbelSizer2.Add(globalGumbelSizer2_2, 1, wx.EXPAND, 5)
+        tn5GapsSizer2.Add(tn5GapsSizer2_1, 1, wx.EXPAND, 5)
+        tn5GapsSizer2.Add(tn5GapsSizer2_2, 1, wx.EXPAND, 5)
     
         # Replicates option
-        globalGumbelSizer3 = wx.BoxSizer( wx.HORIZONTAL )
+        tn5GapsSizer3 = wx.BoxSizer( wx.HORIZONTAL )
     
-        globalGumbelSizer3_1 = wx.BoxSizer( wx.VERTICAL )
-        globalGumbelRepLabel = wx.StaticText( globalGumbelPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
-        globalGumbelRepLabel.Wrap( -1 )
-        globalGumbelSizer3_1.Add( globalGumbelRepLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        tn5GapsSizer3_1 = wx.BoxSizer( wx.VERTICAL )
+        tn5GapsRepLabel = wx.StaticText( tn5GapsPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
+        tn5GapsRepLabel.Wrap( -1 )
+        tn5GapsSizer3_1.Add( tn5GapsRepLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
     
-        globalGumbelSizer3_2 = wx.BoxSizer( wx.VERTICAL )
-        globalGumbelRepChoiceChoices = [ u"Sum", u"Mean" ]
-        self.wxobj.globalGumbelRepChoice = wx.Choice( globalGumbelPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, globalGumbelRepChoiceChoices, 0 )
-        self.wxobj.globalGumbelRepChoice.SetSelection( 0 )
-        globalGumbelSizer3_2.Add( self.wxobj.globalGumbelRepChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+        tn5GapsSizer3_2 = wx.BoxSizer( wx.VERTICAL )
+        tn5GapsRepChoiceChoices = [ u"Sum", u"Mean" ]
+        self.wxobj.tn5GapsRepChoice = wx.Choice( tn5GapsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, tn5GapsRepChoiceChoices, 0 )
+        self.wxobj.tn5GapsRepChoice.SetSelection( 0 )
+        tn5GapsSizer3_2.Add( self.wxobj.tn5GapsRepChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 
-        globalGumbelSizer3.Add(globalGumbelSizer3_1, 1, wx.EXPAND, 5)
-        globalGumbelSizer3.Add(globalGumbelSizer3_2, 1, wx.EXPAND, 5)
+        tn5GapsSizer3.Add(tn5GapsSizer3_1, 1, wx.EXPAND, 5)
+        tn5GapsSizer3.Add(tn5GapsSizer3_2, 1, wx.EXPAND, 5)
 
-        globalGumbelSection.Add( globalGumbelSizer1, 1, wx.EXPAND, 5 )
-        globalGumbelSection.Add( globalGumbelSizer2, 1, wx.EXPAND, 5 )
-        globalGumbelSection.Add( globalGumbelSizer3, 1, wx.EXPAND, 5 )
-
-        globalGumbelButton = wx.Button( globalGumbelPanel, wx.ID_ANY, u"Run Global Gumbel", wx.DefaultPosition, wx.DefaultSize, 0 )
-        globalGumbelSection.Add( globalGumbelButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-        globalGumbelPanel.SetSizer( globalGumbelSection )
-        globalGumbelPanel.Layout()
-        globalGumbelSection.Fit( globalGumbelPanel )
-
-        #Connect events
-        globalGumbelButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
-
-        self.panel = globalGumbelPanel
+        self.panel = tn5GapsPanel
 
 
 
 
 ########## CLASS #######################
 
-class GlobalGumbelMethod(base.SingleConditionMethod):
+class Tn5GapsMethod(base.SingleConditionMethod):
     """   
     Example
  
@@ -163,12 +148,18 @@ class GlobalGumbelMethod(base.SingleConditionMethod):
         if not annotationPath:
             wxobj.ShowError("Error: No annotation file selected.")
             return None
-
+        
+        #See if correct wig files are being used
+        types = tnseq_tools.get_file_types(all_selected)
+        if 'himar1' in types:
+            answer = wxobj.ShowAskWarning("Warning: One of the selected wig files looks like a Himar1 dataset. This method is designed to work on Tn5 wig files. Proceeding will fill in missing data with zeroes. Click OK to continue.")
+            if answer == wx.ID_CANCEL:
+                return None
 
         #Read the parameters from the wxPython widgets
         ctrldata = all_selected
         ignoreCodon = True
-        minread = int(wxobj.globalGumbelReadChoice.GetString(wxobj.globalGumbelReadChoice.GetCurrentSelection()))
+        minread = int(wxobj.tn5gapsReadChoice.GetString(wxobj.tn5gapsReadChoice.GetCurrentSelection()))
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
         CTerminus = float(wxobj.globalCTerminusText.GetValue())
         replicates="Sum"
@@ -177,7 +168,7 @@ class GlobalGumbelMethod(base.SingleConditionMethod):
 
         #Get output path
         name = transit_tools.basename(all_selected[0])
-        defaultFileName = "global_gumbel_output.dat"
+        defaultFileName = "tn5_gaps_output.dat"
         defaultDir = os.getcwd()
         output_path = wxobj.SaveFile(defaultDir, defaultFileName)
         if not output_path: return None
@@ -228,15 +219,14 @@ class GlobalGumbelMethod(base.SingleConditionMethod):
                 CTerminus)
 
     def Run(self):
-
-        self.transit_message("Starting global gumbel method")
+        self.transit_message("Starting Tn5 gaps method")
         start_time = time.time()
         
         self.transit_message("Getting data")
         genes_obj = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
         
         # Combine all wigs
-        (data,position) = tnseq_tools.get_data(self.ctrldata)
+        (data,position) = tnseq_tools.get_data_zero_fill(self.ctrldata)
         combined = tnseq_tools.combine_replicates(data, method=self.replicates)
         combined[combined < self.minread] = 0
         counts = combined
@@ -258,7 +248,7 @@ class GlobalGumbelMethod(base.SingleConditionMethod):
         pos_hash = tnseq_tools.get_pos_hash(self.annotation_path)
 
         # Finally, calculate the results
-        self.transit_message("Running global gumbel method")
+        self.transit_message("Running Tn5 gaps method")
         results_per_gene = {}
         for gene in genes_obj.genes:
             results_per_gene[gene.orf] = [gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, 0, 0, 1]
@@ -285,8 +275,8 @@ class GlobalGumbelMethod(base.SingleConditionMethod):
                 curr_len = curr_val[7]
                 if inter_sz > curr_inter_sz:
                     results_per_gene[gene.orf] = [gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, inter_sz, run_len, pval]
-            self.progress_update("globalGumbel", count)
-            self.transit_message_inplace("Running global gumbel method... %1.1f%%" % (100.0*count/N))
+            self.progress_update("tn5gaps", count)
+            self.transit_message_inplace("Running Tn5Gaps method... %1.1f%%" % (100.0*count/N))
                 
         data = list(results_per_gene.values())
         exp_run_len = float(accum)/N
@@ -304,7 +294,7 @@ class GlobalGumbelMethod(base.SingleConditionMethod):
         data.sort(key=lambda l: l[0])
             
         # Output results
-        self.output.write("#Global Gumbel\n")
+        self.output.write("#Tn5 Gaps\n")
         if self.wxobj:
             members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
             memberstr = ""
@@ -334,11 +324,11 @@ class GlobalGumbelMethod(base.SingleConditionMethod):
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file()
         self.finish()
-        self.transit_message("Finished Global Gumbel Method") 
+        self.transit_message("Finished Tn5Gaps Method") 
 
     @classmethod
     def usage_string(self):
-        return """python %s globalruns <comma-separated .wig files> <annotation .prot_table> <output file>""" % (sys.argv[0])
+        return """python %s <comma-separated .wig files> <annotation .prot_table> <output file>""" % (sys.argv[0])
 
 
 
@@ -375,7 +365,7 @@ if __name__ == "__main__":
     print "ARGS:", args
     print "KWARGS:", kwargs
 
-    G = GlobalGumbelMethod.fromargs(sys.argv[1:])
+    G = Tn5GapsMethod.fromargs(sys.argv[1:])
 
     G.console_message("Printing the member variables:")   
     G.print_members()
