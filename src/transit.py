@@ -432,6 +432,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
 
     def loadCtrlFileFunc(self, event):
+        self.statusBar.SetStatusText("Loading Control Dataset(s)...")
         try:
         
             dlg = wx.FileDialog(
@@ -462,10 +463,11 @@ class TnSeekFrame(transit_gui.MainFrame):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
-
+        self.statusBar.SetStatusText("")
 
 
     def loadExpFileFunc(self, event):
+        self.statusBar.SetStatusText("Loading Experimental Dataset(s)...")
         try:
 
             dlg = wx.FileDialog(
@@ -497,7 +499,7 @@ class TnSeekFrame(transit_gui.MainFrame):
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
 
-
+        self.statusBar.SetStatusText("")
 
     def ctrlRemoveFunc(self, event):
         next = self.list_ctrl.GetNextSelected(-1)
@@ -709,7 +711,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
     def MethodSelectFunc(self, selected_name, test=""):
         #X = self.methodChoice.GetCurrentSelection()
         #selected_name = self.methodChoice.GetString(X)
-
+    
         #If empty is selected
         if selected_name == "[Choose Method]":
             self.HideAllOptions()
@@ -745,6 +747,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                     self.methodDescText.Show()
                     self.methodInstructions.SetLabel("")
                     methods[name].gui.Show()
+                    self.statusBar.SetStatusText("[%s]" % methods[name].short_name)
                 else:
                     methods[name].gui.Hide()
             self.ShowProgressSection()
@@ -775,7 +778,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         else:
             if self.verbose:
                 print transit_prefix, "No results selected to display!"
-
+        
 
     def graphFileFunc(self, event):
         # 0 - nothing
