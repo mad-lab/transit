@@ -52,3 +52,10 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+#Data files
+*.wig
+*.dat
+*.prot_table
+*.png
+*.out
+
