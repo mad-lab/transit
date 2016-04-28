@@ -60,7 +60,7 @@ class Tn5GapsFile(base.TransitFile):
 
 class Tn5GapsGUI(base.AnalysisGUI):
 
-    def getPanel(self, wxobj):
+    def definePanel(self, wxobj):
         self.wxobj = wxobj
         tn5GapsPanel = wx.Panel( self.wxobj.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
@@ -105,6 +105,22 @@ class Tn5GapsGUI(base.AnalysisGUI):
 
         tn5GapsSizer3.Add(tn5GapsSizer3_1, 1, wx.EXPAND, 5)
         tn5GapsSizer3.Add(tn5GapsSizer3_2, 1, wx.EXPAND, 5)
+
+        tn5GapsSection.Add( tn5GapsSizer1, 1, wx.EXPAND, 5 )
+        tn5GapsSection.Add( tn5GapsSizer2, 1, wx.EXPAND, 5 )
+        tn5GapsSection.Add( tn5GapsSizer3, 1, wx.EXPAND, 5 )
+
+        tn5GapsButton = wx.Button( tn5GapsPanel, wx.ID_ANY, u"Run Tn5Gaps", wx.DefaultPosition, wx.DefaultSize, 0 )
+        tn5GapsSection.Add( tn5GapsButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+
+        tn5GapsPanel.SetSizer( tn5GapsSection )
+        tn5GapsPanel.Layout()
+        tn5GapsSection.Fit( tn5GapsPanel )
+        
+        #Connect events
+        tn5GapsButton.Bind( wx.EVT_BUTTON, wxobj.RunMethod )
+
 
         self.panel = tn5GapsPanel
 
@@ -159,7 +175,7 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         #Read the parameters from the wxPython widgets
         ctrldata = all_selected
         ignoreCodon = True
-        minread = int(wxobj.tn5gapsReadChoice.GetString(wxobj.tn5gapsReadChoice.GetCurrentSelection()))
+        minread = int(wxobj.tn5GapsReadChoice.GetString(wxobj.tn5GapsReadChoice.GetCurrentSelection()))
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
         CTerminus = float(wxobj.globalCTerminusText.GetValue())
         replicates="Sum"
