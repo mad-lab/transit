@@ -352,19 +352,19 @@ class MainFrame ( wx.Frame ):
         
         self.fileMenuItem.AppendSubMenu( self.convertMenuItem, u"Convert" )
         
-        self.fileExitMenuItem = wx.MenuItem( self.fileMenuItem, wx.ID_ANY, u"Exit", wx.EmptyString, wx.ITEM_NORMAL )
+        self.fileExitMenuItem = wx.MenuItem( self.fileMenuItem, wx.ID_ANY, u"&Exit", wx.EmptyString, wx.ITEM_NORMAL )
         self.fileMenuItem.AppendItem( self.fileExitMenuItem )
         
         self.m_menubar1.Append( self.fileMenuItem, u"&File" ) 
         
         self.viewMenuItem = wx.Menu()
-        self.scatterMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"Scatter Plot", wx.EmptyString, wx.ITEM_NORMAL )
+        self.scatterMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"&Scatter Plot", wx.EmptyString, wx.ITEM_NORMAL )
         self.viewMenuItem.AppendItem( self.scatterMenuItem )
         
-        self.trackMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"Track View", wx.EmptyString, wx.ITEM_NORMAL )
+        self.trackMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"&Track View", wx.EmptyString, wx.ITEM_NORMAL )
         self.viewMenuItem.AppendItem( self.trackMenuItem )
         
-        self.qcMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"Quality Control", wx.EmptyString, wx.ITEM_NORMAL )
+        self.qcMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"&Quality Control", wx.EmptyString, wx.ITEM_NORMAL )
         self.viewMenuItem.AppendItem( self.qcMenuItem )
         
         self.m_menubar1.Append( self.viewMenuItem, u"&View" ) 
@@ -376,8 +376,8 @@ class MainFrame ( wx.Frame ):
         self.tn5MenuItem = wx.Menu()
         
         
-        self.methodsMenuItem.AppendSubMenu(self.himar1MenuItem, "Himar1 Methods")
-        self.methodsMenuItem.AppendSubMenu(self.tn5MenuItem, "Tn5 Methods")
+        self.methodsMenuItem.AppendSubMenu(self.himar1MenuItem, "&Himar1 Methods")
+        self.methodsMenuItem.AppendSubMenu(self.tn5MenuItem, "&Tn5 Methods")
         self.m_menubar1.Append( self.methodsMenuItem, u"&Analysis" )
         
  
@@ -385,9 +385,9 @@ class MainFrame ( wx.Frame ):
 
         
         self.helpMenuItem = wx.Menu()
-        self.documentationMenuItem = wx.MenuItem(self.helpMenuItem, wx.ID_ANY, u"Documentation", wx.EmptyString, wx.ITEM_NORMAL)
+        self.documentationMenuItem = wx.MenuItem(self.helpMenuItem, wx.ID_ANY, u"&Documentation", wx.EmptyString, wx.ITEM_NORMAL)
         self.helpMenuItem.AppendItem(self.documentationMenuItem)
-        self.aboutMenuItem = wx.MenuItem(self.helpMenuItem, wx.ID_ANY, u"About", wx.EmptyString, wx.ITEM_NORMAL)
+        self.aboutMenuItem = wx.MenuItem(self.helpMenuItem, wx.ID_ANY, u"&About", wx.EmptyString, wx.ITEM_NORMAL)
         self.helpMenuItem.AppendItem(self.aboutMenuItem)
         self.m_menubar1.Append( self.helpMenuItem, u"&Help" )
         
