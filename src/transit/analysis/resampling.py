@@ -91,21 +91,6 @@ class ResamplingGUI(base.AnalysisGUI):
         resamplingNormLabel.Wrap( -1 )
         resamplingLabelSizer.Add( resamplingNormLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
-        # Adaptive Label 
-        resamplingAdaptiveLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Adaptive:", wx.DefaultPosition, wx.DefaultSize, 0 )
-        resamplingAdaptiveLabel.Wrap( -1 )
-        resamplingLabelSizer.Add( resamplingAdaptiveLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-        # Histogram Label 
-        resamplingHistogramLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Histogram:", wx.DefaultPosition, wx.DefaultSize, 0 )
-        resamplingHistogramLabel.Wrap( -1 )
-        resamplingLabelSizer.Add( resamplingHistogramLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-        # Zeros Label 
-        resamplingZerosLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Include Zeros:", wx.DefaultPosition, wx.DefaultSize, 0 )
-        resamplingZerosLabel.Wrap( -1 )
-        resamplingLabelSizer.Add( resamplingZerosLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
 
         resamplingTopSizer2.Add( resamplingLabelSizer, 1, wx.EXPAND, 5 )
 
@@ -123,24 +108,24 @@ class ResamplingGUI(base.AnalysisGUI):
 
 
         # Adaptive Check
-        self.wxobj.resamplingAdaptiveCheckBox = wx.CheckBox(resamplingPanel, label = '')
-        resamplingControlSizer.Add( self.wxobj.resamplingAdaptiveCheckBox, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+        self.wxobj.resamplingAdaptiveCheckBox = wx.CheckBox(resamplingPanel, label = 'Adaptive Resampling (Faster)')
 
         # Histogram Check
-        self.wxobj.resamplingHistogramCheckBox = wx.CheckBox(resamplingPanel, label = '')
-        resamplingControlSizer.Add( self.wxobj.resamplingHistogramCheckBox, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+        self.wxobj.resamplingHistogramCheckBox = wx.CheckBox(resamplingPanel, label = 'Generate Resampling Histograms')
 
         # Zeros Check
-        self.wxobj.resamplingZeroCheckBox = wx.CheckBox(resamplingPanel, label = '')
-        resamplingControlSizer.Add( self.wxobj.resamplingZeroCheckBox, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
+        self.wxobj.resamplingZeroCheckBox = wx.CheckBox(resamplingPanel, label = 'Include sites with all zeros')
 
 
         resamplingTopSizer2.Add( resamplingControlSizer, 1, wx.EXPAND, 5 )
 
         resamplingTopSizer.Add( resamplingTopSizer2, 1, wx.EXPAND, 5 )
 
+
         resamplingSizer.Add( resamplingTopSizer, 1, wx.EXPAND, 5 )
+        resamplingSizer.Add( self.wxobj.resamplingAdaptiveCheckBox, 0, wx.EXPAND, 5 )
+        resamplingSizer.Add( self.wxobj.resamplingHistogramCheckBox, 0, wx.EXPAND, 5 )
+        resamplingSizer.Add( self.wxobj.resamplingZeroCheckBox, 0, wx.EXPAND, 5 )
 
         resamplingButton = wx.Button( resamplingPanel, wx.ID_ANY, u"Run resampling", wx.DefaultPosition, wx.DefaultSize, 0 )
         resamplingSizer.Add( resamplingButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
