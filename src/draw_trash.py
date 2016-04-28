@@ -144,6 +144,11 @@ def draw_scale(draw, start_x, start_y, height, max_read):
     draw.text((start_x+bottom_text_w-(top_text_w/2.0), start_y+height), "0", font=font, fill="black")
 
 
+
+def draw_features(draw, features, start, end, start_x, start_y, width, height):
+    pass
+
+
 def draw_genes(draw, GENES, orf2data, start, end, start_x, start_y, width, height):
 
     padding_h = 3

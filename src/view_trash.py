@@ -1,23 +1,3 @@
-# Copyright 2015.
-#   Michael A. DeJesus, Chaitra Ambadipudi, and  Thomas R. Ioerger.
-#
-#
-#    This file is part of TRANSIT.
-#
-#    TRANSIT is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License.
-#
-#
-#    TRANSIT is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
-
-
 # -*- coding: utf-8 -*- 
 
 ###########################################################################
@@ -65,6 +45,9 @@ class MainFrame ( wx.Frame ):
 		
 		self.saveButton = wx.Button( self, wx.ID_ANY, u"Save Img", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer111.Add( self.saveButton, 0, wx.ALL, 5 )
+		
+		self.featureButton = wx.Button( self, wx.ID_ANY, u"Add Feature", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer111.Add( self.featureButton, 0, wx.ALL, 5 )
 		
 		
 		sbSizer41.Add( bSizer111, 0, 0, 5 )
@@ -163,6 +146,7 @@ class MainFrame ( wx.Frame ):
 		self.updateButton.Bind( wx.EVT_BUTTON, self.updateFunc )
 		self.resetButton.Bind( wx.EVT_BUTTON, self.resetFunc )
 		self.saveButton.Bind( wx.EVT_BUTTON, self.saveImageFunc )
+		self.featureButton.Bind( wx.EVT_BUTTON, self.addFeatureFunc )
 		self.moveLeftButton.Bind( wx.EVT_BUTTON, self.leftFunc )
 		self.moveRightButton.Bind( wx.EVT_BUTTON, self.rightFunc )
 		self.startText.Bind( wx.EVT_TEXT_ENTER, self.updateFunc )
@@ -186,6 +170,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def saveImageFunc( self, event ):
+		event.Skip()
+	
+	def addFeatureFunc( self, event ):
 		event.Skip()
 	
 	def leftFunc( self, event ):
