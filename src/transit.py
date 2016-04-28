@@ -158,7 +158,6 @@ class TnSeekFrame(transit_gui.MainFrame):
         #progressSizer.Fit( self.progressPanel )
         self.methodSizer.Add( self.progressPanel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
-        self.globalLabel = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"Florf", wx.DefaultPosition, wx.DefaultSize, 0 )
         #self.methodSizer.Add( self.globalLabel, 1, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         #self.methodSizer.Hide()
         self.progress.SetRange(50)
