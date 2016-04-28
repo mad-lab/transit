@@ -39,6 +39,7 @@ import numpy
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import math
+import subprocess
 
 from functools import partial
 
@@ -80,7 +81,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         #print [x for x in pkgutil.iter_modules(['transit/analysis'])]
         #print gumbel.Gumbel.__bases__
 
-        self.logoImg.SetBitmap(images.TRANSIT.GetImage().ConvertToBitmap())
+        self.logoImg.SetBitmap(images.transit_logo2.GetImage().ConvertToBitmap())
 
         self.index_ctrl = 0
         self.list_ctrl.InsertColumn(0, 'File', width=210)
@@ -606,6 +607,86 @@ class TnSeekFrame(transit_gui.MainFrame):
             except Exception as e:
                 print transit_prefix, "Error occured displaying file:", str(e)
                 traceback.print_exc()
+
+
+    def aboutFunc(self, event):
+        description = """TRANSIT is a tool for analysing TnSeq data. It provides an easy to use graphical interface and access to several different analysis methods that allow the user to determine essentiality within a single condition as well as between two conditions.
+
+
+If you need to cite this tool, please use the following reference:
+
+DeJesus, M.A., Ambadipudi, C., Baker, R., Sassetti, C., and Ioerger, T.R. (2015). TRANSIT - a Software Tool for Himar1 TnSeq Analysis. PLOS Computational Biology, 11(10):e1004401
+
+
+"""
+
+
+        licence = """
+TRANSIT is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License.
+
+
+TRANSIT is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
+        """
+
+
+
+        info = wx.AboutDialogInfo()
+        #info.SetIcon(wx.Icon('hunter.png', wx.BITMAP_TYPE_PNG))
+        info.SetName('TRANSIT')
+        info.SetVersion('2.0')
+        info.SetDescription(description)
+        info.SetCopyright('(C) 2015 - 2016\n Michael A. DeJesus\nThomas R. Ioerger')
+        info.SetWebSite('http://saclab.tamu.edu/essentiality/transit/')
+        info.SetLicence(licence)
+        info.AddDeveloper('Michael A. DeJesus')
+        info.AddDeveloper('Thomas R. Ioerger')
+        info.AddDeveloper('Chaitra Ambadipudi')
+        info.AddDeveloper('Richard Baker')
+        info.AddDeveloper('Christopher Sassetti')
+        info.AddDeveloper('Eric Nelson')
+        #info.AddDocWriter('Jan Bodnar')
+        #info.AddArtist('The Tango crew')
+        #info.AddTranslator('Jan Bodnar')
+        wx.AboutBox(info)
+
+
+
+
+
+    def documentationFunc(self, event):
+
+        filepath = "http://saclab.tamu.edu/essentiality/transit/transit.html"
+        output = ""
+        error = ""
+        try:
+            if sys.platform.startswith('darwin'):
+                OS = "OSX"
+                #subprocess.call(('open', filepath))
+                args = ["open", filepath]
+                output,error = subprocess.Popen(args,stdout = subprocess.PIPE, stderr= subprocess.PIPE).communicate()
+            elif os.name == 'nt':
+                OS = "Windows"
+                os.startfile(filepath)
+            elif os.name == 'posix':
+                OS = "Linux"
+                args = ["xdg-open", filepath]
+                output,error = subprocess.Popen(args,stdout = subprocess.PIPE, stderr= subprocess.PIPE).communicate()
+                if "not found" in error:
+                    args = ["exo-open", filepath]
+                    output,error = subprocess.Popen(args,stdout = subprocess.PIPE, stderr= subprocess.PIPE).communicate()
+
+        except Exception as e:
+            error_text = """Error occurred opening documentation URL.\nYour browser or OS may not be configured correctly."""
+            self.ShowError(MSG=error_text)
+            traceback.print_exc()
 
 
 

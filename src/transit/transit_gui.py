@@ -352,7 +352,7 @@ class MainFrame ( wx.Frame ):
         self.fileExitMenuItem = wx.MenuItem( self.fileMenuItem, wx.ID_ANY, u"Exit", wx.EmptyString, wx.ITEM_NORMAL )
         self.fileMenuItem.AppendItem( self.fileExitMenuItem )
         
-        self.m_menubar1.Append( self.fileMenuItem, u"File" ) 
+        self.m_menubar1.Append( self.fileMenuItem, u"&File" ) 
         
         self.viewMenuItem = wx.Menu()
         self.scatterMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"Scatter Plot", wx.EmptyString, wx.ITEM_NORMAL )
@@ -364,10 +364,10 @@ class MainFrame ( wx.Frame ):
         self.qcMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"Quality Control", wx.EmptyString, wx.ITEM_NORMAL )
         self.viewMenuItem.AppendItem( self.qcMenuItem )
         
-        self.m_menubar1.Append( self.viewMenuItem, u"View" ) 
+        self.m_menubar1.Append( self.viewMenuItem, u"&View" ) 
        
 
-    
+        # 
         self.methodsMenuItem = wx.Menu()
         self.himar1MenuItem = wx.Menu()
         self.tn5MenuItem = wx.Menu()
@@ -375,13 +375,25 @@ class MainFrame ( wx.Frame ):
         
         self.methodsMenuItem.AppendSubMenu(self.himar1MenuItem, "Himar1 Methods")
         self.methodsMenuItem.AppendSubMenu(self.tn5MenuItem, "Tn5 Methods")
-        self.m_menubar1.Append( self.methodsMenuItem, u"Analysis" )
+        self.m_menubar1.Append( self.methodsMenuItem, u"&Analysis" )
         
  
         self.SetMenuBar( self.m_menubar1 )
+
+        
+        self.helpMenuItem = wx.Menu()
+        self.documentationMenuItem = wx.MenuItem(self.helpMenuItem, wx.ID_ANY, u"Documentation", wx.EmptyString, wx.ITEM_NORMAL)
+        self.helpMenuItem.AppendItem(self.documentationMenuItem)
+        self.aboutMenuItem = wx.MenuItem(self.helpMenuItem, wx.ID_ANY, u"About", wx.EmptyString, wx.ITEM_NORMAL)
+        self.helpMenuItem.AppendItem(self.aboutMenuItem)
+        self.m_menubar1.Append( self.helpMenuItem, u"&Help" )
+        
         
         self.statusBar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
         
+
+
+
         self.Centre( wx.BOTH )
         
         # Connect Events
@@ -410,6 +422,9 @@ class MainFrame ( wx.Frame ):
         self.Bind( wx.EVT_MENU, self.scatterFunc, id = self.scatterMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.allViewFunc, id = self.trackMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.qcFunc, id = self.qcMenuItem.GetId() )
+
+        self.Bind( wx.EVT_MENU, self.aboutFunc, id = self.aboutMenuItem.GetId() )
+        self.Bind( wx.EVT_MENU, self.documentationFunc, id = self.documentationMenuItem.GetId() )
     
     def __del__( self ):
         pass
@@ -440,8 +455,6 @@ class MainFrame ( wx.Frame ):
     
     def expRemoveFunc( self, event ):
         event.Skip()
-    
-    
     
     def loadExpFileFunc( self, event ):
         event.Skip()
@@ -504,8 +517,13 @@ class MainFrame ( wx.Frame ):
         event.Skip()
     
     
-    
     def qcFunc( self, event ):
+        event.Skip()
+    
+    def aboutFunc( self, event ):
+        event.Skip()
+
+    def documentationFunc( self, event ):
         event.Skip()
     
 
