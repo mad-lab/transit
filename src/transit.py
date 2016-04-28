@@ -20,6 +20,10 @@
 
 #importing wx files
 
+__version__ = "v2.0.0"
+
+
+
 import sys
 import wx
 #Check if wx is the newest 3.0+ version:
@@ -82,7 +86,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         #print gumbel.Gumbel.__bases__
 
         self.logoImg.SetBitmap(images.transit_logo2.GetImage().ConvertToBitmap())
-
+        self.versionLabel.SetLabel(__version__)
         self.methodSizerText.Hide()        
 
         self.index_ctrl = 0
@@ -642,7 +646,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         info = wx.AboutDialogInfo()
         #info.SetIcon(wx.Icon('hunter.png', wx.BITMAP_TYPE_PNG))
         info.SetName('TRANSIT')
-        info.SetVersion('2.0')
+        info.SetVersion(__version__)
         info.SetDescription(description)
         info.SetCopyright('(C) 2015 - 2016\n Michael A. DeJesus\nThomas R. Ioerger')
         info.SetWebSite('http://saclab.tamu.edu/essentiality/transit/')
