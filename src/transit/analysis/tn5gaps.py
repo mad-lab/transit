@@ -178,7 +178,7 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         minread = int(wxobj.tn5GapsReadChoice.GetString(wxobj.tn5GapsReadChoice.GetCurrentSelection()))
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
         CTerminus = float(wxobj.globalCTerminusText.GetValue())
-        replicates="Sum"
+        replicates= wxobj.tn5GapsRepChoice.GetString(wxobj.tn5GapsRepChoice.GetCurrentSelection())
         normalization = None
         LOESS = False
 
@@ -215,11 +215,11 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         outpath = args[2]
         output_file = open(outpath, "w")
 
-        replicates = "Sum"
+        replicates = kwargs.get("r", "Sum")
+        minread = int(kwargs.get("m", 1))
         normalization = None
         LOESS = False
         ignoreCodon = True
-        minread = 1
         NTerminus = 0.0
         CTerminus = 0.0
 
@@ -342,9 +342,18 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         self.finish()
         self.transit_message("Finished Tn5Gaps Method") 
 
+
     @classmethod
     def usage_string(self):
-        return """python %s <comma-separated .wig files> <annotation .prot_table> <output file>""" % (sys.argv[0])
+        return """python %s resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table> <output file> [Optional Arguments]
+    
+        Optional Arguments:
+        -m <integer>    :=  Smallest read-count to consider. Default: -m 1
+        -r <string>     :=  How to handle replicates. Sum or Mean. Default: -r Sum
+        """ % (sys.argv[0])
+
+
+        
 
 
 
