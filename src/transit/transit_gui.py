@@ -240,7 +240,10 @@ class MainFrame ( wx.Frame ):
 
 
         # Method Options 
-        self.methodSizer = wx.StaticBoxSizer( wx.StaticBox( self.optionsWindow, wx.ID_ANY, u"Method Options" ), wx.VERTICAL )
+        self.methodSizerText = wx.StaticBox( self.optionsWindow, wx.ID_ANY, u"Method Options" )
+        self.methodSizer = wx.StaticBoxSizer( self.methodSizerText, wx.VERTICAL )
+
+        #self.methodSizerText.Hide()
         #self.methodSizer.SetMinSize( wx.Size( 250,-1 ) ) 
         
         self.m_panel1 = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )

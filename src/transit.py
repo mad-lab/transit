@@ -83,6 +83,8 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         self.logoImg.SetBitmap(images.transit_logo2.GetImage().ConvertToBitmap())
 
+        self.methodSizerText.Hide()        
+
         self.index_ctrl = 0
         self.list_ctrl.InsertColumn(0, 'File', width=210)
         self.list_ctrl.InsertColumn(1, 'Total Reads', width=85)
@@ -718,6 +720,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             self.method_choice = ""
         else:
             self.ShowGlobalOptions()
+            self.methodSizerText.Show()
             #Show Selected Method and hide Others
             for name in methods:
                 methods[name].gui.Hide()
