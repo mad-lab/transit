@@ -79,6 +79,24 @@ def basename(filepath):
     return ntpath.basename(filepath)
 
 
+def cleanargs(rawargs):
+    args = []
+    kwargs = {}
+    count = 0
+    while count < len(rawargs):
+        if rawargs[count].startswith("-"):
+            try:
+                kwargs[rawargs[count][1:]] = rawargs[count+1]
+                count += 1
+            except IndexError as IE:
+                kwargs[rawargs[count][1:]] = True
+        else:
+            args.append(rawargs[count])
+        count += 1
+
+    return (args, kwargs)
+
+
 def get_pos_hash(path):
     hash = {}
     for line in open(path):
@@ -121,6 +139,59 @@ def get_data(wig_list):
     return (data, position)
 
 
+def combine_replicates(data, method="Sum"):
+
+    if method == "Sum":
+        combined = numpy.round(numpy.sum(data,0))
+    elif method == "Mean":
+        combined = numpy.round(numpy.mean(data,0))
+    elif method == "TTRMean":
+        factors = transit_tools.TTR_factors(data)
+        data = factors * data
+        target_factors = transit_tools.norm_to_target(data, 100)
+        data = target_factors * data
+        combined = numpy.round(numpy.mean(data,0))
+    else:
+        combined = data[0,:]
+
+    return combined
+
+
+
+def normalize_data(data, method="nonorm", wigList=[], annotationPath=""):
+
+    factors = []
+    if method == "nzmean":
+        factors = nzmean_factors(data)
+        data = factors * data
+    elif method == "totreads":
+        factors = totreads_factors(data)
+        data = factors * data
+    elif method == "TTR":
+        factors = TTR_factors(data)
+        data = factors * data
+    elif method == "zinfnb":
+        factors = zinfnb_factors(data)
+        data = factors * data
+    elif method == "quantile":
+        data = quantile_norm(data)
+    elif method == "betageom":
+        data = betageom_norm(data)
+    elif method == "aBGC":
+        data = aBGC_norm(data)
+    elif method == "emphist":
+        assert ctrlList != None, "Control list cannot be empty!"
+        assert expList != None, "Experimental list cannot be empty!"
+        assert annotationPath != "", "Annotation path cannot be empty!"
+        factors = emphist_factors(wigList, annotationPath)
+        data = factors * data
+    else:
+        method = "nonorm"
+        pass
+
+    return (data, factors)
+
+
 
 def nzmean_factors(data):
     (K,N) = data.shape
@@ -145,6 +216,92 @@ def totreads_factors(data):
     factors = numpy.zeros((K,1))
     factors[:,0] = grand_mean/mean_hits
     return factors
+
+
+def emphist_factors(wig_list, prot_path):
+    orf2info = get_gene_info(prot_path)
+    hash = get_pos_hash(prot_path)
+    (data, position) = get_data(wig_list)
+    orf2reads, orf2pos = get_gene_reads(hash, data, position, orf2info)
+    K = len(data)
+    N = len(data[0])
+    temp = []
+    for j in range(K):
+        reads_per_gene = []
+        for orf in sorted(orf2reads.keys()):
+            tempdata = numpy.array(orf2reads[orf])
+            if len(tempdata) > 0:
+                reads_per_gene.append(numpy.sum(tempdata[:,j]))
+        temp.append(reads_per_gene)
+
+    temp = numpy.array(temp)
+
+    factors = numpy.ones((K,1))
+    for j in range(1, K):
+        ii_good  = numpy.logical_and(temp[0,:] > 0,  temp[j,:] > 0)
+        logFC = numpy.log(temp[j,ii_good]/temp[0,ii_good])
+        mean = numpy.mean(logFC)
+        std = numpy.sqrt(numpy.var(logFC))
+        X = numpy.linspace(mean - (5*std),  mean + (std*5), 50000)
+        R = scipy.stats.gaussian_kde(logFC)
+        Y = R(X)
+        peakLogFC = X[Y.argmax()]
+        if peakLogFC < 0:
+            factors[j,0] = numpy.exp(abs(peakLogFC))
+        else:
+            factors[j,0] = 1.0/numpy.exp(abs(peakLogFC))
+
+    return factors
+
+
+
+def aBGC_norm(data, doTotReads = True, bgsamples = 200000):
+    K,N = data.shape
+    norm_data = numpy.zeros(data.shape)
+    S = bgsamples
+    F = [i/100.0 for i in range(0,31) if i % 2 == 0]
+    BGC = []
+    param_list = []
+    for j in range(K):
+
+        nzdata = data[j][data[j] > 0]
+        nzdata.sort()
+        Nall = len(data[j])
+        Nnz = len(nzdata)
+        GOF_list = []
+        for frac in F:
+            tQ = numpy.arange(0,Nnz)/float(Nnz)
+            rho = 1.0/(scipy.stats.trim_mean(nzdata, frac))
+            rho_to_fit = rho
+
+            try:
+                A = (numpy.sum(numpy.power(numpy.log(1.0-tQ),2)))/(numpy.sum(nzdata*numpy.log(1.0-tQ)))
+                Kp = (2.0 * numpy.exp(A) - 1)   /(numpy.exp(A) + rho - 1)
+                temp = scipy.stats.geom.rvs(scipy.stats.beta.rvs(Kp*rho, Kp*(1-rho), size=S), size=S)
+            except Except as e:
+                print "aBGC Error:", str(e)
+                print "%rho=s\tKp=%s\tA=%s" % (rho, Kp, A)
+                temp = scipy.stats.geom.rvs(0.01, size=S)
+
+            corrected_nzdata = [cleaninfgeom(scipy.stats.geom.ppf(ecdf(temp, x), rho_to_fit), rho_to_fit) for x in nzdata]
+            corrected_nzmean = numpy.mean(corrected_nzdata)
+
+            Fp = scipy.stats.geom.ppf(numpy.arange(1,Nnz+1)/float(Nnz), 1.0/corrected_nzmean)
+            ii_inf = Fp == float("inf")
+            Fp[ii_inf] = max(Fp[~ii_inf]) + 100
+            ch2_indiv = numpy.power(corrected_nzdata- Fp, 2)/ Fp
+            GOF = max(ch2_indiv)
+            GOF_list.append((GOF, frac, rho_to_fit, Kp))
+
+        gof, frac, best_rho, best_Kp = sorted(GOF_list)[0]
+        BGsample = scipy.stats.geom.rvs(scipy.stats.beta.rvs(best_Kp*best_rho, best_Kp*(1-best_rho), size=S), size=S)
+        #BGC.append(dict([(x, removeinf(scipy.stats.geom.ppf(ecdf(temp, x), best_rho), best_rho)) for x in data[j]]))
+        for i in range(N):
+            norm_data[j,i] = cleaninfgeom(scipy.stats.geom.ppf(ecdf(BGsample, data[j,i]), best_rho), best_rho)
+
+    if doTotReads:
+        return totreads_factors(norm_data) * norm_data
+    return norm_data
 
 
 
@@ -267,12 +424,17 @@ def betageom_norm(data, doNZMean = True, bgsamples=200000):
         eX = numpy.array([rd for rd in data[j]])
         eX.sort()
 
-        rho = 1.0/scipy.stats.trim_mean(eX, 0.001)
+        rho = max(1.0/scipy.stats.trim_mean(eX+1, 0.001), 0.0001)
         A = (numpy.sum(numpy.power(numpy.log(1.0-tQ),2)))/(numpy.sum(eX*numpy.log(1.0-tQ)))
-        Kp = (2.0 * numpy.exp(A) - 1)   /(numpy.exp(A) + rho - 1)
+        Kp = max((2.0 * numpy.exp(A) - 1)   /(numpy.exp(A) + rho - 1), 10)
     
-        
-        BGsample = scipy.stats.geom.rvs(scipy.stats.beta.rvs(Kp*rho, Kp*(1-rho), size=bgsamples), size=bgsamples)
+        try:
+            BGsample = scipy.stats.geom.rvs(scipy.stats.beta.rvs(Kp*rho, Kp*(1-rho), size=bgsamples), size=bgsamples)
+        except Exception as e:
+            print "BGC ERROR with rho=%f, Kp=%f, A=%s" % (rho, Kp, A)
+            print str(e)
+            BGsample = scipy.stats.geom.rvs(rho, size=bgsamples)
+
         for i in range(N):
             norm_data[j,i] = cleaninfgeom(scipy.stats.geom.ppf(ecdf(BGsample, data[j,i]), 1.0/grand_mean), 1.0/grand_mean)
 
@@ -285,12 +447,16 @@ def betageom_norm(data, doNZMean = True, bgsamples=200000):
         #        norm_data[j,i] = data[j,i]
     
     if doNZMean:
-        return normalize_data(norm_data)
+        return nzmean_norm(norm_data)
     return norm_data
 
 
 
-def normalize_data(data):
+
+
+
+
+def nzmean_norm(data):
     (K,N) = data.shape
     total_hits = numpy.sum(data,1)
     TAs_hit = numpy.sum(data > 0,1)
