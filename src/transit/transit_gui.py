@@ -207,7 +207,7 @@ class MainFrame ( wx.Frame ):
         self.logoImg = wx.StaticBitmap( self.optionsWindow, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
         self.optionsSizer.Add( self.logoImg, 0, wx.ALL|wx.ALIGN_CENTER, 5 )
 
-        self.versionLabel = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"v1.4.3", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
+        self.versionLabel = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"v2.0.0", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
         self.versionLabel.Wrap( -1 )
         self.versionLabel.SetFont( wx.Font( 10, 74, 90, 92, False, "Sans" ) )
 
