@@ -317,23 +317,16 @@ class MainFrame ( wx.Frame ):
         self.m_menubar1 = wx.MenuBar( 0 )
         self.fileMenuItem = wx.Menu()
         self.exportMenuItem = wx.Menu()
-        self.ctrlExportMenuItem = wx.Menu()
-        self.ctrlExportIGVMenuItem = wx.MenuItem( self.ctrlExportMenuItem, wx.ID_ANY, u"to IGV", wx.EmptyString, wx.ITEM_NORMAL )
-        self.ctrlExportMenuItem.AppendItem( self.ctrlExportIGVMenuItem )
+        self.selectedExportMenuItem = wx.Menu()
+        self.selectedExportIGVMenuItem = wx.MenuItem( self.selectedExportMenuItem, wx.ID_ANY, u"to IGV", wx.EmptyString, wx.ITEM_NORMAL )
+        self.selectedExportMenuItem.AppendItem( self.selectedExportIGVMenuItem )
         
-        self.exportMenuItem.AppendSubMenu( self.ctrlExportMenuItem, u"Control Samples" )
-        
-        self.expExportMenuItem = wx.Menu()
-        self.expExportIGVMenuItem = wx.MenuItem( self.expExportMenuItem, wx.ID_ANY, u"to IGV", wx.EmptyString, wx.ITEM_NORMAL )
-        self.expExportMenuItem.AppendItem( self.expExportIGVMenuItem )
-        
-        self.exportMenuItem.AppendSubMenu( self.expExportMenuItem, u"Experimental Samples" )
-        
-        self.allExportMenuItem = wx.Menu()
-        self.allExportIGVMenuItem = wx.MenuItem( self.allExportMenuItem, wx.ID_ANY, u"to IGV", wx.EmptyString, wx.ITEM_NORMAL )
-        self.allExportMenuItem.AppendItem( self.allExportIGVMenuItem )
-        
-        self.exportMenuItem.AppendSubMenu( self.allExportMenuItem, u"All Samples" )
+
+        self.selectedExportCombinedWigMenuItem = wx.MenuItem( self.selectedExportMenuItem, wx.ID_ANY, u"to Combined Wig", wx.EmptyString, wx.ITEM_NORMAL )
+        self.selectedExportMenuItem.AppendItem( self.selectedExportCombinedWigMenuItem )
+
+
+        self.exportMenuItem.AppendSubMenu( self.selectedExportMenuItem, u"Selected Datasets" )
         
         self.fileMenuItem.AppendSubMenu( self.exportMenuItem, u"Export" )
         
@@ -415,9 +408,8 @@ class MainFrame ( wx.Frame ):
         self.addFileButton.Bind( wx.EVT_BUTTON, self.addFileFunc )
         self.fileActionChoice.Bind( wx.EVT_CHOICE, self.fileActionFunc )
         self.list_files.Bind( wx.EVT_LIST_ITEM_SELECTED, self.fileSelected )
-        self.Bind( wx.EVT_MENU, self.ctrlToIGV, id = self.ctrlExportIGVMenuItem.GetId() )
-        self.Bind( wx.EVT_MENU, self.expToIGV, id = self.expExportIGVMenuItem.GetId() )
-        self.Bind( wx.EVT_MENU, self.allToIGV, id = self.allExportIGVMenuItem.GetId() )
+        self.Bind( wx.EVT_MENU, self.selectedToIGV, id = self.selectedExportIGVMenuItem.GetId() )
+        self.Bind( wx.EVT_MENU, self.selectedToCombinedWig, id = self.selectedExportCombinedWigMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.annotationPT_to_PTT, id = self.annotationConvertPTToPTTMenu.GetId() )
         self.Bind( wx.EVT_MENU, self.annotationPT_to_GFF3, id = self.annotationConvertPTToGFF3Menu.GetId() )
         self.Bind( wx.EVT_MENU, self.annotationPTT_to_PT, id = self.annotationConvertPTTToPT.GetId() )
@@ -502,7 +494,10 @@ class MainFrame ( wx.Frame ):
     def expToIGV( self, event ):
         event.Skip()
     
-    def allToIGV( self, event ):
+    def selectedToIGV( self, event ):
+        event.Skip()
+
+    def selectedToCombinedWig( self, event ):
         event.Skip()
     
     def annotationPT_to_PTT( self, event ):

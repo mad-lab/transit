@@ -56,6 +56,8 @@ import transit.analysis
 import transit.trash as trash
 import transit.transit_gui as transit_gui
 import transit.transit_tools as transit_tools
+import transit.tnseq_tools as tnseq_tools
+import transit.norm_tools as norm_tools
 import transit.fileDisplay as fileDisplay
 import transit.qcDisplay as qcDisplay
 import transit.images as images
@@ -1000,50 +1002,65 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         self.MethodSelectFunc(selected_name) 
 
 
+    def convertToIGVGUI(self, datasets):
+        annotationPath = self.annotation
+        if datasets and annotationPath:
+            defaultFile = "read_counts.igv"
+            defaultDir = os.getcwd()
+            outputPath = self.SaveFile(defaultDir, defaultFile)
+            if not outputPath:
+                return
+            if self.verbose:
+        
+                print transit_prefix, "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+            self.convertToIGV(datasets, annotationPath, outputPath)
+            if self.verbose:
+                print transit_prefix, "Finished conversion"
+        elif not datasets:
+            self.ShowError("Error: No datasets selected to convert!")
+        elif not annotationPath:
+            self.ShowError("Error: No annotation file selected.")
+        else:
+            pass
+
+
     def convertToIGV(self, dataset_list, annotationPath, path):
-        fulldata = []
-        position = []
-        for j,dataset in enumerate(dataset_list):
-            temp = []
-            for line in open(dataset):
-                if line.startswith("#"): continue
-                if line.startswith("variable"): continue
-                if line.startswith("location"): continue
-                tmp = line.split()
-                pos = int(tmp[0])
-                read = int(tmp[1])
-                temp.append(read)
-                if j == 0:
-                    position.append(pos)
-            fulldata.append(temp)
-                
+
+        normchoice = self.chooseNormalization()
+
+        if not normchoice:
+            normchoice = "nonorm"
+
+        (fulldata, position) = tnseq_tools.get_data(dataset_list)
+        (fulldata, factors) = norm_tools.normalize_data(fulldata, normchoice, dataset_list, annotationPath)
+        position = position.astype(int)
 
         output = open(path, "w")
         output.write("#Converted to IGV with TRANSIT.\n")
+        if normchoice != "nonorm":
+            output.write("#Reads normalized using '%s'\n" % normchoice)
+    
         output.write("#Files:\n#%s\n" % "\n#".join(dataset_list))
         output.write("#Chromosome\tStart\tEnd\tFeature\t%s\tTAs\n" % ("\t".join([transit_tools.fetch_name(D) for D in dataset_list])))
         chrom = transit_tools.fetch_name(annotationPath)
 
         for i,pos in enumerate(position):
-            output.write("%s\t%s\t%s\tTA%s\t%s\t1\n" % (chrom, position[i], position[i]+1, position[i], "\t".join(["%s" % fulldata[j][i] for j in range(len(fulldata))])))
+            output.write("%s\t%s\t%s\tTA%s\t%s\t1\n" % (chrom, position[i], position[i]+1, position[i], "\t".join(["%1.1f" % fulldata[j][i] for j in range(len(fulldata))])))
         output.close()
 
 
 
-
-    def ctrlToIGV(self, event):
+    def convertToCombinedWigGUI(self, datasets):
         annotationPath = self.annotation
-        datasets = self.ctrlSelected()
-        defaultFile = "read_counts.igv"
-        #Get Default directory
-        #defaultDir = os.path.dirname(os.path.realpath(__file__))
-        defaultDir = os.getcwd()
-        
-        outputPath = self.SaveFile(defaultDir, defaultFile)
-        if datasets and annotationPath and outputPath:
+        if datasets and annotationPath:
+            defaultFile = "combined_read_counts.txt"
+            defaultDir = os.getcwd()
+            outputPath = self.SaveFile(defaultDir, defaultFile)
+            if not outputPath:
+                return
             if self.verbose:
-                print transit_prefix, "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
-            self.convertToIGV(datasets, annotationPath, outputPath)
+                print transit_prefix, "Converting the following datasets to Combined Wig format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+            self.convertToCombinedWig(datasets, annotationPath, outputPath)
             if self.verbose:
                 print transit_prefix, "Finished conversion"
         elif not datasets:
@@ -1052,53 +1069,66 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             self.ShowError("Error: No annotation file selected.")
         else:
             pass
-        
-        
 
-    def expToIGV(self, event):
-        annotationPath = self.annotation
-        datasets = self.expSelected()
-        defaultFile = "read_counts.igv"
-        #Get Default directory
-        #defaultDir = os.path.dirname(os.path.realpath(__file__))
-        defaultDir = os.getcwd()
-        outputPath = self.SaveFile(defaultDir, defaultFile)
-        if datasets and annotationPath and outputPath:
-            if self.verbose:
-                print transit_prefix, "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
-            self.convertToIGV(datasets, annotationPath, outputPath)
-            if self.verbose:
-                print transit_prefix, "Finished conversion"
-        elif not datasets:
-            self.ShowError("Error: No datasets selected to convert!")
-        elif not annotationPath:
-            self.ShowError("Error: No annotation file selected.")
-        else:
-            pass
-       
+    
+
+    def convertToCombinedWig(self, dataset_list, annotationPath, path):
+        normchoice = self.chooseNormalization()
+
+        if not normchoice:
+            normchoice = "nonorm"
+
+        (fulldata, position) = tnseq_tools.get_data(dataset_list)
+        (fulldata, factors) = norm_tools.normalize_data(fulldata, normchoice, dataset_list, annotationPath)
+        position = position.astype(int)
+
+
+        hash = tnseq_tools.get_pos_hash(annotationPath)
+        rv2info = tnseq_tools.get_gene_info(annotationPath)
+
+        output = open(path, "w")
+        output.write("#Converted to CombinedWig with TRANSIT.\n")
+        if normchoice != "nonorm":
+            output.write("#Reads normalized using '%s'\n" % normchoice)
+
+        (K,N) = fulldata.shape
+        output.write("#Files:\n")
+        for f in dataset_list:
+            output.write("#%s\n" % f)
+
+        for i,pos in enumerate(position):
+            #output.write("%s\t%s\t%s\n" % (position[i], "\t".join(["%1.1f" % fulldata[j][i] for j in range(K)]), ",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])]) )  )
+
+            output.write("%-10d %s  %s\n" % (position[i], "".join(["%7.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
+
+
+        output.close()
+    
+
+
+    def chooseNormalization(self):
+
+        dlg = wx.SingleChoiceDialog(
+                self, "Choose how to normalize read-counts accross datasets.", 'Normalization Choice',
+                ["nonorm", "nzmean", "totreads", "TTR", "zinfnb", "quantile", "betageom", "aBGC", "emphist"], 
+                wx.CHOICEDLG_STYLE
+                )
  
+        if dlg.ShowModal() == wx.ID_OK:
+            print transit_prefix, "Selected the '%s' normalization method" % dlg.GetStringSelection()
+ 
+        dlg.Destroy()
+        return dlg.GetStringSelection()
 
-    def allToIGV(self, event):
-        annotationPath = self.annotation
+
+    def selectedToIGV(self, event):
         datasets = self.ctrlSelected() + self.expSelected()
-        defaultFile = "read_counts.igv"
-        #Get Default directory
-        #defaultDir = os.path.dirname(os.path.realpath(__file__))
-        defaultDir = os.getcwd()
-        outputPath = self.SaveFile(defaultDir, defaultFile)
-        if datasets and annotationPath and outputPath:
-            if self.verbose:
-                print transit_prefix, "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
-            self.convertToIGV(datasets, annotationPath, outputPath)
-            if self.verbose:
-                print transit_pefix, "Finished conversion"
-        elif not datasets:
-            self.ShowError("Error: No datasets selected to convert!")
-        elif not annotationPath:
-            self.ShowError("Error: No annotation file selected.")
-        else:
-            pass
+        self.convertToIGVGUI(datasets)
 
+
+    def selectedToCombinedWig(self, event):
+        datasets = self.ctrlSelected() + self.expSelected()
+        self.convertToCombinedWigGUI(datasets)
 
         
     def annotationPT_to_GFF3(self, event):
