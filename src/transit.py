@@ -840,6 +840,8 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 self.graphVolcanoPlot(dataset_name, dataset_type, dataset_path)
             elif plot_name == "Plot Histogram of logFC of Gene Counts":
                 self.graphGeneCounts(dataset_name, dataset_type, dataset_path)
+            elif plot_name == "Plot Ranked Probability of Essentiality":
+                self.graphRankedZbar(dataset_name, dataset_type, dataset_path)
             else:
                 return
 
@@ -916,6 +918,32 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         except Exception as e:
             print "Error occurred creating plot:", str(e)
         
+
+    def graphRankedZbar(self, dataset_name, dataset_type, dataset_path):
+        try:
+            X = []; Y = [];
+            for line in open(dataset_path):
+                if line.startswith("#"): continue
+                tmp = line.strip().split("\t")
+                try:
+                    #log2FC = math.log(float(tmp[6])/float(tmp[5]),2)
+                    zbar = float(tmp[-2])
+                except:
+                    zbar = 0
+                Y.append(zbar)
+
+            Y.sort()
+            index=range(1,len(Y)+1)
+            plt.plot(index,Y, "bo")
+            plt.xlabel("Rank of Gene According to Probability of Essentiality")
+            plt.ylabel("Probability of Essentiality")
+            plt.title("Ranked Probability of Essentiality")
+            plt.show()
+            plt.close()
+
+        except Exception as e:
+            print "Error occurred creating plot:", str(e)
+
 
 
 
