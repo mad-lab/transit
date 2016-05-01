@@ -806,7 +806,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         elif dataset_type == "HMM - Genes":
             choices = [empty_action]
         elif dataset_type == "Resampling":
-            choices = [empty_action, "Create a Volcano Plot", "Plot Histogram of Total Gene Counts"]
+            choices = [empty_action, "Create a Volcano Plot", "Plot Histogram of logFC of Gene Counts"]
         elif dataset_type == "DE-HMM - Sites":
             choices = [empty_action, "Recreate Sites File"]
         elif dataset_type == "DE-HMM - Segments":
@@ -838,7 +838,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
             if plot_name == "Create a Volcano Plot":
                 self.graphVolcanoPlot(dataset_name, dataset_type, dataset_path)
-            elif plot_name == "Plot Histogram of Total Gene Counts":
+            elif plot_name == "Plot Histogram of logFC of Gene Counts":
                 self.graphGeneCounts(dataset_name, dataset_type, dataset_path)
             else:
                 return
@@ -861,7 +861,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                     if line.startswith("#"): continue
                     tmp = line.strip().split("\t")
                     try:
-                        log2FC = float(tmp[8])
+                        log2FC = float(tmp[7])
                     except:
                         log2FC = 0
                     X.append(log2FC)
@@ -894,7 +894,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                     tmp = line.strip().split("\t")
                     try:
                         #log2FC = math.log(float(tmp[6])/float(tmp[5]),2)
-                        log2FC = float(tmp[8])
+                        log2FC = float(tmp[7])
                         log10qval = -math.log(float(tmp[-1].strip()), 10)
                     except:
                         log2FC = 0
