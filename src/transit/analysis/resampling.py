@@ -361,8 +361,9 @@ class ResamplingMethod(base.DualConditionMethod):
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
 
-        self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
-        self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
+        self.output.write("#Contrl Data: %s\n" % (",".join(self.ctrldata))) 
+        self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata))) 
+        self.output.write("#Annotation path: %s\n" % (self.annotation))
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         self.output.write("#%s\n" % "\t".join(columns))
 
