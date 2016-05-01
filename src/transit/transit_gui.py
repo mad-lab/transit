@@ -158,20 +158,20 @@ class MainFrame ( wx.Frame ):
         self.displayButton = wx.Button( self.mainWindow, wx.ID_ANY, u"Display Table", wx.DefaultPosition, wx.DefaultSize, 0 )
         bSizer141.Add( self.displayButton, 0, wx.ALL, 5 )
         
-        self.graphFileButton = wx.Button( self.mainWindow, wx.ID_ANY, u"Display Graph", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.graphFileButton.Hide()
+        self.fileActionButton = wx.Button( self.mainWindow, wx.ID_ANY, u"Display Graph", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.fileActionButton.Hide()
         
-        bSizer141.Add( self.graphFileButton, 0, wx.ALL, 5 )
+        bSizer141.Add( self.fileActionButton, 0, wx.ALL, 5 )
         
         self.addFileButton = GenBitmapTextButton(self.mainWindow, 1 , bmp, 'Add Results File', size= wx.Size(150, 30))
 
 
         bSizer141.Add( self.addFileButton, 0, wx.ALL, 5 )
         
-        graphFileChoiceChoices = [ u"[Visualization Options]", u"Volcano Plot", u"Histogram of Total Gene Counts" ]
-        self.graphFileChoice = wx.Choice( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, graphFileChoiceChoices, 0 )
-        self.graphFileChoice.SetSelection( 0 )
-        bSizer141.Add( self.graphFileChoice, 0, wx.ALL, 5 )
+        fileActionChoiceChoices = [ u"[Choose Action to Perform]"]
+        self.fileActionChoice = wx.Choice( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, fileActionChoiceChoices, 0 )
+        self.fileActionChoice.SetSelection( 0 )
+        bSizer141.Add( self.fileActionChoice, 0, wx.ALL, 5 )
         
         
         filesSizer.Add( bSizer141, 0, 0, 5 )
@@ -411,9 +411,10 @@ class MainFrame ( wx.Frame ):
         self.expScatter.Bind( wx.EVT_BUTTON, self.scatterFunc )
         self.expFilePicker.Bind( wx.EVT_BUTTON, self.loadExpFileFunc )
         self.displayButton.Bind( wx.EVT_BUTTON, self.displayFileFunc )
-        self.graphFileButton.Bind( wx.EVT_BUTTON, self.graphFileFunc )
+        self.fileActionButton.Bind( wx.EVT_BUTTON, self.fileActionFunc )
         self.addFileButton.Bind( wx.EVT_BUTTON, self.addFileFunc )
-        self.graphFileChoice.Bind( wx.EVT_CHOICE, self.graphFileFunc )
+        self.fileActionChoice.Bind( wx.EVT_CHOICE, self.fileActionFunc )
+        self.list_files.Bind( wx.EVT_LIST_ITEM_SELECTED, self.fileSelected )
         self.Bind( wx.EVT_MENU, self.ctrlToIGV, id = self.ctrlExportIGVMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.expToIGV, id = self.expExportIGVMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.allToIGV, id = self.allExportIGVMenuItem.GetId() )
@@ -465,7 +466,7 @@ class MainFrame ( wx.Frame ):
     def displayFileFunc( self, event ):
         event.Skip()
     
-    def graphFileFunc( self, event ):
+    def fileActionFunc( self, event ):
         event.Skip()
     
     def addFileFunc( self, event ):

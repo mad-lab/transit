@@ -811,17 +811,17 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         else:
            choices = ["[Choose Action]"] 
 
-        self.graphFileChoice.SetItems(choices)
-        self.graphFileChoice.SetSelection(0)
+        self.fileActionChoice.SetItems(choices)
+        self.fileActionChoice.SetSelection(0)
 
 
-    def graphFileFunc(self, event):
+    def fileActionFunc(self, event):
         # 0 - nothing
         # 1 - Volcano
         # 2 - Hist gene counts ratio
         
-        plot_choice  = self.graphFileChoice.GetCurrentSelection()
-        plot_name = self.graphFileChoice.GetString(plot_choice)
+        plot_choice  = self.fileActionChoice.GetCurrentSelection()
+        plot_name = self.fileActionChoice.GetString(plot_choice)
         if plot_name == "[Choose Action]":
                 return
         next = self.list_files.GetNextSelected(-1)
@@ -840,7 +840,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             else:
                 return
 
-            self.graphFileChoice.SetSelection(0)
+            self.fileActionChoice.SetSelection(0)
             
         else:
             self.ShowError(MSG="Please select a results file to plot!")
