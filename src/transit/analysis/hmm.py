@@ -368,7 +368,7 @@ class HMMMethod(base.SingleConditionMethod):
         self.transit_message("") # Printing empty line to flush stdout 
         self.transit_message("Finished HMM - Sites Method")
         self.transit_message("Adding File: %s" % (self.output.name))
-        self.add_file()
+        self.add_file(filetype="HMM - Sites")
         
         #Gene Files
         self.transit_message("Creating HMM Genes Level Output")
@@ -380,7 +380,7 @@ class HMMMethod(base.SingleConditionMethod):
 
 
         self.transit_message("Adding File: %s" % (genes_path))
-        self.add_file(genes_path)
+        self.add_file(path=genes_path, filetype="HMM - Genes")
         self.finish()
         self.transit_message("Finished HMM Method") 
 

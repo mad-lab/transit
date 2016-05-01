@@ -299,7 +299,7 @@ class ResamplingMethod(base.DualConditionMethod):
         Kexp = len(self.expdata)
         #Get orf data
         self.transit_message("Getting Data")
-        if self.normalization != "none":
+        if self.normalization != "nonorm":
             self.transit_message("Normalizing using: %s" % self.normalization)
         G = tnseq_tools.Genes(self.ctrldata+self.expdata, self.annotation_path, norm=self.normalization, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
 
@@ -357,13 +357,12 @@ class ResamplingMethod(base.DualConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output))
+            self.output.write("#GUI with: norm=%s, samples=%s, adaptive=%s, histogram=%s, includeZeros=%s, output=%s\n" % (self.normalization, self.samples, self.adaptive, self.doHistogram, self.includeZeros, self.output))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
-
-        self.output.write("#Contrl Data: %s\n" % (",".join(self.ctrldata))) 
+        self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata))) 
         self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata))) 
-        self.output.write("#Annotation path: %s\n" % (self.annotation))
+        self.output.write("#Annotation path: %s\n" % (self.annotation_path))
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         self.output.write("#%s\n" % "\t".join(columns))
 
@@ -373,7 +372,7 @@ class ResamplingMethod(base.DualConditionMethod):
         self.output.close()
 
         self.transit_message("Adding File: %s" % (self.output.name))
-        self.add_file()
+        self.add_file(filetype="Resampling")
         self.finish()
         self.transit_message("Finished resampling Method") 
 

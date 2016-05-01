@@ -406,7 +406,7 @@ class RankProductMethod(base.DualConditionMethod):
         self.output.close()
 
         self.transit_message("Adding File: %s" % (self.output.name))
-        self.add_file()
+        self.add_file(filetype="RankProduct")
         self.finish()
         self.transit_message("Finished rankproduct Method") 
 

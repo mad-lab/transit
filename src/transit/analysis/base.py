@@ -157,12 +157,15 @@ class AnalysisMethod:
             print "%s = %s" % (m, getattr(self, m))
 
 
-    def add_file(self, path=None):
+    def add_file(self, path=None, filetype=None):
+
         #TODO: write docstring
         if not path:
-            data = {"path":self.output.name, "type":self.short_name, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-        else:
-            data = {"path":path, "type":self.short_name, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
+            path = self.output.name
+        if not filetype:
+            filetype = self.short_name
+
+        data = {"path":path, "type":filetype, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
 
         if self.wxobj:
             if newWx:

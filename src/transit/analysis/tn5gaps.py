@@ -338,7 +338,7 @@ class Tn5GapsMethod(base.SingleConditionMethod):
 
         self.transit_message("") # Printing empty line to flush stdout 
         self.transit_message("Adding File: %s" % (self.output.name))
-        self.add_file()
+        self.add_file(filetype="Tn5 Gaps")
         self.finish()
         self.transit_message("Finished Tn5Gaps Method") 
 
