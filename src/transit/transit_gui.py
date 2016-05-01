@@ -168,7 +168,7 @@ class MainFrame ( wx.Frame ):
 
         bSizer141.Add( self.addFileButton, 0, wx.ALL, 5 )
         
-        fileActionChoiceChoices = [ u"[Choose Action to Perform]"]
+        fileActionChoiceChoices = [ u"[Choose Action]"]
         self.fileActionChoice = wx.Choice( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, fileActionChoiceChoices, 0 )
         self.fileActionChoice.SetSelection( 0 )
         bSizer141.Add( self.fileActionChoice, 0, wx.ALL, 5 )

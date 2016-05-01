@@ -794,22 +794,23 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
     def updateGraphChoices(self, dataset_type):
 
+        empty_choice = "[Choose Action]"
         if dataset_type == "Gumbel":
-            choices = ["[Choose Action]", "Plot Ranked Probability of Essentiality"]
+            choices = [empty_action, "Plot Ranked Probability of Essentiality"]
         elif dataset_type == "Binomial":
-            choices = ["[Choose Action]","Plot Ranked Probability of Essentiality"]
+            choices = [empty_action, "Plot Ranked Probability of Essentiality"]
         elif dataset_type == "HMM - Sites":
-            choices = ["[Choose Action]"]
+            choices = [empty_action]
         elif dataset_type == "HMM - Genes":
-            choices = ["[Choose Action]"]
+            choices = [empty_action]
         elif dataset_type == "Resampling":
-            choices = ["[Choose Action]","Create a Volcano Plot", "Plot Histogram of Total Gene Counts"]
+            choices = [empty_action, "Create a Volcano Plot", "Plot Histogram of Total Gene Counts"]
         elif dataset_type == "DE-HMM - Sites":
-            choices = ["[Choose Action]", "Recreate Sites File"]
+            choices = [empty_action, "Recreate Sites File"]
         elif dataset_type == "DE-HMM - Segments":
-            choices = ["[Choose Action]"]
+            choices = [empty_action]
         else:
-           choices = ["[Choose Action]"] 
+           choices = [empty_action] 
 
         self.fileActionChoice.SetItems(choices)
         self.fileActionChoice.SetSelection(0)
