@@ -2,6 +2,7 @@ import sys
 import wx
 import os
 import time
+import ntpath
 import math
 import random
 import numpy
@@ -11,6 +12,7 @@ import datetime
 import matplotlib.pyplot as plt
 
 import base
+import transit
 import transit.transit_tools as transit_tools
 import transit.tnseq_tools as tnseq_tools
 import transit.norm_tools as norm_tools
@@ -61,17 +63,17 @@ class ResamplingFile(base.TransitFile):
 
 
     def getMenus(self):
-        def getMenus(self):
-            menus = []
-            menus.append(("Display in Track View", self.displayInTrackView))
-            menus.append(("Display Histogram", self.displayInTrackView))
-            return menus
+        menus = []
+        menus.append(("Display in Track View", self.displayInTrackView))
+        menus.append(("Display Histogram", self.displayHistogram))
+        return menus
 
     def displayHistogram(self, displayFrame, event):
-            filepath = os.path.join(ntpath.dirname(displayFrame.path), fetch_name(displayFrame.path))
-            filename = os.path.join(filepath, target+".png")
+            gene = displayFrame.grid.GetCellValue(displayFrame.row, 0)
+            filepath = os.path.join(ntpath.dirname(displayFrame.path), transit_tools.fetch_name(displayFrame.path))
+            filename = os.path.join(filepath, gene+".png")
             if os.path.exists(filename):
-                imgWindow = ImgFrame(None, filename)
+                imgWindow = transit.fileDisplay.ImgFrame(None, filename)
                 imgWindow.Show()
             else:
                 ShowError(MSG="Error Displaying File. Histogram image not found. Make sure results were obtained with the histogram option turned on.")
