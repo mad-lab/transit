@@ -26,7 +26,7 @@ import ntpath
 import numpy
 import scipy.optimize
 import scipy.stats
-
+import transit
 
 def aton(aa):
     return(((aa-1)*3)+1)
@@ -663,6 +663,11 @@ def ShowError(MSG=""):
     dial = wx.MessageDialog(None, MSG, 'Error',
         wx.OK | wx.ICON_ERROR)
     dial.ShowModal()
+
+def transit_message(msg=""):
+    print transit.prefix, msg
+
+
 
 
 

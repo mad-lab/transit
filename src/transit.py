@@ -182,7 +182,7 @@ class TnSeekFrame(transit_gui.MainFrame):
     def Exit(self, event):
         """Exit Menu Item"""
         if self.verbose:
-            print transit_prefix, "Exiting Transit"
+            transit_tools.transit_message("Exiting Transit")
         self.Close()
 
 
@@ -258,7 +258,7 @@ class TnSeekFrame(transit_gui.MainFrame):
             #methods[msg].gui.Enable()
             pass
         except Exception as e:
-            print transit_prefix, "Error:", e
+            transit_tools.transit_message("Error: %s" % e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
@@ -351,7 +351,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             if self.verbose:
-                print transit_prefix, "You chose the following output filename: %s" % path
+                transit_tools.transit_message("You chose the following output filename: %s" % path)
         dlg.Destroy()
         return path
 
@@ -368,7 +368,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             if self.verbose:
-                print transit_prefix, "You chose the following file: %s" % path
+                transit_tools.transit_message("You chose the following file: %s" % path)
         dlg.Destroy()
         return path
 
@@ -445,7 +445,7 @@ class TnSeekFrame(transit_gui.MainFrame):
                     self.index_ctrl+=1
             dlg.Destroy()
         except Exception as e:
-            print transit_prefix, "Error:", e
+            transit_tools.transit_message("Error: %s" % e)
             print "PATH", fullpath
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -480,7 +480,7 @@ class TnSeekFrame(transit_gui.MainFrame):
                     self.index_exp+=1
             dlg.Destroy()
         except Exception as e:
-            print transit_prefix, "Error:", e
+            transit_tools.transit_message("Error: %s" % e)
             print "PATH", fullpath
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -492,7 +492,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         next = self.list_ctrl.GetNextSelected(-1)
         while next != -1:
             if self.verbose:
-                print transit_prefix, "Removing control item (%d): %s" % (next, self.list_ctrl.GetItem(next, 0).GetText())
+                transit_tools.transit_message("Removing control item (%d): %s" % (next, self.list_ctrl.GetItem(next, 0).GetText()))
             self.list_ctrl.DeleteItem(next)
             next = self.list_ctrl.GetNextSelected(-1)
             self.index_ctrl-=1 
@@ -504,7 +504,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         next = self.list_exp.GetNextSelected(-1)
         while next != -1:
             if self.verbose:
-                print transit_prefix, "Removing experimental item (%d): %s" % (next, self.list_exp.GetItem(next, 0).GetText())
+                transit_tools.transit_message("Removing experimental item (%d): %s" % (next, self.list_exp.GetItem(next, 0).GetText()))
             self.list_exp.DeleteItem(next)
             next = self.list_exp.GetNextSelected(-1)
             self.index_exp-=1
@@ -517,7 +517,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         if datasets and annotationpath:
             if self.verbose:
-                print transit_prefix, "Visualizing counts for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+                transit_tools.transit_message("Visualizing counts for: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
             viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
             viewWindow.Show()
         elif not datasets:
@@ -536,15 +536,15 @@ class TnSeekFrame(transit_gui.MainFrame):
         datasets = self.ctrlSelected()
         if datasets and annotationpath:
             if self.verbose:
-                print transit_prefix, "Visualizing counts for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+                transit_tools.transit_message("Visualizing counts for: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
             viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
             viewWindow.Show()
         elif not datasets:
             if self.verbose:
-                print transit_prefix, "No datasets selected to visualize!"
+                transit_tools.transit_message("No datasets selected to visualize!")
         else:
             if self.verbose:
-                print transit_prefix, "No annotation file selected"
+                transit_tools.transit_message("No annotation file selected")
 
 
 
@@ -553,15 +553,15 @@ class TnSeekFrame(transit_gui.MainFrame):
         datasets = self.expSelected()
         if datasets and annotationpath:
             if self.verbose:
-                print transit_prefix, "Visualizing counts for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+                transit_tools.transit_message("Visualizing counts for: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
             viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
             viewWindow.Show()
         elif not datasets:
             if self.verbose:
-                print transit_prefix, "No datasets selected to visualize!"
+                transit_tools.transit_message("No datasets selected to visualize!")
         else:
             if self.verbose:
-                print transit_prefix, "No annotation file selected"
+                transit_tools.transit_message("No annotation file selected")
 
 
 
@@ -571,7 +571,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         datasets = self.ctrlSelected() + self.expSelected()
         if len(datasets) == 2:
             if self.verbose:
-                print transit_prefix, "Showing scatter plot for:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+                transit_tools.transit_message("Showing scatter plot for: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
             (data, position) = transit_tools.get_data(datasets)
             X = data[0,:]
             Y = data[1,:]
@@ -590,16 +590,16 @@ class TnSeekFrame(transit_gui.MainFrame):
         nfiles = len(datasets)
 
         if nfiles == 0:
-            print transit_prefix, "You must select atleast one dataset control or experimental dataset."
+            transit_tools.transit_message("You must select atleast one dataset control or experimental dataset.")
             transit_tools.ShowError(MSG="You must select atleast one dataset control or experimental dataset.")
             
         elif nfiles >= 1:
-            print transit_prefix, "Displaying results:", datasets[0]
+            transit_tools.transit_message("Displaying results: %s" % datasets[0])
             try:
                 qcWindow = qcDisplay.qcFrame(self, datasets)
                 qcWindow.Show()
             except Exception as e:
-                print transit_prefix, "Error occured displaying file:", str(e)
+                transit_tools.transit_message("Error occured displaying file: %s" % str(e))
                 traceback.print_exc()
 
 
@@ -691,7 +691,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         if self.annotation:
             self.annotationFilePicker.SetLabel(transit_tools.basename(self.annotation))
             if self.verbose:
-                print transit_prefix, "Annotation File Selected:", self.annotation
+                transit_tools.transit_message("Annotation File Selected: %s" % self.annotation)
         else:
             self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table)]")
         
@@ -742,7 +742,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
         self.Layout()
         if self.verbose:
-            print transit_prefix, "Selected Method: %s" % (selected_name)
+            transit_tools.transit_message("Selected Method: %s" % (selected_name))
 
 
 
@@ -752,19 +752,19 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         if next > -1:
             dataset = self.list_files.GetItem(next, 3).GetText()
             if self.verbose:
-                print transit_prefix, "Displaying results:", self.list_files.GetItem(next, 0).GetText()
+                transit_tools.transit_message("Displaying results: %s" % self.list_files.GetItem(next, 0).GetText())
 
             try:
                 #fileWindow = fileDisplay.FileFrame(self, dataset, self.list_files.GetItem(next, 1).GetText())
                 fileWindow = fileDisplay.TransitGridFrame(self, dataset)
                 fileWindow.Show()
             except Exception as e:
-                print transit_prefix, "Error occurred displaying file:", str(e)
+                transit_tools.transit_message("Error occurred displaying file: %s" % str(e))
                 traceback.print_exc()
 
         else:
             if self.verbose:
-                print transit_prefix, "No results selected to display!"
+                transit_tools.transit_message("No results selected to display!")
         
 
     def fileSelected(self,event):
@@ -819,7 +819,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             dataset_type = self.list_files.GetItem(next, 1).GetText()
             
             if self.verbose:
-                print transit_prefix, "Performing the '%s' action on dataset '%s'" % (plot_name, dataset_name)
+                transit_tools.transit_message("Performing the '%s' action on dataset '%s'" % (plot_name, dataset_name))
 
             if plot_name == "Create a Volcano Plot":
                 self.graphVolcanoPlot(dataset_name, dataset_type, dataset_path)
@@ -865,7 +865,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                transit_tools.ShowError(MSG="Need to select a 'Resampling' results file for this type of plot.")
 
         except Exception as e:
-            print transit_prefix, "Error occurred creating plot:", str(e)
+            transit_tools.transit_message("Error occurred creating plot: %s" % str(e))
             traceback.print_exc()
 
 
@@ -1001,7 +1001,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                         wx.CallAfter(pub.sendMessage, "file", data)
             dlg.Destroy()
         except Exception as e:
-            print transit_prefix, "Error:", e
+            transit_tools.transit_message("Error: %s" %  e)
             print "PATH", fullpath
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -1011,7 +1011,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
     def choseMethodsMenu(self, selected_name, event):
         if self.verbose:
-            print transit_prefix, "Selected Method: %s" % (selected_name)
+            transit_tools.transit_message("Selected Method: %s" % (selected_name))
         self.MethodSelectFunc(selected_name) 
 
 
@@ -1025,10 +1025,10 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 return
             if self.verbose:
         
-                print transit_prefix, "Converting the following datasets to IGV format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+                transit_tools.transit_message("Converting the following datasets to IGV format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
             self.convertToIGV(datasets, annotationPath, outputPath)
             if self.verbose:
-                print transit_prefix, "Finished conversion"
+                transit_tools.transit_message("Finished conversion")
         elif not datasets:
             transit_tools.ShowError("Error: No datasets selected to convert!")
         elif not annotationPath:
@@ -1072,10 +1072,10 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if not outputPath:
                 return
             if self.verbose:
-                print transit_prefix, "Converting the following datasets to Combined Wig format:", ", ".join([transit_tools.fetch_name(d) for d in datasets])
+                transit_tools.transit_message("Converting the following datasets to Combined Wig format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
             self.convertToCombinedWig(datasets, annotationPath, outputPath)
             if self.verbose:
-                print transit_prefix, "Finished conversion"
+                transit_tools.transit_message("Finished conversion")
         elif not datasets:
             transit_tools.ShowError("Error: No datasets selected to convert!")
         elif not annotationPath:
@@ -1128,7 +1128,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 )
  
         if dlg.ShowModal() == wx.ID_OK:
-            print transit_prefix, "Selected the '%s' normalization method" % dlg.GetStringSelection()
+            transit_tools.transit_message("Selected the '%s' normalization method" % dlg.GetStringSelection())
  
         dlg.Destroy()
         return dlg.GetStringSelection()
@@ -1157,7 +1157,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
         elif outputPath:
             if self.verbose:
-                print transit_prefix, "Converting annotation file from prot_table format to GFF3 format"
+                transit_tools.transit_message("Converting annotation file from prot_table format to GFF3 format")
             year = time.localtime().tm_year
             month = time.localtime().tm_mon
             day = time.localtime().tm_mday
@@ -1179,7 +1179,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 
             output.close()
             if self.verbose:
-                print transit_prefix, "Finished conversion"        
+                transit_tools.transit_message("Finished conversion")
        
 
 
@@ -1201,7 +1201,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             outputPath = self.SaveFile(defaultDir, defaultFile)
             if not outputPath: return
             if self.verbose:
-                print transit_prefix, "Converting annotation file from prot_table format to PTT format"
+                transit_tools.transit_message("Converting annotation file from prot_table format to PTT format")
             (data, position) = transit_tools.get_data(datasets)
             orf2info = transit_tools.get_gene_info(annotationpath)
             hash = transit_tools.get_pos_hash(annotationpath)
@@ -1223,7 +1223,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 output.write("%s\t%s\t%s\t%s\t%s\n" % (orf, start, end, strand, ta_str))
             output.close()
             if self.verbose:
-                print transit_prefix, "Finished conversion"
+                transit_tools.transit_message("Finished conversion")
                 
 
 
@@ -1244,7 +1244,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             outputPath = self.SaveFile(defaultDir, defaultFile)
             if not outputPath: return
             if self.verbose:
-                print transit_prefix, "Converting annotation file from PTT format to prot_table format"
+                transit_tools.transit_message("Converting annotation file from PTT format to prot_table format")
             #(data, position) = transit_tools.get_data(datasets)
             #orf2info = transit_tools.get_gene_info(annotationpath)
             #hash = transit_tools.get_pos_hash(annotationpath)
@@ -1271,7 +1271,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 output.write("%s\t%d\t%d\t%s\t%d\t%s\t%s\t%s\t%s\t%s\n" % (desc, start, end, strand, length, someID, someID2, name, orf, COG))
             output.close()
             if self.verbose:
-                print transit_prefix, "Finished conversion"
+                transit_tools.transit_message("Finished conversion")
 
         #geneID  start   end strand  TA coordinates
         
@@ -1291,7 +1291,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             outputPath = self.SaveFile(defaultDir, defaultFile)
             if not outputPath: return
             if self.verbose:
-                print transit_prefix, "Converting annotation file from GFF3 format to prot_table format"
+                transit_tools.transit_message("Converting annotation file from GFF3 format to prot_table format")
 
             output = open(outputPath, "w")
             for line in open(annotationpath):
@@ -1320,7 +1320,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 output.write("%s\t%d\t%d\t%s\t%d\t%s\t%s\t%s\t%s\t%s\n" % (desc, start, end, strand, length, someID, someID2, name, orf, COG))
             output.close()
             if self.verbose:
-                print transit_prefix, "Finished conversion"
+                transit_tools.transit_message("Finished conversion")
 
                  
 
@@ -1339,7 +1339,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 thread.setDaemon(True)
                 thread.start()
         except Exception as e:
-            print transit_prefix, "Error:", str(e)
+            transit_tools.transit_message("Error: %s" % str(e))
             traceback.print_exc()
 
 
@@ -1362,7 +1362,7 @@ if __name__ == "__main__":
     #If no arguments, show GUI:
     if len(sys.argv) == 1:
    
-        print transit_prefix, "Running in GUI Mode"
+        transit_tools.transit_message("Running in GUI Mode")
          
         app = wx.App(False)
 
