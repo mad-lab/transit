@@ -59,6 +59,25 @@ class ResamplingFile(base.TransitFile):
             """ % (DE, poslogfc, neglogfc)
         return text
 
+
+    def getMenus(self):
+        def getMenus(self):
+            menus = []
+            menus.append(("Display in Track View", self.displayInTrackView))
+            menus.append(("Display Histogram", self.displayInTrackView))
+            return menus
+
+    def displayHistogram(self, displayFrame, event):
+            filepath = os.path.join(ntpath.dirname(displayFrame.path), fetch_name(displayFrame.path))
+            filename = os.path.join(filepath, target+".png")
+            if os.path.exists(filename):
+                imgWindow = ImgFrame(None, filename)
+                imgWindow.Show()
+            else:
+                ShowError(MSG="Error Displaying File. Histogram image not found. Make sure results were obtained with the histogram option turned on.")
+                print "Error Displaying File. Histogram image does not exist."
+
+
         
 
 ############# GUI ##################

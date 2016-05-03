@@ -12,7 +12,7 @@ except AttributeError as e:
     newWx = False
 
 
-
+file_prefix = "[FileDisplay]"
 
 class TransitFile:
     #TODO write docstring
@@ -39,6 +39,22 @@ class TransitFile:
         #TODO write docstring
         return "Generic Transit File Type."
 
+
+    def getMenus(self):
+        menus = [("Display in Track View", self.displayInTrackView)]
+        return menus
+
+    def displayInTrackView(self, displayFrame, event):
+
+        #print "Self:", self
+        #print "Frame:", displayFrame
+        #print "Event:", event
+        #print "Frame parent:", displayFrame.parent
+        try:
+            gene = displayFrame.grid.GetCellValue(displayFrame.row, 0)
+            displayFrame.parent.allViewFunc(displayFrame, gene)
+        except Exception as e:
+            print file_prefix, "Error occurred: %s" % e 
 
 class AnalysisGUI:
     

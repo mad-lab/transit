@@ -24,6 +24,9 @@ import ntpath
 import subprocess
 import os
 import sys
+
+from functools import partial
+
 import trash
 
 import wx.grid
@@ -216,19 +219,34 @@ class TransitGridFrame(wx.Frame):
         sbSizer1 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Information" ), wx.HORIZONTAL )
 
 
-        line = open(path).readline().strip()
+        self.parent = parent
+        self.path = path
+        self.col = 0
+        self.row = 0
+        self.ctrldata = self.parent.ctrlSelected()
+        self.expdata = self.parent.expSelected()
+        self.annotation = self.parent.annotation
+
+        #print "Parent:", self.parent
+        #print "Ctrl:", self.ctrldata
+        #print "Exp:", self.expdata
+        #print "Annotation:", self.annotation 
+
+        line = open(self.path).readline().strip()
         (method, FT) = getInfoFromFileType(line)
 
+          
+        self.filetype = FT 
         
-        if FT.identifier == "#Unknown":
-            self.columnlabels = unknownColNames(path)
+        if self.filetype.identifier == "#Unknown":
+            self.columnlabels = unknownColNames(self.path)
         else:
-            self.columnlabels = FT.colnames
+            self.columnlabels = self.filetype.colnames
 
-        data = FT.getData(path, self.columnlabels)
+        data = self.filetype.getData(self.path, self.columnlabels)
 
         wxheader_list = []
-        text = FT.getHeader(path)
+        text = self.filetype.getHeader(self.path)
         wxheader_list.append(wx.StaticText( self, wx.ID_ANY, text, wx.DefaultPosition, wx.DefaultSize, 0 ))
         wxheader_list[-1].Wrap( -1 )
         sbSizer1.Add( wxheader_list[-1], 0, wx.ALL, 5 )
@@ -243,6 +261,7 @@ class TransitGridFrame(wx.Frame):
         #self.Layout()
 
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_DCLICK, self.OnLabelDoubleClicked)
+        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnCellRightClicked)
 
         mytable = TransitTable(data, self.columnlabels)
         self.grid.SetTable(mytable)
@@ -285,4 +304,33 @@ class TransitGridFrame(wx.Frame):
         if col != -1:
             self.grid.GetTable().SortColumn(col)
             self.grid.ForceRefresh()
+
+
+
+    def OnCellRightClicked(self, evt):
+
+        menu = wx.Menu()
+        id1 = wx.NewId()
+        sortID = wx.NewId()
+
+        xo, yo = evt.GetPosition()
+        self.row = self.grid.YToRow(yo) - 1
+        self.col = 0
+        val = self.grid.GetCellValue(self.row, 0)
+
+        #print "Row:", self.row
+        #print "Col:", self.col
+        #print "Val:", val
+        self.Refresh()
+        for (menuname, menufunc) in self.filetype.getMenus():
+            newid = wx.NewId()
+            #print newid, menufunc
+            menu.Append(newid, menuname)
+            newmenufunc = partial(menufunc,  self)
+            self.Bind(wx.EVT_MENU, newmenufunc, id=newid)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+
 
