@@ -20,6 +20,7 @@
 
 import sys
 import os
+import wx
 import math
 import ntpath
 import numpy
@@ -648,6 +649,20 @@ def getTabTableData(path, colnames):
 
     return data
 
+
+def ShowMessage(MSG=""):
+    wx.MessageBox(MSG, 'Info',
+        wx.OK | wx.ICON_INFORMATION)
+
+def ShowAskWarning(MSG=""):
+    dial = wx.MessageDialog(None, MSG, 'Warning',
+        wx.OK | wx.CANCEL | wx.ICON_EXCLAMATION)
+    return dial.ShowModal()
+
+def ShowError(MSG=""):
+    dial = wx.MessageDialog(None, MSG, 'Error',
+        wx.OK | wx.ICON_ERROR)
+    dial.ShowModal()
 
 
 

@@ -373,21 +373,6 @@ class TnSeekFrame(transit_gui.MainFrame):
         return path
 
 
-
-    def ShowMessage(self, MSG=""):
-        wx.MessageBox(MSG, 'Info', 
-            wx.OK | wx.ICON_INFORMATION)
-        
-    def ShowAskWarning(self, MSG=""):
-        dial = wx.MessageDialog(None, MSG, 'Warning', 
-            wx.OK | wx.CANCEL | wx.ICON_EXCLAMATION)
-        return dial.ShowModal()
-    
-    def ShowError(self, MSG=""):
-        dial = wx.MessageDialog(None, MSG, 'Error', 
-            wx.OK | wx.ICON_ERROR)
-        dial.ShowModal()
-     
     def ctrlSelected(self, col=5):
         selected_ctrl = []
         current = -1
@@ -536,10 +521,10 @@ class TnSeekFrame(transit_gui.MainFrame):
             viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
             viewWindow.Show()
         elif not datasets:
-            self.ShowError("Error: No datasets selected.")
+            transit_tools.ShowError("Error: No datasets selected.")
             return
         else:
-            self.ShowError("Error: No annotation file selected.")
+            transit_tools.ShowError("Error: No annotation file selected.")
             return
 
 
@@ -597,7 +582,7 @@ class TnSeekFrame(transit_gui.MainFrame):
             plt.ylabel(transit_tools.fetch_name(datasets[1])) 
             plt.show()
         else:
-            self.ShowError(MSG="Please make sure only two datasets are selected (across control and experimental datasets).")
+            transit_tools.ShowError(MSG="Please make sure only two datasets are selected (across control and experimental datasets).")
 
 
     def qcFunc(self, event):
@@ -606,7 +591,7 @@ class TnSeekFrame(transit_gui.MainFrame):
 
         if nfiles == 0:
             print transit_prefix, "You must select atleast one dataset control or experimental dataset."
-            self.ShowError(MSG="You must select atleast one dataset control or experimental dataset.")
+            transit_tools.ShowError(MSG="You must select atleast one dataset control or experimental dataset.")
             
         elif nfiles >= 1:
             print transit_prefix, "Displaying results:", datasets[0]
@@ -694,7 +679,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
         except Exception as e:
             error_text = """Error occurred opening documentation URL.\nYour browser or OS may not be configured correctly."""
-            self.ShowError(MSG=error_text)
+            transit_tools.ShowError(MSG=error_text)
             traceback.print_exc()
 
 
@@ -848,7 +833,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             self.fileActionChoice.SetSelection(0)
             
         else:
-            self.ShowError(MSG="Please select a results file to plot!")
+            transit_tools.ShowError(MSG="Please select a results file to plot!")
     
        
 
@@ -877,7 +862,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 plt.show()
                 plt.close()
             else:
-               self.ShowError(MSG="Need to select a 'Resampling' results file for this type of plot.")
+               transit_tools.ShowError(MSG="Need to select a 'Resampling' results file for this type of plot.")
 
         except Exception as e:
             print transit_prefix, "Error occurred creating plot:", str(e)
@@ -913,7 +898,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 plt.show()
                 plt.close()
             else:
-               self.ShowError(MSG="Need to select a 'Resampling' results file for this type of plot.")
+               transit_tools.ShowError(MSG="Need to select a 'Resampling' results file for this type of plot.")
             
         except Exception as e:
             print "Error occurred creating plot:", str(e)
@@ -950,7 +935,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
     def LoessPrevFunc(self,event):
         datasets_selected = self.ctrlSelected() + self.expSelected()
         if not datasets_selected:
-            self.ShowError(MSG="Need to select at least one control or experimental dataset.")
+            transit_tools.ShowError(MSG="Need to select at least one control or experimental dataset.")
             return
 
         data, position = transit_tools.get_data(datasets_selected)
@@ -1045,9 +1030,9 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 print transit_prefix, "Finished conversion"
         elif not datasets:
-            self.ShowError("Error: No datasets selected to convert!")
+            transit_tools.ShowError("Error: No datasets selected to convert!")
         elif not annotationPath:
-            self.ShowError("Error: No annotation file selected.")
+            transit_tools.ShowError("Error: No annotation file selected.")
         else:
             pass
 
@@ -1092,9 +1077,9 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 print transit_prefix, "Finished conversion"
         elif not datasets:
-            self.ShowError("Error: No datasets selected to convert!")
+            transit_tools.ShowError("Error: No datasets selected to convert!")
         elif not annotationPath:
-            self.ShowError("Error: No annotation file selected.")
+            transit_tools.ShowError("Error: No annotation file selected.")
         else:
             pass
 
@@ -1168,7 +1153,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
         ORGANISM = transit_tools.fetch_name(annotationpath)
         if not annotationpath:
-            self.ShowError("Error: No annotation file selected.")
+            transit_tools.ShowError("Error: No annotation file selected.")
 
         elif outputPath:
             if self.verbose:
@@ -1208,9 +1193,9 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
         datasets = self.ctrlSelected() + self.expSelected()
         if not annotationpath:
-            self.ShowError("Error: No annotation file selected.")
+            transit_tools.ShowError("Error: No annotation file selected.")
         elif not datasets:
-            self.ShowError("Error: Please add a .wig dataset, to determine TA sites.")            
+            transit_tools.ShowError("Error: Please add a .wig dataset, to determine TA sites.")            
         else:
             
             outputPath = self.SaveFile(defaultDir, defaultFile)
@@ -1251,9 +1236,9 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         
         datasets = self.ctrlSelected() + self.expSelected()
         if not annotationpath:
-            self.ShowError("Error: No annotation file selected.")
+            transit_tools.ShowError("Error: No annotation file selected.")
         #elif not datasets:
-        #    self.ShowError("Error: Please add a .wig dataset, to determine TA sites.")
+        #    transit_tools.ShowError("Error: Please add a .wig dataset, to determine TA sites.")
         else:
 
             outputPath = self.SaveFile(defaultDir, defaultFile)
@@ -1301,7 +1286,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
         datasets = self.ctrlSelected() + self.expSelected()
         if not annotationpath:
-            self.ShowError("Error: No annotation file selected.")
+            transit_tools.ShowError("Error: No annotation file selected.")
         else:
             outputPath = self.SaveFile(defaultDir, defaultFile)
             if not outputPath: return
