@@ -1,0 +1,385 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>transit.norm_tools &mdash; transit v2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     'v2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="transit v2.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for transit.norm_tools</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span>
+<span class="kn">import</span> <span class="nn">scipy.optimize</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+
+
+
+<div class="viewcode-block" id="normalize_data"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.normalize_data">[docs]</a><span class="k">def</span> <span class="nf">normalize_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;nonorm&quot;</span><span class="p">,</span> <span class="n">wigList</span><span class="o">=</span><span class="p">[],</span> <span class="n">annotationPath</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Normalizes the numpy array by the given normalization method.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        data (numpy array): (K,N) numpy array defining read-counts at N sites</span>
+<span class="sd">            for K datasets.</span>
+<span class="sd">        method (str): Name of the desired normalization method.</span>
+<span class="sd">        wigList (list): List of paths for the desired wig-formatted datasets.</span>
+<span class="sd">        annotationPath (str): Path to the prot_table annotation file.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy array: Array with the normalized data.</span>
+<span class="sd">        list: List containing the normalization factors. Empty if not used.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">factors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;nonorm&quot;</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;nzmean&quot;</span><span class="p">:</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">nzmean_factors</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">factors</span> <span class="o">*</span> <span class="n">data</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;totreads&quot;</span><span class="p">:</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">totreads_factors</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">factors</span> <span class="o">*</span> <span class="n">data</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;TTR&quot;</span><span class="p">:</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">TTR_factors</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">factors</span> <span class="o">*</span> <span class="n">data</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;zinfnb&quot;</span><span class="p">:</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">zinfnb_factors</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">factors</span> <span class="o">*</span> <span class="n">data</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;quantile&quot;</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">quantile_norm</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;betageom&quot;</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">betageom_norm</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;aBGC&quot;</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">aBGC_norm</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;emphist&quot;</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">ctrlList</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;Control list cannot be empty!&quot;</span>
+        <span class="k">assert</span> <span class="n">expList</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;Experimental list cannot be empty!&quot;</span>
+        <span class="k">assert</span> <span class="n">annotationPath</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;Annotation path cannot be empty!&quot;</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">emphist_factors</span><span class="p">(</span><span class="n">wigList</span><span class="p">,</span> <span class="n">annotationPath</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">factors</span> <span class="o">*</span> <span class="n">data</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">warnstr</span> <span class="o">=</span> <span class="s2">&quot;Normalization method &#39;</span><span class="si">%s</span><span class="s2">&#39; is unknown. Read-counts were not normalized.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">warnstr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">factors</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="nzmean_factors"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.nzmean_factors">[docs]</a><span class="k">def</span> <span class="nf">nzmean_factors</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the normalization factors for the data, using the NZMean method.&quot;&quot;&quot;</span>
+    <span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="n">N</span><span class="p">)</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">total_hits</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">TAs_hit</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">mean_hits</span> <span class="o">=</span> <span class="n">total_hits</span><span class="o">/</span><span class="n">TAs_hit</span>
+    <span class="n">grand_total</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mean_hits</span><span class="p">)</span>
+    <span class="n">grand_mean</span> <span class="o">=</span> <span class="n">grand_total</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">factors</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">grand_mean</span><span class="o">/</span><span class="n">mean_hits</span>
+    <span class="k">return</span> <span class="n">factors</span></div>
+
+<div class="viewcode-block" id="totreads_factors"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.totreads_factors">[docs]</a><span class="k">def</span> <span class="nf">totreads_factors</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the normalization factors for the data, using the total reads</span>
+<span class="sd">    method.&quot;&quot;&quot;</span>
+    <span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="n">N</span><span class="p">)</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">total_hits</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">TAs</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+    <span class="n">mean_hits</span> <span class="o">=</span> <span class="n">total_hits</span><span class="o">/</span><span class="n">TAs</span>
+    <span class="n">grand_total</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mean_hits</span><span class="p">)</span>
+    <span class="n">grand_mean</span> <span class="o">=</span> <span class="n">grand_total</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">factors</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">grand_mean</span><span class="o">/</span><span class="n">mean_hits</span>
+    <span class="k">return</span> <span class="n">factors</span></div>
+
+<div class="viewcode-block" id="emphist_factors"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.emphist_factors">[docs]</a><span class="k">def</span> <span class="nf">emphist_factors</span><span class="p">(</span><span class="n">wig_list</span><span class="p">,</span> <span class="n">prot_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the normalized data, using the empirical hist method.&quot;&quot;&quot;</span>
+    <span class="n">orf2info</span> <span class="o">=</span> <span class="n">get_gene_info</span><span class="p">(</span><span class="n">prot_path</span><span class="p">)</span>
+    <span class="nb">hash</span> <span class="o">=</span> <span class="n">get_pos_hash</span><span class="p">(</span><span class="n">prot_path</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">(</span><span class="n">wig_list</span><span class="p">)</span>
+    <span class="n">orf2reads</span><span class="p">,</span> <span class="n">orf2pos</span> <span class="o">=</span> <span class="n">get_gene_reads</span><span class="p">(</span><span class="nb">hash</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">orf2info</span><span class="p">)</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">temp</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+        <span class="n">reads_per_gene</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">orf</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">orf2reads</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">tempdata</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">orf2reads</span><span class="p">[</span><span class="n">orf</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tempdata</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">reads_per_gene</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">tempdata</span><span class="p">[:,</span><span class="n">j</span><span class="p">]))</span>
+        <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reads_per_gene</span><span class="p">)</span>
+
+    <span class="n">temp</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+        <span class="n">ii_good</span>  <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">temp</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>  <span class="n">temp</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">logFC</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">temp</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">ii_good</span><span class="p">]</span><span class="o">/</span><span class="n">temp</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">ii_good</span><span class="p">])</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">logFC</span><span class="p">)</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">logFC</span><span class="p">))</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">mean</span> <span class="o">-</span> <span class="p">(</span><span class="mi">5</span><span class="o">*</span><span class="n">std</span><span class="p">),</span>  <span class="n">mean</span> <span class="o">+</span> <span class="p">(</span><span class="n">std</span><span class="o">*</span><span class="mi">5</span><span class="p">),</span> <span class="mi">50000</span><span class="p">)</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gaussian_kde</span><span class="p">(</span><span class="n">logFC</span><span class="p">)</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">R</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">peakLogFC</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">Y</span><span class="o">.</span><span class="n">argmax</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="n">peakLogFC</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">factors</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">peakLogFC</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">factors</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">peakLogFC</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">factors</span></div>
+
+<div class="viewcode-block" id="aBGC_norm"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.aBGC_norm">[docs]</a><span class="k">def</span> <span class="nf">aBGC_norm</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">doTotReads</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">bgsamples</span> <span class="o">=</span> <span class="mi">200000</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the normalized data using the aBGC method.&quot;&quot;&quot;</span>
+    <span class="n">K</span><span class="p">,</span><span class="n">N</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">norm_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="n">bgsamples</span>
+    <span class="n">F</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mf">100.0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">31</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">BGC</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">param_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+
+        <span class="n">nzdata</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">nzdata</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">Nall</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">Nnz</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nzdata</span><span class="p">)</span>
+        <span class="n">GOF_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">frac</span> <span class="ow">in</span> <span class="n">F</span><span class="p">:</span>
+            <span class="n">tQ</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">Nnz</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">Nnz</span><span class="p">)</span>
+            <span class="n">rho</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">trim_mean</span><span class="p">(</span><span class="n">nzdata</span><span class="p">,</span> <span class="n">frac</span><span class="p">))</span>
+            <span class="n">rho_to_fit</span> <span class="o">=</span> <span class="n">rho</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">A</span> <span class="o">=</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">tQ</span><span class="p">),</span><span class="mi">2</span><span class="p">)))</span><span class="o">/</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nzdata</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">tQ</span><span class="p">)))</span>
+                <span class="n">Kp</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>   <span class="o">/</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="n">rho</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">Kp</span><span class="o">*</span><span class="n">rho</span><span class="p">,</span> <span class="n">Kp</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">rho</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">S</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">S</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">Except</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s2">&quot;aBGC Error:&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">print</span> <span class="s2">&quot;</span><span class="si">%r</span><span class="s2">ho=s</span><span class="se">\t</span><span class="s2">Kp=</span><span class="si">%s</span><span class="se">\t</span><span class="s2">A=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">Kp</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">S</span><span class="p">)</span>
+
+            <span class="n">corrected_nzdata</span> <span class="o">=</span> <span class="p">[</span><span class="n">cleaninfgeom</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">ecdf</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">rho_to_fit</span><span class="p">),</span> <span class="n">rho_to_fit</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">nzdata</span><span class="p">]</span>
+            <span class="n">corrected_nzmean</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">corrected_nzdata</span><span class="p">)</span>
+
+            <span class="n">Fp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">Nnz</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">Nnz</span><span class="p">),</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">corrected_nzmean</span><span class="p">)</span>
+            <span class="n">ii_inf</span> <span class="o">=</span> <span class="n">Fp</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+            <span class="n">Fp</span><span class="p">[</span><span class="n">ii_inf</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">Fp</span><span class="p">[</span><span class="o">~</span><span class="n">ii_inf</span><span class="p">])</span> <span class="o">+</span> <span class="mi">100</span>
+            <span class="n">ch2_indiv</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">corrected_nzdata</span><span class="o">-</span> <span class="n">Fp</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">/</span> <span class="n">Fp</span>
+            <span class="n">GOF</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ch2_indiv</span><span class="p">)</span>
+            <span class="n">GOF_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">GOF</span><span class="p">,</span> <span class="n">frac</span><span class="p">,</span> <span class="n">rho_to_fit</span><span class="p">,</span> <span class="n">Kp</span><span class="p">))</span>
+
+        <span class="n">gof</span><span class="p">,</span> <span class="n">frac</span><span class="p">,</span> <span class="n">best_rho</span><span class="p">,</span> <span class="n">best_Kp</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">GOF_list</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">BGsample</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">best_Kp</span><span class="o">*</span><span class="n">best_rho</span><span class="p">,</span> <span class="n">best_Kp</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">best_rho</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">S</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">S</span><span class="p">)</span>
+        <span class="c1">#BGC.append(dict([(x, removeinf(scipy.stats.geom.ppf(ecdf(temp, x), best_rho), best_rho)) for x in data[j]]))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+            <span class="n">norm_data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cleaninfgeom</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">ecdf</span><span class="p">(</span><span class="n">BGsample</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]),</span> <span class="n">best_rho</span><span class="p">),</span> <span class="n">best_rho</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">doTotReads</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">totreads_factors</span><span class="p">(</span><span class="n">norm_data</span><span class="p">)</span> <span class="o">*</span> <span class="n">norm_data</span>
+    <span class="k">return</span> <span class="n">norm_data</span></div>
+
+
+<div class="viewcode-block" id="empirical_theta"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.empirical_theta">[docs]</a><span class="k">def</span> <span class="nf">empirical_theta</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculates the observed density of the data.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="trimmed_empirical_mu"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.trimmed_empirical_mu">[docs]</a><span class="k">def</span> <span class="nf">trimmed_empirical_mu</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Estimates the trimmed mean of the data.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">trim_mean</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">X</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TTR_factors"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.TTR_factors">[docs]</a><span class="k">def</span> <span class="nf">TTR_factors</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">thetaEst</span><span class="o">=</span><span class="n">empirical_theta</span><span class="p">,</span> <span class="n">muEst</span><span class="o">=</span><span class="n">trimmed_empirical_mu</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the normalization factors for the data, using the TTR method.&quot;&quot;&quot;</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+        <span class="n">factors</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">thetaEst</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">muEst</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span><span class="o">/</span><span class="p">(</span><span class="n">thetaEst</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">*</span> <span class="n">muEst</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
+
+    <span class="k">return</span> <span class="n">factors</span></div>
+
+<div class="viewcode-block" id="Fzinfnb"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.Fzinfnb">[docs]</a><span class="k">def</span> <span class="nf">Fzinfnb</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Objective function for the zero-inflated NB method.&quot;&quot;&quot;</span>
+    <span class="n">pi</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="n">Fdata</span> <span class="o">=</span> <span class="n">args</span>
+    <span class="n">temp0</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">pi</span> <span class="o">+</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">nbinom</span><span class="o">.</span><span class="n">pmf</span><span class="p">(</span><span class="n">Fdata</span><span class="p">[</span><span class="n">Fdata</span><span class="o">==</span><span class="mi">0</span><span class="p">],</span> <span class="n">mu</span><span class="p">,</span> <span class="n">r</span><span class="p">)))</span>
+    <span class="n">tempnz</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">pi</span><span class="p">)</span><span class="o">+</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">nbinom</span><span class="o">.</span><span class="n">logpmf</span><span class="p">(</span><span class="n">Fdata</span><span class="p">[</span><span class="n">Fdata</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">],</span> <span class="n">mu</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span>
+    <span class="n">negLL</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">temp0</span><span class="p">)</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">tempnz</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">negLL</span></div>
+
+
+<div class="viewcode-block" id="zinfnb_factors"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.zinfnb_factors">[docs]</a><span class="k">def</span> <span class="nf">zinfnb_factors</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the normalization factors for the data using the zero-inflated</span>
+<span class="sd">    negatibe binomial method.&quot;&quot;&quot;</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">initParams</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="s2">&quot;L-BFGS-B&quot;</span>
+        <span class="n">Fdata</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">Fzinfnb</span><span class="p">,</span> <span class="n">initParams</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">Fdata</span><span class="p">,),</span> <span class="n">method</span><span class="o">=</span><span class="n">M</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">[(</span><span class="mf">0.0001</span><span class="p">,</span> <span class="mf">0.9999</span><span class="p">),(</span><span class="mf">0.0001</span><span class="p">,</span> <span class="bp">None</span><span class="p">),(</span><span class="mf">0.0001</span><span class="p">,</span> <span class="mf">0.9999</span><span class="p">)])</span>
+        <span class="n">pi</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">x</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="n">n</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="p">)</span><span class="o">/</span><span class="n">p</span>
+        <span class="n">factors</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">mu</span>
+    <span class="k">return</span> <span class="n">factors</span></div>
+
+<div class="viewcode-block" id="quantile_norm"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.quantile_norm">[docs]</a><span class="k">def</span> <span class="nf">quantile_norm</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Performs Quantile Normalization as described by Bolstad et al. 2003&quot;&quot;&quot;</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="c1">#Sort columns</span>
+    <span class="n">s_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">sorted</span><span class="p">(</span><span class="n">col</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">data</span><span class="p">])</span>
+    <span class="c1">#Get ranks of original data</span>
+    <span class="n">ranks</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">ranks</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">rankdata</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;dense&#39;</span><span class="p">)</span>
+    <span class="c1">#Get empirical distribution</span>
+    <span class="n">ranked_means</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">s_data</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1">#Create dictionary of rank to new empirical values</span>
+    <span class="n">rank2count</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">rankdata</span><span class="p">(</span><span class="n">ranked_means</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;dense&#39;</span><span class="p">),</span> <span class="n">ranked_means</span><span class="p">)])</span>
+    <span class="c1">#Assign values</span>
+    <span class="n">norm_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+        <span class="n">norm_data</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">rank2count</span><span class="p">[</span><span class="n">ranks</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">norm_data</span></div>
+
+
+<div class="viewcode-block" id="ecdf"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.ecdf">[docs]</a><span class="k">def</span> <span class="nf">ecdf</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculates an empirical CDF of the given data.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">S</span><span class="o">&lt;=</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="cleaninfgeom"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.cleaninfgeom">[docs]</a><span class="k">def</span> <span class="nf">cleaninfgeom</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">rho</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a &#39;clean&#39; output from the geometric distribution.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.9999999999999999</span><span class="p">,</span> <span class="n">rho</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span></div>
+
+
+
+<div class="viewcode-block" id="betageom_norm"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.betageom_norm">[docs]</a><span class="k">def</span> <span class="nf">betageom_norm</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">doNZMean</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">bgsamples</span><span class="o">=</span><span class="mi">200000</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns normalized data according to the BGC method.&quot;&quot;&quot;</span>
+    <span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="n">N</span><span class="p">)</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">total_hits</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">TAs_hit</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">mean_hits</span> <span class="o">=</span> <span class="n">total_hits</span><span class="o">/</span><span class="n">TAs_hit</span>
+    <span class="n">grand_total</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mean_hits</span><span class="p">)</span>
+    <span class="n">grand_mean</span> <span class="o">=</span> <span class="n">grand_total</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+    <span class="n">norm_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+
+        <span class="n">tQ</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="n">eX</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rd</span> <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">]])</span>
+        <span class="n">eX</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="n">rho</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">trim_mean</span><span class="p">(</span><span class="n">eX</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">),</span> <span class="mf">0.0001</span><span class="p">)</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">tQ</span><span class="p">),</span><span class="mi">2</span><span class="p">)))</span><span class="o">/</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">eX</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">tQ</span><span class="p">)))</span>
+        <span class="n">Kp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>   <span class="o">/</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="n">rho</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">10</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">BGsample</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">Kp</span><span class="o">*</span><span class="n">rho</span><span class="p">,</span> <span class="n">Kp</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">rho</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">bgsamples</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">bgsamples</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s2">&quot;BGC ERROR with rho=</span><span class="si">%f</span><span class="s2">, Kp=</span><span class="si">%f</span><span class="s2">, A=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">Kp</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
+            <span class="k">print</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">BGsample</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">bgsamples</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+            <span class="n">norm_data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cleaninfgeom</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">ecdf</span><span class="p">(</span><span class="n">BGsample</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]),</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">grand_mean</span><span class="p">),</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">grand_mean</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">doNZMean</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">nzmean_norm</span><span class="p">(</span><span class="n">norm_data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">norm_data</span></div>
+
+
+
+<div class="viewcode-block" id="norm_to_target"><a class="viewcode-back" href="../../transit_code.html#transit.norm_tools.norm_to_target">[docs]</a><span class="k">def</span> <span class="nf">norm_to_target</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns factors to normalize the data to the given target value.&quot;&quot;&quot;</span>
+    <span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="n">N</span><span class="p">)</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">factors</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">target</span><span class="p">)</span><span class="o">/</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">factors</span></div>
+
+
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/transit_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Michael A. DeJesus.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1504 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>transit Package &mdash; transit v2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     'v2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="transit v2.0.0 documentation" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">transit v2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="transit-package">
+<h1>transit Package<a class="headerlink" href="#transit-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><a class="reference internal" href="transit.html#module-transit" title="transit"><code class="xref py py-mod docutils literal"><span class="pre">transit</span></code></a> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-transit.__init__"></span></div>
+<div class="section" id="module-transit.draw_trash">
+<span id="draw-trash-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">draw_trash</span></code> Module<a class="headerlink" href="#module-transit.draw_trash" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="transit.draw_trash.draw_canvas">
+<code class="descclassname">transit.draw_trash.</code><code class="descname">draw_canvas</code><span class="sig-paren">(</span><em>fulldata</em>, <em>hash</em>, <em>orf2data</em>, <em>labels=[]</em>, <em>min_read=0</em>, <em>max_read=2000</em>, <em>start=1</em>, <em>end=500</em>, <em>canvas_h=-1</em>, <em>canvas_w=1000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/draw_trash.html#draw_canvas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.draw_trash.draw_canvas" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.draw_trash.draw_features">
+<code class="descclassname">transit.draw_trash.</code><code class="descname">draw_features</code><span class="sig-paren">(</span><em>draw</em>, <em>features</em>, <em>start</em>, <em>end</em>, <em>start_x</em>, <em>start_y</em>, <em>width</em>, <em>height</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/draw_trash.html#draw_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.draw_trash.draw_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.draw_trash.draw_genes">
+<code class="descclassname">transit.draw_trash.</code><code class="descname">draw_genes</code><span class="sig-paren">(</span><em>draw</em>, <em>GENES</em>, <em>orf2data</em>, <em>start</em>, <em>end</em>, <em>start_x</em>, <em>start_y</em>, <em>width</em>, <em>height</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/draw_trash.html#draw_genes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.draw_trash.draw_genes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.draw_trash.draw_reads">
+<code class="descclassname">transit.draw_trash.</code><code class="descname">draw_reads</code><span class="sig-paren">(</span><em>draw</em>, <em>reads</em>, <em>ta_sites</em>, <em>start_x=0</em>, <em>start_y=0</em>, <em>width=400</em>, <em>height=100</em>, <em>start=0</em>, <em>end=500</em>, <em>min_read=0</em>, <em>max_read=500</em>, <em>lwd=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/draw_trash.html#draw_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.draw_trash.draw_reads" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.draw_trash.draw_scale">
+<code class="descclassname">transit.draw_trash.</code><code class="descname">draw_scale</code><span class="sig-paren">(</span><em>draw</em>, <em>start_x</em>, <em>start_y</em>, <em>height</em>, <em>max_read</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/draw_trash.html#draw_scale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.draw_trash.draw_scale" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.draw_trash.draw_ta_sites">
+<code class="descclassname">transit.draw_trash.</code><code class="descname">draw_ta_sites</code><span class="sig-paren">(</span><em>draw</em>, <em>ta_sites</em>, <em>start_x=0</em>, <em>start_y=0</em>, <em>width=200</em>, <em>height=0</em>, <em>start=0</em>, <em>end=500</em>, <em>lwd=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/draw_trash.html#draw_ta_sites"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.draw_trash.draw_ta_sites" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.draw_trash.get_dynamic_height">
+<code class="descclassname">transit.draw_trash.</code><code class="descname">get_dynamic_height</code><span class="sig-paren">(</span><em>N</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/draw_trash.html#get_dynamic_height"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.draw_trash.get_dynamic_height" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.draw_trash.hash_prot_genes">
+<code class="descclassname">transit.draw_trash.</code><code class="descname">hash_prot_genes</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/draw_trash.html#hash_prot_genes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.draw_trash.hash_prot_genes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.draw_trash.normalize">
+<code class="descclassname">transit.draw_trash.</code><code class="descname">normalize</code><span class="sig-paren">(</span><em>X</em>, <em>old_min</em>, <em>old_max</em>, <em>new_min</em>, <em>new_max</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/draw_trash.html#normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.draw_trash.normalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.draw_trash.read_prot_table">
+<code class="descclassname">transit.draw_trash.</code><code class="descname">read_prot_table</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/draw_trash.html#read_prot_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.draw_trash.read_prot_table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-transit.fileDisplay">
+<span id="filedisplay-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">fileDisplay</span></code> Module<a class="headerlink" href="#module-transit.fileDisplay" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="transit.fileDisplay.ImgFrame">
+<em class="property">class </em><code class="descclassname">transit.fileDisplay.</code><code class="descname">ImgFrame</code><span class="sig-paren">(</span><em>parent</em>, <em>filePath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#ImgFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.ImgFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></code></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.fileDisplay.ShowError">
+<code class="descclassname">transit.fileDisplay.</code><code class="descname">ShowError</code><span class="sig-paren">(</span><em>MSG=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#ShowError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.ShowError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="transit.fileDisplay.SortableListCtrl">
+<em class="property">class </em><code class="descclassname">transit.fileDisplay.</code><code class="descname">SortableListCtrl</code><span class="sig-paren">(</span><em>parent</em>, <em>ID=-1</em>, <em>pos=wx.Point(-1</em>, <em>-1)</em>, <em>size=wx.Size(-1</em>, <em>-1)</em>, <em>style=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#SortableListCtrl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.SortableListCtrl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">wx._controls.ListCtrl</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="transit.fileDisplay.TransitGridFrame">
+<em class="property">class </em><code class="descclassname">transit.fileDisplay.</code><code class="descname">TransitGridFrame</code><span class="sig-paren">(</span><em>parent</em>, <em>path</em>, <em>size=(-1</em>, <em>-1)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#TransitGridFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.TransitGridFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></code></p>
+<dl class="method">
+<dt id="transit.fileDisplay.TransitGridFrame.AutoResizeCols">
+<code class="descname">AutoResizeCols</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#TransitGridFrame.AutoResizeCols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.TransitGridFrame.AutoResizeCols" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.fileDisplay.TransitGridFrame.OnCellRightClicked">
+<code class="descname">OnCellRightClicked</code><span class="sig-paren">(</span><em>evt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#TransitGridFrame.OnCellRightClicked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.TransitGridFrame.OnCellRightClicked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.fileDisplay.TransitGridFrame.OnLabelDoubleClicked">
+<code class="descname">OnLabelDoubleClicked</code><span class="sig-paren">(</span><em>evt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#TransitGridFrame.OnLabelDoubleClicked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.TransitGridFrame.OnLabelDoubleClicked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transit.fileDisplay.TransitTable">
+<em class="property">class </em><code class="descclassname">transit.fileDisplay.</code><code class="descname">TransitTable</code><span class="sig-paren">(</span><em>data</em>, <em>colnames</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#TransitTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.TransitTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">wx.grid.PyGridTableBase</span></code></p>
+<p>A custom wx.Grid Table using user supplied data</p>
+<dl class="method">
+<dt id="transit.fileDisplay.TransitTable.GetColLabelValue">
+<code class="descname">GetColLabelValue</code><span class="sig-paren">(</span><em>col</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#TransitTable.GetColLabelValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.TransitTable.GetColLabelValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.fileDisplay.TransitTable.GetNumberCols">
+<code class="descname">GetNumberCols</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#TransitTable.GetNumberCols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.TransitTable.GetNumberCols" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.fileDisplay.TransitTable.GetNumberRows">
+<code class="descname">GetNumberRows</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#TransitTable.GetNumberRows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.TransitTable.GetNumberRows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.fileDisplay.TransitTable.GetRawValue">
+<code class="descname">GetRawValue</code><span class="sig-paren">(</span><em>row</em>, <em>col</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#TransitTable.GetRawValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.TransitTable.GetRawValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.fileDisplay.TransitTable.GetRowLabelValue">
+<code class="descname">GetRowLabelValue</code><span class="sig-paren">(</span><em>row</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#TransitTable.GetRowLabelValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.TransitTable.GetRowLabelValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.fileDisplay.TransitTable.GetValue">
+<code class="descname">GetValue</code><span class="sig-paren">(</span><em>row</em>, <em>col</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#TransitTable.GetValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.TransitTable.GetValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.fileDisplay.TransitTable.SetValue">
+<code class="descname">SetValue</code><span class="sig-paren">(</span><em>row</em>, <em>col</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#TransitTable.SetValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.TransitTable.SetValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.fileDisplay.TransitTable.SortColumn">
+<code class="descname">SortColumn</code><span class="sig-paren">(</span><em>col</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#TransitTable.SortColumn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.TransitTable.SortColumn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.fileDisplay.fetch_name">
+<code class="descclassname">transit.fileDisplay.</code><code class="descname">fetch_name</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#fetch_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.fetch_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.fileDisplay.getInfoFromFileType">
+<code class="descclassname">transit.fileDisplay.</code><code class="descname">getInfoFromFileType</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#getInfoFromFileType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.getInfoFromFileType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.fileDisplay.sortColumn">
+<code class="descclassname">transit.fileDisplay.</code><code class="descname">sortColumn</code><span class="sig-paren">(</span><em>item1</em>, <em>item2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#sortColumn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.sortColumn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.fileDisplay.unknownColNames">
+<code class="descclassname">transit.fileDisplay.</code><code class="descname">unknownColNames</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#unknownColNames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.unknownColNames" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.fileDisplay.unknownFileHeaderText">
+<code class="descclassname">transit.fileDisplay.</code><code class="descname">unknownFileHeaderText</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#unknownFileHeaderText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.unknownFileHeaderText" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.fileDisplay.unknownTableData">
+<code class="descclassname">transit.fileDisplay.</code><code class="descname">unknownTableData</code><span class="sig-paren">(</span><em>path</em>, <em>colnames</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/fileDisplay.html#unknownTableData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.fileDisplay.unknownTableData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-transit.images">
+<span id="images-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">images</span></code> Module<a class="headerlink" href="#module-transit.images" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-transit.norm_tools">
+<span id="norm-tools-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">norm_tools</span></code> Module<a class="headerlink" href="#module-transit.norm_tools" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="transit.norm_tools.Fzinfnb">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">Fzinfnb</code><span class="sig-paren">(</span><em>params</em>, <em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#Fzinfnb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.Fzinfnb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Objective function for the zero-inflated NB method.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.TTR_factors">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">TTR_factors</code><span class="sig-paren">(</span><em>data</em>, <em>thetaEst=&lt;function empirical_theta at 0x3c2df50&gt;</em>, <em>muEst=&lt;function trimmed_empirical_mu at 0x3c3f050&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#TTR_factors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.TTR_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the normalization factors for the data, using the TTR method.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.aBGC_norm">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">aBGC_norm</code><span class="sig-paren">(</span><em>data</em>, <em>doTotReads=True</em>, <em>bgsamples=200000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#aBGC_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.aBGC_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the normalized data using the aBGC method.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.betageom_norm">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">betageom_norm</code><span class="sig-paren">(</span><em>data</em>, <em>doNZMean=True</em>, <em>bgsamples=200000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#betageom_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.betageom_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns normalized data according to the BGC method.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.cleaninfgeom">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">cleaninfgeom</code><span class="sig-paren">(</span><em>x</em>, <em>rho</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#cleaninfgeom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.cleaninfgeom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a &#8216;clean&#8217; output from the geometric distribution.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.ecdf">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">ecdf</code><span class="sig-paren">(</span><em>S</em>, <em>x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#ecdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.ecdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates an empirical CDF of the given data.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.emphist_factors">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">emphist_factors</code><span class="sig-paren">(</span><em>wig_list</em>, <em>prot_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#emphist_factors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.emphist_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the normalized data, using the empirical hist method.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.empirical_theta">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">empirical_theta</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#empirical_theta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.empirical_theta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the observed density of the data.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.norm_to_target">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">norm_to_target</code><span class="sig-paren">(</span><em>data</em>, <em>target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#norm_to_target"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.norm_to_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns factors to normalize the data to the given target value.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.normalize_data">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">normalize_data</code><span class="sig-paren">(</span><em>data</em>, <em>method='nonorm'</em>, <em>wigList=[]</em>, <em>annotationPath=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#normalize_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.normalize_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalizes the numpy array by the given normalization method.</p>
+<dl class="docutils">
+<dt>Arguments:</dt>
+<dd><dl class="first docutils">
+<dt>data (numpy array): (K,N) numpy array defining read-counts at N sites</dt>
+<dd>for K datasets.</dd>
+</dl>
+<p class="last">method (str): Name of the desired normalization method.
+wigList (list): List of paths for the desired wig-formatted datasets.
+annotationPath (str): Path to the prot_table annotation file.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>numpy array: Array with the normalized data.
+list: List containing the normalization factors. Empty if not used.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.nzmean_factors">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">nzmean_factors</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#nzmean_factors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.nzmean_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the normalization factors for the data, using the NZMean method.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.quantile_norm">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">quantile_norm</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#quantile_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.quantile_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs Quantile Normalization as described by Bolstad et al. 2003</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.totreads_factors">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">totreads_factors</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#totreads_factors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.totreads_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the normalization factors for the data, using the total reads
+method.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.trimmed_empirical_mu">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">trimmed_empirical_mu</code><span class="sig-paren">(</span><em>X</em>, <em>t=0.05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#trimmed_empirical_mu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.trimmed_empirical_mu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimates the trimmed mean of the data.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.norm_tools.zinfnb_factors">
+<code class="descclassname">transit.norm_tools.</code><code class="descname">zinfnb_factors</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/norm_tools.html#zinfnb_factors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.norm_tools.zinfnb_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the normalization factors for the data using the zero-inflated
+negatibe binomial method.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-transit.qcDisplay">
+<span id="qcdisplay-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">qcDisplay</span></code> Module<a class="headerlink" href="#module-transit.qcDisplay" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="transit.qcDisplay.PilImageToWxBitmap">
+<code class="descclassname">transit.qcDisplay.</code><code class="descname">PilImageToWxBitmap</code><span class="sig-paren">(</span><em>myPilImage</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/qcDisplay.html#PilImageToWxBitmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.qcDisplay.PilImageToWxBitmap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.qcDisplay.PilImageToWxImage">
+<code class="descclassname">transit.qcDisplay.</code><code class="descname">PilImageToWxImage</code><span class="sig-paren">(</span><em>myPilImage</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/qcDisplay.html#PilImageToWxImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.qcDisplay.PilImageToWxImage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.qcDisplay.WxBitmapToPilImage">
+<code class="descclassname">transit.qcDisplay.</code><code class="descname">WxBitmapToPilImage</code><span class="sig-paren">(</span><em>myBitmap</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/qcDisplay.html#WxBitmapToPilImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.qcDisplay.WxBitmapToPilImage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.qcDisplay.WxBitmapToWxImage">
+<code class="descclassname">transit.qcDisplay.</code><code class="descname">WxBitmapToWxImage</code><span class="sig-paren">(</span><em>myBitmap</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/qcDisplay.html#WxBitmapToWxImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.qcDisplay.WxBitmapToWxImage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.qcDisplay.WxImageToWxBitmap">
+<code class="descclassname">transit.qcDisplay.</code><code class="descname">WxImageToWxBitmap</code><span class="sig-paren">(</span><em>myWxImage</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/qcDisplay.html#WxImageToWxBitmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.qcDisplay.WxImageToWxBitmap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="transit.qcDisplay.qcFrame">
+<em class="property">class </em><code class="descclassname">transit.qcDisplay.</code><code class="descname">qcFrame</code><span class="sig-paren">(</span><em>parent</em>, <em>datasets</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/qcDisplay.html#qcFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.qcDisplay.qcFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></code></p>
+<dl class="method">
+<dt id="transit.qcDisplay.qcFrame.addFiles">
+<code class="descname">addFiles</code><span class="sig-paren">(</span><em>datasets</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/qcDisplay.html#qcFrame.addFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.qcDisplay.qcFrame.addFiles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.qcDisplay.qcFrame.addPlots">
+<code class="descname">addPlots</code><span class="sig-paren">(</span><em>datasets</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/qcDisplay.html#qcFrame.addPlots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.qcDisplay.qcFrame.addPlots" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.qcDisplay.qcFrame.onStatsItemSelect">
+<code class="descname">onStatsItemSelect</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/qcDisplay.html#qcFrame.onStatsItemSelect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.qcDisplay.qcFrame.onStatsItemSelect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.qcDisplay.qcFrame.statsSelected">
+<code class="descname">statsSelected</code><span class="sig-paren">(</span><em>col=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/qcDisplay.html#qcFrame.statsSelected"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.qcDisplay.qcFrame.statsSelected" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-transit.stat_tools">
+<span id="stat-tools-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">stat_tools</span></code> Module<a class="headerlink" href="#module-transit.stat_tools" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="transit.stat_tools.BH_fdr_correction">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">BH_fdr_correction</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#BH_fdr_correction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.BH_fdr_correction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjusts p-values using the Benjamini Hochberg procedure</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.F_mean_diff_flat">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">F_mean_diff_flat</code><span class="sig-paren">(</span><em>A</em>, <em>B</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#F_mean_diff_flat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.F_mean_diff_flat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.F_shuffle_flat">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">F_shuffle_flat</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#F_shuffle_flat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.F_shuffle_flat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.F_sum_diff_flat">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">F_sum_diff_flat</code><span class="sig-paren">(</span><em>A</em>, <em>B</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#F_sum_diff_flat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.F_sum_diff_flat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.bayesian_ess_thresholds">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">bayesian_ess_thresholds</code><span class="sig-paren">(</span><em>Z_raw</em>, <em>ALPHA=0.05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#bayesian_ess_thresholds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.bayesian_ess_thresholds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns Essentiality Thresholds using a BH-like procedure</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.binom">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">binom</code><span class="sig-paren">(</span><em>k</em>, <em>n</em>, <em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#binom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.binom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Binomial distribution. Uses Normal approximation for large &#8216;n&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.binom_cdf">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">binom_cdf</code><span class="sig-paren">(</span><em>k</em>, <em>n</em>, <em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#binom_cdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.binom_cdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>CDF of the binomial distribution</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.binom_test">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">binom_test</code><span class="sig-paren">(</span><em>k</em>, <em>n</em>, <em>p</em>, <em>type='two-sided'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#binom_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.binom_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does a binomial test given success, trials and probability.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.boxcoxTable">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">boxcoxTable</code><span class="sig-paren">(</span><em>X</em>, <em>minlambda</em>, <em>maxlambda</em>, <em>dellambda</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#boxcoxTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.boxcoxTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a table of (loglik function, lambda) pairs
+for the data.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.boxcoxtransform">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">boxcoxtransform</code><span class="sig-paren">(</span><em>x</em>, <em>lambdax</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#boxcoxtransform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.boxcoxtransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a box-cox transformation to data vector X.
+WARNING: elements of X should be all positive! 
+Fixed: &#8216;&gt;&#8217; has changed to &#8216;&lt;&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.comb">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">comb</code><span class="sig-paren">(</span><em>n</em>, <em>k</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#comb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.comb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.comb1">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">comb1</code><span class="sig-paren">(</span><em>n</em>, <em>k</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#comb1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.comb1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.fact">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">fact</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#fact"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.fact" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.loglik">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">loglik</code><span class="sig-paren">(</span><em>X</em>, <em>lambdax</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#loglik"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.loglik" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the log-likelihood function for a transformed vector Xtransform.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.norm">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">norm</code><span class="sig-paren">(</span><em>x</em>, <em>mu</em>, <em>sigma</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normal distribution</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.phi_coefficient">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">phi_coefficient</code><span class="sig-paren">(</span><em>X</em>, <em>Y</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#phi_coefficient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.phi_coefficient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the phi-coefficient for two bool arrays</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.regress">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">regress</code><span class="sig-paren">(</span><em>X</em>, <em>Y</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#regress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.regress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs linear regression given two vectors, X, Y.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.resampling">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">resampling</code><span class="sig-paren">(</span><em>data1</em>, <em>data2</em>, <em>S=10000</em>, <em>testFunc=&lt;function F_mean_diff_flat at 0x3c41c80&gt;</em>, <em>permFunc=&lt;function F_shuffle_flat at 0x3c41d70&gt;</em>, <em>adaptive=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#resampling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.resampling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does a permutation test on two sets of data.</p>
+<p>Performs the resampling / permutation test given two sets of data using a
+function defining the test statistic and a function defining how to permute
+the data.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">data1: List or numpy array with the first set of observations.
+data2: List or numpy array with the second set of observations.
+S: Number of permutation tests (or samples) to obtain.
+testFunc: Function defining the desired test statistic. Should accept</p>
+<blockquote>
+<div>two lists as arguments. Default is difference in means between
+the observations.</div></blockquote>
+<dl class="docutils">
+<dt>permFunc: Function defining the way to permute the data. Should accept</dt>
+<dd>one argument, the combined set of data. Default is random
+shuffle.</dd>
+</dl>
+<p class="last">adaptive: Cuts-off resampling early depending on significance.</p>
+</dd>
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>A tuple with the following entries::</dt>
+<dd>test_obs &#8211; Test statistic of observation.
+mean1 &#8211; Arithmetic mean of first set of data.
+mean2 &#8211; Arithmetic mean of second set of data.
+log2FC &#8211; Normalized log2FC the means.
+pval_ltail &#8211; Lower tail p-value.
+pval_utail &#8211; Upper tail p-value.
+pval_2tail &#8211; Two-tailed p-value.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.stat_tools.transformToRange">
+<code class="descclassname">transit.stat_tools.</code><code class="descname">transformToRange</code><span class="sig-paren">(</span><em>X</em>, <em>new_min</em>, <em>new_max</em>, <em>old_min=None</em>, <em>old_max=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/stat_tools.html#transformToRange"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.stat_tools.transformToRange" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-transit.tnseq_tools">
+<span id="tnseq-tools-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">tnseq_tools</span></code> Module<a class="headerlink" href="#module-transit.tnseq_tools" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="transit.tnseq_tools.ExpectedRuns">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">ExpectedRuns</code><span class="sig-paren">(</span><em>n</em>, <em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#ExpectedRuns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.ExpectedRuns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expected value of the run of non=insertions (Schilling, 1990):</p>
+<p>ER_n =  log(1/p)(nq) + gamma/ln(1/p) -1/2 + r1(n) + E1(n)</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="transit.tnseq_tools.Gene">
+<em class="property">class </em><code class="descclassname">transit.tnseq_tools.</code><code class="descname">Gene</code><span class="sig-paren">(</span><em>orf</em>, <em>name</em>, <em>desc</em>, <em>reads</em>, <em>position</em>, <em>start=0</em>, <em>end=0</em>, <em>strand=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Gene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Gene" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a longer explanation, which may include math with latex syntax
+Then, you need to provide optional subsection in this order (just to be
+consistent and have a uniform documentation. Nothing prevent you to
+switch the order):</p>
+<blockquote>
+<div><ul class="simple">
+<li>parameters using <code class="docutils literal"><span class="pre">:param</span> <span class="pre">&lt;name&gt;:</span> <span class="pre">&lt;description&gt;</span></code></li>
+<li>type of the parameters <code class="docutils literal"><span class="pre">:type</span> <span class="pre">&lt;name&gt;:</span> <span class="pre">&lt;description&gt;</span></code></li>
+<li>returns using <code class="docutils literal"><span class="pre">:returns:</span> <span class="pre">&lt;description&gt;</span></code></li>
+<li>examples (doctest)</li>
+<li>seealso using <code class="docutils literal"><span class="pre">..</span> <span class="pre">seealso::</span> <span class="pre">text</span></code></li>
+<li>notes using <code class="docutils literal"><span class="pre">..</span> <span class="pre">note::</span> <span class="pre">text</span></code></li>
+<li>warning using <code class="docutils literal"><span class="pre">..</span> <span class="pre">warning::</span> <span class="pre">text</span></code></li>
+<li>todo <code class="docutils literal"><span class="pre">..</span> <span class="pre">todo::</span> <span class="pre">text</span></code></li>
+</ul>
+</div></blockquote>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd>orf (str): ORF ID. Must be unique.
+name (str): Human readable name of the ORF.
+reads (list): Read-counts data for the ORF.
+position (list): Position of TA sites for the ORF.
+start (int): Start coordinate for the ORF.
+end (int): End coordinate for the ORF.
+strand (str): Strand for the ORF.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"><div class="first highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tnseq_tools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">G</span> <span class="o">=</span> <span class="n">tnseq_tools</span><span class="o">.</span><span class="n">Gene</span><span class="p">(</span><span class="s2">&quot;Rv0001&quot;</span><span class="p">,</span> <span class="s2">&quot;dnaA&quot;</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">32</span><span class="p">]],</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">1500</span><span class="p">,</span> <span class="n">strand</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">G</span>
+<span class="go">Rv0001 (dnaA): 2,7,4</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">orf must be unique.</p>
+</div>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#transit.tnseq_tools.Genes" title="transit.tnseq_tools.Genes"><code class="xref py py-class docutils literal"><span class="pre">Genes</span></code></a></p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="transit.tnseq_tools.Gene.calculate_length">
+<code class="descname">calculate_length</code><span class="sig-paren">(</span><em>raw_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Gene.calculate_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Gene.calculate_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Caclulates the length based on the coordinates</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Gene.calculate_span">
+<code class="descname">calculate_span</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Gene.calculate_span"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Gene.calculate_span" title="Permalink to this definition">¶</a></dt>
+<dd><p>Caclulates the span based on the coordinates</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Gene.get_gap_span">
+<code class="descname">get_gap_span</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Gene.get_gap_span"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Gene.get_gap_span" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the span of the maxrun of the gene (i.e. number of nucleotides).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Gene.get_gene_span">
+<code class="descname">get_gene_span</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Gene.get_gene_span"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Gene.get_gene_span" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of nucleotides spanned by the gene.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Gene.phi">
+<code class="descname">phi</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Gene.phi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Gene.phi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the non-insertion density (&#8220;phi&#8221;) for the gene.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Gene.theta">
+<code class="descname">theta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Gene.theta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Gene.theta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the insertion density (&#8220;theta&#8221;) for the gene.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Gene.total_reads">
+<code class="descname">total_reads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Gene.total_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Gene.total_reads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the total reads for the gene.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transit.tnseq_tools.Genes">
+<em class="property">class </em><code class="descclassname">transit.tnseq_tools.</code><code class="descname">Genes</code><span class="sig-paren">(</span><em>wigList</em>, <em>protTable</em>, <em>norm='nonorm'</em>, <em>reps='All'</em>, <em>minread=1</em>, <em>ignoreCodon=True</em>, <em>nterm=0.0</em>, <em>cterm=0.0</em>, <em>include_nc=False</em>, <em>data=[]</em>, <em>position=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="transit.tnseq_tools.Genes.global_insertion">
+<code class="descname">global_insertion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.global_insertion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.global_insertion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns total number of insertions, i.e. sum of &#8216;k&#8217; over all genes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.global_phi">
+<code class="descname">global_phi</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.global_phi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.global_phi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns global non-insertion frequency, of the library.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.global_reads">
+<code class="descname">global_reads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.global_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.global_reads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the reads among the library.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.global_run">
+<code class="descname">global_run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.global_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.global_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the run assuming all genes were concatenated together.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.global_sites">
+<code class="descname">global_sites</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.global_sites"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.global_sites" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns total number of sites, i.e. sum of &#8216;n&#8217; over all genes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.global_theta">
+<code class="descname">global_theta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.global_theta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.global_theta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns global insertion frequency, of the library.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.local_gap_span">
+<code class="descname">local_gap_span</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.local_gap_span"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.local_gap_span" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns numpy array with the span of nucleotides of the largest gap,
+&#8216;s&#8217;, for each gene.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.local_gene_span">
+<code class="descname">local_gene_span</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.local_gene_span"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.local_gene_span" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns numpy array with the span of nucleotides of the gene,
+&#8216;t&#8217;, for each gene.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.local_insertions">
+<code class="descname">local_insertions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.local_insertions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.local_insertions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns numpy array with the number of insertions, &#8216;k&#8217;, for each gene.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.local_phis">
+<code class="descname">local_phis</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.local_phis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.local_phis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns numpy array of non-insertion frequency, &#8216;phi&#8217;, for each gene.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.local_reads">
+<code class="descname">local_reads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.local_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.local_reads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns numpy array of lists containing the read counts for each gene.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.local_runs">
+<code class="descname">local_runs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.local_runs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.local_runs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns numpy array with maximum run of non-insertions, &#8216;r&#8217;, for each gene.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.local_sites">
+<code class="descname">local_sites</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.local_sites"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.local_sites" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns numpy array with total number of TA sites, &#8216;n&#8217;, for each gene.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.local_thetas">
+<code class="descname">local_thetas</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.local_thetas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.local_thetas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns numpy array of insertion frequencies, &#8216;theta&#8217;, for each gene.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.tosses">
+<code class="descname">tosses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.tosses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.tosses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns list of bernoulli trials, &#8216;tosses&#8217;, representing insertions in the gene.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.tnseq_tools.Genes.total_reads">
+<code class="descname">total_reads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#Genes.total_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.Genes.total_reads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns total reads among the library.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.GumbelCDF">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">GumbelCDF</code><span class="sig-paren">(</span><em>x</em>, <em>u</em>, <em>B</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#GumbelCDF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.GumbelCDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>CDF of the Gumbel distribution:</p>
+<p>e^(-e^( (u-x)/B))</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.VarR">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">VarR</code><span class="sig-paren">(</span><em>n</em>, <em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#VarR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.VarR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Variance of the expected run of non-insertons (Schilling, 1990):</p>
+<p>VarR_n =  (pi^2)/(6*ln(1/p)^2) + 1/12 + r2(n) + E2(n)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.combine_replicates">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">combine_replicates</code><span class="sig-paren">(</span><em>data</em>, <em>method='Sum'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#combine_replicates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.combine_replicates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.combine_wigs">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">combine_wigs</code><span class="sig-paren">(</span><em>wig_data</em>, <em>method</em>, <em>min_read</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#combine_wigs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.combine_wigs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.genome_theta">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">genome_theta</code><span class="sig-paren">(</span><em>combined</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#genome_theta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.genome_theta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns global insertion frequency of the whole genome including non-coding sequences</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.getE1">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">getE1</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#getE1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.getE1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Small Correction term. Defaults to 0.01 for now</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.getE2">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">getE2</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#getE2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.getE2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Small Correction term. Defaults to 0.01 for now</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.getGamma">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">getGamma</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#getGamma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.getGamma" title="Permalink to this definition">¶</a></dt>
+<dd><p>Euler-Mascheroni constant ~ 0.577215664901</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.getR1">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">getR1</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#getR1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.getR1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Small Correction term. Defaults to 0.000016 for now</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.getR2">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">getR2</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#getR2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.getR2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Small Correction term. Defaults to 0.00006 for now</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.get_coordinate_map">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">get_coordinate_map</code><span class="sig-paren">(</span><em>galign_path</em>, <em>reverse=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#get_coordinate_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.get_coordinate_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.get_data">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">get_data</code><span class="sig-paren">(</span><em>wig_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a tuple of (data, position) containing a matrix of raw read counts, and list of coordinates.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.get_data_zero_fill">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">get_data_zero_fill</code><span class="sig-paren">(</span><em>wig_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#get_data_zero_fill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.get_data_zero_fill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a tuple of (data, position) containing a matrix of raw read counts, and list of coordinates.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.get_file_types">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">get_file_types</code><span class="sig-paren">(</span><em>wig_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#get_file_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.get_file_types" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.get_gene_info">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">get_gene_info</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#get_gene_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.get_gene_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.get_genes_in_range">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">get_genes_in_range</code><span class="sig-paren">(</span><em>pos_hash</em>, <em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#get_genes_in_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.get_genes_in_range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.get_pos_hash">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">get_pos_hash</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#get_pos_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.get_pos_hash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary that maps coordinates to a list of genes that occur at that coordinate.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.get_wig_stats">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">get_wig_stats</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#get_wig_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.get_wig_stats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.griffin_analysis">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">griffin_analysis</code><span class="sig-paren">(</span><em>genes_obj</em>, <em>pins</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#griffin_analysis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.griffin_analysis" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Implements the basic Gumbel analysis of runs of non-insertion, described</dt>
+<dd>in Griffin et al. 2011.</dd>
+</dl>
+<p>This analysis method calculates a p-value of observing the maximun run of
+TA sites without insertions in a row (i.e. a &#8220;run&#8221;, r). Unusually long
+runs are indicative of an essential gene or protein domain. Assumes that
+there is a constant, global probability of observing an insertion
+(tantamount to a Bernoulli probability of success).</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>genes_obj (Genes): An object of the Genes class defining the genes.
+pins (float): The probability of insertion.</dd>
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>list. List of lists with results and information for the genes. The</dt>
+<dd>elements of the list are as follows:
+- ORF ID.
+- Gene Name.
+- Gene Description.
+- Number of TA sites with insertions.
+- Number of TA sites.
+- Length of largest run of non-insertion.
+- Expected run for a gene this size.
+- p-value of the observed run.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.maxrun">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">maxrun</code><span class="sig-paren">(</span><em>lst</em>, <em>item=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#maxrun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.maxrun" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.runindex">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">runindex</code><span class="sig-paren">(</span><em>runs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#runindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.runindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the indexes of the start of the runs; complements runs().</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.runs">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">runs</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#runs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.runs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of all the runs of consecutive non-insertions.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.runs_w_info">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">runs_w_info</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#runs_w_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.runs_w_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of all the runs of consecutive non-insertions with the start and end locations.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.tnseq_tools.tossify">
+<code class="descclassname">transit.tnseq_tools.</code><code class="descname">tossify</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/tnseq_tools.html#tossify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.tnseq_tools.tossify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reduces the data into Bernoulli trials (or &#8216;tosses&#8217;) based on whether counts were observed or not.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-transit.transit_gui">
+<span id="transit-gui-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">transit_gui</span></code> Module<a class="headerlink" href="#module-transit.transit_gui" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="transit.transit_gui.MainFrame">
+<em class="property">class </em><code class="descclassname">transit.transit_gui.</code><code class="descname">MainFrame</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></code></p>
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.Exit">
+<code class="descname">Exit</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.Exit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.Exit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.LoessPrevFunc">
+<code class="descname">LoessPrevFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.LoessPrevFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.LoessPrevFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.MethodSelectFunc">
+<code class="descname">MethodSelectFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.MethodSelectFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.MethodSelectFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.RunBinomialFunc">
+<code class="descname">RunBinomialFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.RunBinomialFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.RunBinomialFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.RunDEHMMFunc">
+<code class="descname">RunDEHMMFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.RunDEHMMFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.RunDEHMMFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.RunHMMFunc">
+<code class="descname">RunHMMFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.RunHMMFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.RunHMMFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.RunResamplingFunc">
+<code class="descname">RunResamplingFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.RunResamplingFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.RunResamplingFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.aboutFunc">
+<code class="descname">aboutFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.aboutFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.aboutFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.addFileFunc">
+<code class="descname">addFileFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.addFileFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.addFileFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.allViewFunc">
+<code class="descname">allViewFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.allViewFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.allViewFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.annotationFileFunc">
+<code class="descname">annotationFileFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.annotationFileFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.annotationFileFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.annotationGFF3_to_PT">
+<code class="descname">annotationGFF3_to_PT</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.annotationGFF3_to_PT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.annotationGFF3_to_PT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.annotationPTT_to_PT">
+<code class="descname">annotationPTT_to_PT</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.annotationPTT_to_PT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.annotationPTT_to_PT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.annotationPT_to_GFF3">
+<code class="descname">annotationPT_to_GFF3</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.annotationPT_to_GFF3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.annotationPT_to_GFF3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.annotationPT_to_PTT">
+<code class="descname">annotationPT_to_PTT</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.annotationPT_to_PTT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.annotationPT_to_PTT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.ctrlRemoveFunc">
+<code class="descname">ctrlRemoveFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.ctrlRemoveFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.ctrlRemoveFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.ctrlToIGV">
+<code class="descname">ctrlToIGV</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.ctrlToIGV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.ctrlToIGV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.displayFileFunc">
+<code class="descname">displayFileFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.displayFileFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.displayFileFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.documentationFunc">
+<code class="descname">documentationFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.documentationFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.documentationFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.expRemoveFunc">
+<code class="descname">expRemoveFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.expRemoveFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.expRemoveFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.expToIGV">
+<code class="descname">expToIGV</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.expToIGV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.expToIGV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.fileActionFunc">
+<code class="descname">fileActionFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.fileActionFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.fileActionFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.loadCtrlFileFunc">
+<code class="descname">loadCtrlFileFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.loadCtrlFileFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.loadCtrlFileFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.loadExpFileFunc">
+<code class="descname">loadExpFileFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.loadExpFileFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.loadExpFileFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.onHimar1Checked">
+<code class="descname">onHimar1Checked</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.onHimar1Checked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.onHimar1Checked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.onTn5Checked">
+<code class="descname">onTn5Checked</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.onTn5Checked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.onTn5Checked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.qcFunc">
+<code class="descname">qcFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.qcFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.qcFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.scatterFunc">
+<code class="descname">scatterFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.scatterFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.scatterFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.selectedToCombinedWig">
+<code class="descname">selectedToCombinedWig</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.selectedToCombinedWig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.selectedToCombinedWig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.transit_gui.MainFrame.selectedToIGV">
+<code class="descname">selectedToIGV</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_gui.html#MainFrame.selectedToIGV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_gui.MainFrame.selectedToIGV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-transit.transit_tools">
+<span id="transit-tools-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">transit_tools</span></code> Module<a class="headerlink" href="#module-transit.transit_tools" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="transit.transit_tools.Fzinfnb">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">Fzinfnb</code><span class="sig-paren">(</span><em>params</em>, <em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#Fzinfnb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.Fzinfnb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.ShowAskWarning">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">ShowAskWarning</code><span class="sig-paren">(</span><em>MSG=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#ShowAskWarning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.ShowAskWarning" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.ShowError">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">ShowError</code><span class="sig-paren">(</span><em>MSG=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#ShowError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.ShowError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.ShowMessage">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">ShowMessage</code><span class="sig-paren">(</span><em>MSG=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#ShowMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.ShowMessage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.TTR_factors">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">TTR_factors</code><span class="sig-paren">(</span><em>data</em>, <em>thetaEst=&lt;function empirical_theta at 0x3c29a28&gt;</em>, <em>muEst=&lt;function trimmed_empirical_mu at 0x3c29aa0&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#TTR_factors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.TTR_factors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.aBGC_norm">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">aBGC_norm</code><span class="sig-paren">(</span><em>data</em>, <em>doTotReads=True</em>, <em>bgsamples=200000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#aBGC_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.aBGC_norm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.aton">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">aton</code><span class="sig-paren">(</span><em>aa</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#aton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.aton" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.basename">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">basename</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#basename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.basename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.betageom_norm">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">betageom_norm</code><span class="sig-paren">(</span><em>data</em>, <em>doNZMean=True</em>, <em>bgsamples=200000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#betageom_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.betageom_norm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.cleanargs">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">cleanargs</code><span class="sig-paren">(</span><em>rawargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#cleanargs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.cleanargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.cleaninfgeom">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">cleaninfgeom</code><span class="sig-paren">(</span><em>x</em>, <em>rho</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#cleaninfgeom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.cleaninfgeom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.combine_replicates">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">combine_replicates</code><span class="sig-paren">(</span><em>data</em>, <em>method='Sum'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#combine_replicates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.combine_replicates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.ecdf">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">ecdf</code><span class="sig-paren">(</span><em>S</em>, <em>x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#ecdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.ecdf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.emphist_factors">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">emphist_factors</code><span class="sig-paren">(</span><em>wig_list</em>, <em>prot_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#emphist_factors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.emphist_factors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.empirical_theta">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">empirical_theta</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#empirical_theta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.empirical_theta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.fdr_post_prob">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">fdr_post_prob</code><span class="sig-paren">(</span><em>Z_raw</em>, <em>ALPHA=0.05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#fdr_post_prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.fdr_post_prob" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.fetch_name">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">fetch_name</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#fetch_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.fetch_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.getTabTableData">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">getTabTableData</code><span class="sig-paren">(</span><em>path</em>, <em>colnames</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#getTabTableData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.getTabTableData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.get_data">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">get_data</code><span class="sig-paren">(</span><em>wig_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a tuple of (data, position) containing a matrix of raw read counts, and list of coordinates.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.get_gene_info">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">get_gene_info</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#get_gene_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.get_gene_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.get_gene_name">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">get_gene_name</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#get_gene_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.get_gene_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.get_gene_reads">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">get_gene_reads</code><span class="sig-paren">(</span><em>hash</em>, <em>data</em>, <em>position</em>, <em>orf2info</em>, <em>ignoreCodon=True</em>, <em>ignoreNTerm=0</em>, <em>ignoreCTerm=0</em>, <em>orf_list=set([])</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#get_gene_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.get_gene_reads" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.get_pos_hash">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">get_pos_hash</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#get_pos_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.get_pos_hash" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.get_reads">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">get_reads</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#get_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.get_reads" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.get_wig_stats">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">get_wig_stats</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#get_wig_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.get_wig_stats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.loess">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">loess</code><span class="sig-paren">(</span><em>X</em>, <em>Y</em>, <em>h=10000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#loess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.loess" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.loess_correction">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">loess_correction</code><span class="sig-paren">(</span><em>X</em>, <em>Y</em>, <em>h=10000</em>, <em>window=100</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#loess_correction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.loess_correction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.norm_to_target">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">norm_to_target</code><span class="sig-paren">(</span><em>data</em>, <em>target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#norm_to_target"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.norm_to_target" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.normalize_data">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">normalize_data</code><span class="sig-paren">(</span><em>data</em>, <em>method='nonorm'</em>, <em>wigList=[]</em>, <em>annotationPath=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#normalize_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.normalize_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.nzmean_factors">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">nzmean_factors</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#nzmean_factors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.nzmean_factors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.nzmean_norm">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">nzmean_norm</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#nzmean_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.nzmean_norm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.parseCoords">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">parseCoords</code><span class="sig-paren">(</span><em>strand</em>, <em>aa_start</em>, <em>aa_end</em>, <em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#parseCoords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.parseCoords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.quantile_norm">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">quantile_norm</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#quantile_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.quantile_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs Quantile Normalization as described by Bolstad et al. 2003</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.thetanorm_factors">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">thetanorm_factors</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#thetanorm_factors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.thetanorm_factors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.totreads_factors">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">totreads_factors</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#totreads_factors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.totreads_factors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.transit_message">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">transit_message</code><span class="sig-paren">(</span><em>msg=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#transit_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.transit_message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.tricube">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">tricube</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#tricube"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.tricube" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.trimmed_empirical_mu">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">trimmed_empirical_mu</code><span class="sig-paren">(</span><em>X</em>, <em>t=0.05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#trimmed_empirical_mu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.trimmed_empirical_mu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.transit_tools.zinfnb_factors">
+<code class="descclassname">transit.transit_tools.</code><code class="descname">zinfnb_factors</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/transit_tools.html#zinfnb_factors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.transit_tools.zinfnb_factors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-transit.trash">
+<span id="trash-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">trash</span></code> Module<a class="headerlink" href="#module-transit.trash" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="transit.trash.PilImageToWxBitmap">
+<code class="descclassname">transit.trash.</code><code class="descname">PilImageToWxBitmap</code><span class="sig-paren">(</span><em>myPilImage</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#PilImageToWxBitmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.PilImageToWxBitmap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.trash.PilImageToWxImage">
+<code class="descclassname">transit.trash.</code><code class="descname">PilImageToWxImage</code><span class="sig-paren">(</span><em>myPilImage</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#PilImageToWxImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.PilImageToWxImage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="transit.trash.TrashFrame">
+<em class="property">class </em><code class="descclassname">transit.trash.</code><code class="descname">TrashFrame</code><span class="sig-paren">(</span><em>parent, dataset_list=['H37Rv_Sassetti_glycerol.wig'], annotation='H37Rv.prot_table', gene=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#TrashFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.TrashFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transit.view_trash.MainFrame" title="transit.view_trash.MainFrame"><code class="xref py py-class docutils literal"><span class="pre">transit.view_trash.MainFrame</span></code></a></p>
+<dl class="method">
+<dt id="transit.trash.TrashFrame.SaveFile">
+<code class="descname">SaveFile</code><span class="sig-paren">(</span><em>DIR='.'</em>, <em>FILE=''</em>, <em>WC=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#TrashFrame.SaveFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.TrashFrame.SaveFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and show the Save FileDialog</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="transit.trash.TrashFrame.addFeatureFunc">
+<code class="descname">addFeatureFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#TrashFrame.addFeatureFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.TrashFrame.addFeatureFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.trash.TrashFrame.leftFunc">
+<code class="descname">leftFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#TrashFrame.leftFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.TrashFrame.leftFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.trash.TrashFrame.resetFunc">
+<code class="descname">resetFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#TrashFrame.resetFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.TrashFrame.resetFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.trash.TrashFrame.rightFunc">
+<code class="descname">rightFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#TrashFrame.rightFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.TrashFrame.rightFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.trash.TrashFrame.saveImageFunc">
+<code class="descname">saveImageFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#TrashFrame.saveImageFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.TrashFrame.saveImageFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.trash.TrashFrame.searchFunc">
+<code class="descname">searchFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#TrashFrame.searchFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.TrashFrame.searchFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.trash.TrashFrame.updateFunc">
+<code class="descname">updateFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#TrashFrame.updateFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.TrashFrame.updateFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.trash.TrashFrame.zoomInFunc">
+<code class="descname">zoomInFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#TrashFrame.zoomInFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.TrashFrame.zoomInFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.trash.TrashFrame.zoomOutFunc">
+<code class="descname">zoomOutFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#TrashFrame.zoomOutFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.TrashFrame.zoomOutFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="transit.trash.WxBitmapToPilImage">
+<code class="descclassname">transit.trash.</code><code class="descname">WxBitmapToPilImage</code><span class="sig-paren">(</span><em>myBitmap</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#WxBitmapToPilImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.WxBitmapToPilImage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.trash.WxBitmapToWxImage">
+<code class="descclassname">transit.trash.</code><code class="descname">WxBitmapToWxImage</code><span class="sig-paren">(</span><em>myBitmap</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#WxBitmapToWxImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.WxBitmapToWxImage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.trash.WxImageToWxBitmap">
+<code class="descclassname">transit.trash.</code><code class="descname">WxImageToWxBitmap</code><span class="sig-paren">(</span><em>myWxImage</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#WxImageToWxBitmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.WxImageToWxBitmap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="transit.trash.fetch_name">
+<code class="descclassname">transit.trash.</code><code class="descname">fetch_name</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/trash.html#fetch_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.trash.fetch_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-transit.view_trash">
+<span id="view-trash-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">view_trash</span></code> Module<a class="headerlink" href="#module-transit.view_trash" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="transit.view_trash.MainFrame">
+<em class="property">class </em><code class="descclassname">transit.view_trash.</code><code class="descname">MainFrame</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/view_trash.html#MainFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.view_trash.MainFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></code></p>
+<dl class="method">
+<dt id="transit.view_trash.MainFrame.addFeatureFunc">
+<code class="descname">addFeatureFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/view_trash.html#MainFrame.addFeatureFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.view_trash.MainFrame.addFeatureFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.view_trash.MainFrame.leftFunc">
+<code class="descname">leftFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/view_trash.html#MainFrame.leftFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.view_trash.MainFrame.leftFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.view_trash.MainFrame.resetFunc">
+<code class="descname">resetFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/view_trash.html#MainFrame.resetFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.view_trash.MainFrame.resetFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.view_trash.MainFrame.rightFunc">
+<code class="descname">rightFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/view_trash.html#MainFrame.rightFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.view_trash.MainFrame.rightFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.view_trash.MainFrame.saveImageFunc">
+<code class="descname">saveImageFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/view_trash.html#MainFrame.saveImageFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.view_trash.MainFrame.saveImageFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.view_trash.MainFrame.searchFunc">
+<code class="descname">searchFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/view_trash.html#MainFrame.searchFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.view_trash.MainFrame.searchFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.view_trash.MainFrame.updateFunc">
+<code class="descname">updateFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/view_trash.html#MainFrame.updateFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.view_trash.MainFrame.updateFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.view_trash.MainFrame.zoomInFunc">
+<code class="descname">zoomInFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/view_trash.html#MainFrame.zoomInFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.view_trash.MainFrame.zoomInFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="transit.view_trash.MainFrame.zoomOutFunc">
+<code class="descname">zoomOutFunc</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/transit/view_trash.html#MainFrame.zoomOutFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#transit.view_trash.MainFrame.zoomOutFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="transit.analysis.html">transit.analysis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="transit.analysis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit.analysis.html#module-transit.analysis.base">transit.analysis.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit.analysis.html#module-transit.analysis.binomial">transit.analysis.binomial module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit.analysis.html#module-transit.analysis.example">transit.analysis.example module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit.analysis.html#module-transit.analysis.griffin">transit.analysis.griffin module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit.analysis.html#module-transit.analysis.gumbel">transit.analysis.gumbel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit.analysis.html#module-transit.analysis.hmm">transit.analysis.hmm module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit.analysis.html#module-transit.analysis.rankproduct">transit.analysis.rankproduct module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit.analysis.html#module-transit.analysis.resampling">transit.analysis.resampling module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit.analysis.html#module-transit.analysis.tn5gaps">transit.analysis.tn5gaps module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transit.analysis.html#module-transit.analysis">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="transit.normalization.html">transit.normalization package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="transit.normalization.html#module-transit.normalization">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/transit_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">transit Package</a><ul>
+<li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">transit</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-transit.draw_trash"><code class="docutils literal"><span class="pre">draw_trash</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-transit.fileDisplay"><code class="docutils literal"><span class="pre">fileDisplay</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-transit.images"><code class="docutils literal"><span class="pre">images</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-transit.norm_tools"><code class="docutils literal"><span class="pre">norm_tools</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-transit.qcDisplay"><code class="docutils literal"><span class="pre">qcDisplay</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-transit.stat_tools"><code class="docutils literal"><span class="pre">stat_tools</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-transit.tnseq_tools"><code class="docutils literal"><span class="pre">tnseq_tools</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-transit.transit_gui"><code class="docutils literal"><span class="pre">transit_gui</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-transit.transit_tools"><code class="docutils literal"><span class="pre">transit_tools</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-transit.trash"><code class="docutils literal"><span class="pre">trash</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-transit.view_trash"><code class="docutils literal"><span class="pre">view_trash</span></code> Module</a></li>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/transit_code.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">transit v2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Michael A. DeJesus.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

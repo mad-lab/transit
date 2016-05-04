@@ -1,0 +1,589 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>transit.analysis.gumbel &mdash; transit v2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     'v2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="transit v2.0.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for transit.analysis.gumbel</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">wx</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">base</span>
+<span class="kn">import</span> <span class="nn">transit.transit_tools</span> <span class="kn">as</span> <span class="nn">transit_tools</span>
+<span class="kn">import</span> <span class="nn">transit.tnseq_tools</span> <span class="kn">as</span> <span class="nn">tnseq_tools</span>
+<span class="kn">import</span> <span class="nn">transit.norm_tools</span> <span class="kn">as</span> <span class="nn">norm_tools</span>
+<span class="kn">import</span> <span class="nn">transit.stat_tools</span> <span class="kn">as</span> <span class="nn">stat_tools</span>
+
+
+
+<span class="c1">############# GUI ELEMENTS ##################</span>
+
+<span class="n">short_name</span> <span class="o">=</span> <span class="s2">&quot;gumbel&quot;</span>
+<span class="n">long_name</span> <span class="o">=</span> <span class="s2">&quot;Bayesian analysis of essentiality based on long gaps.&quot;</span>
+<span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Bayesian methods of analyzing longest runs of non-insertions in a row. Estimates the parameters using the MCMC sampling, and estimates posterior probabilities of essentiality. </span>
+
+<span class="s2">Reference: DeJesus et al. (2013; Bioinformatics)&quot;&quot;&quot;</span>
+<span class="n">transposons</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;himar1&quot;</span><span class="p">]</span>
+<span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Orf&quot;</span><span class="p">,</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span><span class="s2">&quot;Desc&quot;</span><span class="p">,</span><span class="s2">&quot;k&quot;</span><span class="p">,</span><span class="s2">&quot;n&quot;</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">,</span><span class="s2">&quot;s&quot;</span><span class="p">,</span><span class="s2">&quot;zbar&quot;</span><span class="p">,</span> <span class="s2">&quot;Call&quot;</span><span class="p">]</span>
+
+
+<span class="c1">############# Analysis Method ##############</span>
+
+<div class="viewcode-block" id="GumbelAnalysis"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelAnalysis">[docs]</a><span class="k">class</span> <span class="nc">GumbelAnalysis</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">TransitAnalysis</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">TransitAnalysis</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">short_name</span><span class="p">,</span> <span class="n">long_name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">transposons</span><span class="p">,</span> <span class="n">GumbelMethod</span><span class="p">,</span> <span class="n">GumbelGUI</span><span class="p">,</span> <span class="p">[</span><span class="n">GumbelFile</span><span class="p">])</span></div>
+
+
+<span class="c1">################## FILE ###################</span>
+
+<div class="viewcode-block" id="GumbelFile"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelFile">[docs]</a><span class="k">class</span> <span class="nc">GumbelFile</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">TransitFile</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">TransitFile</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;#Gumbel&quot;</span><span class="p">,</span> <span class="n">columns</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GumbelFile.getHeader"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelFile.getHeader">[docs]</a>    <span class="k">def</span> <span class="nf">getHeader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="n">ess</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">unc</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">non</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">short</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="n">ess</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;U&quot;</span><span class="p">:</span> <span class="n">unc</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;NE&quot;</span><span class="p">:</span> <span class="n">non</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;S&quot;</span><span class="p">:</span> <span class="n">short</span><span class="o">+=</span><span class="mi">1</span>
+
+        <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Results:</span>
+<span class="s2">    Essentials: </span><span class="si">%s</span><span class="s2"></span>
+<span class="s2">    Uncertain: </span><span class="si">%s</span><span class="s2"></span>
+<span class="s2">    Non-Essential: </span><span class="si">%s</span><span class="s2"></span>
+<span class="s2">    Short: </span><span class="si">%s</span><span class="s2"></span>
+<span class="s2">        &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ess</span><span class="p">,</span> <span class="n">unc</span><span class="p">,</span> <span class="n">non</span><span class="p">,</span> <span class="n">short</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">text</span></div></div>
+
+
+
+
+<span class="c1">################# GUI ##################</span>
+
+<div class="viewcode-block" id="GumbelGUI"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelGUI">[docs]</a><span class="k">class</span> <span class="nc">GumbelGUI</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">AnalysisGUI</span><span class="p">):</span>
+
+
+<div class="viewcode-block" id="GumbelGUI.definePanel"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelGUI.definePanel">[docs]</a>    <span class="k">def</span> <span class="nf">definePanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wxobj</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span> <span class="o">=</span> <span class="n">wxobj</span>
+        <span class="n">gumbelPanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">optionsWindow</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">TAB_TRAVERSAL</span> <span class="p">)</span>
+        <span class="c1">#wxobj.gumbelPanel.SetMinSize( wx.Size( 50,1 ) )</span>
+        <span class="c1">#wxobj.gumbelPanel.SetMaxSize( wx.Size( 250,-1 ) )</span>
+
+        <span class="n">gumbelSection</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+
+        <span class="n">gumbelLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span> <span class="n">gumbelPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Gumbel Options&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">gumbelLabel</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span>
+        <span class="n">gumbelSection</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">gumbelLabel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">mainSizer1</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span> <span class="p">)</span>
+
+        <span class="n">mainSizer2</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span> <span class="p">)</span>
+
+        <span class="n">labelSizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+
+        <span class="n">gumbelSampleLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span> <span class="n">gumbelPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Samples&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">gumbelSampleLabel</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span>
+        <span class="n">labelSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">gumbelSampleLabel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+ 
+        <span class="n">gumbelBurninLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span> <span class="n">gumbelPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Burn-In&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">gumbelBurninLabel</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span>
+        <span class="n">labelSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">gumbelBurninLabel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">gumbelTrimLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span> <span class="n">gumbelPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Trim&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">gumbelTrimLabel</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span>
+        <span class="n">labelSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">gumbelTrimLabel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">gumbelReadLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span> <span class="n">gumbelPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Minimum Read&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">gumbelReadLabel</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span>
+        <span class="n">labelSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">gumbelReadLabel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">gumbelRepLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span> <span class="n">gumbelPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Replicates&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">gumbelRepLabel</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span>
+        <span class="n">labelSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">gumbelRepLabel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">mainSizer2</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">labelSizer</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">widgetSizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelSampleText</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span> <span class="n">gumbelPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;10000&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">widgetSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelSampleText</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelBurninText</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span> <span class="n">gumbelPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;500&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">widgetSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelBurninText</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelTrimText</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span> <span class="n">gumbelPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;1&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">widgetSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelTrimText</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">gumbelReadChoiceChoices</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">u&quot;1&quot;</span><span class="p">,</span> <span class="s2">u&quot;2&quot;</span><span class="p">,</span> <span class="s2">u&quot;3&quot;</span><span class="p">,</span> <span class="s2">u&quot;4&quot;</span><span class="p">,</span> <span class="s2">u&quot;5&quot;</span> <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelReadChoice</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span> <span class="n">gumbelPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="n">gumbelReadChoiceChoices</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelReadChoice</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">widgetSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelReadChoice</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">gumbelRepChoiceChoices</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">u&quot;Sum&quot;</span><span class="p">,</span> <span class="s2">u&quot;Mean&quot;</span> <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelRepChoice</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span> <span class="n">gumbelPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="n">gumbelRepChoiceChoices</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelRepChoice</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">widgetSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelRepChoice</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">mainSizer2</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">widgetSizer</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">mainSizer1</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">mainSizer2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">gumbelSection</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">mainSizer1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">gumbelButton</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span> <span class="n">gumbelPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Run Gumbel&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">gumbelSection</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">gumbelButton</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">gumbelPanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span> <span class="n">gumbelSection</span> <span class="p">)</span>
+        <span class="n">gumbelPanel</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+        <span class="n">gumbelSection</span><span class="o">.</span><span class="n">Fit</span><span class="p">(</span> <span class="n">gumbelPanel</span> <span class="p">)</span>
+
+
+        <span class="c1">#Connect events</span>
+        <span class="n">gumbelButton</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">RunMethod</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">panel</span> <span class="o">=</span> <span class="n">gumbelPanel</span></div></div>
+
+
+
+
+
+
+<span class="c1">########## METHOD #######################</span>
+
+<span class="n">ALPHA</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">BETA</span> <span class="o">=</span> <span class="mi">1</span>
+<div class="viewcode-block" id="GumbelMethod"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelMethod">[docs]</a><span class="k">class</span> <span class="nc">GumbelMethod</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">SingleConditionMethod</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;   </span>
+<span class="sd">    Gumbel</span>
+<span class="sd"> </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">ctrldata</span><span class="p">,</span>
+                <span class="n">annotation_path</span><span class="p">,</span>
+                <span class="n">output_file</span><span class="p">,</span>
+                <span class="n">samples</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                <span class="n">burnin</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                <span class="n">trim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">minread</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">replicates</span><span class="o">=</span><span class="s2">&quot;Sum&quot;</span><span class="p">,</span>
+                <span class="n">normalization</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">LOESS</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">ignoreCodon</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                <span class="n">NTerminus</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">CTerminus</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">wxobj</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="n">base</span><span class="o">.</span><span class="n">SingleConditionMethod</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">short_name</span><span class="p">,</span> <span class="n">long_name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">ctrldata</span><span class="p">,</span> <span class="n">annotation_path</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">replicates</span><span class="o">=</span><span class="n">replicates</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">,</span> <span class="n">LOESS</span><span class="o">=</span><span class="n">LOESS</span><span class="p">,</span> <span class="n">NTerminus</span><span class="o">=</span><span class="n">NTerminus</span><span class="p">,</span> <span class="n">CTerminus</span><span class="o">=</span><span class="n">CTerminus</span><span class="p">,</span> <span class="n">wxobj</span><span class="o">=</span><span class="n">wxobj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">samples</span> <span class="o">=</span> <span class="n">samples</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">burnin</span> <span class="o">=</span> <span class="n">burnin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trim</span> <span class="o">=</span> <span class="n">trim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">minread</span> <span class="o">=</span> <span class="n">minread</span>
+      
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_nn</span> <span class="o">=</span> <span class="p">{}</span>
+ 
+
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="GumbelMethod.fromGUI"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelMethod.fromGUI">[docs]</a>    <span class="k">def</span> <span class="nf">fromGUI</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wxobj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+
+        <span class="c1">#Get selected files</span>
+        <span class="n">all_selected</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">ctrlSelected</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_selected</span><span class="p">)</span> <span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">wxobj</span><span class="o">.</span><span class="n">ShowError</span><span class="p">(</span><span class="s2">&quot;Error: No dataset selected.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="c1">#Get Annotation file</span>
+        <span class="n">annotationPath</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">annotation</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">annotationPath</span><span class="p">:</span>
+            <span class="n">wxobj</span><span class="o">.</span><span class="n">ShowError</span><span class="p">(</span><span class="s2">&quot;Error: No annotation file selected.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+
+        <span class="c1">#Read the parameters from the wxPython widgets</span>
+        <span class="n">ctrldata</span> <span class="o">=</span> <span class="n">all_selected</span>
+        <span class="n">minread</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelReadChoice</span><span class="o">.</span><span class="n">GetString</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelReadChoice</span><span class="o">.</span><span class="n">GetCurrentSelection</span><span class="p">()))</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelSampleText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">burnin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelBurninText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">trim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelTrimText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">replicates</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelRepChoice</span><span class="o">.</span><span class="n">GetString</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">gumbelRepChoice</span><span class="o">.</span><span class="n">GetCurrentSelection</span><span class="p">())</span>
+        <span class="n">ignoreCodon</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">NTerminus</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">globalNTerminusText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">CTerminus</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">globalCTerminusText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">normalization</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">LOESS</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="c1">#Get output path</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">all_selected</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">defaultFileName</span> <span class="o">=</span> <span class="s2">&quot;gumbel_</span><span class="si">%s</span><span class="s2">_s</span><span class="si">%d</span><span class="s2">_b</span><span class="si">%d</span><span class="s2">_t</span><span class="si">%d</span><span class="s2">.dat&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">samples</span><span class="p">,</span> <span class="n">burnin</span><span class="p">,</span> <span class="n">trim</span><span class="p">)</span>
+        <span class="n">defaultDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">SaveFile</span><span class="p">(</span><span class="n">defaultDir</span><span class="p">,</span> <span class="n">defaultFileName</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">output_path</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+        <span class="n">output_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+
+
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">ctrldata</span><span class="p">,</span>
+                <span class="n">annotationPath</span><span class="p">,</span>
+                <span class="n">output_file</span><span class="p">,</span>
+                <span class="n">samples</span><span class="p">,</span>
+                <span class="n">burnin</span><span class="p">,</span>
+                <span class="n">trim</span><span class="p">,</span>
+                <span class="n">minread</span><span class="p">,</span>
+                <span class="n">replicates</span><span class="p">,</span>
+                <span class="n">normalization</span><span class="p">,</span>
+                <span class="n">LOESS</span><span class="p">,</span>
+                <span class="n">ignoreCodon</span><span class="p">,</span>
+                <span class="n">NTerminus</span><span class="p">,</span>
+                <span class="n">CTerminus</span><span class="p">,</span> <span class="n">wxobj</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="GumbelMethod.fromargs"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelMethod.fromargs">[docs]</a>    <span class="k">def</span> <span class="nf">fromargs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">rawargs</span><span class="p">):</span>
+
+        <span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">cleanargs</span><span class="p">(</span><span class="n">rawargs</span><span class="p">)</span>
+
+        <span class="n">ctrldata</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">annotationPath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">outpath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">output_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    
+        <span class="n">samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="mi">10000</span><span class="p">))</span>
+        <span class="n">burnin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="mi">500</span><span class="p">))</span>
+        <span class="n">trim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">minread</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">replicates</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;Sum&quot;</span><span class="p">)</span>
+        <span class="n">normalization</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">LOESS</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">ignoreCodon</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">NTerminus</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iN&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+        <span class="n">CTerminus</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iC&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">ctrldata</span><span class="p">,</span>
+                <span class="n">annotationPath</span><span class="p">,</span>
+                <span class="n">output_file</span><span class="p">,</span>
+                <span class="n">samples</span><span class="p">,</span>
+                <span class="n">burnin</span><span class="p">,</span>
+                <span class="n">trim</span><span class="p">,</span>
+                <span class="n">minread</span><span class="p">,</span>
+                <span class="n">replicates</span><span class="p">,</span>
+                <span class="n">normalization</span><span class="p">,</span>
+                <span class="n">LOESS</span><span class="p">,</span>
+                <span class="n">ignoreCodon</span><span class="p">,</span>
+                <span class="n">NTerminus</span><span class="p">,</span>
+                <span class="n">CTerminus</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GumbelMethod.Run"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelMethod.Run">[docs]</a>    <span class="k">def</span> <span class="nf">Run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_message</span><span class="p">(</span><span class="s2">&quot;Starting Gumbel Method&quot;</span><span class="p">)</span>
+
+        <span class="c1">#Set Default parameter values</span>
+        <span class="n">w1</span> <span class="o">=</span> <span class="mf">0.15</span>
+        <span class="n">w0</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">w1</span>
+        <span class="n">ALPHA</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">BETA</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">ALPHA_w</span> <span class="o">=</span> <span class="mi">600</span>
+        <span class="n">BETA_w</span> <span class="o">=</span> <span class="mi">3400</span>
+        <span class="n">mu_c</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">acctot</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">phi_start</span> <span class="o">=</span> <span class="mf">0.3</span>
+        <span class="n">sigma_c</span> <span class="o">=</span> <span class="mf">0.01</span> 
+        
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+       
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">burnin</span><span class="p">)</span>
+        
+        <span class="c1">#Get orf data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Reading Annotation&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Getting Data&quot;</span><span class="p">)</span>
+
+        
+
+        <span class="n">G</span> <span class="o">=</span> <span class="n">tnseq_tools</span><span class="o">.</span><span class="n">Genes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation_path</span><span class="p">,</span> <span class="n">minread</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">minread</span><span class="p">,</span> <span class="n">reps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">replicates</span><span class="p">,</span> <span class="n">ignoreCodon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ignoreCodon</span><span class="p">,</span> <span class="n">nterm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">NTerminus</span><span class="p">,</span> <span class="n">cterm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">CTerminus</span><span class="p">)</span>
+
+        <span class="n">ii_good</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">good_orf</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">G</span><span class="p">])</span> <span class="c1"># Gets index of the genes that can be analyzed</span>
+
+        <span class="n">K</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">local_insertions</span><span class="p">()[</span><span class="n">ii_good</span><span class="p">]</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">local_sites</span><span class="p">()[</span><span class="n">ii_good</span><span class="p">]</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">local_runs</span><span class="p">()[</span><span class="n">ii_good</span><span class="p">]</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">local_gap_span</span><span class="p">()[</span><span class="n">ii_good</span><span class="p">]</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">local_gene_span</span><span class="p">()[</span><span class="n">ii_good</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Doing Regression&quot;</span><span class="p">)</span>
+        <span class="n">mu_s</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">sigma_s</span> <span class="o">=</span> <span class="n">stat_tools</span><span class="o">.</span><span class="n">regress</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">S</span><span class="p">)</span> <span class="c1"># Linear regression to estimate mu_s, sigma_s for span data</span>
+        <span class="n">mu_r</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">sigma_r</span> <span class="o">=</span> <span class="n">stat_tools</span><span class="o">.</span><span class="n">regress</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">R</span><span class="p">)</span> <span class="c1"># Linear regression to estimate mu_r, sigma_r for run data</span>
+
+        <span class="n">N_GENES</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="n">N_GOOD</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ii_good</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Setting Initial Class&quot;</span><span class="p">)</span>
+        <span class="n">Z_sample</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N_GOOD</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">))</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">classify</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>   <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">G</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">good_orf</span><span class="p">(</span><span class="n">g</span><span class="p">)]</span>
+        <span class="n">Z_sample</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">Z</span>
+        <span class="n">N_ESS</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">Z_sample</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+        
+        <span class="n">phi_sample</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span> <span class="c1">#[]</span>
+        <span class="n">phi_sample</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">phi_start</span>
+        <span class="n">phi_old</span> <span class="o">=</span> <span class="n">phi_start</span>
+        <span class="n">phi_new</span> <span class="o">=</span> <span class="mf">0.00</span>
+        
+        <span class="n">SIG</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="n">mu_r</span><span class="o">*</span><span class="n">g</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="n">sigma_r</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">G</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">good_orf</span><span class="p">(</span><span class="n">g</span><span class="p">)])</span>
+
+
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">:</span>
+
+            <span class="c1"># PHI</span>
+            <span class="n">acc</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">phi_new</span>  <span class="o">=</span> <span class="n">phi_old</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">gauss</span><span class="p">(</span><span class="n">mu_c</span><span class="p">,</span> <span class="n">sigma_c</span><span class="p">)</span>
+            <span class="n">i0</span> <span class="o">=</span> <span class="n">Z_sample</span><span class="p">[:,</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">phi_new</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">phi_new</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F_non</span><span class="p">(</span><span class="n">phi_new</span><span class="p">,</span> <span class="n">N</span><span class="p">[</span><span class="n">i0</span><span class="p">],</span> <span class="n">R</span><span class="p">[</span><span class="n">i0</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">F_non</span><span class="p">(</span><span class="n">phi_old</span><span class="p">,</span> <span class="n">N</span><span class="p">[</span><span class="n">i0</span><span class="p">],</span> <span class="n">R</span><span class="p">[</span><span class="n">i0</span><span class="p">]))</span> <span class="o">&lt;</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)):</span>
+                <span class="n">phi_new</span> <span class="o">=</span> <span class="n">phi_old</span>
+                <span class="n">acc</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">flag</span> <span class="o">=</span> <span class="mi">0</span>
+            
+            <span class="c1"># Z</span>
+            <span class="n">Z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_Z</span><span class="p">(</span><span class="n">phi_new</span><span class="p">,</span> <span class="n">w1</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">mu_s</span><span class="p">,</span> <span class="n">sigma_s</span><span class="p">,</span> <span class="n">SIG</span><span class="p">)</span>
+            
+            <span class="c1"># w1</span>
+            <span class="n">N_ESS</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">Z</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">w1</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">N_ESS</span> <span class="o">+</span> <span class="n">ALPHA_w</span><span class="p">,</span> <span class="n">N_GOOD</span> <span class="o">-</span> <span class="n">N_ESS</span> <span class="o">+</span> <span class="n">BETA_w</span><span class="p">)</span>
+            
+            <span class="n">count</span> <span class="o">+=</span><span class="mi">1</span>
+            <span class="n">acctot</span><span class="o">+=</span><span class="n">acc</span>
+            
+            <span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">burnin</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">count</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">trim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">phi_sample</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">phi_new</span>
+                <span class="n">Z_sample</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Z</span>
+                <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+            
+            <span class="n">phi_old</span> <span class="o">=</span> <span class="n">phi_new</span>
+            <span class="c1">#Update progress</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;Running Gumbel Method... </span><span class="si">%2.0f%%</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span><span class="o">*</span><span class="p">(</span><span class="n">count</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">burnin</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress_update</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transit_message_inplace</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+
+        <span class="n">ZBAR</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Z_sample</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">ess_t</span><span class="p">,</span> <span class="n">non_t</span><span class="p">)</span> <span class="o">=</span> <span class="n">stat_tools</span><span class="o">.</span><span class="n">bayesian_ess_thresholds</span><span class="p">(</span><span class="n">ZBAR</span><span class="p">)</span>
+
+        <span class="c1">#Orf    k   n   r   s   zbar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Gumbel</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="p">:</span>
+            <span class="n">members</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">attr</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">attr</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">)])</span>
+            <span class="n">memberstr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">members</span><span class="p">:</span>
+                <span class="n">memberstr</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> = </span><span class="si">%s</span><span class="s2">, &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#GUI with: ctrldata=</span><span class="si">%s</span><span class="s2">, annotation=</span><span class="si">%s</span><span class="s2">, output=</span><span class="si">%s</span><span class="s2">, samples=</span><span class="si">%s</span><span class="s2">, minread=</span><span class="si">%s</span><span class="s2">, trim=</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">minread</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">trim</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Console: python </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Data: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span><span class="p">)))</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Annotation path: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span><span class="p">)))</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#FDR Corrected thresholds: </span><span class="si">%f</span><span class="s2">, </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ess_t</span><span class="p">,</span> <span class="n">non_t</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#MH Acceptance-Rate:</span><span class="se">\t</span><span class="si">%2.2f%%</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span><span class="o">*</span><span class="n">acctot</span><span class="o">/</span><span class="n">count</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Total Iterations Performed:</span><span class="se">\t</span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">count</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Sample Size:</span><span class="se">\t</span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#phi estimate:</span><span class="se">\t</span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">numpy</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">phi_sample</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Time: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">columns</span><span class="p">))</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">G</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">good_orf</span><span class="p">(</span><span class="n">g</span><span class="p">):</span>
+                <span class="n">zbar</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">zbar</span> <span class="o">=</span> <span class="n">ZBAR</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">zbar</span> <span class="o">&gt;</span> <span class="n">ess_t</span><span class="p">:</span>
+                <span class="n">call</span> <span class="o">=</span> <span class="s2">&quot;E&quot;</span>
+            <span class="k">elif</span> <span class="n">non_t</span> <span class="o">&lt;=</span> <span class="n">zbar</span> <span class="o">&lt;=</span> <span class="n">ess_t</span><span class="p">:</span>
+                <span class="n">call</span> <span class="o">=</span> <span class="s2">&quot;U&quot;</span>
+            <span class="k">elif</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">zbar</span> <span class="o">&lt;</span> <span class="n">non_t</span><span class="p">:</span>
+                <span class="n">call</span> <span class="o">=</span> <span class="s2">&quot;NE&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">call</span> <span class="o">=</span> <span class="s2">&quot;S&quot;</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%d</span><span class="se">\t</span><span class="si">%d</span><span class="se">\t</span><span class="si">%d</span><span class="se">\t</span><span class="si">%d</span><span class="se">\t</span><span class="si">%f</span><span class="se">\t</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">orf</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">desc</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="n">zbar</span><span class="p">,</span> <span class="n">call</span><span class="p">))</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="c1"># Printing empty line to flush stdout </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Adding File: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">filetype</span><span class="o">=</span><span class="s2">&quot;Gumbel&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Finished Gumbel Method&quot;</span><span class="p">)</span> </div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="GumbelMethod.usage_string"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelMethod.usage_string">[docs]</a>    <span class="k">def</span> <span class="nf">usage_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;&quot;python </span><span class="si">%s</span><span class="s2"> gumbel &lt;comma-separated .wig files&gt; &lt;annotation .prot_table&gt; &lt;output file&gt; [Optional Arguments]</span>
+<span class="s2">    </span>
+<span class="s2">        Optional Arguments:</span>
+<span class="s2">        -s &lt;integer&gt;    :=  Number of samples. Default: -s 10000</span>
+<span class="s2">        -b &lt;integer&gt;    :=  Number of Burn-in samples. Default -b 500</span>
+<span class="s2">        -m &lt;integer&gt;    :=  Smallest read-count to consider. Default: -m 1</span>
+<span class="s2">        -t &lt;integer&gt;    :=  Trims all but every t-th value. Default: -t 1</span>
+<span class="s2">        -r &lt;string&gt;     :=  How to handle replicates. Sum or Mean. Default: -r Sum</span>
+<span class="s2">        -iN &lt;float&gt;     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0</span>
+<span class="s2">        -iC &lt;float&gt;     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0</span>
+<span class="s2">        &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="GumbelMethod.good_orf"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelMethod.good_orf">[docs]</a>    <span class="k">def</span> <span class="nf">good_orf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gene</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">gene</span><span class="o">.</span><span class="n">n</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">gene</span><span class="o">.</span><span class="n">t</span> <span class="o">&gt;=</span> <span class="mi">150</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GumbelMethod.classify"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelMethod.classify">[docs]</a>    <span class="k">def</span> <span class="nf">classify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span><span class="n">r</span><span class="p">,</span><span class="n">p</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="mi">0</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="p">;</span> <span class="n">B</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">p</span><span class="p">);</span> <span class="n">u</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">n</span><span class="o">*</span><span class="n">q</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="n">p</span><span class="p">);</span>
+        <span class="n">pval</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gumbel_r</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">B</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pval</span> <span class="o">&lt;</span> <span class="mf">0.05</span><span class="p">:</span> <span class="k">return</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">return</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GumbelMethod.F_non"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelMethod.F_non">[docs]</a>    <span class="k">def</span> <span class="nf">F_non</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">p</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">ALPHA</span><span class="p">,</span><span class="n">BETA</span><span class="p">))</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">N</span><span class="o">*</span><span class="n">q</span><span class="p">)</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">p</span><span class="p">)</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">p</span><span class="p">);</span>
+        <span class="n">total</span><span class="o">+=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gumbel_r</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)))</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">total</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="GumbelMethod.sample_Z"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelMethod.sample_Z">[docs]</a>    <span class="k">def</span> <span class="nf">sample_Z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">w1</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">mu_s</span><span class="p">,</span> <span class="n">sigma_s</span><span class="p">,</span> <span class="n">SIG</span><span class="p">):</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">-</span><span class="n">p</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">N</span><span class="o">*</span><span class="n">q</span><span class="p">)</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">p</span><span class="p">)</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">p</span><span class="p">);</span>
+        <span class="n">h0</span> <span class="o">=</span> <span class="p">((</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gumbel_r</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">R</span><span class="p">,</span><span class="n">mu</span><span class="p">,</span><span class="n">sigma</span><span class="p">))</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">mu_s</span><span class="o">*</span><span class="n">R</span><span class="p">,</span> <span class="n">sigma_s</span><span class="p">)</span>  <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">w1</span><span class="p">))</span>
+        <span class="n">h1</span> <span class="o">=</span> <span class="n">SIG</span> <span class="o">*</span> <span class="n">w1</span>
+        <span class="n">p_z1</span> <span class="o">=</span> <span class="n">h1</span><span class="o">/</span><span class="p">(</span><span class="n">h0</span><span class="o">+</span><span class="n">h1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">binom</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">p_z1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">G</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GumbelMethod.sigmoid"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.gumbel.GumbelMethod.sigmoid">[docs]</a>    <span class="k">def</span> <span class="nf">sigmoid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">d</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">Kn</span> <span class="o">=</span> <span class="mf">0.1</span>
+        <span class="n">MEAN_DOMAIN_SPAN</span> <span class="o">=</span> <span class="mi">300</span>
+
+        <span class="k">if</span> <span class="n">d</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span><span class="p">(</span><span class="mf">0.00</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Kn</span><span class="o">*</span><span class="p">(</span><span class="n">MEAN_DOMAIN_SPAN</span><span class="o">-</span><span class="n">d</span><span class="p">)))</span>
+        <span class="c1">#if n in self.cache_nn: return f/self.cache_nn[n]</span>
+        <span class="n">tot</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">N</span><span class="p">):</span> <span class="n">tot</span> <span class="o">+=</span> <span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0</span><span class="o">+</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Kn</span><span class="o">*</span><span class="p">(</span><span class="n">MEAN_DOMAIN_SPAN</span><span class="o">-</span><span class="n">i</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_nn</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">tot</span>
+        <span class="k">return</span> <span class="n">f</span><span class="o">/</span><span class="n">tot</span></div></div>
+
+
+
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+    <span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">cleanargs</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+
+    <span class="k">print</span> <span class="s2">&quot;ARGS:&quot;</span><span class="p">,</span> <span class="n">args</span>
+    <span class="k">print</span> <span class="s2">&quot;KWARGS:&quot;</span><span class="p">,</span> <span class="n">kwargs</span>
+
+    <span class="n">G</span> <span class="o">=</span> <span class="n">GumbelMethod</span><span class="o">.</span><span class="n">fromargs</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+    <span class="n">G</span><span class="o">.</span><span class="n">console_message</span><span class="p">(</span><span class="s2">&quot;Printing the member variables:&quot;</span><span class="p">)</span>   
+    <span class="n">G</span><span class="o">.</span><span class="n">print_members</span><span class="p">()</span>
+
+    <span class="k">print</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">print</span> <span class="s2">&quot;Running:&quot;</span>
+
+    <span class="n">G</span><span class="o">.</span><span class="n">Run</span><span class="p">()</span>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/transit_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Michael A. DeJesus.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

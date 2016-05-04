@@ -1,0 +1,676 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Analysis Methods &mdash; transit v2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     'v2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="transit v2.0.0 documentation" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">transit v2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="analysis-methods">
+<h1>Analysis Methods<a class="headerlink" href="#analysis-methods" title="Permalink to this headline">¶</a></h1>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="section" id="gumbel">
+<h2>Gumbel<a class="headerlink" href="#gumbel" title="Permalink to this headline">¶</a></h2>
+<p>The Gumbel can be used to determine which genes are essential in a
+single condition. It does a gene-by-gene analysis of the insertions at
+TA sites with each gene, makes a call based on the longest consecutive
+sequence of TA sites without insertion in the genes, calculates the
+probabily of this using a Baysian model.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="section" id="how-does-it-work">
+<h3>How does it work?<a class="headerlink" href="#how-does-it-work" title="Permalink to this headline">¶</a></h3>
+<div class="line-block">
+<div class="line">For a formal description of how this method works, see our paper:</div>
+<div class="line-block">
+<div class="line">DeJesus, M.A., Zhang, Y.J., Sassettti, C.M., Rubin, E.J.,
+Sacchettini, J.C., and Ioerger, T.R. (2013).</div>
+</div>
+<div class="line"><a class="reference external" href="http://www.ncbi.nlm.nih.gov/pubmed/23361328">Bayesian analysis of gene essentiality based on sequencing of transposon insertion libraries.</a> <em>Bioinformatics</em>, 29(6):695-703.</div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><strong>Samples:</strong> Gumbel uses Metropolis-Hastings (MH) to generate samples
+of posterior distributions. The default setting is to run the
+simulation for 10,000 iterations. This is usually enough to assure
+convergence of the sampler and to provide accurate estimates of
+posterior probabilities. Less iterations may work, but at the risk of
+lower accuracy.</li>
+<li><strong>Burn-In:</strong> Because the MH sampler many not have stabalized in the
+first few iterations, a &#8220;burn-in&#8221; period is defined. Samples obtained
+in this &#8220;burn-in&#8221; period are discarded, and do not count towards
+estimates.</li>
+<li><strong>Trim:</strong> The MH sampler produces Markov samples that are correlated.
+This parameter dictates how many samples must be attempted for every
+sampled obtained. Increasing this parameter will decrease the
+auto-correlation, at the cost of dramatically increasing the
+run-time. For most situations, this parameter should be left at the
+default of &#8220;1&#8221;.</li>
+<li><strong>Minimum Read:</strong> The minimum read count that is considered a true
+read. Because the Gumbel method depends on determining gaps of TA
+sites lacking insertions, it may be suceptible to spurious reads
+(e.g. errors). The default value of 1 will consider all reads as true
+reads. A value of 2, for example, will ignore read counts of 1.</li>
+<li><strong>Replicates:</strong> Determines how to deal with replicates by averaging
+the read-counts or suming read counts accross datasets. This should
+not have an affect for the Gumbel method, aside from potentially
+affecting spurious reads.</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="outputs-and-diagnostics">
+<h3>Outputs and diagnostics<a class="headerlink" href="#outputs-and-diagnostics" title="Permalink to this headline">¶</a></h3>
+<p>The Gumbel method generates a tab-seperated output file at the location
+chosen by the user. This file will automatically be loaded into the
+Results Files section of the GUI, allowing you to display it as a table.
+Alternatively, the file can be opened in a spreadsheet software like
+Excel as a tab-separated file. The columns of the output file are
+defined as follows:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column Header</th>
+<th class="head">Column Definition</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>ORF</td>
+<td>Gene ID.</td>
+</tr>
+<tr class="row-odd"><td>Name</td>
+<td>Name of the gene.</td>
+</tr>
+<tr class="row-even"><td>Description</td>
+<td>Gene description.</td>
+</tr>
+<tr class="row-odd"><td>k</td>
+<td>Number of Transposon Insertions Observed within the ORF.</td>
+</tr>
+<tr class="row-even"><td>n</td>
+<td>Total Number of TA dinucleotides within the ORF.</td>
+</tr>
+<tr class="row-odd"><td>r</td>
+<td>Length of the Maximum Run of Non-Insertions observed.</td>
+</tr>
+<tr class="row-even"><td>s</td>
+<td>Span of nucleotidies for the Maximum Run of Non-Insertions.</td>
+</tr>
+<tr class="row-odd"><td>zbar</td>
+<td>Posterior Probability of Essentiality.</td>
+</tr>
+<tr class="row-even"><td>Call</td>
+<td>Essentiality call for the gene. Depends on FDR corrected thresholds. E=Essential U=Uncertain, NE=Non-Essential, S=too short</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line-block">
+<div class="line">Note: Technically, Bayesian models are used to calculate posterior
+probabilities, not p-values (which is a concept associated with the
+frequentist framework). However, we have implemented a method for
+computing the approximate false-discovery rate (FDR) that serves a
+similar purpose. This determines a threshold for significance on the
+posterior probabilities that is corrected for multiple tests. The
+actual thresholds used are reported in the headers of the output file
+(and are near 1 for essentials and near 0 for non-essentials). There
+can be many genes that score between the two thresholds (t1 &lt; zbar &lt;
+t2). This reflects intrinsic uncertainty associated with either low
+read counts, sparse insertion density, or small genes. If the
+insertion_density is too low (&lt; ~30%), the method may not work as
+well, and might indicate an unusually large number of Uncertain or
+Essential genes.</div>
+</div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="run-time">
+<h3>Run-time<a class="headerlink" href="#run-time" title="Permalink to this headline">¶</a></h3>
+<p>The Gumbel method takes on the order of 10 minutes for 10,000 samples.
+Run-time is linearly proportional to the &#8216;samples&#8217; parameter, or length
+of MH sampling trajectory. Other notes: Gumbel can be run on multiple
+replicates; replicate datasets will be automatically merged.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+</div>
+<div class="section" id="tn-gaps">
+<h2>Tn Gaps<a class="headerlink" href="#tn-gaps" title="Permalink to this headline">¶</a></h2>
+<p>The Tn5 Gaps method can be used to determine which genes are essential
+in a single condition for a TN5 dataset. It does an analysis of the
+insertions at each site within the genome, makes a call for a given
+gene based on the length of the most heavily overlapping run of sites
+without insertions (gaps), calculates the probabily of this using a
+Bayesian model.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="section" id="id1">
+<h3>How does it work?<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>This method of analysis is based on the original gumbel analysis
+method. For a formal description of how the original method works, see
+our paper:</p>
+<p>Griffin, J.E., Gawronski, J.D., DeJesus, M.A., Ioerger, T.R., Akerley, B.J., Sassetti, C.M. (2011).
+<a class="reference external" href="http://www.ncbi.nlm.nih.gov/pubmed/21980284">High-resolution phenotypic profiling defines genes essential for mycobacterial survival and cholesterol catabolism.</a>  <em>PLoS Pathogens</em>, 7(9):e1002251.</p>
+<p>The Tn5 Gaps method modifies the original method in order to work on
+TN5 datasets by analyzing non-insertion runs throughout the whole
+genome, including non-coding regions, instead of within single genes.
+In doing so, the expected maximum run length is calculated and a
+p-value can be derived for every run. A gene is then classified by
+using the p-value of the run with the largest number of nucleotides
+overlapping with the gene.</p>
+<p>This method was tested on a salmonella TN5 dataset presented in this
+paper:</p>
+<p>Langridge GC1, Phan MD, Turner DJ, Perkins TT, Parts L, Haase J,
+Charles I, Maskell DJ, Peters SE, Dougan G, Wain J, Parkhill J, Turner
+AK. (2009). <a class="reference external" href="http://www.ncbi.nlm.nih.gov/pubmed/19826075">Simultaneous assay of every Salmonella Typhi gene using one million
+transposon mutants.</a> <em>Genome Res.</em> , 19(12):2308-16.</p>
+<p>This data was downloaded from SRA (located <a class="reference external" href="http://trace.ncbi.nlm.nih.gov/Traces/sra/?study=ERP000051">herei</a>) , and used to make
+wig files (<a class="reference external" href="http://orca1.tamu.edu/essentiality/transit/data/salmonella_base.wig">base</a> and <a class="reference external" href="http://orca1.tamu.edu/essentiality/transit/data/salmonella_bile.wig">bile</a>) and the following 4 baseline datasets
+were merged to make a wig file: (IL2_2122_1,3,6,8). Our analysis
+produced 415 genes with adjusted p-values less than 0.05, indicating
+essentiality, and the analysis from the above paper produced 356
+essential genes. Of these 356 essential genes, 344 overlap with the
+output of our analysis.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h3>Parameters<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><strong>Minimum Read:</strong> The minimum read count that is considered a true read. Because the Gumbel method depends on determining gaps of TA sites lacking insertions, it may be suceptible to spurious reads (e.g. errors). The default value of 1 will consider all reads as true reads. A value of 2, for example, will ignore read counts of 1.</li>
+<li><strong>Replicates:</strong> Determines how to deal with replicates by averaging the read-counts or suming read counts accross datasets. This should not have an affect for the Gumbel method, aside from potentially affecting spurious reads.</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="id3">
+<h3>Outputs and diagnostics<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>The Tn5 Gaps method generates a tab-seperated output file at the
+location chosen by the user. This file will automatically be loaded
+into the Results Files section of the GUI, allowing you to display it
+as a table. Alternatively, the file can be opened in a spreadsheet
+software like Excel as a tab-separated file. The columns of the output
+file are defined as follows:
+Column Header Column Definition ORF Gene ID. Name Name of the gene.
+Desc Gene description. k Number of Transposon Insertions Observed
+within the ORF. n Total Number of TA dinucleotides within the ORF. r
+Length of the Maximum Run of Non-Insertions observed. ovr The number
+of nucleotides in the overlap with the longest run partially covering
+the gene. lenovr The length of the above run with the largest overlap
+with the gene. pval P-value calculated by the permutation test. padj
+Adjusted p-value controlling for the FDR (Benjamini-Hochberg). call
+Essentiality call for the gene. Depends on FDR corrected thresholds.
+Essential or Non-Essential</p>
+<p>Note: Technically, Bayesian models are used to calculate posterior
+probabilities, not p-values (which is a concept associated with the
+frequentist framework). However, we have implemented a method for
+computing the approximate false-discovery rate (FDR) that serves a
+similar purpose. This determines a threshold for significance on the
+posterior probabilities that is corrected for multiple tests. The
+actual thresholds used are reported in the headers of the output file
+(and are near 1 for essentials and near 0 for non-essentials). There
+can be many genes that score between the two thresholds (t1 &lt; zbar &lt;
+t2). This reflects intrinsic uncertainty associated with either low
+read counts, sparse insertion density, or small genes. If the
+insertion_density is too low, the method may not work as well, and
+might indicate an unusually large number of Uncertain or Essential
+genes.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="id4">
+<h3>Run-time<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>The Gumbel method takes on the order of 10 minutes.
+Other notes: Gumbel can be run on multiple replicates; replicate
+datasets will be automatically merged.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+</div>
+<div class="section" id="hmm">
+<h2>HMM<a class="headerlink" href="#hmm" title="Permalink to this headline">¶</a></h2>
+<p>The HMM method can be used to determine the essentiality of the entire genome, as opposed to gene-level analysis of the other methods. It is capable of identifying regions that have unusually high or unusually low read counts (i.e. growth advantage or growth defect regions), in addition to the more common categories of essential and non-essential.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="section" id="id5">
+<h3>How does it work?<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="line-block">
+<div class="line">For a formal description of how this method works, see our paper:</div>
+<div class="line-block">
+<div class="line">DeJesus, M.A., Ioerger, T.R. <a class="reference external" href="http://www.ncbi.nlm.nih.gov/pubmed/24103077">A Hidden Markov Model for identifying essential and growth-defect regions in bacterial genomes from transposon insertion sequencing data.</a> <em>BMC Bioinformatics.</em> 2013. 14:303</div>
+</div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="id6">
+<h3>Parameters<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<p>The HMM method automatically estimates the necessary statistical
+parameters from the datasets. You can change how the method handles
+replicate datasets:</p>
+<ul class="simple">
+<li><strong>Replicates:</strong> Determines how the HMM deals with replicate datasets
+by either averaging the read-counts or suming read counts accross
+datasets. For regular datasets (i.e. mean-read count &gt; 100) the
+recommended setting is to average read-counts together. For sparse
+datasets, it suming read-counts may produce more accurate results.</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="output-and-diagnostics">
+<h3>Output and Diagnostics<a class="headerlink" href="#output-and-diagnostics" title="Permalink to this headline">¶</a></h3>
+<div class="line-block">
+<div class="line">The HMM method outputs two files. The first file provides the most
+likely assignment of states for all the TA sites in the genome. Sites
+can belong to one of the following states: &#8220;E&#8221; (Essential), &#8220;GD&#8221;
+(Growth-Defect), &#8220;NE&#8221; (Non-Essential), or &#8220;GA&#8221; (Growth-Advantage). In
+addition, the output includes the probability of the particular site
+belonging to the given state. The columns of this file are defined as
+follows:</div>
+</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="89%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column #</th>
+<th class="head">Column Definition</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1</td>
+<td>Coordinate of TA site</td>
+</tr>
+<tr class="row-odd"><td>2</td>
+<td>Observed Read Counts</td>
+</tr>
+<tr class="row-even"><td>3</td>
+<td>Probability for ES state</td>
+</tr>
+<tr class="row-odd"><td>4</td>
+<td>Probability for GD state</td>
+</tr>
+<tr class="row-even"><td>5</td>
+<td>Probability for NE state</td>
+</tr>
+<tr class="row-odd"><td>6</td>
+<td>Probability for GA state</td>
+</tr>
+<tr class="row-even"><td>7</td>
+<td>State Classification (ES = Essential, GD = Growth Defect, NE = Non-Essential, GA = Growth-Defect)</td>
+</tr>
+<tr class="row-odd"><td>8</td>
+<td>Gene(s) that share(s) the TA site.</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line-block">
+<div class="line">The second file provides a gene-level classification for all the
+genes in the genome. Genes are classified as &#8220;E&#8221; (Essential), &#8220;GD&#8221;
+(Growth-Defect), &#8220;NE&#8221; (Non-Essential), or &#8220;GA&#8221; (Growth-Advantage)
+depending on the number of sites within the gene that belong to those
+states.</div>
+</div>
+</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="84%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column Header</th>
+<th class="head">Column Definition</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Orf</td>
+<td>Gene ID</td>
+</tr>
+<tr class="row-odd"><td>Name</td>
+<td>Gene Name</td>
+</tr>
+<tr class="row-even"><td>Desc</td>
+<td>Gene Description</td>
+</tr>
+<tr class="row-odd"><td>N</td>
+<td>Number of TA sites</td>
+</tr>
+<tr class="row-even"><td>n0</td>
+<td>Number of sites labeled ES (Essential)</td>
+</tr>
+<tr class="row-odd"><td>n1</td>
+<td>Number of sites labeled GD (Growth-Defect)</td>
+</tr>
+<tr class="row-even"><td>n2</td>
+<td>Number of sites labeled NE (Non-Essential)</td>
+</tr>
+<tr class="row-odd"><td>n3</td>
+<td>Number of sites labeled GA (Growth-Advantage)</td>
+</tr>
+<tr class="row-even"><td>Avg. Insertions</td>
+<td>Mean insertion rate within the gene</td>
+</tr>
+<tr class="row-odd"><td>Avg. Reads</td>
+<td>Mean read count within the gene</td>
+</tr>
+<tr class="row-even"><td>State Call</td>
+<td>State Classification (ES = Essential, GD = Growth Defect, NE = Non-Essential, GA = Growth-Defect)</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line-block">
+<div class="line">Note: Libraries that are too sparse (e.g. &lt; 30%) or which contain
+very low read-counts may be problematic for the HMM method, causing it
+to label too many Growth-Defect genes.</div>
+</div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="id7">
+<h3>Run-time<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="line-block">
+<div class="line">The HMM method takes less than 10 minutes to complete. The parameters
+of the method should not affect the running-time.</div>
+</div>
+<hr class="docutils" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+</div>
+<div class="section" id="re-sampling">
+<h2>Re-sampling<a class="headerlink" href="#re-sampling" title="Permalink to this headline">¶</a></h2>
+<p>The re-sampling method is a comparative analysis the allows that can be
+used to determine conditional essentiality of genes. It is based on a
+permutation test, and is capable of determining read-counts that are
+significantly different across conditions.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="section" id="id8">
+<h3>How does it work?<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<p>This technique has yet to be formally published in the context of
+differential essentiality analysis. Briefly, the read-counts at each
+genes are determined for each replicate of each condition. The total
+read-counts in condition A is substracted from the total read counts at
+condition B, to obtain an observed difference in read counts. The TA
+sites are then permuted for a given number of &#8220;samples&#8221;. For each one of
+these permutations, the difference is read-counts is determined. This
+forms a null disttribution, from which a p-value is calculated for the
+original, observed difference in read-counts.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="id9">
+<h3>Parameters<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>The resampling method is non-parametric, and therefore does not require
+any parameters governing the distributions or the model. The following
+parameters are available for the method:</p>
+<ul class="simple">
+<li><strong>Samples:</strong> The number of samples (permutations) to perform. The
+larger the number of samples, the more resolution the p-values
+calculated will have, at the expense of longer computation time. The
+re-sampling method runs on 10,000 samples by default.</li>
+<li><strong>Output Histograms:</strong>Determines whether to output .png images of
+the histograms obtained from resampling the difference in
+read-counts.</li>
+<li><strong>Adaptive Resampling:</strong> An optional &#8220;adaptive&#8221; version of resampling
+which accelerates the calculation by terminating early for genes
+which are likely not significant. This dramatically speeds up the
+computation at the cost of less accurate estimates for those genes
+that terminate early (i.e. deemed not significant). This option is
+OFF by default.</li>
+<li><strong>Normalization Method:</strong> Determines which normalization method to
+use when comparing datasets. Proper normalization is important as it
+ensures that other sources of variability are not mistakenly treated
+as real differences.<ul>
+<li><strong>TTR</strong>: Trimmed Total Reads (TTR), normalized by the total
+read-counts (like totreads), but trims top and bottom 5% of
+read-counts. This is the recommended normalization method for most
+cases as it has the beneffit of normalizing for difference in
+saturation in the context of resampling.</li>
+<li><strong>nzmean</strong>: Normalizes datasets to have the same mean over the
+non-zero sites.</li>
+<li><strong>totreads</strong>: Normalizes datasets by total read-counts, and scales
+them to have the same mean over all counts.</li>
+<li><strong>zinfnb</strong>: Fits a zero-inflated negative binomial model, and then
+divides read-counts by the mean. The zero-inflated negative
+binomial model will treat some empty sites as belonging to the
+&#8220;true&#8221; negative binomial distribution responsible for read-counts
+while treating the others as &#8220;essential&#8221; (and thus not influencing
+its parameters).</li>
+<li><strong>quantile</strong>: Normalizes datasets using the quantile normalization
+method described by <a class="reference external" href="http://www.ncbi.nlm.nih.gov/pubmed/12538238">Bolstad et al.
+(2003)</a>. In this
+normalization procedure, datasets are sorted, an empirical
+distribution is estimated as the mean across the sorted datasets
+at each site, and then the original (unsorted) datasets are
+assigned values from the empirical distribution based on their
+quantiles.</li>
+<li><strong>betageom</strong>: Normalizes the datasets to fit an &#8220;ideal&#8221; Geometric
+distribution with a variable probability parameter <em>p</em>. Specially
+useful for datasets that contain a large skew.</li>
+<li><strong>nonorm</strong>: No normalization is performed.</li>
+</ul>
+</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="id10">
+<h3>Output and Diagnostics<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<p>The re-sampling method ouputs a tab-delimited file with results for each
+gene in the genome. P-values are adjusted for multiple comparisons using
+the Benjamini-Hochberg procedure (called &#8220;q-values&#8221; or &#8220;p-adj.&#8221;). A
+typical threshold for conditional essentiality on is q-value &lt; 0.05.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="79%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column Header</th>
+<th class="head">Column Definition</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Orf</td>
+<td>Gene ID.</td>
+</tr>
+<tr class="row-odd"><td>Name</td>
+<td>Name of the gene.</td>
+</tr>
+<tr class="row-even"><td>Description</td>
+<td>Gene description.</td>
+</tr>
+<tr class="row-odd"><td>N</td>
+<td>Number of TA sites in the gene.</td>
+</tr>
+<tr class="row-even"><td>TAs Hit</td>
+<td>Number of TA sites with at least one insertion.</td>
+</tr>
+<tr class="row-odd"><td>Sum Rd 1</td>
+<td>Sum of read counts in condition 1.</td>
+</tr>
+<tr class="row-even"><td>Sum Rd 2</td>
+<td>Sum of read counts in condition 2.</td>
+</tr>
+<tr class="row-odd"><td>Delta Rd</td>
+<td>Difference in the sum of read counts.</td>
+</tr>
+<tr class="row-even"><td>p-value</td>
+<td>P-value calculated by the permutation test.</td>
+</tr>
+<tr class="row-odd"><td>p-adj.</td>
+<td>Adjusted p-value controlling for the FDR (Benjamini-Hochberg)</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="id11">
+<h3>Run-time<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<p>A typical run of the re-sampling method with 10,000 samples will take
+around 45 minutes (with the histogram option ON). Using the adaptive
+resampling option, the run-time is reduced to around 10 minutes.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/transit_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Analysis Methods</a><ul>
+<li><a class="reference internal" href="#gumbel">Gumbel</a><ul>
+<li><a class="reference internal" href="#how-does-it-work">How does it work?</a></li>
+<li><a class="reference internal" href="#parameters">Parameters</a></li>
+<li><a class="reference internal" href="#outputs-and-diagnostics">Outputs and diagnostics</a></li>
+<li><a class="reference internal" href="#run-time">Run-time</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tn-gaps">Tn Gaps</a><ul>
+<li><a class="reference internal" href="#id1">How does it work?</a></li>
+<li><a class="reference internal" href="#id2">Parameters</a></li>
+<li><a class="reference internal" href="#id3">Outputs and diagnostics</a></li>
+<li><a class="reference internal" href="#id4">Run-time</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#hmm">HMM</a><ul>
+<li><a class="reference internal" href="#id5">How does it work?</a></li>
+<li><a class="reference internal" href="#id6">Parameters</a></li>
+<li><a class="reference internal" href="#output-and-diagnostics">Output and Diagnostics</a></li>
+<li><a class="reference internal" href="#id7">Run-time</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#re-sampling">Re-sampling</a><ul>
+<li><a class="reference internal" href="#id8">How does it work?</a></li>
+<li><a class="reference internal" href="#id9">Parameters</a></li>
+<li><a class="reference internal" href="#id10">Output and Diagnostics</a></li>
+<li><a class="reference internal" href="#id11">Run-time</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/transit_methods.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">transit v2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Michael A. DeJesus.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

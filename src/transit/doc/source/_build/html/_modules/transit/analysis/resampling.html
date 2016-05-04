@@ -1,0 +1,530 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>transit.analysis.resampling &mdash; transit v2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     'v2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="transit v2.0.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for transit.analysis.resampling</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">wx</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">ntpath</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
+<span class="kn">import</span> <span class="nn">base</span>
+<span class="kn">import</span> <span class="nn">transit</span>
+<span class="kn">import</span> <span class="nn">transit.transit_tools</span> <span class="kn">as</span> <span class="nn">transit_tools</span>
+<span class="kn">import</span> <span class="nn">transit.tnseq_tools</span> <span class="kn">as</span> <span class="nn">tnseq_tools</span>
+<span class="kn">import</span> <span class="nn">transit.norm_tools</span> <span class="kn">as</span> <span class="nn">norm_tools</span>
+<span class="kn">import</span> <span class="nn">transit.stat_tools</span> <span class="kn">as</span> <span class="nn">stat_tools</span>
+
+
+
+<span class="c1">############# GUI ELEMENTS ##################</span>
+
+<span class="n">short_name</span> <span class="o">=</span> <span class="s2">&quot;resampling&quot;</span>
+<span class="n">long_name</span> <span class="o">=</span> <span class="s2">&quot;Resampling test of conditional essentiality between two conditions&quot;</span>
+<span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Method for determining conditional essentiality based on resampling (i.e. permutation test). Identifies significant changes in mean read-counts for each gene after normalization.&quot;&quot;&quot;</span>
+
+<span class="n">transposons</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;himar1&quot;</span><span class="p">,</span> <span class="s2">&quot;tn5&quot;</span><span class="p">]</span>
+<span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Orf&quot;</span><span class="p">,</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span><span class="s2">&quot;Desc&quot;</span><span class="p">,</span><span class="s2">&quot;Sites&quot;</span><span class="p">,</span><span class="s2">&quot;Mean A&quot;</span><span class="p">,</span><span class="s2">&quot;Mean B&quot;</span><span class="p">,</span><span class="s2">&quot;Delta sum&quot;</span><span class="p">,</span><span class="s2">&quot;log2FC&quot;</span><span class="p">,</span><span class="s2">&quot;pvalue&quot;</span><span class="p">,</span><span class="s2">&quot;adj. pvalue&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ResamplingAnalysis"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.resampling.ResamplingAnalysis">[docs]</a><span class="k">class</span> <span class="nc">ResamplingAnalysis</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">TransitAnalysis</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">TransitAnalysis</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">short_name</span><span class="p">,</span> <span class="n">long_name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">transposons</span><span class="p">,</span> <span class="n">ResamplingMethod</span><span class="p">,</span> <span class="n">ResamplingGUI</span><span class="p">,</span> <span class="p">[</span><span class="n">ResamplingFile</span><span class="p">])</span></div>
+
+
+
+<span class="c1">############# FILE ##################</span>
+
+<div class="viewcode-block" id="ResamplingFile"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.resampling.ResamplingFile">[docs]</a><span class="k">class</span> <span class="nc">ResamplingFile</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">TransitFile</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">TransitFile</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;#Resampling&quot;</span><span class="p">,</span> <span class="n">columns</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ResamplingFile.getHeader"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.resampling.ResamplingFile.getHeader">[docs]</a>    <span class="k">def</span> <span class="nf">getHeader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="n">DE</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">poslogfc</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">neglogfc</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">0.05</span><span class="p">:</span>
+                <span class="n">DE</span> <span class="o">+=</span><span class="mi">1</span>
+                <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">poslogfc</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">neglogfc</span><span class="o">+=</span><span class="mi">1</span>
+
+        <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Results:</span>
+<span class="s2">    Conditionally - Essentials: </span><span class="si">%s</span><span class="s2"></span>
+<span class="s2">        More Essential in Experimental datasets: </span><span class="si">%s</span><span class="s2"></span>
+<span class="s2">        Less Essential in Experimental datasets: </span><span class="si">%s</span><span class="s2"></span>
+<span class="s2">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">DE</span><span class="p">,</span> <span class="n">poslogfc</span><span class="p">,</span> <span class="n">neglogfc</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">text</span></div>
+
+
+<div class="viewcode-block" id="ResamplingFile.getMenus"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.resampling.ResamplingFile.getMenus">[docs]</a>    <span class="k">def</span> <span class="nf">getMenus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">menus</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">menus</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Display in Track View&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">displayInTrackView</span><span class="p">))</span>
+        <span class="n">menus</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Display Histogram&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">displayHistogram</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">menus</span></div>
+
+<div class="viewcode-block" id="ResamplingFile.displayHistogram"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.resampling.ResamplingFile.displayHistogram">[docs]</a>    <span class="k">def</span> <span class="nf">displayHistogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">displayFrame</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+            <span class="n">gene</span> <span class="o">=</span> <span class="n">displayFrame</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">GetCellValue</span><span class="p">(</span><span class="n">displayFrame</span><span class="o">.</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ntpath</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">displayFrame</span><span class="o">.</span><span class="n">path</span><span class="p">),</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">fetch_name</span><span class="p">(</span><span class="n">displayFrame</span><span class="o">.</span><span class="n">path</span><span class="p">))</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">gene</span><span class="o">+</span><span class="s2">&quot;.png&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+                <span class="n">imgWindow</span> <span class="o">=</span> <span class="n">transit</span><span class="o">.</span><span class="n">fileDisplay</span><span class="o">.</span><span class="n">ImgFrame</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+                <span class="n">imgWindow</span><span class="o">.</span><span class="n">Show</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ShowError</span><span class="p">(</span><span class="n">MSG</span><span class="o">=</span><span class="s2">&quot;Error Displaying File. Histogram image not found. Make sure results were obtained with the histogram option turned on.&quot;</span><span class="p">)</span>
+                <span class="k">print</span> <span class="s2">&quot;Error Displaying File. Histogram image does not exist.&quot;</span></div></div>
+
+
+        
+
+<span class="c1">############# GUI ##################</span>
+
+<div class="viewcode-block" id="ResamplingGUI"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.resampling.ResamplingGUI">[docs]</a><span class="k">class</span> <span class="nc">ResamplingGUI</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">AnalysisGUI</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ResamplingGUI.definePanel"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.resampling.ResamplingGUI.definePanel">[docs]</a>    <span class="k">def</span> <span class="nf">definePanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wxobj</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span> <span class="o">=</span> <span class="n">wxobj</span>
+        <span class="n">resamplingPanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">optionsWindow</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">TAB_TRAVERSAL</span> <span class="p">)</span>
+
+        <span class="n">resamplingSizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+
+        <span class="n">resamplingLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span> <span class="n">resamplingPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;resampling Options&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">resamplingLabel</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span>
+        <span class="n">resamplingSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">resamplingLabel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">resamplingTopSizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span> <span class="p">)</span>
+
+        <span class="n">resamplingTopSizer2</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span> <span class="p">)</span>
+
+        <span class="n">resamplingLabelSizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+
+        <span class="c1"># Samples Label</span>
+        <span class="n">resamplingSampleLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span> <span class="n">resamplingPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Samples&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">resamplingSampleLabel</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span>
+        <span class="n">resamplingLabelSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">resamplingSampleLabel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="c1"># Norm Label</span>
+        <span class="n">resamplingNormLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span> <span class="n">resamplingPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Normalization&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">resamplingNormLabel</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span>
+        <span class="n">resamplingLabelSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">resamplingNormLabel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+
+        <span class="n">resamplingTopSizer2</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">resamplingLabelSizer</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">resamplingControlSizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+
+        <span class="c1"># Samples Text</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingSampleText</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span> <span class="n">resamplingPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;10000&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">resamplingControlSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingSampleText</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="c1"># Norm Choices</span>
+        <span class="n">resamplingNormChoiceChoices</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">u&quot;TTR&quot;</span><span class="p">,</span> <span class="s2">u&quot;nzmean&quot;</span><span class="p">,</span> <span class="s2">u&quot;totreads&quot;</span><span class="p">,</span> <span class="s1">u&#39;zinfnb&#39;</span><span class="p">,</span> <span class="s1">u&#39;quantile&#39;</span><span class="p">,</span> <span class="s2">u&quot;betageom&quot;</span><span class="p">,</span> <span class="s2">u&quot;nonorm&quot;</span> <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingNormChoice</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span> <span class="n">resamplingPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="n">resamplingNormChoiceChoices</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingNormChoice</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">resamplingControlSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingNormChoice</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+
+        <span class="c1"># Adaptive Check</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingAdaptiveCheckBox</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">CheckBox</span><span class="p">(</span><span class="n">resamplingPanel</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Adaptive Resampling (Faster)&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Histogram Check</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingHistogramCheckBox</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">CheckBox</span><span class="p">(</span><span class="n">resamplingPanel</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Generate Resampling Histograms&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Zeros Check</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingZeroCheckBox</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">CheckBox</span><span class="p">(</span><span class="n">resamplingPanel</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Include sites with all zeros&#39;</span><span class="p">)</span>
+
+
+        <span class="n">resamplingTopSizer2</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">resamplingControlSizer</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">resamplingTopSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">resamplingTopSizer2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+
+        <span class="n">resamplingSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">resamplingTopSizer</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+        <span class="n">resamplingSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingAdaptiveCheckBox</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+        <span class="n">resamplingSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingHistogramCheckBox</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+        <span class="n">resamplingSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingZeroCheckBox</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">resamplingButton</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span> <span class="n">resamplingPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Run resampling&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">resamplingSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">resamplingButton</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+ 
+        <span class="n">resamplingPanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span> <span class="n">resamplingSizer</span> <span class="p">)</span>
+        <span class="n">resamplingPanel</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+        <span class="n">resamplingSizer</span><span class="o">.</span><span class="n">Fit</span><span class="p">(</span> <span class="n">resamplingPanel</span> <span class="p">)</span>
+
+        <span class="c1">#Connect events</span>
+        <span class="n">resamplingButton</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">RunMethod</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">panel</span> <span class="o">=</span> <span class="n">resamplingPanel</span></div></div>
+
+
+
+<span class="c1">########## CLASS #######################</span>
+
+<div class="viewcode-block" id="ResamplingMethod"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.resampling.ResamplingMethod">[docs]</a><span class="k">class</span> <span class="nc">ResamplingMethod</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">DualConditionMethod</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;   </span>
+<span class="sd">    resampling</span>
+<span class="sd"> </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">ctrldata</span><span class="p">,</span>
+                <span class="n">expdata</span><span class="p">,</span>
+                <span class="n">annotation_path</span><span class="p">,</span>
+                <span class="n">output_file</span><span class="p">,</span>
+                <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;TTR&quot;</span><span class="p">,</span>
+                <span class="n">samples</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                <span class="n">adaptive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">doHistogram</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">includeZeros</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">replicates</span><span class="o">=</span><span class="s2">&quot;Sum&quot;</span><span class="p">,</span>
+                <span class="n">LOESS</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">ignoreCodon</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                <span class="n">NTerminus</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">CTerminus</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">wxobj</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="n">base</span><span class="o">.</span><span class="n">DualConditionMethod</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">short_name</span><span class="p">,</span> <span class="n">long_name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">ctrldata</span><span class="p">,</span> <span class="n">expdata</span><span class="p">,</span> <span class="n">annotation_path</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">,</span> <span class="n">replicates</span><span class="o">=</span><span class="n">replicates</span><span class="p">,</span> <span class="n">LOESS</span><span class="o">=</span><span class="n">LOESS</span><span class="p">,</span> <span class="n">NTerminus</span><span class="o">=</span><span class="n">NTerminus</span><span class="p">,</span> <span class="n">CTerminus</span><span class="o">=</span><span class="n">CTerminus</span><span class="p">,</span> <span class="n">wxobj</span><span class="o">=</span><span class="n">wxobj</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">samples</span> <span class="o">=</span> <span class="n">samples</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adaptive</span> <span class="o">=</span> <span class="n">adaptive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doHistogram</span> <span class="o">=</span> <span class="n">doHistogram</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">includeZeros</span> <span class="o">=</span> <span class="n">includeZeros</span>
+
+
+
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ResamplingMethod.fromGUI"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.resampling.ResamplingMethod.fromGUI">[docs]</a>    <span class="k">def</span> <span class="nf">fromGUI</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wxobj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+        <span class="c1">#Get selected ctrl files</span>
+        <span class="n">ctrl_selected</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">ctrlSelected</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ctrl_selected</span><span class="p">)</span> <span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">wxobj</span><span class="o">.</span><span class="n">ShowError</span><span class="p">(</span><span class="s2">&quot;Error: No Control dataset selected.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="n">exp_selected</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">expSelected</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exp_selected</span><span class="p">)</span> <span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">wxobj</span><span class="o">.</span><span class="n">ShowError</span><span class="p">(</span><span class="s2">&quot;Error: No Experimental dataset selected.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+
+        <span class="c1">#Get Annotation file</span>
+        <span class="n">annotationPath</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">annotation</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">annotationPath</span><span class="p">:</span>
+            <span class="n">wxobj</span><span class="o">.</span><span class="n">ShowError</span><span class="p">(</span><span class="s2">&quot;Error: No annotation file selected.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+
+        <span class="c1">#Read the parameters from the wxPython widgets</span>
+        <span class="n">ignoreCodon</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingSampleText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">normalization</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingNormChoice</span><span class="o">.</span><span class="n">GetString</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingNormChoice</span><span class="o">.</span><span class="n">GetCurrentSelection</span><span class="p">())</span>
+        <span class="n">replicates</span><span class="o">=</span><span class="s2">&quot;Sum&quot;</span>
+        <span class="n">adaptive</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingAdaptiveCheckBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+        <span class="n">doHistogram</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingHistogramCheckBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+
+        <span class="n">includeZeros</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">resamplingZeroCheckBox</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+
+        <span class="n">NTerminus</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">globalNTerminusText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">CTerminus</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">globalCTerminusText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">LOESS</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="c1">#Get output path</span>
+        <span class="n">defaultFileName</span> <span class="o">=</span> <span class="s2">&quot;resampling_output.dat&quot;</span>
+        <span class="n">defaultDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">SaveFile</span><span class="p">(</span><span class="n">defaultDir</span><span class="p">,</span> <span class="n">defaultFileName</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">output_path</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+        <span class="n">output_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">ctrl_selected</span><span class="p">,</span>
+                <span class="n">exp_selected</span><span class="p">,</span>
+                <span class="n">annotationPath</span><span class="p">,</span>
+                <span class="n">output_file</span><span class="p">,</span>
+                <span class="n">normalization</span><span class="p">,</span>
+                <span class="n">samples</span><span class="p">,</span>
+                <span class="n">adaptive</span><span class="p">,</span>
+                <span class="n">doHistogram</span><span class="p">,</span>
+                <span class="n">includeZeros</span><span class="p">,</span>
+                <span class="n">replicates</span><span class="p">,</span>
+                <span class="n">LOESS</span><span class="p">,</span>
+                <span class="n">ignoreCodon</span><span class="p">,</span>
+                <span class="n">NTerminus</span><span class="p">,</span>
+                <span class="n">CTerminus</span><span class="p">,</span> <span class="n">wxobj</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ResamplingMethod.fromargs"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.resampling.ResamplingMethod.fromargs">[docs]</a>    <span class="k">def</span> <span class="nf">fromargs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rawargs</span><span class="p">):</span>
+
+        <span class="k">print</span> <span class="s2">&quot;RAW:&quot;</span><span class="p">,</span> <span class="n">rawargs</span>
+        <span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">cleanargs</span><span class="p">(</span><span class="n">rawargs</span><span class="p">)</span>
+
+        <span class="k">print</span> <span class="s2">&quot;ARGS:&quot;</span><span class="p">,</span> <span class="n">args</span>
+        <span class="k">print</span> <span class="s2">&quot;KWARGS:&quot;</span><span class="p">,</span> <span class="n">kwargs</span>
+
+        <span class="n">ctrldata</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">expdata</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">annotationPath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">output_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+        <span class="n">normalization</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;TTR&quot;</span><span class="p">)</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="mi">10000</span><span class="p">))</span>
+        <span class="n">adaptive</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">doHistogram</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">replicates</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;Sum&quot;</span><span class="p">)</span>
+        <span class="n">includeZeros</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iz&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    
+        
+        <span class="n">LOESS</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;l&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">ignoreCodon</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">NTerminus</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iN&quot;</span><span class="p">,</span> <span class="mf">0.00</span><span class="p">))</span>
+        <span class="n">CTerminus</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iC&quot;</span><span class="p">,</span> <span class="mf">0.00</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">ctrldata</span><span class="p">,</span>
+                <span class="n">expdata</span><span class="p">,</span>
+                <span class="n">annotationPath</span><span class="p">,</span>
+                <span class="n">output_file</span><span class="p">,</span>
+                <span class="n">normalization</span><span class="p">,</span>
+                <span class="n">samples</span><span class="p">,</span>
+                <span class="n">adaptive</span><span class="p">,</span>
+                <span class="n">doHistogram</span><span class="p">,</span>
+                <span class="n">includeZeros</span><span class="p">,</span>
+                <span class="n">replicates</span><span class="p">,</span>
+                <span class="n">LOESS</span><span class="p">,</span>
+                <span class="n">ignoreCodon</span><span class="p">,</span>
+                <span class="n">NTerminus</span><span class="p">,</span>
+                <span class="n">CTerminus</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ResamplingMethod.Run"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.resampling.ResamplingMethod.Run">[docs]</a>    <span class="k">def</span> <span class="nf">Run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Starting resampling Method&quot;</span><span class="p">)</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+       
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doHistogram</span><span class="p">:</span>
+            <span class="n">histPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">fetch_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_histograms&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">histPath</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">histPath</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">histPath</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+ 
+
+
+
+        <span class="n">Kctrl</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span><span class="p">)</span>
+        <span class="n">Kexp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expdata</span><span class="p">)</span>
+        <span class="c1">#Get orf data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Getting Data&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalization</span> <span class="o">!=</span> <span class="s2">&quot;nonorm&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Normalizing using: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalization</span><span class="p">)</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">tnseq_tools</span><span class="o">.</span><span class="n">Genes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">expdata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation_path</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">normalization</span><span class="p">,</span> <span class="n">ignoreCodon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ignoreCodon</span><span class="p">,</span> <span class="n">nterm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">NTerminus</span><span class="p">,</span> <span class="n">cterm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">CTerminus</span><span class="p">)</span>
+
+
+        <span class="c1">#Resampling</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_range</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">G</span><span class="p">:</span>
+            <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">gene</span><span class="o">.</span><span class="n">k</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">gene</span><span class="o">.</span><span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="p">(</span><span class="n">test_obs</span><span class="p">,</span> <span class="n">mean1</span><span class="p">,</span> <span class="n">mean2</span><span class="p">,</span> <span class="n">log2FC</span><span class="p">,</span> <span class="n">pval_ltail</span><span class="p">,</span> <span class="n">pval_utail</span><span class="p">,</span>  <span class="n">pval_2tail</span><span class="p">,</span> <span class="n">testlist</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.00</span><span class="p">,</span> <span class="mf">1.00</span><span class="p">,</span> <span class="mf">1.00</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">else</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">includeZeros</span><span class="p">:</span>
+                    <span class="n">ii</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">gene</span><span class="o">.</span><span class="n">reads</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ii</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">gene</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+                
+                <span class="p">(</span><span class="n">test_obs</span><span class="p">,</span> <span class="n">mean1</span><span class="p">,</span> <span class="n">mean2</span><span class="p">,</span> <span class="n">log2FC</span><span class="p">,</span> <span class="n">pval_ltail</span><span class="p">,</span> <span class="n">pval_utail</span><span class="p">,</span>  <span class="n">pval_2tail</span><span class="p">,</span> <span class="n">testlist</span><span class="p">)</span> <span class="o">=</span>  <span class="n">stat_tools</span><span class="o">.</span><span class="n">resampling</span><span class="p">(</span><span class="n">gene</span><span class="o">.</span><span class="n">reads</span><span class="p">[:</span><span class="n">Kctrl</span><span class="p">,</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">gene</span><span class="o">.</span><span class="n">reads</span><span class="p">[</span><span class="n">Kctrl</span><span class="p">:,</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">S</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span> <span class="n">testFunc</span><span class="o">=</span><span class="n">stat_tools</span><span class="o">.</span><span class="n">F_sum_diff_flat</span><span class="p">,</span> <span class="n">adaptive</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">adaptive</span><span class="p">)</span>
+
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doHistogram</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">testlist</span><span class="p">:</span>
+                    <span class="n">n</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">patches</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">testlist</span><span class="p">,</span> <span class="n">normed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">n</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">patches</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">normed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Delta Sum&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Probability&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> - Histogram of Delta Sum&#39;</span> <span class="o">%</span> <span class="n">gene</span><span class="o">.</span><span class="n">orf</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">test_obs</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">genePath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">histPath</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">orf</span> <span class="o">+</span><span class="s2">&quot;.png&quot;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">genePath</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+
+
+
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">gene</span><span class="o">.</span><span class="n">orf</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">desc</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">mean1</span><span class="p">,</span> <span class="n">mean2</span><span class="p">,</span> <span class="n">test_obs</span><span class="p">,</span> <span class="n">log2FC</span><span class="p">,</span> <span class="n">pval_2tail</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress_update</span><span class="p">(</span><span class="s2">&quot;resampling&quot;</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transit_message_inplace</span><span class="p">(</span><span class="s2">&quot;Running Resampling Method... </span><span class="si">%1.1f%%</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span><span class="o">*</span><span class="n">count</span><span class="o">/</span><span class="n">N</span><span class="p">))</span>
+
+
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="c1"># Printing empty line to flush stdout </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Performing Benjamini-Hochberg Correction&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> 
+        <span class="n">qval</span> <span class="o">=</span> <span class="n">stat_tools</span><span class="o">.</span><span class="n">BH_fdr_correction</span><span class="p">([</span><span class="n">row</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">])</span>
+       
+ 
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Resampling</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="p">:</span>
+            <span class="n">members</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">attr</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">attr</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">)])</span>
+            <span class="n">memberstr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">members</span><span class="p">:</span>
+                <span class="n">memberstr</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> = </span><span class="si">%s</span><span class="s2">, &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#GUI with: norm=</span><span class="si">%s</span><span class="s2">, samples=</span><span class="si">%s</span><span class="s2">, adaptive=</span><span class="si">%s</span><span class="s2">, histogram=</span><span class="si">%s</span><span class="s2">, includeZeros=</span><span class="si">%s</span><span class="s2">, output=</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">normalization</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptive</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">doHistogram</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">includeZeros</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Console: python </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Control Data: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span><span class="p">)))</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Experimental Data: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expdata</span><span class="p">)))</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Annotation path: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotation_path</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Time: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">columns</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="p">(</span><span class="n">orf</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">mean1</span><span class="p">,</span> <span class="n">mean2</span><span class="p">,</span> <span class="n">test_obs</span><span class="p">,</span> <span class="n">log2FC</span><span class="p">,</span> <span class="n">pval_2tail</span><span class="p">)</span> <span class="o">=</span> <span class="n">row</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%d</span><span class="se">\t</span><span class="si">%1.1f</span><span class="se">\t</span><span class="si">%1.1f</span><span class="se">\t</span><span class="si">%1.2f</span><span class="se">\t</span><span class="si">%1.2f</span><span class="se">\t</span><span class="si">%1.5f</span><span class="se">\t</span><span class="si">%1.5f</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">orf</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">mean1</span><span class="p">,</span> <span class="n">mean2</span><span class="p">,</span> <span class="n">test_obs</span><span class="p">,</span> <span class="n">log2FC</span><span class="p">,</span> <span class="n">pval_2tail</span><span class="p">,</span> <span class="n">qval</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Adding File: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">filetype</span><span class="o">=</span><span class="s2">&quot;Resampling&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Finished resampling Method&quot;</span><span class="p">)</span> </div>
+
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ResamplingMethod.usage_string"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.resampling.ResamplingMethod.usage_string">[docs]</a>    <span class="k">def</span> <span class="nf">usage_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;&quot;python </span><span class="si">%s</span><span class="s2"> resampling &lt;comma-separated .wig control files&gt; &lt;comma-separated .wig experimental files&gt; &lt;annotation .prot_table&gt; &lt;output file&gt; [Optional Arguments]</span>
+<span class="s2">    </span>
+<span class="s2">        Optional Arguments:</span>
+<span class="s2">        -s &lt;integer&gt;    :=  Number of samples. Default: -s 10000</span>
+<span class="s2">        -n &lt;string&gt;     :=  Normalization method. Default: -n TTR</span>
+<span class="s2">        -h              :=  Output histogram of the permutations for each gene. Default: Turned Off.</span>
+<span class="s2">        -a              :=  Perform adaptive resampling. Default: Turned Off.</span>
+<span class="s2">        -iz             :=  Include rows with zero accross conditions.</span>
+<span class="s2">        -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.</span>
+<span class="s2">        -iN &lt;float&gt;     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0</span>
+<span class="s2">        -iC &lt;float&gt;     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0</span>
+<span class="s2">        &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div></div>
+
+
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+    <span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">cleanargs</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+
+    <span class="k">print</span> <span class="s2">&quot;ARGS:&quot;</span><span class="p">,</span> <span class="n">args</span>
+    <span class="k">print</span> <span class="s2">&quot;KWARGS:&quot;</span><span class="p">,</span> <span class="n">kwargs</span>
+
+    <span class="c1">#TODO: Figure out issue with inputs (transit requires initial method name, running as script does not !!!!)</span>
+
+    <span class="n">G</span> <span class="o">=</span> <span class="n">ResamplingMethod</span><span class="o">.</span><span class="n">fromargs</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+    <span class="n">G</span><span class="o">.</span><span class="n">console_message</span><span class="p">(</span><span class="s2">&quot;Printing the member variables:&quot;</span><span class="p">)</span>   
+    <span class="n">G</span><span class="o">.</span><span class="n">print_members</span><span class="p">()</span>
+
+    <span class="k">print</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">print</span> <span class="s2">&quot;Running:&quot;</span>
+
+    <span class="n">G</span><span class="o">.</span><span class="n">Run</span><span class="p">()</span>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/transit_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Michael A. DeJesus.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

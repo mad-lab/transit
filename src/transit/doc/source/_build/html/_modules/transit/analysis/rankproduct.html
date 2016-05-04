@@ -1,0 +1,547 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>transit.analysis.rankproduct &mdash; transit v2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     'v2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="transit v2.0.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for transit.analysis.rankproduct</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">wx</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
+<span class="kn">import</span> <span class="nn">base</span>
+<span class="kn">import</span> <span class="nn">transit.transit_tools</span> <span class="kn">as</span> <span class="nn">transit_tools</span>
+<span class="kn">import</span> <span class="nn">transit.tnseq_tools</span> <span class="kn">as</span> <span class="nn">tnseq_tools</span>
+<span class="kn">import</span> <span class="nn">transit.norm_tools</span> <span class="kn">as</span> <span class="nn">norm_tools</span>
+<span class="kn">import</span> <span class="nn">transit.stat_tools</span> <span class="kn">as</span> <span class="nn">stat_tools</span>
+
+
+
+<span class="c1">############# GUI ELEMENTS ##################</span>
+
+<span class="n">short_name</span> <span class="o">=</span> <span class="s2">&quot;rankproduct&quot;</span>
+<span class="n">long_name</span> <span class="o">=</span> <span class="s2">&quot;Rank Product test for determining conditional essentiality.&quot;</span>
+<span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Differential Comparison based on ranks&quot;</span>
+<span class="n">transposons</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;himar1&quot;</span><span class="p">,</span> <span class="s2">&quot;tn5&quot;</span><span class="p">]</span>
+<span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Orf&quot;</span><span class="p">,</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span><span class="s2">&quot;Desc&quot;</span><span class="p">,</span><span class="s2">&quot;Sites&quot;</span><span class="p">,</span><span class="s2">&quot;Mean Ctrl&quot;</span><span class="p">,</span><span class="s2">&quot;Mean Exp&quot;</span><span class="p">,</span><span class="s2">&quot;log2FC&quot;</span><span class="p">,</span><span class="s2">&quot;Obs RP&quot;</span><span class="p">,</span><span class="s2">&quot;pvalue&quot;</span><span class="p">,</span><span class="s2">&quot;adj. pvalue&quot;</span><span class="p">]</span>
+
+
+
+<span class="c1">############# Analysis Method ##############</span>
+
+<div class="viewcode-block" id="RankProductAnalysis"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.rankproduct.RankProductAnalysis">[docs]</a><span class="k">class</span> <span class="nc">RankProductAnalysis</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">TransitAnalysis</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">TransitAnalysis</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">short_name</span><span class="p">,</span> <span class="n">long_name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">transposons</span><span class="p">,</span> <span class="n">RankProductMethod</span><span class="p">,</span> <span class="n">RankProductGUI</span><span class="p">,</span> <span class="p">[</span><span class="n">RankProductFile</span><span class="p">])</span></div>
+
+
+<span class="c1">################## FILE ###################</span>
+
+<div class="viewcode-block" id="RankProductFile"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.rankproduct.RankProductFile">[docs]</a><span class="k">class</span> <span class="nc">RankProductFile</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">TransitFile</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">TransitFile</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;#RankProduct&quot;</span><span class="p">,</span> <span class="n">columns</span><span class="p">)</span></div>
+
+
+<span class="c1">############# GUI ##################</span>
+
+<div class="viewcode-block" id="RankProductGUI"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.rankproduct.RankProductGUI">[docs]</a><span class="k">class</span> <span class="nc">RankProductGUI</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">AnalysisGUI</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RankProductGUI.definePanel"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.rankproduct.RankProductGUI.definePanel">[docs]</a>    <span class="k">def</span> <span class="nf">definePanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wxobj</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span> <span class="o">=</span> <span class="n">wxobj</span>
+        <span class="n">rankproductPanel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">optionsWindow</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">TAB_TRAVERSAL</span> <span class="p">)</span>
+    
+        <span class="n">rankproductSizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+
+        <span class="n">rankproductLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span> <span class="n">rankproductPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;rankproduct Options&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">rankproductLabel</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span>
+        <span class="n">rankproductSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">rankproductLabel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">rankproductTopSizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span> <span class="p">)</span>
+
+        <span class="n">rankproductTopSizer2</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span> <span class="p">)</span>
+
+        <span class="n">rankproductLabelSizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+
+        <span class="n">rankproductSampleLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span> <span class="n">rankproductPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Samples&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">rankproductSampleLabel</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span>
+        <span class="n">rankproductLabelSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">rankproductSampleLabel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">rankproductNormLabel</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span> <span class="n">rankproductPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Normalization&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">rankproductNormLabel</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span>
+        <span class="n">rankproductLabelSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">rankproductNormLabel</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">rankproductTopSizer2</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">rankproductLabelSizer</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">rankproductControlSizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">rankproductSampleText</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">TextCtrl</span><span class="p">(</span> <span class="n">rankproductPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;10000&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">rankproductControlSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">rankproductSampleText</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">rankproductNormChoiceChoices</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">u&quot;TTR&quot;</span><span class="p">,</span> <span class="s2">u&quot;nzmean&quot;</span><span class="p">,</span> <span class="s2">u&quot;totreads&quot;</span><span class="p">,</span> <span class="s1">u&#39;zinfnb&#39;</span><span class="p">,</span> <span class="s1">u&#39;quantile&#39;</span><span class="p">,</span> <span class="s2">u&quot;betageom&quot;</span><span class="p">,</span> <span class="s2">u&quot;nonorm&quot;</span> <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">rankproductNormChoice</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span> <span class="n">rankproductPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="n">rankproductNormChoiceChoices</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">rankproductNormChoice</span><span class="o">.</span><span class="n">SetSelection</span><span class="p">(</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">rankproductControlSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">rankproductNormChoice</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_VERTICAL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+
+        <span class="n">rankproductTopSizer2</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">rankproductControlSizer</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">rankproductTopSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">rankproductTopSizer2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">rankproductSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">rankproductTopSizer</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+        <span class="n">rankproductButton</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span> <span class="n">rankproductPanel</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Run rankproduct&quot;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">rankproductSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">rankproductButton</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALIGN_CENTER_HORIZONTAL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+ 
+        <span class="n">rankproductPanel</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span> <span class="n">rankproductSizer</span> <span class="p">)</span>
+        <span class="n">rankproductPanel</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+        <span class="n">rankproductSizer</span><span class="o">.</span><span class="n">Fit</span><span class="p">(</span> <span class="n">rankproductPanel</span> <span class="p">)</span>
+
+        <span class="c1">#Connect events</span>
+        <span class="n">rankproductButton</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">EVT_BUTTON</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="o">.</span><span class="n">RunMethod</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">panel</span> <span class="o">=</span> <span class="n">rankproductPanel</span></div></div>
+
+
+
+<span class="c1">########## CLASS #######################</span>
+
+<div class="viewcode-block" id="RankProductMethod"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.rankproduct.RankProductMethod">[docs]</a><span class="k">class</span> <span class="nc">RankProductMethod</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">DualConditionMethod</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;   </span>
+<span class="sd">    rankproduct</span>
+<span class="sd"> </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">ctrldata</span><span class="p">,</span>
+                <span class="n">expdata</span><span class="p">,</span>
+                <span class="n">annotation_path</span><span class="p">,</span>
+                <span class="n">output_file</span><span class="p">,</span>
+                <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;TTR&quot;</span><span class="p">,</span>
+                <span class="n">samples</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                <span class="n">adaptive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">doHistogram</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">replicates</span><span class="o">=</span><span class="s2">&quot;Sum&quot;</span><span class="p">,</span>
+                <span class="n">LOESS</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">ignoreCodon</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                <span class="n">NTerminus</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">CTerminus</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">wxobj</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="n">base</span><span class="o">.</span><span class="n">DualConditionMethod</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">short_name</span><span class="p">,</span> <span class="n">long_name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">ctrldata</span><span class="p">,</span> <span class="n">expdata</span><span class="p">,</span> <span class="n">annotation_path</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">,</span> <span class="n">replicates</span><span class="o">=</span><span class="n">replicates</span><span class="p">,</span> <span class="n">LOESS</span><span class="o">=</span><span class="n">LOESS</span><span class="p">,</span> <span class="n">NTerminus</span><span class="o">=</span><span class="n">NTerminus</span><span class="p">,</span> <span class="n">CTerminus</span><span class="o">=</span><span class="n">CTerminus</span><span class="p">,</span> <span class="n">wxobj</span><span class="o">=</span><span class="n">wxobj</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">samples</span> <span class="o">=</span> <span class="n">samples</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adaptive</span> <span class="o">=</span> <span class="n">adaptive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doHistogram</span> <span class="o">=</span> <span class="n">doHistogram</span>
+        
+
+
+
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="RankProductMethod.fromGUI"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.rankproduct.RankProductMethod.fromGUI">[docs]</a>    <span class="k">def</span> <span class="nf">fromGUI</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wxobj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+        <span class="c1">#Get selected ctrl files</span>
+        <span class="n">ctrl_selected</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">ctrlSelected</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ctrl_selected</span><span class="p">)</span> <span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">wxobj</span><span class="o">.</span><span class="n">ShowError</span><span class="p">(</span><span class="s2">&quot;Error: No Control dataset selected.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="n">exp_selected</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">expSelected</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exp_selected</span><span class="p">)</span> <span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">wxobj</span><span class="o">.</span><span class="n">ShowError</span><span class="p">(</span><span class="s2">&quot;Error: No Experimental dataset selected.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+
+        <span class="c1">#Get Annotation file</span>
+        <span class="n">annotationPath</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">annotation</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">annotationPath</span><span class="p">:</span>
+            <span class="n">wxobj</span><span class="o">.</span><span class="n">ShowError</span><span class="p">(</span><span class="s2">&quot;Error: No annotation file selected.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+
+        <span class="c1">#Read the parameters from the wxPython widgets</span>
+        <span class="n">ignoreCodon</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">rankproductSampleText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">normalization</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">rankproductNormChoice</span><span class="o">.</span><span class="n">GetString</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">rankproductNormChoice</span><span class="o">.</span><span class="n">GetCurrentSelection</span><span class="p">())</span>
+        <span class="n">replicates</span><span class="o">=</span><span class="s2">&quot;Sum&quot;</span>
+        <span class="n">adaptive</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">doHistogram</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="n">NTerminus</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">globalNTerminusText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">CTerminus</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">wxobj</span><span class="o">.</span><span class="n">globalCTerminusText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">LOESS</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="c1">#Get output path</span>
+        <span class="n">defaultFileName</span> <span class="o">=</span> <span class="s2">&quot;rankproduct_output.dat&quot;</span>
+        <span class="n">defaultDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">wxobj</span><span class="o">.</span><span class="n">SaveFile</span><span class="p">(</span><span class="n">defaultDir</span><span class="p">,</span> <span class="n">defaultFileName</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">output_path</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+        <span class="n">output_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">ctrl_selected</span><span class="p">,</span>
+                <span class="n">exp_selected</span><span class="p">,</span>
+                <span class="n">annotationPath</span><span class="p">,</span>
+                <span class="n">output_file</span><span class="p">,</span>
+                <span class="n">normalization</span><span class="p">,</span>
+                <span class="n">samples</span><span class="p">,</span>
+                <span class="n">adaptive</span><span class="p">,</span>
+                <span class="n">doHistogram</span><span class="p">,</span>
+                <span class="n">replicates</span><span class="p">,</span>
+                <span class="n">LOESS</span><span class="p">,</span>
+                <span class="n">ignoreCodon</span><span class="p">,</span>
+                <span class="n">NTerminus</span><span class="p">,</span>
+                <span class="n">CTerminus</span><span class="p">,</span> <span class="n">wxobj</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="RankProductMethod.fromargs"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.rankproduct.RankProductMethod.fromargs">[docs]</a>    <span class="k">def</span> <span class="nf">fromargs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rawargs</span><span class="p">):</span>
+
+        <span class="k">print</span> <span class="s2">&quot;RAW:&quot;</span><span class="p">,</span> <span class="n">rawargs</span>
+        <span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">cleanargs</span><span class="p">(</span><span class="n">rawargs</span><span class="p">)</span>
+
+        <span class="k">print</span> <span class="s2">&quot;ARGS:&quot;</span><span class="p">,</span> <span class="n">args</span>
+        <span class="k">print</span> <span class="s2">&quot;KWARGS:&quot;</span><span class="p">,</span> <span class="n">kwargs</span>
+
+        <span class="n">ctrldata</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">expdata</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">annotationPath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">output_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+        <span class="n">normalization</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;TTR&quot;</span><span class="p">)</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+        <span class="n">adaptive</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">doHistogram</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">replicates</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;Sum&quot;</span><span class="p">)</span>
+    
+        
+        <span class="n">LOESS</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;l&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">ignoreCodon</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">NTerminus</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iN&quot;</span><span class="p">,</span> <span class="mf">0.00</span><span class="p">))</span>
+        <span class="n">CTerminus</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iC&quot;</span><span class="p">,</span> <span class="mf">0.00</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">ctrldata</span><span class="p">,</span>
+                <span class="n">expdata</span><span class="p">,</span>
+                <span class="n">annotationPath</span><span class="p">,</span>
+                <span class="n">output_file</span><span class="p">,</span>
+                <span class="n">normalization</span><span class="p">,</span>
+                <span class="n">samples</span><span class="p">,</span>
+                <span class="n">adaptive</span><span class="p">,</span>
+                <span class="n">doHistogram</span><span class="p">,</span>
+                <span class="n">replicates</span><span class="p">,</span>
+                <span class="n">LOESS</span><span class="p">,</span>
+                <span class="n">ignoreCodon</span><span class="p">,</span>
+                <span class="n">NTerminus</span><span class="p">,</span>
+                <span class="n">CTerminus</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RankProductMethod.Run"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.rankproduct.RankProductMethod.Run">[docs]</a>    <span class="k">def</span> <span class="nf">Run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Starting rankproduct Method&quot;</span><span class="p">)</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+               
+
+
+        <span class="n">Kctrl</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span><span class="p">)</span>
+        <span class="n">Kexp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expdata</span><span class="p">)</span>
+        <span class="c1">#Get orf data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Getting Data&quot;</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span> <span class="o">=</span> <span class="n">tnseq_tools</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">expdata</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalization</span> <span class="o">!=</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Normalizing using: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalization</span><span class="p">)</span>
+
+            <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">factors</span><span class="p">)</span> <span class="o">=</span> <span class="n">norm_tools</span><span class="o">.</span><span class="n">normalize_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalization</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">expdata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation_path</span><span class="p">)</span>           
+         
+
+        <span class="n">Gctrl</span><span class="o">=</span> <span class="n">tnseq_tools</span><span class="o">.</span><span class="n">Genes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">expdata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation_path</span><span class="p">,</span> <span class="n">ignoreCodon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ignoreCodon</span><span class="p">,</span> <span class="n">nterm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">NTerminus</span><span class="p">,</span> <span class="n">cterm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">CTerminus</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">[:</span><span class="n">Kctrl</span><span class="p">,:],</span> <span class="n">position</span><span class="o">=</span><span class="n">position</span><span class="p">)</span>
+
+        <span class="n">Gexp</span><span class="o">=</span> <span class="n">tnseq_tools</span><span class="o">.</span><span class="n">Genes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">expdata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation_path</span><span class="p">,</span> <span class="n">ignoreCodon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ignoreCodon</span><span class="p">,</span> <span class="n">nterm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">NTerminus</span><span class="p">,</span> <span class="n">cterm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">CTerminus</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">Kctrl</span><span class="p">:,:],</span> <span class="n">position</span><span class="o">=</span><span class="n">position</span><span class="p">)</span>
+
+
+        <span class="n">Ngenes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Gctrl</span><span class="p">)</span>
+
+
+        <span class="c1">#print numpy.log2(30/10)</span>
+
+
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        types_list = set([])</span>
+<span class="sd">        for x in [numpy.mean(g.reads+1.0,1) for g in Gctrl]:</span>
+<span class="sd">            types_list.add(type(x[0]))</span>
+
+<span class="sd">        print [numpy.mean(g.reads+1.0,1) for g in Gctrl]</span>
+<span class="sd">        print &quot;FLORF&quot;, types_list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+            
+        <span class="c1">#print Gctrl[0].reads.shape</span>
+        <span class="c1">#print numpy.ones((Kctrl,1)).shape</span>
+
+        <span class="n">T</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">Kctrl</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">meanCtrl</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Kctrl</span><span class="p">,</span> <span class="n">Ngenes</span><span class="p">))</span>
+        <span class="n">meanExp</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Kexp</span><span class="p">,</span> <span class="n">Ngenes</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Ngenes</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">Gctrl</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reads</span><span class="p">):</span>
+                <span class="n">meanCtrl</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Gctrl</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reads</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">meanCtrl</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Kctrl</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">Gexp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reads</span><span class="p">):</span>
+                <span class="n">meanExp</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Gexp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reads</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">meanExp</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Kexp</span><span class="p">)</span>
+
+            
+        <span class="c1">#meanCtrl = numpy.array([numpy.mean(numpy.concatenate((g.reads, numpy.ones((Kctrl,1))),1),1) for g in Gctrl])</span>
+        <span class="c1">#meanExp = numpy.array([numpy.mean(numpy.concatenate((g.reads, numpy.ones((Kexp,1))),1),1) for g in Gexp])</span>
+
+        <span class="c1">#meanExp = numpy.nan_to_num(numpy.array([numpy.mean(g.reads+1.0,1) for g in Gexp]))</span>
+
+        <span class="c1">#meanCtrl[numpy.isnan(meanCtrl)]</span>
+
+        <span class="c1">#print type(meanCtrl[0][0])</span>
+        <span class="c1">#print type(meanExp[0][0])</span>
+        <span class="c1">#print type(meanExp[0][0]/meanCtrl[0][0])</span>
+
+        <span class="c1">#print numpy.log2(meanExp[0][0]/meanCtrl[0][0])</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        logFC2 = numpy.zeros((Ngenes, len(meanCtrl[0])))</span>
+<span class="sd">        for i,ratio in enumerate(meanExp/meanCtrl):</span>
+<span class="sd">            #print i, ratio, numpy.log2(ratio)</span>
+<span class="sd">            logFC2[i] = numpy.log2(ratio)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+        <span class="c1">#print &quot;meanCtrl&quot;</span>
+        <span class="c1">#print meanCtrl</span>
+
+    
+        <span class="c1">#print &quot;meanExp&quot;</span>
+        <span class="c1">#print meanExp</span>
+
+
+        <span class="n">logFC2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log2</span><span class="p">((</span><span class="n">meanExp</span><span class="o">+</span><span class="mf">0.0001</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">meanCtrl</span><span class="o">+</span><span class="mf">0.0001</span><span class="p">))</span>
+        <span class="n">rank</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">rankdata</span><span class="p">(</span><span class="n">Lvec</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">Ngenes</span><span class="p">)</span> <span class="k">for</span> <span class="n">Lvec</span> <span class="ow">in</span> <span class="n">logFC2</span><span class="p">])</span>
+        <span class="n">obsRP</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">rank</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+
+
+        <span class="c1">#print &quot;logFC2&quot;</span>
+        <span class="c1">#print logFC2</span>
+
+        <span class="c1">#print &quot;rank&quot;</span>
+        <span class="c1">#print numpy.array([scipy.stats.rankdata(Lvec) for Lvec in logFC2])</span>
+        
+
+        <span class="c1">#print &quot;obsRP&quot;</span>
+        <span class="c1">#print obsRP</span>
+
+
+        <span class="n">permutations</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span> <span class="n">Ngenes</span><span class="p">))</span>
+        <span class="n">tempranks</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">Ngenes</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">rep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Kctrl</span><span class="p">)])</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">):</span>
+            <span class="n">rankperm</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">tr</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">Ngenes</span><span class="p">)</span> <span class="k">for</span> <span class="n">tr</span> <span class="ow">in</span> <span class="n">tempranks</span><span class="p">])</span>
+            <span class="c1">#print numpy.prod(rankperm,0)</span>
+            <span class="n">permutations</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">rankperm</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+            
+
+        <span class="c1">#print &quot;permutations&quot;</span>
+        <span class="c1">#print permutations</span>
+
+
+        <span class="n">rankRP</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">rankdata</span><span class="p">(</span><span class="n">obsRP</span><span class="p">)</span>
+
+
+
+
+        <span class="c1">#rankproduct</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_range</span><span class="p">(</span><span class="n">Ngenes</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">gene</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">Gctrl</span><span class="p">):</span>
+            <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="c1">#print gene, obsRP[i]</span>
+
+            <span class="n">meanctrl</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Gctrl</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reads</span><span class="p">)</span>
+            <span class="n">meanexp</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Gexp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reads</span><span class="p">)</span>
+            <span class="n">log2fc</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log2</span><span class="p">((</span><span class="n">meanexp</span><span class="o">+</span><span class="mf">0.0001</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">meanctrl</span><span class="o">+</span><span class="mf">0.0001</span><span class="p">))</span>
+            <span class="c1">#countbetter = numpy.sum(permutations &lt; obsRP[i])</span>
+            <span class="n">countbetter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">permutations</span> <span class="o">&lt;</span> <span class="n">obsRP</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            
+            <span class="n">pval</span> <span class="o">=</span> <span class="n">countbetter</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="o">*</span><span class="n">Ngenes</span><span class="p">)</span>
+            <span class="n">q_paper</span> <span class="o">=</span> <span class="n">pval</span><span class="o">/</span><span class="n">rankRP</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+ 
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">gene</span><span class="o">.</span><span class="n">orf</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">desc</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">meanctrl</span><span class="p">,</span> <span class="n">meanexp</span><span class="p">,</span> <span class="n">log2fc</span><span class="p">,</span> <span class="n">obsRP</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">q_paper</span><span class="p">,</span> <span class="n">pval</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress_update</span><span class="p">(</span><span class="s2">&quot;rankproduct&quot;</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transit_message_inplace</span><span class="p">(</span><span class="s2">&quot;Running rankproduct Method... </span><span class="si">%1.1f%%</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span><span class="o">*</span><span class="n">count</span><span class="o">/</span><span class="n">Ngenes</span><span class="p">))</span>
+
+
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="c1"># Printing empty line to flush stdout </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Performing Benjamini-Hochberg Correction&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> 
+        <span class="n">qval</span> <span class="o">=</span> <span class="n">stat_tools</span><span class="o">.</span><span class="n">BH_fdr_correction</span><span class="p">([</span><span class="n">row</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">])</span>
+       
+ 
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#RankProduct</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="p">:</span>
+            <span class="n">members</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">attr</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">attr</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">)])</span>
+            <span class="n">memberstr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">members</span><span class="p">:</span>
+                <span class="n">memberstr</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> = </span><span class="si">%s</span><span class="s2">, &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#GUI with: ctrldata=</span><span class="si">%s</span><span class="s2">, annotation=</span><span class="si">%s</span><span class="s2">, output=</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Console: python </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Data: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span><span class="p">)))</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Annotation path: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span><span class="p">)))</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Time: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">columns</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="p">(</span><span class="n">orf</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">mean1</span><span class="p">,</span> <span class="n">mean2</span><span class="p">,</span> <span class="n">log2FCgene</span><span class="p">,</span> <span class="n">obsRPgene</span><span class="p">,</span> <span class="n">q_paper</span><span class="p">,</span> <span class="n">pval_2tail</span><span class="p">)</span> <span class="o">=</span> <span class="n">row</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%d</span><span class="se">\t</span><span class="si">%1.1f</span><span class="se">\t</span><span class="si">%1.1f</span><span class="se">\t</span><span class="si">%1.2f</span><span class="se">\t</span><span class="si">%1.7f</span><span class="se">\t</span><span class="si">%1.7f</span><span class="se">\t</span><span class="si">%1.7f</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">orf</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">mean1</span><span class="p">,</span> <span class="n">mean2</span><span class="p">,</span><span class="n">log2FCgene</span><span class="p">,</span> <span class="n">obsRPgene</span><span class="p">,</span> <span class="n">pval_2tail</span><span class="p">,</span> <span class="n">qval</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Adding File: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">filetype</span><span class="o">=</span><span class="s2">&quot;RankProduct&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="s2">&quot;Finished rankproduct Method&quot;</span><span class="p">)</span> </div>
+
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="RankProductMethod.usage_string"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.rankproduct.RankProductMethod.usage_string">[docs]</a>    <span class="k">def</span> <span class="nf">usage_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;&quot;python </span><span class="si">%s</span><span class="s2"> rankproduct &lt;comma-separated .wig control files&gt; &lt;comma-separated .wig experimental files&gt; &lt;annotation .prot_table&gt; &lt;output file&gt; [Optional Arguments]</span>
+<span class="s2">    </span>
+<span class="s2">        Optional Arguments:</span>
+<span class="s2">        -s &lt;integer&gt;    :=  Number of samples. Default: -s 100</span>
+<span class="s2">        -n &lt;string&gt;     :=  Normalization method. Default: -n TTR</span>
+<span class="s2">        -h              :=  Output histogram of the permutations for each gene. Default: Turned Off.</span>
+<span class="s2">        -a              :=  Perform adaptive rankproduct. Default: Turned Off.</span>
+<span class="s2">        -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.</span>
+<span class="s2">        -iN &lt;float&gt;     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0</span>
+<span class="s2">        -iC &lt;float&gt;     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0</span>
+<span class="s2">        &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div></div>
+
+
+
+
+
+    
+
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+    <span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">cleanargs</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+
+    <span class="k">print</span> <span class="s2">&quot;ARGS:&quot;</span><span class="p">,</span> <span class="n">args</span>
+    <span class="k">print</span> <span class="s2">&quot;KWARGS:&quot;</span><span class="p">,</span> <span class="n">kwargs</span>
+
+    <span class="c1">#TODO: Figure out issue with inputs (transit requires initial method name, running as script does not !!!!)</span>
+
+    <span class="n">G</span> <span class="o">=</span> <span class="n">RankProductMethod</span><span class="o">.</span><span class="n">fromargs</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+    <span class="n">G</span><span class="o">.</span><span class="n">console_message</span><span class="p">(</span><span class="s2">&quot;Printing the member variables:&quot;</span><span class="p">)</span>   
+    <span class="n">G</span><span class="o">.</span><span class="n">print_members</span><span class="p">()</span>
+
+    <span class="k">print</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">print</span> <span class="s2">&quot;Running:&quot;</span>
+
+    <span class="n">G</span><span class="o">.</span><span class="n">Run</span><span class="p">()</span>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/transit_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Michael A. DeJesus.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>transit.trash &mdash; transit v2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     'v2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="transit v2.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for transit.trash</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2015.</span>
+<span class="c1">#   Michael A. DeJesus, Chaitra Ambadipudi, and  Thomas R. Ioerger.</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#    This file is part of TRANSIT.</span>
+<span class="c1">#</span>
+<span class="c1">#    TRANSIT is free software: you can redistribute it and/or modify</span>
+<span class="c1">#    it under the terms of the GNU General Public License as published by</span>
+<span class="c1">#    the Free Software Foundation, either version 3 of the License.</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#    TRANSIT is distributed in the hope that it will be useful,</span>
+<span class="c1">#    but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1">#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1">#    GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1">#    You should have received a copy of the GNU General Public License</span>
+<span class="c1">#    along with TRANSIT.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<span class="kn">import</span> <span class="nn">wx</span>
+<span class="kn">import</span> <span class="nn">view_trash</span>
+<span class="kn">import</span> <span class="nn">draw_trash</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">ntpath</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">Image</span>
+    <span class="kn">import</span> <span class="nn">ImageDraw</span>
+    <span class="kn">import</span> <span class="nn">ImageFont</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">PIL.Image</span> <span class="kn">as</span> <span class="nn">Image</span>
+    <span class="kn">import</span> <span class="nn">PIL.ImageDraw</span> <span class="kn">as</span> <span class="nn">ImageDraw</span>
+    <span class="kn">import</span> <span class="nn">PIL.ImageFont</span> <span class="kn">as</span> <span class="nn">ImageFont</span>
+
+
+
+
+<div class="viewcode-block" id="WxBitmapToPilImage"><a class="viewcode-back" href="../../transit_code.html#transit.trash.WxBitmapToPilImage">[docs]</a><span class="k">def</span> <span class="nf">WxBitmapToPilImage</span><span class="p">(</span> <span class="n">myBitmap</span> <span class="p">)</span> <span class="p">:</span>
+    <span class="k">return</span> <span class="n">WxImageToPilImage</span><span class="p">(</span> <span class="n">WxBitmapToWxImage</span><span class="p">(</span> <span class="n">myBitmap</span> <span class="p">)</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="WxBitmapToWxImage"><a class="viewcode-back" href="../../transit_code.html#transit.trash.WxBitmapToWxImage">[docs]</a><span class="k">def</span> <span class="nf">WxBitmapToWxImage</span><span class="p">(</span> <span class="n">myBitmap</span> <span class="p">)</span> <span class="p">:</span>
+    <span class="k">return</span> <span class="n">wx</span><span class="o">.</span><span class="n">ImageFromBitmap</span><span class="p">(</span> <span class="n">myBitmap</span> <span class="p">)</span></div>
+
+<span class="c1">#-----</span>
+
+<div class="viewcode-block" id="PilImageToWxBitmap"><a class="viewcode-back" href="../../transit_code.html#transit.trash.PilImageToWxBitmap">[docs]</a><span class="k">def</span> <span class="nf">PilImageToWxBitmap</span><span class="p">(</span> <span class="n">myPilImage</span> <span class="p">)</span> <span class="p">:</span>
+    <span class="k">return</span> <span class="n">WxImageToWxBitmap</span><span class="p">(</span> <span class="n">PilImageToWxImage</span><span class="p">(</span> <span class="n">myPilImage</span> <span class="p">)</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="PilImageToWxImage"><a class="viewcode-back" href="../../transit_code.html#transit.trash.PilImageToWxImage">[docs]</a><span class="k">def</span> <span class="nf">PilImageToWxImage</span><span class="p">(</span> <span class="n">myPilImage</span> <span class="p">):</span>
+    <span class="n">myWxImage</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">EmptyImage</span><span class="p">(</span> <span class="n">myPilImage</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">myPilImage</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">myWxImage</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span> <span class="n">myPilImage</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="s1">&#39;RGB&#39;</span> <span class="p">)</span><span class="o">.</span><span class="n">tostring</span><span class="p">()</span> <span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">myWxImage</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span> <span class="n">myPilImage</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="s1">&#39;RGB&#39;</span> <span class="p">)</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">myWxImage</span></div>
+
+<div class="viewcode-block" id="WxImageToWxBitmap"><a class="viewcode-back" href="../../transit_code.html#transit.trash.WxImageToWxBitmap">[docs]</a><span class="k">def</span> <span class="nf">WxImageToWxBitmap</span><span class="p">(</span> <span class="n">myWxImage</span> <span class="p">)</span> <span class="p">:</span>
+    <span class="k">return</span> <span class="n">myWxImage</span><span class="o">.</span><span class="n">ConvertToBitmap</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="fetch_name"><a class="viewcode-back" href="../../transit_code.html#transit.trash.fetch_name">[docs]</a><span class="k">def</span> <span class="nf">fetch_name</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">ntpath</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filepath</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<span class="n">track_prefix</span> <span class="o">=</span> <span class="s2">&quot;[TrackView]&quot;</span>
+<span class="c1">#inherit from the MainFrame created in wxFowmBuilder and create CalcFrame</span>
+<div class="viewcode-block" id="TrashFrame"><a class="viewcode-back" href="../../transit_code.html#transit.trash.TrashFrame">[docs]</a><span class="k">class</span> <span class="nc">TrashFrame</span><span class="p">(</span><span class="n">view_trash</span><span class="o">.</span><span class="n">MainFrame</span><span class="p">):</span>
+    <span class="c1">#constructor</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="p">,</span> <span class="n">dataset_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;H37Rv_Sassetti_glycerol.wig&quot;</span><span class="p">],</span> <span class="n">annotation</span><span class="o">=</span><span class="s2">&quot;H37Rv.prot_table&quot;</span><span class="p">,</span> <span class="n">gene</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Size</span><span class="p">(</span> <span class="mi">1500</span><span class="p">,</span><span class="mi">800</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="mi">10000</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">orf2data</span> <span class="o">=</span> <span class="n">draw_trash</span><span class="o">.</span><span class="n">read_prot_table</span><span class="p">(</span><span class="n">annotation</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hash</span> <span class="o">=</span> <span class="n">draw_trash</span><span class="o">.</span><span class="n">hash_prot_genes</span><span class="p">(</span><span class="n">annotation</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1">#Data to facilitate search</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name2id</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">annotation</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">orfid</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">name2id</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name2id</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name2id</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">orfid</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lowerid2id</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">x</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">orf2data</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">fetch_name</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dataset_list</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fulldata</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">dataset_list</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;variable&quot;</span><span class="p">):</span> <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;location&quot;</span><span class="p">):</span> <span class="k">continue</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="n">pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">read</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pos</span><span class="p">,</span><span class="n">read</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fulldata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+
+    
+        <span class="c1">#Calculate stats to normalize data</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fulldata</span><span class="p">)</span>
+        <span class="n">total_hits</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sum</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">pos</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="n">X</span><span class="p">])</span> <span class="k">for</span> <span class="n">X</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fulldata</span><span class="p">]</span>
+        <span class="n">TAs_hit</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sum</span><span class="p">([</span><span class="mi">1</span> <span class="k">for</span> <span class="n">pos</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="n">X</span> <span class="k">if</span> <span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span>  <span class="k">for</span> <span class="n">X</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fulldata</span><span class="p">]</span>
+        <span class="n">mean_hits</span> <span class="o">=</span> <span class="p">[</span><span class="n">total_hits</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">TAs_hit</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span>
+        <span class="n">grand_total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">mean_hits</span><span class="p">)</span>
+        <span class="n">grand_mean</span> <span class="o">=</span> <span class="n">grand_total</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="p">[</span><span class="n">grand_mean</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">mean_hits</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span>
+
+        <span class="c1">#Save normalized data</span>
+        <span class="k">print</span> <span class="n">track_prefix</span><span class="p">,</span> <span class="s2">&quot;Normalization factors&quot;</span><span class="p">,</span> <span class="n">factors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fulldata_norm</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fulldata</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fulldata_norm</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fulldata_norm</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">factors</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
+
+
+        <span class="c1">#initialize parent class</span>
+        <span class="n">view_trash</span><span class="o">.</span><span class="n">MainFrame</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">gene</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">searchText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">gene</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">searchFunc</span><span class="p">(</span><span class="n">gene</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateFunc</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Fit</span><span class="p">()</span>
+
+
+
+ 
+<div class="viewcode-block" id="TrashFrame.updateFunc"><a class="viewcode-back" href="../../transit_code.html#transit.trash.TrashFrame.updateFunc">[docs]</a>    <span class="k">def</span> <span class="nf">updateFunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">event</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">startText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">endText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+
+            <span class="n">min_read</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">minText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">():</span>
+                <span class="n">min_read</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+
+            <span class="n">max_read</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">():</span>
+                <span class="n">max_read</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+
+
+    
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">normCheck</span><span class="o">.</span><span class="n">GetValue</span><span class="p">():</span>
+                <span class="n">image_pil</span> <span class="o">=</span> <span class="n">draw_trash</span><span class="o">.</span><span class="n">draw_canvas</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fulldata_norm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">orf2data</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">min_read</span><span class="o">=</span><span class="n">min_read</span><span class="p">,</span> <span class="n">max_read</span><span class="o">=</span><span class="n">max_read</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">image_pil</span> <span class="o">=</span> <span class="n">draw_trash</span><span class="o">.</span><span class="n">draw_canvas</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fulldata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">orf2data</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">min_read</span><span class="o">=</span><span class="n">min_read</span><span class="p">,</span> <span class="n">max_read</span><span class="o">=</span><span class="n">max_read</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
+
+            <span class="c1">#image_pil = draw_trash.draw_canvas(start, end, min_read, max_read, self.data, self.hash, self.orf2data)</span>
+            <span class="c1">#image_wxBit = PilImageToWxBitmap( image_pil )</span>
+            <span class="n">image_wxImg</span> <span class="o">=</span> <span class="n">PilImageToWxImage</span><span class="p">(</span> <span class="n">image_pil</span> <span class="p">)</span>
+            <span class="c1">#self.m_bitmap1 = wx.StaticBitmap(self, -1, image_wxBit, (0, 0))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">m_bitmap1</span><span class="o">.</span><span class="n">SetBitmap</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">BitmapFromImage</span><span class="p">(</span><span class="n">image_wxImg</span><span class="p">))</span>
+            <span class="c1">#self.m_bitmap1 = image_wxBit</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Refresh</span><span class="p">()</span>
+            <span class="n">image_pil</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span> <span class="n">track_prefix</span> <span class="o">+</span> <span class="s1">&#39;[ERROR]:&#39;</span><span class="p">,</span> <span class="n">e</span></div>
+            <span class="c1">#put a blank string in text when &#39;Clear&#39; is clicked</span>
+
+
+
+
+<div class="viewcode-block" id="TrashFrame.leftFunc"><a class="viewcode-back" href="../../transit_code.html#transit.trash.TrashFrame.leftFunc">[docs]</a>    <span class="k">def</span> <span class="nf">leftFunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">startText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">endText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">end</span><span class="o">-</span><span class="n">start</span>
+        <span class="n">new_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">start</span> <span class="o">-</span> <span class="n">delta</span><span class="o">*</span><span class="mf">0.10</span><span class="p">)</span>
+        <span class="n">new_end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">delta</span><span class="o">*</span><span class="mf">0.10</span><span class="p">)</span>
+
+        <span class="c1">#new_start = start - 500</span>
+        <span class="c1">#new_end = end - 500</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">startText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">new_start</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">endText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">new_end</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateFunc</span><span class="p">(</span><span class="n">event</span><span class="p">)</span> </div>
+
+
+<div class="viewcode-block" id="TrashFrame.rightFunc"><a class="viewcode-back" href="../../transit_code.html#transit.trash.TrashFrame.rightFunc">[docs]</a>    <span class="k">def</span> <span class="nf">rightFunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">startText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">endText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">end</span><span class="o">-</span><span class="n">start</span>
+        <span class="n">new_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">delta</span><span class="o">*</span><span class="mf">0.10</span><span class="p">)</span>
+        <span class="n">new_end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">end</span> <span class="o">+</span> <span class="n">delta</span><span class="o">*</span><span class="mf">0.10</span><span class="p">)</span>
+
+        <span class="c1">#new_start = start + 500</span>
+        <span class="c1">#new_end = end + 500</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">startText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">new_start</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">endText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">new_end</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateFunc</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="TrashFrame.zoomInFunc"><a class="viewcode-back" href="../../transit_code.html#transit.trash.TrashFrame.zoomInFunc">[docs]</a>    <span class="k">def</span> <span class="nf">zoomInFunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">startText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">endText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">end</span><span class="o">-</span><span class="n">start</span>
+        <span class="n">new_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">delta</span><span class="o">*</span><span class="mf">0.10</span><span class="p">)</span>
+        <span class="n">new_end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">delta</span><span class="o">*</span><span class="mf">0.10</span><span class="p">)</span>
+
+        <span class="c1">#new_start = start + 500</span>
+        <span class="c1">#new_end = end - 500</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">startText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">new_start</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">endText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">new_end</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateFunc</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TrashFrame.zoomOutFunc"><a class="viewcode-back" href="../../transit_code.html#transit.trash.TrashFrame.zoomOutFunc">[docs]</a>    <span class="k">def</span> <span class="nf">zoomOutFunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">startText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">endText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">end</span><span class="o">-</span><span class="n">start</span>
+        <span class="n">new_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">start</span> <span class="o">-</span> <span class="n">delta</span><span class="o">*</span><span class="mf">0.10</span><span class="p">)</span>
+        <span class="n">new_end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">end</span> <span class="o">+</span> <span class="n">delta</span><span class="o">*</span><span class="mf">0.10</span><span class="p">)</span>
+
+        <span class="c1">#new_start = start - 500</span>
+        <span class="c1">#new_end = end + 500</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">startText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">new_start</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">endText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">new_end</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateFunc</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>    </div>
+
+
+<div class="viewcode-block" id="TrashFrame.resetFunc"><a class="viewcode-back" href="../../transit_code.html#transit.trash.TrashFrame.resetFunc">[docs]</a>    <span class="k">def</span> <span class="nf">resetFunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">startText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">endText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s2">&quot;10000&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">minText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s2">&quot;150&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateFunc</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TrashFrame.saveImageFunc"><a class="viewcode-back" href="../../transit_code.html#transit.trash.TrashFrame.saveImageFunc">[docs]</a>    <span class="k">def</span> <span class="nf">saveImageFunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">finished_image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_bitmap1</span><span class="o">.</span><span class="n">GetBitmap</span><span class="p">()</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SaveFile</span><span class="p">(</span><span class="n">DIR</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">FILE</span><span class="o">=</span><span class="s2">&quot;reads_canvas.png&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">output_path</span><span class="p">:</span>
+            <span class="n">finished_image</span><span class="o">.</span><span class="n">SaveFile</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">BITMAP_TYPE_PNG</span><span class="p">)</span>
+        <span class="k">print</span> <span class="n">track_prefix</span><span class="p">,</span> <span class="s2">&quot;Image saved to the following path:&quot;</span><span class="p">,</span> <span class="n">output_path</span></div>
+    
+
+<div class="viewcode-block" id="TrashFrame.addFeatureFunc"><a class="viewcode-back" href="../../transit_code.html#transit.trash.TrashFrame.addFeatureFunc">[docs]</a>    <span class="k">def</span> <span class="nf">addFeatureFunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+
+
+<div class="viewcode-block" id="TrashFrame.searchFunc"><a class="viewcode-back" href="../../transit_code.html#transit.trash.TrashFrame.searchFunc">[docs]</a>    <span class="k">def</span> <span class="nf">searchFunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">searchText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()</span>
+
+        <span class="k">print</span> <span class="n">track_prefix</span><span class="p">,</span> <span class="s2">&quot;Search query:&quot;</span><span class="p">,</span> <span class="n">query</span>
+        <span class="c1">#check if query is name:</span>
+        <span class="n">genes_match_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name2id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="p">[])</span>
+        <span class="n">gene_match_orf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lowerid2id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">gene_match_orf_w_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lowerid2id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+
+        <span class="k">print</span> <span class="n">track_prefix</span><span class="p">,</span> <span class="s2">&quot;Genes with matching name:&quot;</span><span class="p">,</span> <span class="n">genes_match_name</span>
+        <span class="k">print</span> <span class="n">track_prefix</span><span class="p">,</span> <span class="s2">&quot;Genes with matching IDs:&quot;</span><span class="p">,</span> <span class="n">gene_match_orf</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">genes_match_name</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>      <span class="c1"># Check if query is a name</span>
+            <span class="n">orf_match</span> <span class="o">=</span> <span class="n">genes_match_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">gene_match_orf</span><span class="p">:</span>                <span class="c1"># Check if query is an orf id</span>
+            <span class="n">orf_match</span> <span class="o">=</span> <span class="n">gene_match_orf</span>
+        <span class="k">elif</span> <span class="n">gene_match_orf_w_c</span><span class="p">:</span>            <span class="c1"># Check if query is an orf id with missing &quot;c&quot; at end</span>
+            <span class="n">orf_match</span> <span class="o">=</span> <span class="n">gene_match_orf_w_c</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span>
+
+
+        <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">strand</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orf2data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">orf_match</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">])</span>
+
+        <span class="k">print</span> <span class="n">track_prefix</span><span class="p">,</span> <span class="s2">&quot;Matched data:&quot;</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">strand</span><span class="p">,</span> <span class="n">name</span>
+       
+        <span class="k">try</span><span class="p">:</span>
+
+            <span class="c1">#Set the start and end coords with the new info</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">startText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">start</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">endText</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">end</span><span class="p">))</span>
+
+            <span class="c1">#Get min/max read info from text controls</span>
+            <span class="n">min_read</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+            <span class="n">max_read</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxText</span><span class="o">.</span><span class="n">GetValue</span><span class="p">())</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">normCheck</span><span class="o">.</span><span class="n">GetValue</span><span class="p">():</span>
+                <span class="n">image_pil</span> <span class="o">=</span> <span class="n">draw_trash</span><span class="o">.</span><span class="n">draw_canvas</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fulldata_norm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">orf2data</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">min_read</span><span class="o">=</span><span class="n">min_read</span><span class="p">,</span> <span class="n">max_read</span><span class="o">=</span><span class="n">max_read</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">image_pil</span> <span class="o">=</span> <span class="n">draw_trash</span><span class="o">.</span><span class="n">draw_canvas</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fulldata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">orf2data</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">min_read</span><span class="o">=</span><span class="n">min_read</span><span class="p">,</span> <span class="n">max_read</span><span class="o">=</span><span class="n">max_read</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
+
+
+            <span class="c1">#image_pil = draw_trash.draw_canvas(start, end, min_read, max_read, self.data, self.hash, self.orf2data)</span>
+            <span class="c1">#image_wxBit = PilImageToWxBitmap( image_pil )</span>
+            <span class="n">image_wxImg</span> <span class="o">=</span> <span class="n">PilImageToWxImage</span><span class="p">(</span> <span class="n">image_pil</span> <span class="p">)</span>
+            <span class="c1">#self.m_bitmap1 = wx.StaticBitmap(self, -1, image_wxBit, (0, 0))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">m_bitmap1</span><span class="o">.</span><span class="n">SetBitmap</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">BitmapFromImage</span><span class="p">(</span><span class="n">image_wxImg</span><span class="p">))</span>
+            <span class="c1">#self.m_bitmap1 = image_wxBit</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Refresh</span><span class="p">()</span>
+            <span class="n">image_pil</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span> <span class="n">track_prefix</span> <span class="o">+</span> <span class="s1">&#39;[ERROR]:&#39;</span><span class="p">,</span> <span class="n">e</span></div>
+ 
+        
+
+
+<div class="viewcode-block" id="TrashFrame.SaveFile"><a class="viewcode-back" href="../../transit_code.html#transit.trash.TrashFrame.SaveFile">[docs]</a>    <span class="k">def</span> <span class="nf">SaveFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DIR</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">FILE</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">WC</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create and show the Save FileDialog</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">dlg</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">FileDialog</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Save file as ...&quot;</span><span class="p">,</span>
+            <span class="n">defaultDir</span><span class="o">=</span><span class="n">DIR</span><span class="p">,</span>
+            <span class="n">defaultFile</span><span class="o">=</span><span class="n">FILE</span><span class="p">,</span> <span class="n">wildcard</span><span class="o">=</span><span class="n">WC</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">SAVE</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">OVERWRITE_PROMPT</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">dlg</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span> <span class="o">==</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_OK</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">dlg</span><span class="o">.</span><span class="n">GetPath</span><span class="p">()</span>
+            <span class="c1">#print track_prefix, &quot;You chose the following output filename: %s&quot; % path</span>
+        <span class="n">dlg</span><span class="o">.</span><span class="n">Destroy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">path</span></div></div>
+
+
+
+<span class="c1">#mandatory in wx, create an app, False stands for not deteriction stdin/stdout</span>
+<span class="c1">#refer manual for details</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">App</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+     
+    <span class="c1">#create an object of CalcFrame</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">TrashFrame</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+    <span class="c1">#show the frame</span>
+    <span class="n">frame</span><span class="o">.</span><span class="n">Show</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+    <span class="c1">#start the applications</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">MainLoop</span><span class="p">()</span>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/transit_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Michael A. DeJesus.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

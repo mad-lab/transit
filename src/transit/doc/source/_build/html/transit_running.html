@@ -1,0 +1,447 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Running TRANSIT &mdash; transit v2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     'v2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="transit v2.0.0 documentation" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">transit v2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="running-transit">
+<h1>Running TRANSIT<a class="headerlink" href="#running-transit" title="Permalink to this headline">¶</a></h1>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="section" id="gui-mode">
+<h2>GUI Mode<a class="headerlink" href="#gui-mode" title="Permalink to this headline">¶</a></h2>
+<p>To run TRANSIT in GUI mode (should be the same on Linux, Windows and MacOS), from the command line run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">PATH</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">transit</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>where PATH is the path to the TRANSIT installation directory. You might be able to double-click on icon for transit.py, if your OS associates .py files with python and automatically runs them. Note, because TRANSIT has a graphical user interface, if you are trying to run TRANSIT across a network, for example, running on a unix server but displaying on a desktop machine, you will probably need to use &#8216;ssh -Y&#8217; and a local X11 client (like Xming or Cygwin/X on PCs).</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="command-line-mode">
+<h2>Command line Mode<a class="headerlink" href="#command-line-mode" title="Permalink to this headline">¶</a></h2>
+<p>TRANSIT can also be run from the command line, without the GUI interface. This is convenient if you want to run many analyses in batch, as you can write a script that automatically runs that automatically runs TRANSIT from the command line. TRANSIT expects the user to specify which analysis method they wish to run. The user can choose from &#8220;gumbel&#8221;, &#8220;hmm&#8221;, or &#8220;resampling&#8221;. By choosing a method, and adding the &#8220;-h&#8221; flag, you will get a list of all the necessary parameters and optional flags for the chosen method:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">PATH</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">transit</span><span class="o">.</span><span class="n">py</span> <span class="n">gumbel</span> <span class="o">-</span><span class="n">h</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="section" id="gumbel">
+<h3>Gumbel<a class="headerlink" href="#gumbel" title="Permalink to this headline">¶</a></h3>
+<p>To run the Gumbel analysis from the command line, type &#8220;python PATH/src/transit.py gumbel&#8221; followed by the following arguments:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Argument</th>
+<th class="head">Type</th>
+<th class="head">Description</th>
+<th class="head">Default</th>
+<th class="head">Example</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>annotation</td>
+<td>Required</td>
+<td>Path to
+annotation
+file in
+.prot_table
+format</td>
+<td>&nbsp;</td>
+<td>genomes/H37Rv.
+prot_table</td>
+</tr>
+<tr class="row-odd"><td>control_files</td>
+<td>Required</td>
+<td>Comma-separate
+d
+list of paths
+to the *.wig
+replicate
+datasets</td>
+<td>&nbsp;</td>
+<td>data/glycerol_reads_rep1.w
+ig,data/glycer
+ol_reads_rep
+2.wig</td>
+</tr>
+<tr class="row-even"><td>output_file</td>
+<td>Required</td>
+<td>Name of the
+output file
+with the
+results.</td>
+<td>&nbsp;</td>
+<td>results/gumbel
+_glycerol.dat</td>
+</tr>
+<tr class="row-odd"><td>-s SAMPLES</td>
+<td>Optional</td>
+<td>Number of
+samples to
+take.</td>
+<td>10000</td>
+<td>-s 20000</td>
+</tr>
+<tr class="row-even"><td>-m MINREAD</td>
+<td>Optional</td>
+<td>Smallest
+read-count
+considered to
+be an
+insertion.</td>
+<td>1</td>
+<td>-m 2</td>
+</tr>
+<tr class="row-odd"><td>-b BURNIN</td>
+<td>Optional</td>
+<td>Burn in
+period, Skips
+this number of
+samples before
+getting
+estimates. See
+documentation.</td>
+<td>500</td>
+<td>-b 100</td>
+</tr>
+<tr class="row-even"><td>-t TRIM</td>
+<td>Optional</td>
+<td>Number of
+samples to
+trim. See
+documentation.</td>
+<td>1</td>
+<td>-t 2</td>
+</tr>
+<tr class="row-odd"><td>-r REP</td>
+<td>Optional</td>
+<td>How to handle
+replicates
+read-counts:
+&#8216;Sum&#8217; or
+&#8216;Mean&#8217;.</td>
+<td>Sum</td>
+<td>-r Mean</td>
+</tr>
+<tr class="row-even"><td>-iN IGNOREN</td>
+<td>Optional</td>
+<td>Ignore TAs
+occuring at X%
+of the N
+terminus.</td>
+<td>5</td>
+<td>-iN 0</td>
+</tr>
+<tr class="row-odd"><td>-iC IGNOREC</td>
+<td>Optional</td>
+<td>Ignore TAs
+occuring at X%
+of the C
+terminus.</td>
+<td>5</td>
+<td>-iC 10</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">PATH</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">transit</span><span class="o">.</span><span class="n">py</span> <span class="n">gumbel</span> <span class="n">genomes</span><span class="o">/</span><span class="n">H37Rv</span><span class="o">.</span><span class="n">prot_table</span> <span class="n">data</span><span class="o">/</span><span class="n">glycerol_reads_rep1</span><span class="o">.</span><span class="n">wig</span><span class="p">,</span><span class="n">data</span><span class="o">/</span><span class="n">glycerol_reads_rep2</span><span class="o">.</span><span class="n">wig</span> <span class="n">test_console_gumbel</span><span class="o">.</span><span class="n">dat</span> <span class="o">-</span><span class="n">s</span> <span class="mi">20000</span> <span class="o">-</span><span class="n">b</span> <span class="mi">1000</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="tn5-gaps">
+<h3>Tn5 Gaps<a class="headerlink" href="#tn5-gaps" title="Permalink to this headline">¶</a></h3>
+<p>To run the Tn5 Gaps analysis from the command line, type &#8220;python
+PATH/src/transit.py tn5gaps&#8221; followed by the following arguments:</p>
+<p>Argument Type Description Default Example annotation Required Path to
+annotation file in .prot_table format genomes/Salmonella-
+Ty2.prot_table control_files Required Comma-separated list of paths to
+the *.wig replicate datasets
+data/salmonella_2122_rep1.wig,data/salmonella_2122_rep2.wig
+output_file Required Name of the output file with the results.
+results/test_console_tn5gaps.dat -m MINREAD Optional Smallest read-
+count considered to be an insertion. 1 -m 2 -r REP Optional How to
+handle replicates read-counts: &#8216;Sum&#8217; or &#8216;Mean&#8217;. Sum -r Sum</p>
+<p>Example Tn5 Gaps command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">PATH</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">transit</span><span class="o">.</span><span class="n">py</span> <span class="n">tn5gaps</span> <span class="n">genomes</span><span class="o">/</span><span class="n">Salmonella</span><span class="o">-</span><span class="n">Ty2</span><span class="o">.</span><span class="n">prot_table</span> <span class="n">data</span><span class="o">/</span><span class="n">salmonella_2122_rep1</span><span class="o">.</span><span class="n">wig</span><span class="p">,</span><span class="n">data</span><span class="o">/</span><span class="n">salmonella_2122_rep2</span><span class="o">.</span><span class="n">wig</span> <span class="n">results</span><span class="o">/</span><span class="n">test_console_tn5gaps</span><span class="o">.</span><span class="n">dat</span> <span class="o">-</span><span class="n">m</span> <span class="mi">2</span> <span class="o">-</span><span class="n">r</span> <span class="n">Sum</span>
+</pre></div>
+</div>
+<p>Example HMM command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">PATH</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">transit</span><span class="o">.</span><span class="n">py</span> <span class="n">hmm</span> <span class="n">genomes</span><span class="o">/</span><span class="n">H37Rv</span><span class="o">.</span><span class="n">prot_table</span> <span class="n">data</span><span class="o">/</span><span class="n">glycerol_reads_rep1</span><span class="o">.</span><span class="n">wig</span><span class="p">,</span><span class="n">data</span><span class="o">/</span><span class="n">glycerol_reads_rep2</span><span class="o">.</span><span class="n">wig</span> <span class="n">test_console_hmm</span><span class="o">.</span><span class="n">dat</span> <span class="o">-</span><span class="n">r</span> <span class="n">Sum</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="resampling">
+<h3>Resampling<a class="headerlink" href="#resampling" title="Permalink to this headline">¶</a></h3>
+<p>To run the Resampling analysis from the command line, type &#8220;python
+PATH/src/transit.py resampling&#8221; followed by the following arguments:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Argument</th>
+<th class="head">Type</th>
+<th class="head">Description</th>
+<th class="head">Default</th>
+<th class="head">Example</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>annotation</td>
+<td>Required</td>
+<td>Path to
+annotation
+file in
+.prot_table
+format</td>
+<td>&nbsp;</td>
+<td>genomes/H37Rv.
+prot_table</td>
+</tr>
+<tr class="row-odd"><td>control_files</td>
+<td>Required</td>
+<td>Comma-separate
+d
+list of paths
+to the *.wig
+replicate
+datasets for
+the control
+condition</td>
+<td>&nbsp;</td>
+<td>data/glycerol_reads_rep1.w
+ig,data/glycer
+ol_reads_rep
+2.wig</td>
+</tr>
+<tr class="row-even"><td>exp_files</td>
+<td>Required</td>
+<td>Comma-separate
+d
+list of paths
+to the *.wig
+replicate
+datasets for
+the
+experimental
+condition</td>
+<td>&nbsp;</td>
+<td>data/cholester
+ol_reads_rep
+1.wig,data/cho
+lesterol_read
+s_rep2.wig</td>
+</tr>
+<tr class="row-odd"><td>output_file</td>
+<td>Required</td>
+<td>Name of the
+output file
+with the
+results.</td>
+<td>&nbsp;</td>
+<td>results/gumbel
+_glycerol.dat</td>
+</tr>
+<tr class="row-even"><td>-s SAMPLES</td>
+<td>Optional</td>
+<td>Number of
+permutations
+performed.</td>
+<td>10000</td>
+<td>-s 5000</td>
+</tr>
+<tr class="row-odd"><td>-H</td>
+<td>Optional</td>
+<td>Creates
+histograms of
+the
+permutations
+for all genes.</td>
+<td>Not set</td>
+<td>-H</td>
+</tr>
+<tr class="row-even"><td>-a</td>
+<td>Optional</td>
+<td>Performs
+adaptive
+appoximation
+to resampling.</td>
+<td>Not set</td>
+<td>-a</td>
+</tr>
+<tr class="row-odd"><td>-N</td>
+<td>Optional</td>
+<td>Select which
+normalizing
+procedure to
+use. Can
+choose between
+&#8216;TTR&#8217;,
+&#8216;nzmean&#8217;,
+&#8216;totreads&#8217;,
+&#8216;zinfnb&#8217;,
+&#8216;betageom&#8217;,
+and &#8216;nonorm&#8217;.
+See the
+parameters
+section for
+the
+<a class="reference external" href="http://saclab.tamu.edu/essentiality/transit/transit.html#resampling">Re-sampling
+method</a>
+for a
+description of
+these
+normalization
+options.</td>
+<td>nzmean</td>
+<td>-N nzmean</td>
+</tr>
+<tr class="row-even"><td>-iN IGNOREN</td>
+<td>Optional</td>
+<td>Ignore TAs
+occuring at X%
+of the N
+terminus.</td>
+<td>5</td>
+<td>-iN 0</td>
+</tr>
+<tr class="row-odd"><td>-iC IGNOREC</td>
+<td>Optional</td>
+<td>Ignore TAs
+occuring at X%
+of the C
+terminus.</td>
+<td>5</td>
+<td>-iC 10</td>
+</tr>
+</tbody>
+</table>
+<p>Example Resampling command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">PATH</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">transit</span><span class="o">.</span><span class="n">py</span> <span class="n">resampling</span> <span class="n">genomes</span><span class="o">/</span><span class="n">H37Rv</span><span class="o">.</span><span class="n">prot_table</span> <span class="n">data</span><span class="o">/</span><span class="n">glycerol_reads_rep1</span><span class="o">.</span><span class="n">wig</span><span class="p">,</span><span class="n">data</span><span class="o">/</span><span class="n">glycerol_reads_rep2</span><span class="o">.</span><span class="n">wig</span> <span class="n">data</span><span class="o">/</span><span class="n">cholesterol_reads_rep1</span><span class="o">.</span><span class="n">wig</span><span class="p">,</span><span class="n">data</span><span class="o">/</span><span class="n">cholesterol_reads_rep2</span><span class="o">.</span><span class="n">wig</span><span class="p">,</span><span class="n">data</span><span class="o">/</span><span class="n">cholesterol_reads_rep3</span><span class="o">.</span><span class="n">wig</span> <span class="n">test_console_resampling</span><span class="o">.</span><span class="n">dat</span> <span class="o">-</span><span class="n">H</span> <span class="o">-</span><span class="n">s</span> <span class="mi">10000</span> <span class="o">-</span><span class="n">N</span> <span class="n">nzmean</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/transit_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Running TRANSIT</a><ul>
+<li><a class="reference internal" href="#gui-mode">GUI Mode</a></li>
+<li><a class="reference internal" href="#command-line-mode">Command line Mode</a><ul>
+<li><a class="reference internal" href="#gumbel">Gumbel</a></li>
+<li><a class="reference internal" href="#tn5-gaps">Tn5 Gaps</a></li>
+<li><a class="reference internal" href="#resampling">Resampling</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/transit_running.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">transit v2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Michael A. DeJesus.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

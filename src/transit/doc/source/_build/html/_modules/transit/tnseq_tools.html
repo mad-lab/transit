@@ -1,0 +1,889 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>transit.tnseq_tools &mdash; transit v2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     'v2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="transit v2.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for transit.tnseq_tools</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">total_ordering</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">norm_tools</span>
+    <span class="n">noNorm</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">noNorm</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Problem importing the norm_tools.py module. Read-counts will not be normalized.&quot;</span><span class="p">)</span>
+
+<span class="nd">@total_ordering</span>
+<div class="viewcode-block" id="Gene"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Gene">[docs]</a><span class="k">class</span> <span class="nc">Gene</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;This is a longer explanation, which may include math with latex syntax</span>
+<span class="sd">    Then, you need to provide optional subsection in this order (just to be</span>
+<span class="sd">    consistent and have a uniform documentation. Nothing prevent you to</span>
+<span class="sd">    switch the order):</span>
+
+<span class="sd">        - parameters using ``:param &lt;name&gt;: &lt;description&gt;``</span>
+<span class="sd">        - type of the parameters ``:type &lt;name&gt;: &lt;description&gt;``</span>
+<span class="sd">        - returns using ``:returns: &lt;description&gt;``</span>
+<span class="sd">        - examples (doctest)</span>
+<span class="sd">        - seealso using ``.. seealso:: text``</span>
+<span class="sd">        - notes using ``.. note:: text``</span>
+<span class="sd">        - warning using ``.. warning:: text``</span>
+<span class="sd">        - todo ``.. todo:: text``</span>
+
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        orf (str): ORF ID. Must be unique.</span>
+<span class="sd">        name (str): Human readable name of the ORF.</span>
+<span class="sd">        reads (list): Read-counts data for the ORF.</span>
+<span class="sd">        position (list): Position of TA sites for the ORF.</span>
+<span class="sd">        start (int): Start coordinate for the ORF.</span>
+<span class="sd">        end (int): End coordinate for the ORF.</span>
+<span class="sd">        strand (str): Strand for the ORF.</span>
+
+<span class="sd">    :Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; import tnseq_tools</span>
+<span class="sd">        &gt;&gt;&gt; G = tnseq_tools.Gene(&quot;Rv0001&quot;, &quot;dnaA&quot;, [[0,0,0,0,1,0,32]], start=1, end=1500, strand=&quot;+&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; print G</span>
+<span class="sd">        Rv0001 (dnaA): 2,7,4</span>
+
+<span class="sd">        .. warning:: orf must be unique.</span>
+<span class="sd">        .. seealso:: :class:`Genes`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orf</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">reads</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">strand</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes the Gene object.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">orf</span> <span class="o">=</span> <span class="n">orf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">desc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="n">end</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strand</span> <span class="o">=</span> <span class="n">strand</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reads</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tosses</span> <span class="o">=</span> <span class="n">tossify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reads</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runs</span> <span class="o">=</span> <span class="n">runs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tosses</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span> <span class="n">orf</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tosses</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tosses</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tosses</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span> <span class="n">orf</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tosses</span>
+            <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gap_span</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gene_span</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return read-counts at position i.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reads</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a string representation of the object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="se">\t</span><span class="s2">(</span><span class="si">%s</span><span class="s2">)</span><span class="se">\t</span><span class="s2">k=</span><span class="si">%d</span><span class="se">\t</span><span class="s2">n=</span><span class="si">%d</span><span class="se">\t</span><span class="s2">r=</span><span class="si">%d</span><span class="se">\t</span><span class="s2">theta=</span><span class="si">%1.5f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orf</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">orf</span>
+
+    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orf</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">orf</span> 
+
+<div class="viewcode-block" id="Gene.get_gap_span"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Gene.get_gap_span">[docs]</a>    <span class="k">def</span> <span class="nf">get_gap_span</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the span of the maxrun of the gene (i.e. number of nucleotides).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">runindex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">)</span>
+            <span class="c1">#maxii = numpy.argmax(self.runs)</span>
+            <span class="n">maxii</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runs</span> <span class="o">==</span> <span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">runstart</span> <span class="o">=</span> <span class="n">index</span><span class="p">[</span><span class="n">maxii</span><span class="p">]</span>
+            <span class="n">runend</span> <span class="o">=</span> <span class="n">runstart</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="n">runend</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="n">runstart</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span></div>
+        
+    
+<div class="viewcode-block" id="Gene.get_gene_span"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Gene.get_gene_span">[docs]</a>    <span class="k">def</span> <span class="nf">get_gene_span</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the number of nucleotides spanned by the gene.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="Gene.theta"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Gene.theta">[docs]</a>    <span class="k">def</span> <span class="nf">theta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the insertion density (&quot;theta&quot;) for the gene.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span></div>
+
+<div class="viewcode-block" id="Gene.phi"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Gene.phi">[docs]</a>    <span class="k">def</span> <span class="nf">phi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return the non-insertion density (&quot;phi&quot;) for the gene.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Gene.total_reads"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Gene.total_reads">[docs]</a>    <span class="k">def</span> <span class="nf">total_reads</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return the total reads for the gene.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reads</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Gene.calculate_span"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Gene.calculate_span">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_span</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Caclulates the span based on the coordinates&quot;&quot;&quot;</span>
+        <span class="c1"># TODO: Check if it works.</span>
+        <span class="n">runs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">runs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">(</span><span class="n">include_pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span>
+            <span class="n">maxrun</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_TA_coord</span><span class="p">(</span><span class="n">maxrun</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">maxrun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_TA_coord</span><span class="p">(</span><span class="n">maxrun</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Gene.calculate_length"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Gene.calculate_length">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Caclulates the length based on the coordinates&quot;&quot;&quot;</span>
+        <span class="c1"># TODO: Check if it works.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span></div></div>
+
+
+
+<div class="viewcode-block" id="Genes"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes">[docs]</a><span class="k">class</span> <span class="nc">Genes</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Defines __getitem__ method so that it works as dictionary and list.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">orf2index</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+
+
+    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Defines __contains__ to check if gene exists in the list.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">orf2index</span>
+
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Defines __len__ returning number of genes.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Defines __str__ to print a generic str with the size of the list.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;Genes Object (N=</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wigList</span><span class="p">,</span> <span class="n">protTable</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;nonorm&quot;</span><span class="p">,</span> <span class="n">reps</span><span class="o">=</span><span class="s2">&quot;All&quot;</span><span class="p">,</span> <span class="n">minread</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ignoreCodon</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">nterm</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">cterm</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">include_nc</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">[],</span> <span class="n">position</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes the gene list based on the list of wig files and a prot_table.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wigList</span> <span class="o">=</span> <span class="n">wigList</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protTable</span> <span class="o">=</span> <span class="n">protTable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">norm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reps</span> <span class="o">=</span> <span class="n">reps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">minread</span> <span class="o">=</span> <span class="n">minread</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ignoreCodon</span> <span class="o">=</span> <span class="n">ignoreCodon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nterm</span> <span class="o">=</span> <span class="n">nterm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cterm</span> <span class="o">=</span> <span class="n">cterm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">include_nc</span> <span class="o">=</span> <span class="n">include_nc</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">orf2index</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genes</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="n">orf2info</span> <span class="o">=</span> <span class="n">get_gene_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protTable</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wigList</span><span class="p">)</span>
+        <span class="nb">hash</span> <span class="o">=</span> <span class="n">get_pos_hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protTable</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">noNorm</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">factors</span><span class="p">)</span> <span class="o">=</span> <span class="n">norm_tools</span><span class="o">.</span><span class="n">normalize_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">norm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wigList</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">protTable</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">factors</span> <span class="o">=</span> <span class="p">[]</span>
+       
+        <span class="k">if</span> <span class="n">reps</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">combine_replicates</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">reps</span><span class="p">)])</span>
+
+        <span class="n">K</span><span class="p">,</span><span class="n">N</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+        
+        <span class="n">orf2posindex</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">visited_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+            <span class="n">genes_with_coord</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">[])</span>
+            <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">genes_with_coord</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">gene</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">orf2posindex</span><span class="p">:</span> <span class="n">visited_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gene</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">gene</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">orf2posindex</span><span class="p">:</span> <span class="n">orf2posindex</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+                <span class="n">name</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="n">start</span><span class="p">,</span><span class="n">end</span><span class="p">,</span><span class="n">strand</span> <span class="o">=</span> <span class="n">orf2info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gene</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">])</span>
+                
+                <span class="k">if</span> <span class="n">strand</span> <span class="o">==</span> <span class="s2">&quot;+&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignoreCodon</span> <span class="ow">and</span> <span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">end</span> <span class="o">-</span> <span class="mi">3</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignoreCodon</span> <span class="ow">and</span> <span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">3</span><span class="p">:</span>
+                        <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">start</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nterm</span><span class="o">/</span><span class="mf">100.0</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                
+                <span class="k">if</span> <span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">start</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="p">)</span> <span class="o">&gt;</span> <span class="p">((</span><span class="mi">100</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">cterm</span><span class="p">)</span><span class="o">/</span><span class="mf">100.0</span><span class="p">):</span>
+                    <span class="k">continue</span>
+
+                <span class="n">orf2posindex</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protTable</span><span class="p">):</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">gene</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+            <span class="n">name</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="n">start</span><span class="p">,</span><span class="n">end</span><span class="p">,</span><span class="n">strand</span> <span class="o">=</span> <span class="n">orf2info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gene</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">])</span>
+            <span class="n">posindex</span> <span class="o">=</span> <span class="n">orf2posindex</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gene</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">if</span> <span class="n">posindex</span><span class="p">:</span>
+                <span class="n">pos_start</span> <span class="o">=</span> <span class="n">orf2posindex</span><span class="p">[</span><span class="n">gene</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">pos_end</span> <span class="o">=</span> <span class="n">orf2posindex</span><span class="p">[</span><span class="n">gene</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Gene</span><span class="p">(</span><span class="n">gene</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">pos_start</span><span class="p">:</span><span class="n">pos_end</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">position</span><span class="p">[</span><span class="n">pos_start</span><span class="p">:</span><span class="n">pos_end</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">strand</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Gene</span><span class="p">(</span><span class="n">gene</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([[]]),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">strand</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">orf2index</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span> <span class="o">=</span> <span class="n">count</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+<div class="viewcode-block" id="Genes.local_insertions"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.local_insertions">[docs]</a>    <span class="k">def</span> <span class="nf">local_insertions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns numpy array with the number of insertions, &#39;k&#39;, for each gene.&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+            <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">k</span>
+        <span class="k">return</span> <span class="n">K</span></div>
+
+
+<div class="viewcode-block" id="Genes.local_sites"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.local_sites">[docs]</a>    <span class="k">def</span> <span class="nf">local_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns numpy array with total number of TA sites, &#39;n&#39;, for each gene.&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+            <span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">n</span>
+        <span class="k">return</span> <span class="n">N</span></div>
+
+
+<div class="viewcode-block" id="Genes.local_runs"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.local_runs">[docs]</a>    <span class="k">def</span> <span class="nf">local_runs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns numpy array with maximum run of non-insertions, &#39;r&#39;, for each gene.&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+            <span class="n">R</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">r</span>
+        <span class="k">return</span> <span class="n">R</span> </div>
+
+<div class="viewcode-block" id="Genes.local_gap_span"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.local_gap_span">[docs]</a>    <span class="k">def</span> <span class="nf">local_gap_span</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns numpy array with the span of nucleotides of the largest gap,</span>
+<span class="sd">        &#39;s&#39;, for each gene.&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+            <span class="n">S</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">s</span>
+        <span class="k">return</span> <span class="n">S</span></div>
+  
+<div class="viewcode-block" id="Genes.local_gene_span"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.local_gene_span">[docs]</a>    <span class="k">def</span> <span class="nf">local_gene_span</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns numpy array with the span of nucleotides of the gene,</span>
+<span class="sd">        &#39;t&#39;, for each gene.&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+            <span class="n">T</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">t</span>
+        <span class="k">return</span> <span class="n">T</span></div>
+
+<div class="viewcode-block" id="Genes.local_reads"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.local_reads">[docs]</a>    <span class="k">def</span> <span class="nf">local_reads</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns numpy array of lists containing the read counts for each gene.&quot;&quot;&quot;</span>
+        <span class="n">all_reads</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+            <span class="n">all_reads</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reads</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">all_reads</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Genes.local_thetas"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.local_thetas">[docs]</a>    <span class="k">def</span> <span class="nf">local_thetas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns numpy array of insertion frequencies, &#39;theta&#39;, for each gene.&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+            <span class="n">theta</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">theta</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">theta</span></div>
+
+
+<div class="viewcode-block" id="Genes.local_phis"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.local_phis">[docs]</a>    <span class="k">def</span> <span class="nf">local_phis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns numpy array of non-insertion frequency, &#39;phi&#39;, for each gene.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">()</span></div>
+
+
+    <span class="c1">######</span>
+
+<div class="viewcode-block" id="Genes.global_insertion"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.global_insertion">[docs]</a>    <span class="k">def</span> <span class="nf">global_insertion</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns total number of insertions, i.e. sum of &#39;k&#39; over all genes.&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">k</span>
+        <span class="k">return</span> <span class="n">total</span></div>
+
+<div class="viewcode-block" id="Genes.global_sites"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.global_sites">[docs]</a>    <span class="k">def</span> <span class="nf">global_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns total number of sites, i.e. sum of &#39;n&#39; over all genes.&quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">n</span>
+        <span class="k">return</span> <span class="n">total</span></div>
+
+<div class="viewcode-block" id="Genes.global_run"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.global_run">[docs]</a>    <span class="k">def</span> <span class="nf">global_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the run assuming all genes were concatenated together.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">maxrun</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tosses</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Genes.global_reads"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.global_reads">[docs]</a>    <span class="k">def</span> <span class="nf">global_reads</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the reads among the library.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span></div>
+
+<div class="viewcode-block" id="Genes.global_theta"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.global_theta">[docs]</a>    <span class="k">def</span> <span class="nf">global_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns global insertion frequency, of the library.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_insertion</span><span class="p">())</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">global_sites</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Genes.global_phi"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.global_phi">[docs]</a>    <span class="k">def</span> <span class="nf">global_phi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns global non-insertion frequency, of the library.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_theta</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Genes.total_reads"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.total_reads">[docs]</a>    <span class="k">def</span> <span class="nf">total_reads</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns total reads among the library.&quot;&quot;&quot;</span>
+        <span class="n">reads_total</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">:</span>
+            <span class="n">reads_total</span> <span class="o">+=</span> <span class="n">g</span><span class="o">.</span><span class="n">total_reads</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">reads_total</span></div>
+
+<div class="viewcode-block" id="Genes.tosses"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.Genes.tosses">[docs]</a>    <span class="k">def</span> <span class="nf">tosses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns list of bernoulli trials, &#39;tosses&#39;, representing insertions in the gene.&quot;&quot;&quot;</span>
+        <span class="n">all_tosses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">:</span>
+            <span class="n">all_tosses</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">tosses</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">all_tosses</span></div></div>
+
+
+
+
+<div class="viewcode-block" id="tossify"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.tossify">[docs]</a><span class="k">def</span> <span class="nf">tossify</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Reduces the data into Bernoulli trials (or &#39;tosses&#39;) based on whether counts were observed or not.&quot;&quot;&quot;</span>
+    <span class="n">K</span><span class="p">,</span><span class="n">N</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">reduced</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="runs"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.runs">[docs]</a><span class="k">def</span> <span class="nf">runs</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return list of all the runs of consecutive non-insertions.&quot;&quot;&quot;</span>
+    <span class="n">runs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_r</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">read</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">read</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># If ending a run of zeros</span>
+            <span class="k">if</span> <span class="n">current_r</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># If we were in a run, add to list</span>
+                <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_r</span><span class="p">)</span>
+            <span class="n">current_r</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_r</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">current_r</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="c1"># If we ended in a run, add it</span>
+    <span class="k">if</span> <span class="n">current_r</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_r</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">runs</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">runs</span></div>
+
+<div class="viewcode-block" id="runindex"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.runindex">[docs]</a><span class="k">def</span> <span class="nf">runindex</span><span class="p">(</span><span class="n">runs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a list of the indexes of the start of the runs; complements runs().&quot;&quot;&quot;</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">index_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">runindex</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">runindex</span> <span class="o">=</span> <span class="n">index</span>
+            <span class="n">index</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">runindex</span> <span class="o">=</span> <span class="n">index</span>
+            <span class="n">index</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="n">index_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">runindex</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">index_list</span></div>
+
+<div class="viewcode-block" id="get_file_types"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.get_file_types">[docs]</a><span class="k">def</span> <span class="nf">get_file_types</span><span class="p">(</span><span class="n">wig_list</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">wig_list</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    
+    <span class="n">types</span> <span class="o">=</span> <span class="n">types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;tn5&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wig_list</span><span class="p">))]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">wig_filename</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">wig_list</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">wig_filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">wig_file</span><span class="p">:</span>
+            <span class="n">prev_pos</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">wig_file</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">&quot;0123456789&quot;</span><span class="p">:</span> <span class="k">continue</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="n">pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">rd</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">pos</span> <span class="o">!=</span> <span class="n">prev_pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span> <span class="n">types</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;himar1&#39;</span>
+                <span class="n">prev_pos</span> <span class="o">=</span> <span class="n">pos</span>
+    <span class="k">return</span> <span class="n">types</span></div>
+
+<div class="viewcode-block" id="get_data"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.get_data">[docs]</a><span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="n">wig_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns a tuple of (data, position) containing a matrix of raw read counts, and list of coordinates. &quot;&quot;&quot;</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wig_list</span><span class="p">)</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">wig_list</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="p">[])</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">wig_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">&quot;0123456789&quot;</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="n">T</span><span class="o">+=</span><span class="mi">1</span>
+    
+    <span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="n">T</span><span class="p">))</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">wig_list</span><span class="p">):</span>
+        <span class="n">reads</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">prev_pos</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">&quot;0123456789&quot;</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">rd</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">prev_pos</span> <span class="o">=</span> <span class="n">pos</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">rd</span>
+            <span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_data_zero_fill"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.get_data_zero_fill">[docs]</a><span class="k">def</span> <span class="nf">get_data_zero_fill</span><span class="p">(</span><span class="n">wig_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns a tuple of (data, position) containing a matrix of raw read counts, and list of coordinates. &quot;&quot;&quot;</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wig_list</span><span class="p">)</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">wig_list</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="p">[])</span>
+
+    <span class="c1">#NOTE:  This might be slow as we need to find the last insertion site</span>
+    <span class="c1">#       over all the replicates. This might be an area to attempt to optimize.</span>
+    <span class="n">last_line</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">wig_name</span> <span class="ow">in</span> <span class="n">wig_list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">wig_name</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">&quot;0123456789&quot;</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">last_line</span> <span class="o">=</span> <span class="n">line</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">last_line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">pos</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">T</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="p">[])</span>
+    
+    <span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="n">T</span><span class="p">))</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">wig_list</span><span class="p">):</span>
+        <span class="n">reads</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">&quot;0123456789&quot;</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">rd</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            
+            <span class="c1"># Fill in remaining zeros</span>
+            <span class="k">for</span> <span class="n">fill_pos</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">pos</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">fill_pos</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">position</span><span class="p">[</span><span class="n">fill_pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                
+            <span class="n">prev_pos</span> <span class="o">=</span> <span class="n">pos</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">rd</span>
+            <span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="combine_replicates"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.combine_replicates">[docs]</a><span class="k">def</span> <span class="nf">combine_replicates</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;Sum&quot;</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;Sum&quot;</span><span class="p">:</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;Mean&quot;</span><span class="p">:</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;TTRMean&quot;</span><span class="p">:</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">TTR_factors</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">factors</span> <span class="o">*</span> <span class="n">data</span>
+        <span class="n">target_factors</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">norm_to_target</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">target_factors</span> <span class="o">*</span> <span class="n">data</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span>
+
+    <span class="k">return</span> <span class="n">combined</span></div>
+
+
+<div class="viewcode-block" id="get_wig_stats"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.get_wig_stats">[docs]</a><span class="k">def</span> <span class="nf">get_wig_stats</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">reads</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">&quot;0123456789&quot;</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">rd</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">reads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rd</span><span class="p">)</span>
+    <span class="n">reads</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span>
+
+    <span class="n">density</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">reads</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">meanrd</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span>
+    <span class="n">nzmeanrd</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">reads</span><span class="p">[</span><span class="n">reads</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">nzmedianrd</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">reads</span><span class="p">[</span><span class="n">reads</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">maxrd</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span>
+    <span class="n">totalrd</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span>
+
+    <span class="n">skew</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">skew</span><span class="p">(</span><span class="n">reads</span><span class="p">[</span><span class="n">reads</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">kurtosis</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">kurtosis</span><span class="p">(</span><span class="n">reads</span><span class="p">[</span><span class="n">reads</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">density</span><span class="p">,</span> <span class="n">meanrd</span><span class="p">,</span> <span class="n">nzmeanrd</span><span class="p">,</span> <span class="n">nzmedianrd</span><span class="p">,</span> <span class="n">maxrd</span><span class="p">,</span> <span class="n">totalrd</span><span class="p">,</span> <span class="n">skew</span><span class="p">,</span> <span class="n">kurtosis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_pos_hash"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.get_pos_hash">[docs]</a><span class="k">def</span> <span class="nf">get_pos_hash</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a dictionary that maps coordinates to a list of genes that occur at that coordinate.&quot;&quot;&quot;</span>
+    <span class="nb">hash</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">orf</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">pos</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">hash</span><span class="p">:</span> <span class="nb">hash</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="nb">hash</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">orf</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">hash</span></div>
+
+<div class="viewcode-block" id="get_gene_info"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.get_gene_info">[docs]</a><span class="k">def</span> <span class="nf">get_gene_info</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">orf2info</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">orf</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">strand</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">orf2info</span><span class="p">[</span><span class="n">orf</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">strand</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">orf2info</span></div>
+
+<div class="viewcode-block" id="get_coordinate_map"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.get_coordinate_map">[docs]</a><span class="k">def</span> <span class="nf">get_coordinate_map</span><span class="p">(</span><span class="n">galign_path</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="n">c1Toc2</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">galign_path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">star</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+        <span class="n">leftempty</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+        <span class="n">rightempty</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">leftempty</span><span class="p">:</span>
+            <span class="n">left</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">left</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">rightempty</span><span class="p">:</span>
+            <span class="n">right</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">leftempty</span><span class="p">:</span>
+            <span class="n">right</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+             <span class="n">right</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">reverse</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">leftempty</span><span class="p">:</span>
+                <span class="n">c1Toc2</span><span class="p">[</span><span class="n">left</span><span class="p">]</span> <span class="o">=</span> <span class="n">right</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">rightempty</span><span class="p">:</span>
+                 <span class="n">c1Toc2</span><span class="p">[</span><span class="n">right</span><span class="p">]</span> <span class="o">=</span> <span class="n">left</span>    
+    <span class="k">return</span> <span class="n">c1Toc2</span></div>
+
+<div class="viewcode-block" id="maxrun"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.maxrun">[docs]</a><span class="k">def</span> <span class="nf">maxrun</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span><span class="n">item</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">best</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">i</span><span class="p">,</span><span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="n">item</span><span class="p">:</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+            <span class="k">while</span> <span class="n">j</span><span class="o">&lt;</span><span class="n">n</span> <span class="ow">and</span> <span class="n">lst</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">==</span><span class="n">item</span><span class="p">:</span> <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">j</span><span class="o">-</span><span class="n">i</span>
+            <span class="k">if</span> <span class="n">r</span><span class="o">&gt;</span><span class="n">best</span><span class="p">:</span> <span class="n">best</span> <span class="o">=</span> <span class="n">r</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">j</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">best</span></div>
+
+
+<div class="viewcode-block" id="getR1"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.getR1">[docs]</a><span class="k">def</span> <span class="nf">getR1</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Small Correction term. Defaults to 0.000016 for now&quot;&quot;&quot;</span>
+    <span class="k">return</span><span class="p">(</span><span class="mf">0.000016</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getR2"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.getR2">[docs]</a><span class="k">def</span> <span class="nf">getR2</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Small Correction term. Defaults to 0.00006 for now&quot;&quot;&quot;</span>
+    <span class="k">return</span><span class="p">(</span><span class="mf">0.00006</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getE1"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.getE1">[docs]</a><span class="k">def</span> <span class="nf">getE1</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Small Correction term. Defaults to 0.01 for now&quot;&quot;&quot;</span>
+    <span class="k">return</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="getE2"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.getE2">[docs]</a><span class="k">def</span> <span class="nf">getE2</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Small Correction term. Defaults to 0.01 for now&quot;&quot;&quot;</span>
+    <span class="k">return</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getGamma"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.getGamma">[docs]</a><span class="k">def</span> <span class="nf">getGamma</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Euler-Mascheroni constant ~ 0.577215664901 &quot;&quot;&quot;</span>
+    <span class="k">return</span><span class="p">(</span><span class="mf">0.5772156649015328606</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="ExpectedRuns"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.ExpectedRuns">[docs]</a><span class="k">def</span> <span class="nf">ExpectedRuns</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Expected value of the run of non=insertions (Schilling, 1990):</span>
+<span class="sd">    </span>
+<span class="sd">        ER_n =  log(1/p)(nq) + gamma/ln(1/p) -1/2 + r1(n) + E1(n)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>   
+    <span class="n">q</span> <span class="o">=</span> <span class="mi">1</span><span class="o">-</span><span class="n">p</span>
+    <span class="n">gamma</span> <span class="o">=</span> <span class="n">getGamma</span><span class="p">()</span>
+    <span class="n">r1</span> <span class="o">=</span> <span class="n">getR1</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">E1</span> <span class="o">=</span> <span class="n">getE1</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">n</span><span class="o">*</span><span class="n">q</span><span class="p">,</span><span class="mf">1.0</span><span class="o">/</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">B</span> <span class="o">=</span> <span class="n">gamma</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">ER</span> <span class="o">=</span> <span class="n">A</span> <span class="o">+</span> <span class="n">B</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">r1</span> <span class="o">+</span> <span class="n">E1</span>
+    <span class="k">return</span> <span class="n">ER</span> </div>
+    
+
+<div class="viewcode-block" id="VarR"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.VarR">[docs]</a><span class="k">def</span> <span class="nf">VarR</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Variance of the expected run of non-insertons (Schilling, 1990):</span>
+<span class="sd"> </span>
+<span class="sd">        VarR_n =  (pi^2)/(6*ln(1/p)^2) + 1/12 + r2(n) + E2(n)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">r2</span> <span class="o">=</span> <span class="n">getR2</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">E2</span> <span class="o">=</span> <span class="n">getE2</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>    
+    <span class="n">A</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mf">2.0</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">6</span><span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">p</span><span class="p">),</span><span class="mf">2.0</span><span class="p">))</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">A</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mf">12.0</span> <span class="o">+</span> <span class="n">r2</span> <span class="o">+</span> <span class="n">E2</span>
+    <span class="k">return</span> <span class="n">V</span></div>
+
+    
+<div class="viewcode-block" id="GumbelCDF"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.GumbelCDF">[docs]</a><span class="k">def</span> <span class="nf">GumbelCDF</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">B</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;CDF of the Gumbel distribution:</span>
+
+<span class="sd">        e^(-e^( (u-x)/B))</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">u</span><span class="o">-</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="n">B</span> <span class="p">)))</span></div>
+    
+
+<div class="viewcode-block" id="griffin_analysis"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.griffin_analysis">[docs]</a><span class="k">def</span> <span class="nf">griffin_analysis</span><span class="p">(</span><span class="n">genes_obj</span><span class="p">,</span> <span class="n">pins</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements the basic Gumbel analysis of runs of non-insertion, described</span>
+<span class="sd">     in Griffin et al. 2011.</span>
+
+<span class="sd">    This analysis method calculates a p-value of observing the maximun run of</span>
+<span class="sd">    TA sites without insertions in a row (i.e. a &quot;run&quot;, r). Unusually long</span>
+<span class="sd">    runs are indicative of an essential gene or protein domain. Assumes that</span>
+<span class="sd">    there is a constant, global probability of observing an insertion</span>
+<span class="sd">    (tantamount to a Bernoulli probability of success).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        genes_obj (Genes): An object of the Genes class defining the genes.</span>
+<span class="sd">        pins (float): The probability of insertion.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list. List of lists with results and information for the genes. The</span>
+<span class="sd">            elements of the list are as follows:</span>
+<span class="sd">            - ORF ID.</span>
+<span class="sd">            - Gene Name.</span>
+<span class="sd">            - Gene Description.</span>
+<span class="sd">            - Number of TA sites with insertions.</span>
+<span class="sd">            - Number of TA sites.</span>
+<span class="sd">            - Length of largest run of non-insertion.</span>
+<span class="sd">            - Expected run for a gene this size.</span>
+<span class="sd">            - p-value of the observed run.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">pnon</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">pins</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">genes_obj</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">gene</span><span class="o">.</span><span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">gene</span><span class="o">.</span><span class="n">orf</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">desc</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.000</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">B</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">pnon</span><span class="p">)</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">gene</span><span class="o">.</span><span class="n">n</span><span class="o">*</span><span class="n">pins</span><span class="p">,</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">pnon</span><span class="p">)</span>
+            <span class="n">exprun</span> <span class="o">=</span> <span class="n">ExpectedRuns</span><span class="p">(</span><span class="n">gene</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">pnon</span><span class="p">)</span>
+            <span class="n">pval</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">GumbelCDF</span><span class="p">(</span><span class="n">gene</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">gene</span><span class="o">.</span><span class="n">orf</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">desc</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="n">exprun</span><span class="p">,</span> <span class="n">pval</span><span class="p">])</span>
+    <span class="k">return</span><span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="combine_wigs"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.combine_wigs">[docs]</a><span class="k">def</span> <span class="nf">combine_wigs</span><span class="p">(</span><span class="n">wig_data</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">min_read</span><span class="p">):</span>
+    <span class="n">replicates</span> <span class="o">=</span> <span class="n">wig_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">num_replicates</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">replicates</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_replicates</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+       
+    <span class="c1"># Combine all wigs into one</span>
+    <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;sum&#39;</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">replicates</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">replicates</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Just sum as a default</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">replicates</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    
+    <span class="c1"># Filter out reads below threshold</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">data</span> <span class="o">&lt;</span> <span class="n">min_read</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    
+    <span class="k">return</span> <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">wig_data</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="genome_theta"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.genome_theta">[docs]</a><span class="k">def</span> <span class="nf">genome_theta</span><span class="p">(</span><span class="n">combined</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns global insertion frequency of the whole genome including non-coding sequences&quot;&quot;&quot;</span>
+    
+    <span class="c1"># Get the number of insertions</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">combined</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">counts</span><span class="p">[</span><span class="n">counts</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">num_sites</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
+    <span class="n">num_insertions</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">num_insertions</span><span class="p">)</span><span class="o">/</span><span class="n">num_sites</span></div>
+
+<div class="viewcode-block" id="runs_w_info"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.runs_w_info">[docs]</a><span class="k">def</span> <span class="nf">runs_w_info</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return list of all the runs of consecutive non-insertions with the start and end locations.&quot;&quot;&quot;</span>
+    <span class="n">runs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">current_r</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">read</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">read</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># If ending a run of zeros</span>
+            <span class="k">if</span> <span class="n">current_r</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># If we were in a run, add to list</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">current_r</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">length</span> <span class="o">=</span> <span class="n">current_r</span><span class="p">,</span> <span class="n">start</span> <span class="o">=</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">end</span><span class="p">))</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="p">(</span><span class="n">current_r</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">current_r</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">current_r</span> <span class="o">+=</span> <span class="mi">1</span>
+    
+    <span class="c1"># If we ended in a run, add it</span>
+    <span class="k">if</span> <span class="n">current_r</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">current_r</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">length</span> <span class="o">=</span> <span class="n">current_r</span><span class="p">,</span> <span class="n">start</span> <span class="o">=</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">end</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">runs</span></div>
+
+<div class="viewcode-block" id="get_genes_in_range"><a class="viewcode-back" href="../../transit_code.html#transit.tnseq_tools.get_genes_in_range">[docs]</a><span class="k">def</span> <span class="nf">get_genes_in_range</span><span class="p">(</span><span class="n">pos_hash</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+    <span class="n">genes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">pos_hash</span><span class="p">:</span>
+            <span class="n">genes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">pos_hash</span><span class="p">[</span><span class="n">pos</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">genes</span><span class="p">))</span></div>
+
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+    <span class="n">G</span> <span class="o">=</span> <span class="n">Genes</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">),</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;TTR&quot;</span><span class="p">)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">global_theta</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s2">&quot;#Insertion: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">G</span><span class="o">.</span><span class="n">global_insertion</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s2">&quot;#Sites: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">G</span><span class="o">.</span><span class="n">global_sites</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s2">&quot;#Run: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">G</span><span class="o">.</span><span class="n">global_run</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s2">&quot;#Theta: </span><span class="si">%1.4f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">theta</span>
+    <span class="k">print</span> <span class="s2">&quot;#Phi: </span><span class="si">%1.4f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">G</span><span class="o">.</span><span class="n">global_phi</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s2">&quot;#&quot;</span>
+
+    <span class="n">griffin_results</span> <span class="o">=</span> <span class="n">griffin_analysis</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">gene</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">G</span><span class="p">)):</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">gene</span><span class="o">.</span><span class="n">position</span>
+        <span class="n">exprun</span><span class="p">,</span> <span class="n">pval</span> <span class="o">=</span> <span class="n">griffin_results</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="k">print</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="se">\t</span><span class="si">%1.1f</span><span class="se">\t</span><span class="si">%1.5f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gene</span><span class="o">.</span><span class="n">orf</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="n">gene</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">exprun</span><span class="p">,</span> <span class="n">pval</span><span class="p">)</span>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/transit_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Michael A. DeJesus.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

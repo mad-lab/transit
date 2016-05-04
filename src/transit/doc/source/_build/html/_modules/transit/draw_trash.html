@@ -1,0 +1,422 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>transit.draw_trash &mdash; transit v2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     'v2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="transit v2.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for transit.draw_trash</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2015.</span>
+<span class="c1">#   Michael A. DeJesus, Chaitra Ambadipudi, and  Thomas R. Ioerger.</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#    This file is part of TRANSIT.</span>
+<span class="c1">#</span>
+<span class="c1">#    TRANSIT is free software: you can redistribute it and/or modify</span>
+<span class="c1">#    it under the terms of the GNU General Public License as published by</span>
+<span class="c1">#    the Free Software Foundation, either version 3 of the License.</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#    TRANSIT is distributed in the hope that it will be useful,</span>
+<span class="c1">#    but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1">#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1">#    GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1">#    You should have received a copy of the GNU General Public License</span>
+<span class="c1">#    along with TRANSIT.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<span class="kn">import</span> <span class="nn">wx</span>
+<span class="kn">import</span> <span class="nn">view_trash</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">Image</span>
+    <span class="kn">import</span> <span class="nn">ImageDraw</span>
+    <span class="kn">import</span> <span class="nn">ImageFont</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">PIL.Image</span> <span class="kn">as</span> <span class="nn">Image</span>
+    <span class="kn">import</span> <span class="nn">PIL.ImageDraw</span> <span class="kn">as</span> <span class="nn">ImageDraw</span>
+    <span class="kn">import</span> <span class="nn">PIL.ImageFont</span> <span class="kn">as</span> <span class="nn">ImageFont</span>
+
+
+<div class="viewcode-block" id="normalize"><a class="viewcode-back" href="../../transit_code.html#transit.draw_trash.normalize">[docs]</a><span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">old_min</span><span class="p">,</span> <span class="n">old_max</span><span class="p">,</span> <span class="n">new_min</span><span class="p">,</span> <span class="n">new_max</span><span class="p">):</span>
+    <span class="n">old_range</span> <span class="o">=</span> <span class="p">(</span><span class="n">old_max</span> <span class="o">-</span> <span class="n">old_min</span><span class="p">)</span>
+    <span class="n">new_range</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_max</span> <span class="o">-</span> <span class="n">new_min</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">old_range</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">new_min</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(((</span><span class="n">X</span> <span class="o">-</span> <span class="n">old_min</span><span class="p">)</span> <span class="o">*</span> <span class="n">new_range</span><span class="p">)</span> <span class="o">/</span> <span class="n">old_range</span><span class="p">)</span> <span class="o">+</span> <span class="n">new_min</span></div>
+
+
+<div class="viewcode-block" id="read_prot_table"><a class="viewcode-back" href="../../transit_code.html#transit.draw_trash.read_prot_table">[docs]</a><span class="k">def</span> <span class="nf">read_prot_table</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">orf2data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">orf2data</span><span class="p">[</span><span class="n">tmp</span><span class="p">[</span><span class="mi">8</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">7</span><span class="p">]]</span>
+    <span class="k">return</span><span class="p">(</span><span class="n">orf2data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="hash_prot_genes"><a class="viewcode-back" href="../../transit_code.html#transit.draw_trash.hash_prot_genes">[docs]</a><span class="k">def</span> <span class="nf">hash_prot_genes</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="nb">hash</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="n">end</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="c1">#if i not in hash:</span>
+            <span class="c1">#    hash[i] = tmp[8]</span>
+            <span class="nb">hash</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">hash</span></div>
+
+
+<span class="n">linuxFonts</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">linuxFonts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans-Bold.ttf&quot;</span><span class="p">)</span>
+<span class="n">linuxFonts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;/usr/share/fonts/dejavu-lgc/DejaVuLGCSerifCondensed-Bold.ttf&quot;</span><span class="p">)</span>
+<span class="n">linuxFonts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;/usr/share/fonts/dejavu-lgc/DejaVuLGCSansCondensed-Bold.ttf&quot;</span><span class="p">)</span>
+
+<span class="n">winFonts</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">winFonts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;consolab.ttf&quot;</span><span class="p">)</span>
+<span class="n">winFonts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;courb.ttf&quot;</span><span class="p">)</span>
+<span class="n">winFonts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;arial.ttf&quot;</span><span class="p">)</span>
+<span class="n">fontsize</span> <span class="o">=</span> <span class="mi">16</span>
+
+<span class="n">font</span> <span class="o">=</span> <span class="n">ImageFont</span><span class="o">.</span><span class="n">load_default</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;Linux&quot;</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">fontpath</span> <span class="ow">in</span> <span class="n">linuxFonts</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fontpath</span><span class="p">):</span>
+            <span class="n">font</span> <span class="o">=</span> <span class="n">ImageFont</span><span class="o">.</span><span class="n">truetype</span><span class="p">(</span><span class="n">fontpath</span><span class="p">,</span> <span class="n">fontsize</span><span class="p">)</span>
+            <span class="k">break</span>
+
+<span class="k">elif</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;Windows&quot;</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">fontpath</span> <span class="ow">in</span> <span class="n">winFonts</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">font</span> <span class="o">=</span> <span class="n">ImageFont</span><span class="o">.</span><span class="n">truetype</span><span class="p">(</span><span class="n">fontpath</span><span class="p">,</span> <span class="n">fontsize</span><span class="p">)</span>
+            <span class="k">break</span>    
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="draw_reads"><a class="viewcode-back" href="../../transit_code.html#transit.draw_trash.draw_reads">[docs]</a><span class="k">def</span> <span class="nf">draw_reads</span><span class="p">(</span><span class="n">draw</span><span class="p">,</span> <span class="n">reads</span><span class="p">,</span> <span class="n">ta_sites</span><span class="p">,</span> <span class="n">start_x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">start_y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">min_read</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_read</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">lwd</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+
+    <span class="n">TRUNC_READS</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="n">max_read</span><span class="p">)</span> <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="n">reads</span><span class="p">]</span>
+    <span class="n">NORM_READS</span> <span class="o">=</span> <span class="p">[</span><span class="n">normalize</span><span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_read</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_read</span><span class="p">)</span> <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="n">TRUNC_READS</span><span class="p">]</span>
+
+    <span class="n">new_min_w</span> <span class="o">=</span> <span class="n">start_x</span>
+    <span class="n">new_max_w</span> <span class="o">=</span> <span class="n">start_x</span> <span class="o">+</span> <span class="n">width</span> <span class="c1">#- self.padding_r</span>
+
+    <span class="n">new_min_h</span> <span class="o">=</span> <span class="n">start_y</span>
+    <span class="n">new_max_h</span> <span class="o">=</span> <span class="n">start_y</span> <span class="o">+</span> <span class="n">height</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">TA</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ta_sites</span><span class="p">):</span>
+
+        <span class="n">TApos</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">TA</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">new_min_w</span><span class="p">,</span> <span class="n">new_max_w</span><span class="p">)</span>
+
+
+        <span class="k">if</span> <span class="n">NORM_READS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">continue</span>
+           
+        <span class="n">read_h</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">NORM_READS</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_read</span><span class="p">,</span> <span class="n">new_min_h</span><span class="p">,</span> <span class="n">new_max_h</span><span class="p">)</span> <span class="c1"># height of read line</span>
+
+        <span class="n">Y1</span> <span class="o">=</span> <span class="n">start_y</span>
+        <span class="n">Y2</span> <span class="o">=</span> <span class="n">start_y</span> <span class="o">-</span> <span class="p">(</span><span class="n">read_h</span><span class="o">-</span><span class="n">start_y</span><span class="p">)</span>
+        <span class="n">draw</span><span class="o">.</span><span class="n">line</span><span class="p">([(</span><span class="n">TApos</span><span class="p">,</span> <span class="n">Y1</span><span class="p">),</span> <span class="p">(</span><span class="n">TApos</span><span class="p">,</span> <span class="n">Y2</span><span class="p">)],</span> <span class="n">width</span><span class="o">=</span><span class="n">lwd</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="draw_ta_sites"><a class="viewcode-back" href="../../transit_code.html#transit.draw_trash.draw_ta_sites">[docs]</a><span class="k">def</span> <span class="nf">draw_ta_sites</span><span class="p">(</span><span class="n">draw</span><span class="p">,</span> <span class="n">ta_sites</span><span class="p">,</span> <span class="n">start_x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">start_y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">lwd</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+    <span class="n">new_min_w</span> <span class="o">=</span> <span class="n">start_x</span>
+    <span class="n">new_max_w</span> <span class="o">=</span> <span class="n">start_x</span> <span class="o">+</span> <span class="n">width</span> <span class="c1">#- self.padding_r</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">TA</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ta_sites</span><span class="p">):</span>
+        <span class="n">TApos</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">TA</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">new_min_w</span><span class="p">,</span> <span class="n">new_max_w</span><span class="p">)</span>
+        <span class="n">draw</span><span class="o">.</span><span class="n">line</span><span class="p">([(</span><span class="n">TApos</span><span class="p">,</span> <span class="n">start_y</span><span class="o">+</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">TApos</span><span class="p">,</span> <span class="n">start_y</span> <span class="o">+</span> <span class="n">height</span><span class="p">)],</span> <span class="n">width</span><span class="o">=</span><span class="n">lwd</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="draw_scale"><a class="viewcode-back" href="../../transit_code.html#transit.draw_trash.draw_scale">[docs]</a><span class="k">def</span> <span class="nf">draw_scale</span><span class="p">(</span><span class="n">draw</span><span class="p">,</span> <span class="n">start_x</span><span class="p">,</span> <span class="n">start_y</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">max_read</span><span class="p">):</span>
+
+    <span class="c1">#print &quot;scale&quot;, start_x, start_y, height</span>
+    <span class="n">MIDREAD</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_read</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span>
+    <span class="n">top_text_w</span><span class="p">,</span> <span class="n">top_text_h</span> <span class="o">=</span> <span class="n">draw</span><span class="o">.</span><span class="n">textsize</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">max_read</span><span class="p">),</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">)</span>
+    <span class="n">draw</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="n">start_x</span><span class="p">,</span> <span class="n">start_y</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_read</span><span class="p">),</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+  
+
+    <span class="n">draw</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="n">start_x</span><span class="p">,</span> <span class="n">start_y</span> <span class="o">+</span> <span class="n">height</span><span class="o">/</span><span class="mf">2.0</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">MIDREAD</span><span class="p">),</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+
+    <span class="n">bottom_text_w</span><span class="p">,</span> <span class="n">bottom_text_h</span> <span class="o">=</span> <span class="n">draw</span><span class="o">.</span><span class="n">textsize</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">MIDREAD</span><span class="p">),</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">)</span>
+    <span class="n">draw</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="n">start_x</span><span class="o">+</span><span class="n">bottom_text_w</span><span class="o">-</span><span class="p">(</span><span class="n">top_text_w</span><span class="o">/</span><span class="mf">2.0</span><span class="p">),</span> <span class="n">start_y</span><span class="o">+</span><span class="n">height</span><span class="p">),</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="draw_features"><a class="viewcode-back" href="../../transit_code.html#transit.draw_trash.draw_features">[docs]</a><span class="k">def</span> <span class="nf">draw_features</span><span class="p">(</span><span class="n">draw</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">start_x</span><span class="p">,</span> <span class="n">start_y</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="draw_genes"><a class="viewcode-back" href="../../transit_code.html#transit.draw_trash.draw_genes">[docs]</a><span class="k">def</span> <span class="nf">draw_genes</span><span class="p">(</span><span class="n">draw</span><span class="p">,</span> <span class="n">GENES</span><span class="p">,</span> <span class="n">orf2data</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">start_x</span><span class="p">,</span> <span class="n">start_y</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+
+    <span class="n">padding_h</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">text_w</span><span class="p">,</span> <span class="n">text_h</span> <span class="o">=</span> <span class="n">draw</span><span class="o">.</span><span class="n">textsize</span><span class="p">(</span><span class="s2">&quot;RV0001&quot;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">)</span>        
+    <span class="n">gene_h</span> <span class="o">=</span> <span class="n">height</span> <span class="o">-</span> <span class="n">text_h</span>
+
+    <span class="c1">#print &quot;GENES height&quot;, height</span>
+    <span class="c1">#print &quot;GENES text_h&quot;, text_h</span>
+    <span class="c1">#print &quot;GENES gene_h&quot;, gene_h</span>
+
+    <span class="n">triangle_size</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">GENES</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">gene</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">orf2data</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="n">gene_start</span> <span class="o">=</span> <span class="n">orf2data</span><span class="p">[</span><span class="n">gene</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">gene_end</span> <span class="o">=</span> <span class="n">orf2data</span><span class="p">[</span><span class="n">gene</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">strand</span> <span class="o">=</span> <span class="n">orf2data</span><span class="p">[</span><span class="n">gene</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">orf2data</span><span class="p">[</span><span class="n">gene</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+
+        <span class="n">new_min</span> <span class="o">=</span> <span class="n">start_x</span>
+        <span class="n">new_max</span> <span class="o">=</span> <span class="n">start_x</span> <span class="o">+</span> <span class="n">width</span>
+
+        <span class="n">norm_start</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">orf2data</span><span class="p">[</span><span class="n">gene</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">start</span><span class="p">),</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">new_min</span><span class="p">,</span> <span class="n">new_max</span><span class="p">)</span>
+        <span class="n">norm_end</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">orf2data</span><span class="p">[</span><span class="n">gene</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">end</span><span class="p">),</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">new_min</span><span class="p">,</span> <span class="n">new_max</span><span class="p">)</span>
+
+
+        <span class="c1">#if True:</span>
+        <span class="c1">#    print gene, name, gene_start, gene_end, strand #, norm_start, norm_end</span>
+
+        <span class="k">if</span> <span class="n">strand</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span><span class="p">:</span>
+    
+            <span class="k">if</span> <span class="n">gene_start</span> <span class="o">&gt;=</span> <span class="n">start</span><span class="p">:</span>
+                <span class="n">draw</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(((</span><span class="n">norm_start</span><span class="o">+</span><span class="n">triangle_size</span><span class="p">,</span> <span class="n">start_y</span><span class="o">+</span><span class="mi">5</span><span class="p">),(</span><span class="n">norm_end</span><span class="p">,</span><span class="n">start_y</span><span class="o">+</span><span class="n">gene_h</span><span class="o">-</span><span class="mi">5</span><span class="p">)),</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+                <span class="c1">#draw.polygon([(norm_start,start_y+gene_h/2.0),(norm_start, gene_h+20+5), (norm_start,ta_sites_finish_h +gene_h+10)], fill=&quot;blue&quot; )</span>
+                <span class="n">draw</span><span class="o">.</span><span class="n">polygon</span><span class="p">([(</span><span class="n">norm_start</span><span class="o">+</span><span class="n">triangle_size</span><span class="p">,</span> <span class="n">start_y</span><span class="p">),(</span><span class="n">norm_start</span><span class="o">+</span><span class="n">triangle_size</span><span class="p">,</span><span class="n">start_y</span><span class="o">+</span><span class="n">gene_h</span><span class="p">),</span> <span class="p">(</span><span class="n">norm_start</span><span class="p">,</span><span class="n">start_y</span><span class="o">+</span><span class="n">gene_h</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)],</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span> <span class="p">)</span>
+    
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">draw</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(((</span><span class="n">norm_start</span><span class="p">,</span> <span class="n">start_y</span><span class="o">+</span><span class="mi">5</span><span class="p">),(</span><span class="n">norm_end</span><span class="p">,</span><span class="n">start_y</span><span class="o">+</span><span class="n">gene_h</span><span class="o">-</span><span class="mi">5</span><span class="p">)),</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+                <span class="c1">#draw.rectangle(((norm_start, start_y),(norm_end,start_y+gene_h)), fill=&quot;blue&quot;)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">gene_end</span> <span class="o">&lt;=</span> <span class="n">end</span><span class="p">:</span>
+                <span class="n">draw</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(((</span><span class="n">norm_start</span><span class="p">,</span> <span class="n">start_y</span><span class="o">+</span><span class="mi">5</span><span class="p">),(</span><span class="n">norm_end</span><span class="o">-</span><span class="n">triangle_size</span><span class="p">,</span> <span class="n">start_y</span><span class="o">+</span><span class="n">gene_h</span><span class="o">-</span><span class="mi">5</span><span class="p">)),</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+                <span class="n">draw</span><span class="o">.</span><span class="n">polygon</span><span class="p">([(</span><span class="n">norm_end</span><span class="o">-</span><span class="n">triangle_size</span><span class="p">,</span> <span class="n">start_y</span><span class="p">),(</span><span class="n">norm_end</span><span class="o">-</span><span class="n">triangle_size</span><span class="p">,</span><span class="n">start_y</span><span class="o">+</span><span class="n">gene_h</span><span class="p">),</span> <span class="p">(</span><span class="n">norm_end</span><span class="p">,</span><span class="n">start_y</span><span class="o">+</span><span class="n">gene_h</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)],</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span> <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">draw</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(((</span><span class="n">norm_start</span><span class="p">,</span> <span class="n">start_y</span><span class="o">+</span><span class="mi">5</span><span class="p">),(</span><span class="n">norm_end</span><span class="p">,</span> <span class="n">start_y</span><span class="o">+</span><span class="n">gene_h</span><span class="o">-</span><span class="mi">5</span><span class="p">)),</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+                <span class="c1">#draw.rectangle(((norm_start,start_y ),(norm_end, start_y+gene_h)), fill=&quot;blue&quot;)</span>
+
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span><span class="p">:</span> <span class="n">name</span> <span class="o">=</span> <span class="n">gene</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;non-coding&quot;</span><span class="p">):</span>
+            <span class="n">name_text_w</span><span class="p">,</span> <span class="n">name_text_h</span> <span class="o">=</span> <span class="n">draw</span><span class="o">.</span><span class="n">textsize</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">norm_start</span><span class="o">-</span><span class="n">norm_end</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">name_text_w</span><span class="p">:</span>
+                <span class="n">draw</span><span class="o">.</span><span class="n">text</span><span class="p">((</span> <span class="n">norm_start</span> <span class="o">+</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">norm_start</span><span class="o">-</span><span class="n">norm_end</span><span class="p">)</span> <span class="o">-</span> <span class="n">name_text_w</span><span class="p">)</span><span class="o">/</span><span class="mf">2.0</span> <span class="p">,</span> <span class="n">start_y</span><span class="o">+</span><span class="n">gene_h</span><span class="o">+</span><span class="n">text_h</span><span class="p">),</span> <span class="n">name</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span></div>
+
+
+
+
+
+<div class="viewcode-block" id="get_dynamic_height"><a class="viewcode-back" href="../../transit_code.html#transit.draw_trash.get_dynamic_height">[docs]</a><span class="k">def</span> <span class="nf">get_dynamic_height</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+
+    <span class="c1">#Set rest of heights and widths</span>
+    <span class="n">read_h</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">gene_h</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="n">ta_h</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">padding_h</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">canvas_h</span> <span class="o">=</span> <span class="n">read_h</span><span class="o">*</span><span class="n">N</span> <span class="o">+</span> <span class="n">ta_h</span> <span class="o">+</span> <span class="n">gene_h</span> <span class="o">+</span> <span class="n">padding_h</span> <span class="o">+</span> <span class="n">padding_h</span> <span class="o">+</span> <span class="mi">80</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">canvas_h</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="draw_canvas"><a class="viewcode-back" href="../../transit_code.html#transit.draw_trash.draw_canvas">[docs]</a><span class="k">def</span> <span class="nf">draw_canvas</span><span class="p">(</span><span class="n">fulldata</span><span class="p">,</span> <span class="nb">hash</span><span class="p">,</span> <span class="n">orf2data</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">[],</span> <span class="n">min_read</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_read</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">canvas_h</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">canvas_w</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+    
+
+    <span class="n">temp_image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">,(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+    <span class="n">temp_draw</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">temp_image</span><span class="p">)</span>
+    <span class="c1">#Set main draw object</span>
+
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fulldata</span><span class="p">)</span>
+    <span class="c1">#Set Labels</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="n">labels</span><span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Read Counts&quot;</span><span class="p">]</span><span class="o">*</span><span class="n">N</span>
+    
+
+
+    <span class="c1">#Get dynamic text widths</span>
+    <span class="c1">#print &quot;Labels:&quot;</span>
+    <span class="n">max_label_w</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">L</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="n">label_text_w</span><span class="p">,</span> <span class="n">label_text_h</span> <span class="o">=</span> <span class="n">temp_draw</span><span class="o">.</span><span class="n">textsize</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">)</span>
+        <span class="n">max_label_w</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">label_text_w</span><span class="p">,</span> <span class="n">max_label_w</span><span class="p">)</span>
+        <span class="c1">#print L</span>
+
+    <span class="n">scale_text_w</span><span class="p">,</span> <span class="n">scale_text_h</span> <span class="o">=</span> <span class="n">temp_draw</span><span class="o">.</span><span class="n">textsize</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">max_read</span><span class="p">),</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">)</span>
+    
+
+
+    <span class="c1">#Set rest of heights and widths</span>
+    <span class="n">read_h</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">gene_h</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="n">ta_h</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">padding_w</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">padding_h</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">read_w</span> <span class="o">=</span> <span class="n">canvas_w</span> <span class="o">-</span> <span class="p">(</span><span class="n">max_label_w</span> <span class="o">+</span> <span class="n">scale_text_w</span> <span class="o">+</span> <span class="n">padding_w</span> <span class="o">+</span> <span class="n">padding_w</span> <span class="o">+</span> <span class="mi">30</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">canvas_h</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">canvas_h</span> <span class="o">=</span> <span class="n">read_h</span><span class="o">*</span><span class="n">N</span> <span class="o">+</span> <span class="n">ta_h</span> <span class="o">+</span> <span class="n">gene_h</span> <span class="o">+</span> <span class="n">padding_h</span> <span class="o">+</span> <span class="n">padding_h</span> <span class="o">+</span> <span class="mi">80</span>
+    
+
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">,(</span><span class="n">canvas_w</span><span class="p">,</span> <span class="n">canvas_h</span><span class="p">),</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+    <span class="n">draw</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="n">lwd</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="n">GENES</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">TA_SITES</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">READS</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">nc_count</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fulldata</span><span class="p">):</span>
+        <span class="c1">#print j</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pos</span><span class="p">,</span><span class="n">read</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="n">pos</span> <span class="o">&lt;=</span> <span class="n">end</span><span class="p">:</span>
+                <span class="n">gene</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span><span class="s2">&quot;non-coding&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">gene</span> <span class="o">==</span> <span class="s2">&quot;non-coding&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">GENES</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">GENES</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;non-coding&quot;</span><span class="p">):</span>
+                    <span class="n">gene</span><span class="o">+=</span><span class="s2">&quot;_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">nc_count</span>
+                    <span class="n">nc_count</span> <span class="o">+=</span><span class="mi">1</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">gene</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">GENES</span><span class="p">:</span> <span class="n">GENES</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gene</span><span class="p">)</span>
+                    <span class="n">TA_SITES</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+                <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">read</span><span class="p">)</span>
+        <span class="n">READS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+
+
+
+    <span class="c1">#print READS</span>
+    <span class="c1">#print &quot;start&quot;, start</span>
+    <span class="c1">#print &quot;end&quot;, end</span>
+    <span class="c1">#print len(READS), len(TA_SITES)</span>
+    <span class="c1">#print &quot;&quot;</span>
+    <span class="c1">#for rd in READS:</span>
+    <span class="c1">#    print rd</span>
+    <span class="c1">#print &quot;&quot;</span>
+
+    <span class="n">start_x</span> <span class="o">=</span> <span class="n">max_label_w</span> <span class="o">+</span> <span class="n">padding_w</span> <span class="o">+</span> <span class="mi">21</span>
+    <span class="n">draw</span><span class="o">.</span><span class="n">line</span><span class="p">([(</span><span class="n">start_x</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">start_x</span><span class="p">,</span> <span class="n">canvas_h</span><span class="p">)],</span> <span class="n">width</span><span class="o">=</span><span class="n">lwd</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+    <span class="n">start_y</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">half</span> <span class="o">=</span> <span class="mi">100</span><span class="o">*</span><span class="mf">0.5</span>
+    <span class="n">start_x</span> <span class="o">+=</span> <span class="mi">5</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fulldata</span><span class="p">)):</span>
+        <span class="n">start_y</span><span class="o">+=</span><span class="n">read_h</span><span class="o">+</span><span class="n">padding_h</span>
+        <span class="n">draw</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="n">start_y</span> <span class="o">-</span> <span class="n">half</span><span class="p">),</span> <span class="n">labels</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+        <span class="n">draw_reads</span><span class="p">(</span><span class="n">draw</span><span class="p">,</span> <span class="n">READS</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">TA_SITES</span><span class="p">,</span> <span class="n">start_x</span><span class="p">,</span> <span class="n">start_y</span><span class="p">,</span> <span class="n">read_w</span><span class="p">,</span> <span class="n">read_h</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">min_read</span><span class="p">,</span> <span class="n">max_read</span><span class="p">)</span>
+        <span class="n">draw_scale</span><span class="p">(</span><span class="n">draw</span><span class="p">,</span> <span class="n">start_x</span><span class="o">+</span><span class="n">read_w</span><span class="o">+</span><span class="n">padding_w</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">start_y</span><span class="o">-</span><span class="mi">100</span><span class="o">+</span><span class="mi">10</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="n">max_read</span><span class="p">)</span>
+            
+
+
+
+    <span class="n">start_y</span><span class="o">+=</span><span class="mi">10</span>
+    <span class="c1">#start_x+=5</span>
+
+    <span class="c1">#TA sites</span>
+    <span class="n">draw</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="mi">30</span><span class="p">,</span> <span class="n">start_y</span><span class="p">),</span><span class="s1">&#39;TA Sites&#39;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+    <span class="n">draw_ta_sites</span><span class="p">(</span><span class="n">draw</span><span class="p">,</span> <span class="n">TA_SITES</span><span class="p">,</span> <span class="n">start_x</span><span class="p">,</span> <span class="n">start_y</span><span class="p">,</span> <span class="n">read_w</span><span class="p">,</span> <span class="n">ta_h</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+
+    <span class="c1">#Genes</span>
+    <span class="n">start_y</span> <span class="o">+=</span> <span class="mi">50</span>
+    <span class="n">draw</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="mi">30</span><span class="p">,</span> <span class="n">start_y</span><span class="o">+</span><span class="mi">10</span><span class="p">),</span><span class="s1">&#39;Genes&#39;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="n">read_w</span>
+    <span class="n">draw_genes</span><span class="p">(</span><span class="n">draw</span><span class="p">,</span> <span class="n">GENES</span><span class="p">,</span> <span class="n">orf2data</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">start_x</span><span class="p">,</span> <span class="n">start_y</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">gene_h</span><span class="p">)</span>
+
+    <span class="k">return</span><span class="p">(</span><span class="n">image</span><span class="p">)</span></div>
+
+
+
+
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/transit_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Michael A. DeJesus.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,765 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>transit.transit_tools &mdash; transit v2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     'v2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="transit v2.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for transit.transit_tools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2015.</span>
+<span class="c1">#   Michael A. DeJesus, Chaitra Ambadipudi, and  Thomas R. Ioerger.</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#    This file is part of TRANSIT.</span>
+<span class="c1">#</span>
+<span class="c1">#    TRANSIT is free software: you can redistribute it and/or modify</span>
+<span class="c1">#    it under the terms of the GNU General Public License as published by</span>
+<span class="c1">#    the Free Software Foundation, either version 3 of the License.</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#    TRANSIT is distributed in the hope that it will be useful,</span>
+<span class="c1">#    but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1">#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1">#    GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1">#    You should have received a copy of the GNU General Public License</span>
+<span class="c1">#    along with TRANSIT.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">wx</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">ntpath</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">scipy.optimize</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span>
+<span class="kn">import</span> <span class="nn">transit</span>
+
+<div class="viewcode-block" id="aton"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.aton">[docs]</a><span class="k">def</span> <span class="nf">aton</span><span class="p">(</span><span class="n">aa</span><span class="p">):</span>
+    <span class="k">return</span><span class="p">(((</span><span class="n">aa</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="parseCoords"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.parseCoords">[docs]</a><span class="k">def</span> <span class="nf">parseCoords</span><span class="p">(</span><span class="n">strand</span><span class="p">,</span> <span class="n">aa_start</span><span class="p">,</span> <span class="n">aa_end</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">strand</span> <span class="o">==</span> <span class="s2">&quot;+&quot;</span><span class="p">:</span>
+        <span class="k">return</span><span class="p">((</span><span class="n">aton</span><span class="p">(</span><span class="n">aa_start</span><span class="p">)</span> <span class="o">+</span> <span class="n">start</span><span class="p">,</span>  <span class="n">aton</span><span class="p">(</span><span class="n">aa_end</span><span class="p">)</span> <span class="o">+</span> <span class="n">start</span><span class="p">))</span>
+    <span class="c1"># Coordinates are Reversed... to match with Trash FILE TA coordinates</span>
+    <span class="k">if</span> <span class="n">strand</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span><span class="p">:</span>
+        <span class="k">return</span><span class="p">((</span><span class="n">end</span> <span class="o">-</span> <span class="n">aton</span><span class="p">(</span><span class="n">aa_end</span><span class="p">),</span> <span class="n">end</span> <span class="o">-</span> <span class="n">aton</span><span class="p">(</span><span class="n">aa_start</span><span class="p">)))</span></div>
+
+
+
+<div class="viewcode-block" id="get_wig_stats"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.get_wig_stats">[docs]</a><span class="k">def</span> <span class="nf">get_wig_stats</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">reads</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">&quot;0123456789&quot;</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">rd</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">reads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rd</span><span class="p">)</span>
+    <span class="n">reads</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span>
+    
+    <span class="n">density</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">reads</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">meanrd</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span>
+    <span class="n">nzmeanrd</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">reads</span><span class="p">[</span><span class="n">reads</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">nzmedianrd</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">reads</span><span class="p">[</span><span class="n">reads</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">maxrd</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span>
+    <span class="n">totalrd</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span>
+
+    <span class="n">skew</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">skew</span><span class="p">(</span><span class="n">reads</span><span class="p">[</span><span class="n">reads</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">kurtosis</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">kurtosis</span><span class="p">(</span><span class="n">reads</span><span class="p">[</span><span class="n">reads</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">density</span><span class="p">,</span> <span class="n">meanrd</span><span class="p">,</span> <span class="n">nzmeanrd</span><span class="p">,</span> <span class="n">nzmedianrd</span><span class="p">,</span> <span class="n">maxrd</span><span class="p">,</span> <span class="n">totalrd</span><span class="p">,</span> <span class="n">skew</span><span class="p">,</span> <span class="n">kurtosis</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_reads"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.get_reads">[docs]</a><span class="k">def</span> <span class="nf">get_reads</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">&quot;0123456789&quot;</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">rd</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rd</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="fetch_name"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.fetch_name">[docs]</a><span class="k">def</span> <span class="nf">fetch_name</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">ntpath</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filepath</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="basename"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.basename">[docs]</a><span class="k">def</span> <span class="nf">basename</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ntpath</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="cleanargs"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.cleanargs">[docs]</a><span class="k">def</span> <span class="nf">cleanargs</span><span class="p">(</span><span class="n">rawargs</span><span class="p">):</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">rawargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">rawargs</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="n">rawargs</span><span class="p">[</span><span class="n">count</span><span class="p">][</span><span class="mi">1</span><span class="p">:]]</span> <span class="o">=</span> <span class="n">rawargs</span><span class="p">[</span><span class="n">count</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">IE</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="n">rawargs</span><span class="p">[</span><span class="n">count</span><span class="p">][</span><span class="mi">1</span><span class="p">:]]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rawargs</span><span class="p">[</span><span class="n">count</span><span class="p">])</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_pos_hash"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.get_pos_hash">[docs]</a><span class="k">def</span> <span class="nf">get_pos_hash</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="nb">hash</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">orf</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">pos</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">hash</span><span class="p">:</span> <span class="nb">hash</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="nb">hash</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">orf</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">hash</span></div>
+
+
+<div class="viewcode-block" id="get_data"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.get_data">[docs]</a><span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="n">wig_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns a tuple of (data, position) containing a matrix of raw read counts, and list of coordinates. &quot;&quot;&quot;</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wig_list</span><span class="p">)</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">wig_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;location&quot;</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;variable&quot;</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="n">T</span><span class="o">+=</span><span class="mi">1</span>
+    
+    <span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="n">T</span><span class="p">))</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">wig_list</span><span class="p">):</span>
+        <span class="n">reads</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;location&quot;</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;variable&quot;</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">rd</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">rd</span>
+            <span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="combine_replicates"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.combine_replicates">[docs]</a><span class="k">def</span> <span class="nf">combine_replicates</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;Sum&quot;</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;Sum&quot;</span><span class="p">:</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;Mean&quot;</span><span class="p">:</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;TTRMean&quot;</span><span class="p">:</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">TTR_factors</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">factors</span> <span class="o">*</span> <span class="n">data</span>
+        <span class="n">target_factors</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">norm_to_target</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">target_factors</span> <span class="o">*</span> <span class="n">data</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span>
+
+    <span class="k">return</span> <span class="n">combined</span></div>
+
+
+
+<div class="viewcode-block" id="normalize_data"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.normalize_data">[docs]</a><span class="k">def</span> <span class="nf">normalize_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;nonorm&quot;</span><span class="p">,</span> <span class="n">wigList</span><span class="o">=</span><span class="p">[],</span> <span class="n">annotationPath</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+
+    <span class="n">factors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;nzmean&quot;</span><span class="p">:</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">nzmean_factors</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">factors</span> <span class="o">*</span> <span class="n">data</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;totreads&quot;</span><span class="p">:</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">totreads_factors</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">factors</span> <span class="o">*</span> <span class="n">data</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;TTR&quot;</span><span class="p">:</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">TTR_factors</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">factors</span> <span class="o">*</span> <span class="n">data</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;zinfnb&quot;</span><span class="p">:</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">zinfnb_factors</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">factors</span> <span class="o">*</span> <span class="n">data</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;quantile&quot;</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">quantile_norm</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;betageom&quot;</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">betageom_norm</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;aBGC&quot;</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">aBGC_norm</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;emphist&quot;</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">ctrlList</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;Control list cannot be empty!&quot;</span>
+        <span class="k">assert</span> <span class="n">expList</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;Experimental list cannot be empty!&quot;</span>
+        <span class="k">assert</span> <span class="n">annotationPath</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;Annotation path cannot be empty!&quot;</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">emphist_factors</span><span class="p">(</span><span class="n">wigList</span><span class="p">,</span> <span class="n">annotationPath</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">factors</span> <span class="o">*</span> <span class="n">data</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;nonorm&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">factors</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="nzmean_factors"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.nzmean_factors">[docs]</a><span class="k">def</span> <span class="nf">nzmean_factors</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="n">N</span><span class="p">)</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">total_hits</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">TAs_hit</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">mean_hits</span> <span class="o">=</span> <span class="n">total_hits</span><span class="o">/</span><span class="n">TAs_hit</span>
+    <span class="n">grand_total</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mean_hits</span><span class="p">)</span>
+    <span class="n">grand_mean</span> <span class="o">=</span> <span class="n">grand_total</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">factors</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">grand_mean</span><span class="o">/</span><span class="n">mean_hits</span>
+    <span class="k">return</span> <span class="n">factors</span></div>
+
+
+
+<div class="viewcode-block" id="totreads_factors"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.totreads_factors">[docs]</a><span class="k">def</span> <span class="nf">totreads_factors</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="n">N</span><span class="p">)</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">total_hits</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">TAs</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+    <span class="n">mean_hits</span> <span class="o">=</span> <span class="n">total_hits</span><span class="o">/</span><span class="n">TAs</span>
+    <span class="n">grand_total</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mean_hits</span><span class="p">)</span>
+    <span class="n">grand_mean</span> <span class="o">=</span> <span class="n">grand_total</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">factors</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">grand_mean</span><span class="o">/</span><span class="n">mean_hits</span>
+    <span class="k">return</span> <span class="n">factors</span></div>
+
+
+<div class="viewcode-block" id="emphist_factors"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.emphist_factors">[docs]</a><span class="k">def</span> <span class="nf">emphist_factors</span><span class="p">(</span><span class="n">wig_list</span><span class="p">,</span> <span class="n">prot_path</span><span class="p">):</span>
+    <span class="n">orf2info</span> <span class="o">=</span> <span class="n">get_gene_info</span><span class="p">(</span><span class="n">prot_path</span><span class="p">)</span>
+    <span class="nb">hash</span> <span class="o">=</span> <span class="n">get_pos_hash</span><span class="p">(</span><span class="n">prot_path</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">(</span><span class="n">wig_list</span><span class="p">)</span>
+    <span class="n">orf2reads</span><span class="p">,</span> <span class="n">orf2pos</span> <span class="o">=</span> <span class="n">get_gene_reads</span><span class="p">(</span><span class="nb">hash</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">orf2info</span><span class="p">)</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">temp</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+        <span class="n">reads_per_gene</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">orf</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">orf2reads</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">tempdata</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">orf2reads</span><span class="p">[</span><span class="n">orf</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tempdata</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">reads_per_gene</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">tempdata</span><span class="p">[:,</span><span class="n">j</span><span class="p">]))</span>
+        <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reads_per_gene</span><span class="p">)</span>
+
+    <span class="n">temp</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+        <span class="n">ii_good</span>  <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">temp</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>  <span class="n">temp</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">logFC</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">temp</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">ii_good</span><span class="p">]</span><span class="o">/</span><span class="n">temp</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">ii_good</span><span class="p">])</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">logFC</span><span class="p">)</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">logFC</span><span class="p">))</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">mean</span> <span class="o">-</span> <span class="p">(</span><span class="mi">5</span><span class="o">*</span><span class="n">std</span><span class="p">),</span>  <span class="n">mean</span> <span class="o">+</span> <span class="p">(</span><span class="n">std</span><span class="o">*</span><span class="mi">5</span><span class="p">),</span> <span class="mi">50000</span><span class="p">)</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gaussian_kde</span><span class="p">(</span><span class="n">logFC</span><span class="p">)</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">R</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">peakLogFC</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">Y</span><span class="o">.</span><span class="n">argmax</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="n">peakLogFC</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">factors</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">peakLogFC</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">factors</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">peakLogFC</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">factors</span></div>
+
+
+
+<div class="viewcode-block" id="aBGC_norm"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.aBGC_norm">[docs]</a><span class="k">def</span> <span class="nf">aBGC_norm</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">doTotReads</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">bgsamples</span> <span class="o">=</span> <span class="mi">200000</span><span class="p">):</span>
+    <span class="n">K</span><span class="p">,</span><span class="n">N</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">norm_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="n">bgsamples</span>
+    <span class="n">F</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mf">100.0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">31</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">BGC</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">param_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+
+        <span class="n">nzdata</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">nzdata</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">Nall</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">Nnz</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nzdata</span><span class="p">)</span>
+        <span class="n">GOF_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">frac</span> <span class="ow">in</span> <span class="n">F</span><span class="p">:</span>
+            <span class="n">tQ</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">Nnz</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">Nnz</span><span class="p">)</span>
+            <span class="n">rho</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">trim_mean</span><span class="p">(</span><span class="n">nzdata</span><span class="p">,</span> <span class="n">frac</span><span class="p">))</span>
+            <span class="n">rho_to_fit</span> <span class="o">=</span> <span class="n">rho</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">A</span> <span class="o">=</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">tQ</span><span class="p">),</span><span class="mi">2</span><span class="p">)))</span><span class="o">/</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nzdata</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">tQ</span><span class="p">)))</span>
+                <span class="n">Kp</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>   <span class="o">/</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="n">rho</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">Kp</span><span class="o">*</span><span class="n">rho</span><span class="p">,</span> <span class="n">Kp</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">rho</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">S</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">S</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">Except</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s2">&quot;aBGC Error:&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">print</span> <span class="s2">&quot;</span><span class="si">%r</span><span class="s2">ho=s</span><span class="se">\t</span><span class="s2">Kp=</span><span class="si">%s</span><span class="se">\t</span><span class="s2">A=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">Kp</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">S</span><span class="p">)</span>
+
+            <span class="n">corrected_nzdata</span> <span class="o">=</span> <span class="p">[</span><span class="n">cleaninfgeom</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">ecdf</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">rho_to_fit</span><span class="p">),</span> <span class="n">rho_to_fit</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">nzdata</span><span class="p">]</span>
+            <span class="n">corrected_nzmean</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">corrected_nzdata</span><span class="p">)</span>
+
+            <span class="n">Fp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">Nnz</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">Nnz</span><span class="p">),</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">corrected_nzmean</span><span class="p">)</span>
+            <span class="n">ii_inf</span> <span class="o">=</span> <span class="n">Fp</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+            <span class="n">Fp</span><span class="p">[</span><span class="n">ii_inf</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">Fp</span><span class="p">[</span><span class="o">~</span><span class="n">ii_inf</span><span class="p">])</span> <span class="o">+</span> <span class="mi">100</span>
+            <span class="n">ch2_indiv</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">corrected_nzdata</span><span class="o">-</span> <span class="n">Fp</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">/</span> <span class="n">Fp</span>
+            <span class="n">GOF</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ch2_indiv</span><span class="p">)</span>
+            <span class="n">GOF_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">GOF</span><span class="p">,</span> <span class="n">frac</span><span class="p">,</span> <span class="n">rho_to_fit</span><span class="p">,</span> <span class="n">Kp</span><span class="p">))</span>
+
+        <span class="n">gof</span><span class="p">,</span> <span class="n">frac</span><span class="p">,</span> <span class="n">best_rho</span><span class="p">,</span> <span class="n">best_Kp</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">GOF_list</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">BGsample</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">best_Kp</span><span class="o">*</span><span class="n">best_rho</span><span class="p">,</span> <span class="n">best_Kp</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">best_rho</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">S</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">S</span><span class="p">)</span>
+        <span class="c1">#BGC.append(dict([(x, removeinf(scipy.stats.geom.ppf(ecdf(temp, x), best_rho), best_rho)) for x in data[j]]))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+            <span class="n">norm_data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cleaninfgeom</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">ecdf</span><span class="p">(</span><span class="n">BGsample</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]),</span> <span class="n">best_rho</span><span class="p">),</span> <span class="n">best_rho</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">doTotReads</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">totreads_factors</span><span class="p">(</span><span class="n">norm_data</span><span class="p">)</span> <span class="o">*</span> <span class="n">norm_data</span>
+    <span class="k">return</span> <span class="n">norm_data</span></div>
+
+
+
+<div class="viewcode-block" id="empirical_theta"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.empirical_theta">[docs]</a><span class="k">def</span> <span class="nf">empirical_theta</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="trimmed_empirical_mu"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.trimmed_empirical_mu">[docs]</a><span class="k">def</span> <span class="nf">trimmed_empirical_mu</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">trim_mean</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">X</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TTR_factors"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.TTR_factors">[docs]</a><span class="k">def</span> <span class="nf">TTR_factors</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">thetaEst</span><span class="o">=</span><span class="n">empirical_theta</span><span class="p">,</span> <span class="n">muEst</span><span class="o">=</span><span class="n">trimmed_empirical_mu</span><span class="p">):</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+        <span class="n">factors</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">thetaEst</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">muEst</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span><span class="o">/</span><span class="p">(</span><span class="n">thetaEst</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">*</span> <span class="n">muEst</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
+
+    <span class="k">return</span> <span class="n">factors</span></div>
+
+
+
+<div class="viewcode-block" id="Fzinfnb"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.Fzinfnb">[docs]</a><span class="k">def</span> <span class="nf">Fzinfnb</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="n">pi</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="n">Fdata</span> <span class="o">=</span> <span class="n">args</span>
+    <span class="n">temp0</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">pi</span> <span class="o">+</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">nbinom</span><span class="o">.</span><span class="n">pmf</span><span class="p">(</span><span class="n">Fdata</span><span class="p">[</span><span class="n">Fdata</span><span class="o">==</span><span class="mi">0</span><span class="p">],</span> <span class="n">mu</span><span class="p">,</span> <span class="n">r</span><span class="p">)))</span>
+    <span class="n">tempnz</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">pi</span><span class="p">)</span><span class="o">+</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">nbinom</span><span class="o">.</span><span class="n">logpmf</span><span class="p">(</span><span class="n">Fdata</span><span class="p">[</span><span class="n">Fdata</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">],</span> <span class="n">mu</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span>
+    <span class="n">negLL</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">temp0</span><span class="p">)</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">tempnz</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">negLL</span></div>
+
+
+<div class="viewcode-block" id="zinfnb_factors"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.zinfnb_factors">[docs]</a><span class="k">def</span> <span class="nf">zinfnb_factors</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+   
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">initParams</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="s2">&quot;L-BFGS-B&quot;</span>
+        <span class="n">Fdata</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">Fzinfnb</span><span class="p">,</span> <span class="n">initParams</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">Fdata</span><span class="p">,),</span> <span class="n">method</span><span class="o">=</span><span class="n">M</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">[(</span><span class="mf">0.0001</span><span class="p">,</span> <span class="mf">0.9999</span><span class="p">),(</span><span class="mf">0.0001</span><span class="p">,</span> <span class="bp">None</span><span class="p">),(</span><span class="mf">0.0001</span><span class="p">,</span> <span class="mf">0.9999</span><span class="p">)])</span>
+
+        
+        <span class="n">pi</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">x</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="n">n</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="p">)</span><span class="o">/</span><span class="n">p</span>
+        <span class="n">factors</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">mu</span>
+    
+
+    <span class="k">return</span> <span class="n">factors</span></div>
+
+
+
+<div class="viewcode-block" id="thetanorm_factors"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.thetanorm_factors">[docs]</a><span class="k">def</span> <span class="nf">thetanorm_factors</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+        <span class="n">factors</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">trim_mean</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">],</span> <span class="mf">0.05</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">trim_mean</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">],</span> <span class="mf">0.05</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">factors</span></div>
+
+
+
+
+
+<div class="viewcode-block" id="quantile_norm"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.quantile_norm">[docs]</a><span class="k">def</span> <span class="nf">quantile_norm</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Performs Quantile Normalization as described by Bolstad et al. 2003&quot;&quot;&quot;</span>
+    
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1">#Sort columns</span>
+    <span class="n">s_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">sorted</span><span class="p">(</span><span class="n">col</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">data</span><span class="p">])</span>
+
+    <span class="c1">#Get ranks of original data</span>
+    <span class="n">ranks</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">ranks</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">rankdata</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;dense&#39;</span><span class="p">)</span>
+
+    <span class="c1">#Get empirical distribution</span>
+    <span class="n">ranked_means</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">s_data</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    
+    <span class="c1">#Create dictionary of rank to new empirical values</span>
+    <span class="n">rank2count</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">rankdata</span><span class="p">(</span><span class="n">ranked_means</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;dense&#39;</span><span class="p">),</span> <span class="n">ranked_means</span><span class="p">)])</span>
+
+    <span class="c1">#Assign values</span>
+    <span class="n">norm_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+        <span class="n">norm_data</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">rank2count</span><span class="p">[</span><span class="n">ranks</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">norm_data</span></div>
+
+
+
+
+<div class="viewcode-block" id="ecdf"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.ecdf">[docs]</a><span class="k">def</span> <span class="nf">ecdf</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">S</span><span class="o">&lt;=</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="cleaninfgeom"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.cleaninfgeom">[docs]</a><span class="k">def</span> <span class="nf">cleaninfgeom</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">rho</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.9999999999999999</span><span class="p">,</span> <span class="n">rho</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span></div>
+
+
+
+<div class="viewcode-block" id="betageom_norm"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.betageom_norm">[docs]</a><span class="k">def</span> <span class="nf">betageom_norm</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">doNZMean</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">bgsamples</span><span class="o">=</span><span class="mi">200000</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="n">N</span><span class="p">)</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">total_hits</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">TAs_hit</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">mean_hits</span> <span class="o">=</span> <span class="n">total_hits</span><span class="o">/</span><span class="n">TAs_hit</span>
+    <span class="n">grand_total</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mean_hits</span><span class="p">)</span>
+    <span class="n">grand_mean</span> <span class="o">=</span> <span class="n">grand_total</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+    <span class="n">norm_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+
+        <span class="n">tQ</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="n">eX</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rd</span> <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">]])</span>
+        <span class="n">eX</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="n">rho</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">trim_mean</span><span class="p">(</span><span class="n">eX</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">),</span> <span class="mf">0.0001</span><span class="p">)</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">tQ</span><span class="p">),</span><span class="mi">2</span><span class="p">)))</span><span class="o">/</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">eX</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">tQ</span><span class="p">)))</span>
+        <span class="n">Kp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>   <span class="o">/</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="n">rho</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">10</span><span class="p">)</span>
+    
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">BGsample</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">Kp</span><span class="o">*</span><span class="n">rho</span><span class="p">,</span> <span class="n">Kp</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">rho</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">bgsamples</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">bgsamples</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s2">&quot;BGC ERROR with rho=</span><span class="si">%f</span><span class="s2">, Kp=</span><span class="si">%f</span><span class="s2">, A=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">Kp</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
+            <span class="k">print</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">BGsample</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">bgsamples</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+            <span class="n">norm_data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cleaninfgeom</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">ecdf</span><span class="p">(</span><span class="n">BGsample</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]),</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">grand_mean</span><span class="p">),</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">grand_mean</span><span class="p">)</span>
+
+        <span class="c1">#mapping = dict([(x, cleaninfgeom(scipy.stats.geom.ppf(ecdf(BGsample, x), 1.0/grand_mean), 1.0/grand_mean)) for x in data[j]])</span>
+        <span class="c1">#for i in range(N):</span>
+        <span class="c1">#    try:</span>
+        <span class="c1">#        norm_data[j,i] = mapping[data[j,i]]</span>
+        <span class="c1">#    except KeyError:</span>
+        <span class="c1">#        print &quot;Error: %s  | key = %s not found. Using original Data. Notify authors!&quot; % (KeyError, data[j,i])</span>
+        <span class="c1">#        norm_data[j,i] = data[j,i]</span>
+    
+    <span class="k">if</span> <span class="n">doNZMean</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">nzmean_norm</span><span class="p">(</span><span class="n">norm_data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">norm_data</span></div>
+
+
+
+
+
+
+
+<div class="viewcode-block" id="nzmean_norm"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.nzmean_norm">[docs]</a><span class="k">def</span> <span class="nf">nzmean_norm</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="n">N</span><span class="p">)</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">total_hits</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">TAs_hit</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">mean_hits</span> <span class="o">=</span> <span class="n">total_hits</span><span class="o">/</span><span class="n">TAs_hit</span>
+    <span class="n">grand_total</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mean_hits</span><span class="p">)</span>
+    <span class="n">grand_mean</span> <span class="o">=</span> <span class="n">grand_total</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">factors</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">grand_mean</span><span class="o">/</span><span class="n">mean_hits</span>
+    <span class="k">return</span> <span class="n">factors</span> <span class="o">*</span> <span class="n">data</span></div>
+    
+
+<div class="viewcode-block" id="norm_to_target"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.norm_to_target">[docs]</a><span class="k">def</span> <span class="nf">norm_to_target</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="n">N</span><span class="p">)</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">factors</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">target</span><span class="p">)</span><span class="o">/</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">factors</span></div>
+
+
+<div class="viewcode-block" id="get_gene_reads"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.get_gene_reads">[docs]</a><span class="k">def</span> <span class="nf">get_gene_reads</span><span class="p">(</span><span class="nb">hash</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">orf2info</span><span class="p">,</span> <span class="n">ignoreCodon</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">ignoreNTerm</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ignoreCTerm</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">orf_list</span><span class="o">=</span><span class="nb">set</span><span class="p">()):</span>
+    <span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="n">N</span><span class="p">)</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="n">orf2reads</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">orf</span><span class="p">,[])</span> <span class="k">for</span> <span class="n">orf</span> <span class="ow">in</span> <span class="n">orf_list</span><span class="p">])</span>
+    <span class="n">orf2pos</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">orf</span><span class="p">,[])</span> <span class="k">for</span> <span class="n">orf</span> <span class="ow">in</span> <span class="n">orf_list</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">coord</span> <span class="o">=</span> <span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">genes_with_coord</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">genes_with_coord</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">gene</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">orf2reads</span><span class="p">:</span> <span class="n">orf2reads</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">gene</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">orf2pos</span><span class="p">:</span> <span class="n">orf2pos</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="n">start</span><span class="p">,</span><span class="n">end</span><span class="p">,</span><span class="n">strand</span> <span class="o">=</span> <span class="n">orf2info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gene</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])[</span><span class="mi">2</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+            <span class="c1">#print gene, coord, start, end, strand, data[:,i].shape</span>
+
+            <span class="k">if</span> <span class="n">strand</span> <span class="o">==</span> <span class="s2">&quot;+&quot;</span><span class="p">:</span>
+                <span class="c1">#Ignore TAs at stop codon</span>
+                <span class="k">if</span> <span class="n">ignoreCodon</span> <span class="ow">and</span> <span class="n">coord</span> <span class="o">&gt;</span> <span class="n">end</span><span class="o">-</span><span class="mi">3</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1">#ignore TAs at stop codon</span>
+                <span class="k">if</span> <span class="n">ignoreCodon</span> <span class="ow">and</span> <span class="n">coord</span> <span class="o">&lt;</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+            <span class="c1">#print &quot;passed first IF&quot;</span>
+
+            <span class="c1">#Ignore TAs at beginning n%</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">coord</span><span class="o">-</span><span class="n">start</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">ignoreNTerm</span><span class="o">/</span><span class="mf">100.0</span><span class="p">):</span>
+                <span class="c1">#print &quot;Ignoring&quot;, coord, &quot;from gene&quot;, gene, &quot;with&quot;, (coord-start)/float(end-start), &quot;perc and NTerm&quot;, ignoreNTerm/100.0</span>
+                <span class="k">continue</span>
+            
+            <span class="c1">#print &quot;passed second IF&quot;</span>
+
+            <span class="c1">#Ignore TAs at end c%</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">coord</span><span class="o">-</span><span class="n">start</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="p">)</span> <span class="o">&gt;</span> <span class="p">((</span><span class="mi">100</span><span class="o">-</span><span class="n">ignoreCTerm</span><span class="p">)</span><span class="o">/</span><span class="mf">100.0</span><span class="p">):</span>
+                <span class="c1">#print &quot;Ignoring&quot;, coord, &quot;from gene&quot;, gene, &quot;with&quot;, (coord-start)/float(end-start), &quot;perc and Cterm&quot;, ignoreCTerm/100.0</span>
+                <span class="k">continue</span>
+
+
+
+            <span class="c1">#print &quot;adding data&quot;</span>
+            <span class="c1">#print gene, data[:,i]</span>
+            <span class="n">orf2reads</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">orf2pos</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">orf2reads</span><span class="p">,</span> <span class="n">orf2pos</span><span class="p">)</span></div>
+   
+
+
+<div class="viewcode-block" id="tricube"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.tricube">[docs]</a><span class="k">def</span> <span class="nf">tricube</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+    <span class="n">ii</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">result</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">ii</span><span class="p">]),</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="loess"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.loess">[docs]</a><span class="k">def</span> <span class="nf">loess</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+    <span class="n">smoothed</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">tricube</span><span class="p">((</span><span class="n">X</span><span class="o">-</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
+        <span class="n">sW</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">W</span><span class="p">)</span>
+        <span class="n">wsX</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">W</span><span class="o">*</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">wsY</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">W</span><span class="o">*</span><span class="n">Y</span><span class="p">)</span>
+        <span class="n">wsXY</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">W</span><span class="o">*</span><span class="n">X</span><span class="o">*</span><span class="n">Y</span><span class="p">)</span>
+        <span class="n">sXX</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">X</span><span class="o">*</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="p">(</span><span class="n">sW</span> <span class="o">*</span> <span class="n">wsXY</span> <span class="o">-</span> <span class="n">wsX</span> <span class="o">*</span> <span class="n">wsY</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">sW</span> <span class="o">*</span> <span class="n">sXX</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">wsX</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="p">(</span><span class="n">wsY</span> <span class="o">-</span> <span class="n">B</span><span class="o">*</span><span class="n">wsX</span><span class="p">)</span> <span class="o">/</span> <span class="n">sW</span>
+        <span class="n">smoothed</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">A</span>
+    <span class="k">return</span> <span class="n">smoothed</span></div>
+
+
+
+
+<div class="viewcode-block" id="loess_correction"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.loess_correction">[docs]</a><span class="k">def</span> <span class="nf">loess_correction</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">/</span><span class="n">window</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">x_w</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">y_w</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">/</span><span class="n">window</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">x_w</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">window</span><span class="o">*</span><span class="n">i</span>
+        <span class="n">y_w</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">Y</span><span class="p">[</span><span class="n">window</span><span class="o">*</span><span class="n">i</span><span class="p">:</span><span class="n">window</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)])</span>
+
+    <span class="n">ysmooth</span> <span class="o">=</span> <span class="n">loess</span><span class="p">(</span><span class="n">x_w</span><span class="p">,</span> <span class="n">y_w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+    <span class="n">mline</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_w</span><span class="p">)</span>
+    <span class="n">y_w</span> <span class="o">*</span> <span class="p">(</span><span class="n">ysmooth</span><span class="o">/</span><span class="n">mline</span><span class="p">)</span>
+
+    <span class="n">normalized_Y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
+        <span class="n">normalized_Y</span><span class="p">[</span><span class="n">window</span><span class="o">*</span><span class="n">i</span><span class="p">:</span><span class="n">window</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="n">window</span><span class="o">*</span><span class="n">i</span><span class="p">:</span><span class="n">window</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="p">(</span><span class="n">ysmooth</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">mline</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">normalized_Y</span></div>
+
+
+<div class="viewcode-block" id="fdr_post_prob"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.fdr_post_prob">[docs]</a><span class="k">def</span> <span class="nf">fdr_post_prob</span><span class="p">(</span><span class="n">Z_raw</span><span class="p">,</span> <span class="n">ALPHA</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">Z_raw</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">W</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">Z</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+
+    <span class="n">ess_threshold</span> <span class="o">=</span> <span class="mf">1.00</span>
+    <span class="n">INDEX</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">INDEX</span><span class="p">:</span>
+        <span class="n">count</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="n">wi</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">Z</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ai_n</span> <span class="o">=</span> <span class="p">(</span><span class="n">ALPHA</span><span class="o">*</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="n">N</span>
+        <span class="n">mean_wi</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">W</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">i</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">delta_w</span> <span class="o">=</span> <span class="n">wi</span> <span class="o">-</span> <span class="n">mean_wi</span>
+        <span class="k">if</span> <span class="n">delta_w</span> <span class="o">&gt;</span> <span class="n">ai_n</span><span class="p">:</span>
+            <span class="n">ess_threshold</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">break</span>
+
+    <span class="n">noness_threshold</span> <span class="o">=</span> <span class="mf">0.00</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">INDEX</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">INDEX</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">INDEX</span><span class="p">:</span>
+        <span class="n">wi</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="n">N</span><span class="o">-</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ai_n</span> <span class="o">=</span> <span class="p">(</span><span class="n">ALPHA</span><span class="o">*</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="n">N</span>
+        <span class="n">mean_wi</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="n">N</span><span class="o">-</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">delta_w</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="n">N</span><span class="o">-</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">mean_wi</span>
+        <span class="n">count</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="n">ai_n</span> <span class="o">&gt;</span> <span class="n">delta_w</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">noness_threshold</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="n">N</span><span class="o">-</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="k">return</span><span class="p">(</span><span class="n">ess_threshold</span><span class="p">,</span> <span class="n">noness_threshold</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_gene_info"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.get_gene_info">[docs]</a><span class="k">def</span> <span class="nf">get_gene_info</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">orf2info</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">orf</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">strand</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">orf2info</span><span class="p">[</span><span class="n">orf</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">strand</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">orf2info</span></div>
+
+<div class="viewcode-block" id="get_gene_name"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.get_gene_name">[docs]</a><span class="k">def</span> <span class="nf">get_gene_name</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">orf2info</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">orf</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">strand</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">orf2info</span><span class="p">[</span><span class="n">orf</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="k">return</span> <span class="n">orf2info</span></div>
+    
+
+
+<div class="viewcode-block" id="getTabTableData"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.getTabTableData">[docs]</a><span class="k">def</span> <span class="nf">getTabTableData</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">colnames</span><span class="p">):</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">rowdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">colnames</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">tmp</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">colnames</span><span class="p">))])</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">row</span><span class="p">,</span> <span class="n">rowdict</span><span class="p">))</span>
+        <span class="n">row</span><span class="o">+=</span><span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="ShowMessage"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.ShowMessage">[docs]</a><span class="k">def</span> <span class="nf">ShowMessage</span><span class="p">(</span><span class="n">MSG</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="n">wx</span><span class="o">.</span><span class="n">MessageBox</span><span class="p">(</span><span class="n">MSG</span><span class="p">,</span> <span class="s1">&#39;Info&#39;</span><span class="p">,</span>
+        <span class="n">wx</span><span class="o">.</span><span class="n">OK</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ICON_INFORMATION</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ShowAskWarning"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.ShowAskWarning">[docs]</a><span class="k">def</span> <span class="nf">ShowAskWarning</span><span class="p">(</span><span class="n">MSG</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="n">dial</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">MessageDialog</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">MSG</span><span class="p">,</span> <span class="s1">&#39;Warning&#39;</span><span class="p">,</span>
+        <span class="n">wx</span><span class="o">.</span><span class="n">OK</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">CANCEL</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ICON_EXCLAMATION</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dial</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ShowError"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.ShowError">[docs]</a><span class="k">def</span> <span class="nf">ShowError</span><span class="p">(</span><span class="n">MSG</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="n">dial</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">MessageDialog</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">MSG</span><span class="p">,</span> <span class="s1">&#39;Error&#39;</span><span class="p">,</span>
+        <span class="n">wx</span><span class="o">.</span><span class="n">OK</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ICON_ERROR</span><span class="p">)</span>
+    <span class="n">dial</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="transit_message"><a class="viewcode-back" href="../../transit_code.html#transit.transit_tools.transit_message">[docs]</a><span class="k">def</span> <span class="nf">transit_message</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">print</span> <span class="n">transit</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="n">msg</span></div>
+
+
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/transit_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Michael A. DeJesus.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

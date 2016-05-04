@@ -1,0 +1,428 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>transit.fileDisplay &mdash; transit v2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     'v2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="transit v2.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for transit.fileDisplay</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2015.</span>
+<span class="c1">#   Michael A. DeJesus, Chaitra Ambadipudi, and  Thomas R. Ioerger.</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#    This file is part of TRANSIT.</span>
+<span class="c1">#</span>
+<span class="c1">#    TRANSIT is free software: you can redistribute it and/or modify</span>
+<span class="c1">#    it under the terms of the GNU General Public License as published by</span>
+<span class="c1">#    the Free Software Foundation, either version 3 of the License.</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#    TRANSIT is distributed in the hope that it will be useful,</span>
+<span class="c1">#    but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1">#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1">#    GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1">#    You should have received a copy of the GNU General Public License</span>
+<span class="c1">#    along with TRANSIT.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">wx</span>
+<span class="kn">import</span> <span class="nn">wx.xrc</span>
+<span class="kn">import</span> <span class="nn">wx.lib.mixins.listctrl</span> <span class="kn">as</span> <span class="nn">listmix</span>
+<span class="kn">import</span> <span class="nn">ntpath</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">import</span> <span class="nn">trash</span>
+
+<span class="kn">import</span> <span class="nn">wx.grid</span>
+
+<span class="kn">import</span> <span class="nn">transit</span>
+<span class="kn">import</span> <span class="nn">transit.analysis</span>
+
+<div class="viewcode-block" id="fetch_name"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.fetch_name">[docs]</a><span class="k">def</span> <span class="nf">fetch_name</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">ntpath</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filepath</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ShowError"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.ShowError">[docs]</a><span class="k">def</span> <span class="nf">ShowError</span><span class="p">(</span><span class="n">MSG</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="n">dial</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">MessageDialog</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">MSG</span><span class="p">,</span> <span class="s1">&#39;Error&#39;</span><span class="p">,</span>
+            <span class="n">wx</span><span class="o">.</span><span class="n">OK</span> <span class="o">|</span> <span class="n">wx</span><span class="o">.</span><span class="n">ICON_ERROR</span><span class="p">)</span>
+        <span class="n">dial</span><span class="o">.</span><span class="n">ShowModal</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="sortColumn"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.sortColumn">[docs]</a><span class="k">def</span> <span class="nf">sortColumn</span><span class="p">(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span> 
+        <span class="n">i1</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">item1</span><span class="p">)</span>
+        <span class="n">i2</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">item2</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">)</span></div>
+
+
+<span class="c1">########################################################################</span>
+<div class="viewcode-block" id="SortableListCtrl"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.SortableListCtrl">[docs]</a><span class="k">class</span> <span class="nc">SortableListCtrl</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">ListCtrl</span><span class="p">):</span>
+
+    <span class="c1">#----------------------------------------------------------------------</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span>
+                 <span class="n">size</span><span class="o">=</span><span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">wx</span><span class="o">.</span><span class="n">ListCtrl</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span></div>
+
+
+
+<span class="c1">#########################################</span>
+<span class="c1">#menu_titles = [ &quot;Display Histogram&quot;,</span>
+<span class="c1">#                &quot;Display Tracks&quot;,]</span>
+<span class="c1">#</span>
+<span class="c1">#menu_title_by_id = {}</span>
+<span class="c1">#for title in menu_titles:</span>
+<span class="c1">#    menu_title_by_id[ wx.NewId() ] = title</span>
+<span class="c1">#</span>
+<span class="c1">##########################################</span>
+
+
+<div class="viewcode-block" id="ImgFrame"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.ImgFrame">[docs]</a><span class="k">class</span> <span class="nc">ImgFrame</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">filePath</span><span class="p">):</span>
+        <span class="n">wx</span><span class="o">.</span><span class="n">Frame</span><span class="o">.</span><span class="n">__init__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="nb">id</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filePath</span><span class="p">),</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Size</span><span class="p">(</span> <span class="mi">1150</span><span class="p">,</span><span class="mi">740</span> <span class="p">),</span> <span class="n">style</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">DEFAULT_FRAME_STYLE</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">TAB_TRAVERSAL</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizeHintsSz</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span> <span class="p">)</span>
+        <span class="n">bSizer1</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+       
+        <span class="bp">self</span><span class="o">.</span><span class="n">m_bitmap1</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBitmap</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">NullBitmap</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">bSizer1</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_bitmap1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span> <span class="n">bSizer1</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Centre</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">BOTH</span> <span class="p">)</span>
+
+        <span class="n">img</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">BITMAP_TYPE_ANY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m_bitmap1</span><span class="o">.</span><span class="n">SetBitmap</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">BitmapFromImage</span><span class="p">(</span><span class="n">img</span><span class="p">))</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">Refresh</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Fit</span><span class="p">()</span></div>
+ 
+
+
+
+
+<div class="viewcode-block" id="unknownColNames"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.unknownColNames">[docs]</a><span class="k">def</span> <span class="nf">unknownColNames</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">colNames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+            <span class="n">colNames</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">final_line</span> <span class="o">=</span> <span class="n">line</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">final_line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">colNames</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">):</span>
+        <span class="n">colNames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Col</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">))]</span>
+    <span class="k">return</span> <span class="n">colNames</span></div>
+
+
+<div class="viewcode-block" id="unknownTableData"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.unknownTableData">[docs]</a><span class="k">def</span> <span class="nf">unknownTableData</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">colnames</span><span class="p">):</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">rowdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">colnames</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">tmp</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">colnames</span><span class="p">))])</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">row</span><span class="p">,</span> <span class="n">rowdict</span><span class="p">))</span>
+        <span class="n">row</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="unknownFileHeaderText"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.unknownFileHeaderText">[docs]</a><span class="k">def</span> <span class="nf">unknownFileHeaderText</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">&quot;Unknown results file.&quot;</span></div>
+
+
+<div class="viewcode-block" id="getInfoFromFileType"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.getInfoFromFileType">[docs]</a><span class="k">def</span> <span class="nf">getInfoFromFileType</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">transit</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">methods</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">filetype</span> <span class="ow">in</span> <span class="n">transit</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">methods</span><span class="p">[</span><span class="n">method</span><span class="p">]</span><span class="o">.</span><span class="n">filetypes</span><span class="p">:</span>
+            <span class="n">FT</span> <span class="o">=</span> <span class="n">filetype</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">X</span> <span class="o">==</span> <span class="n">FT</span><span class="o">.</span><span class="n">identifier</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">FT</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span> <span class="n">transit</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">TransitFile</span><span class="p">())</span></div>
+
+    
+
+<div class="viewcode-block" id="TransitTable"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.TransitTable">[docs]</a><span class="k">class</span> <span class="nc">TransitTable</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">PyGridTableBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A custom wx.Grid Table using user supplied data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">colnames</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;data is a list of the form</span>
+<span class="sd">        [(rowname, dictionary),</span>
+<span class="sd">        dictionary.get(colname, None) returns the data for column</span>
+<span class="sd">        colname</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># The base class must be initialized *first*</span>
+        <span class="n">wx</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">PyGridTableBase</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colnames</span> <span class="o">=</span> <span class="n">colnames</span>
+        <span class="c1"># XXX</span>
+        <span class="c1"># we need to store the row length and column length to</span>
+        <span class="c1"># see if the table has changed size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetNumberRows</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetNumberCols</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sorted_col</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sorted_dir</span> <span class="o">=</span> <span class="bp">None</span>
+
+
+
+<div class="viewcode-block" id="TransitTable.GetNumberCols"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.TransitTable.GetNumberCols">[docs]</a>    <span class="k">def</span> <span class="nf">GetNumberCols</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">colnames</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TransitTable.GetNumberRows"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.TransitTable.GetNumberRows">[docs]</a>    <span class="k">def</span> <span class="nf">GetNumberRows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TransitTable.GetColLabelValue"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.TransitTable.GetColLabelValue">[docs]</a>    <span class="k">def</span> <span class="nf">GetColLabelValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">colnames</span><span class="p">[</span><span class="n">col</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TransitTable.GetRowLabelValue"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.TransitTable.GetRowLabelValue">[docs]</a>    <span class="k">def</span> <span class="nf">GetRowLabelValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;R</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="TransitTable.GetValue"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.TransitTable.GetValue">[docs]</a>    <span class="k">def</span> <span class="nf">GetValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetColLabelValue</span><span class="p">(</span><span class="n">col</span><span class="p">),</span> <span class="s2">&quot;&quot;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TransitTable.GetRawValue"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.TransitTable.GetRawValue">[docs]</a>    <span class="k">def</span> <span class="nf">GetRawValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetColLabelValue</span><span class="p">(</span><span class="n">col</span><span class="p">),</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TransitTable.SetValue"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.TransitTable.SetValue">[docs]</a>    <span class="k">def</span> <span class="nf">SetValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">GetColLabelValue</span><span class="p">(</span><span class="n">col</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="TransitTable.SortColumn"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.TransitTable.SortColumn">[docs]</a>    <span class="k">def</span> <span class="nf">SortColumn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sorted_col</span> <span class="o">==</span> <span class="n">col</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sorted_dir</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sorted_dir</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sorted_col</span> <span class="o">=</span> <span class="n">col</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sorted_dir</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colnames</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+        <span class="n">tempdata</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="n">rowname</span><span class="p">,</span> <span class="n">entry</span> <span class="o">=</span> <span class="n">row</span>
+            <span class="n">tempdata</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span> <span class="n">row</span><span class="p">))</span>
+
+        <span class="n">tempdata</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">reverse</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sorted_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">sortvalue</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tempdata</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span></div></div>
+
+
+
+
+
+<div class="viewcode-block" id="TransitGridFrame"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.TransitGridFrame">[docs]</a><span class="k">class</span> <span class="nc">TransitGridFrame</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+
+        <span class="n">wx</span><span class="o">.</span><span class="n">Frame</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="n">bSizer1</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+
+        <span class="n">sbSizer1</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBox</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="s2">u&quot;Information&quot;</span> <span class="p">),</span> <span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span> <span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">row</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctrldata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">ctrlSelected</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">expSelected</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">annotation</span>
+
+        <span class="c1">#print &quot;Parent:&quot;, self.parent</span>
+        <span class="c1">#print &quot;Ctrl:&quot;, self.ctrldata</span>
+        <span class="c1">#print &quot;Exp:&quot;, self.expdata</span>
+        <span class="c1">#print &quot;Annotation:&quot;, self.annotation </span>
+
+        <span class="n">line</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">FT</span><span class="p">)</span> <span class="o">=</span> <span class="n">getInfoFromFileType</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+          
+        <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span> <span class="o">=</span> <span class="n">FT</span> 
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span><span class="o">.</span><span class="n">identifier</span> <span class="o">==</span> <span class="s2">&quot;#Unknown&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">columnlabels</span> <span class="o">=</span> <span class="n">unknownColNames</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">columnlabels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span><span class="o">.</span><span class="n">colnames</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">columnlabels</span><span class="p">)</span>
+
+        <span class="n">wxheader_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span><span class="o">.</span><span class="n">getHeader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">wxheader_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">StaticText</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">))</span>
+        <span class="n">wxheader_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span>
+        <span class="n">sbSizer1</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">wxheader_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">Grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">bSizer1</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="n">sbSizer1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+        <span class="n">bSizer1</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span> <span class="n">bSizer1</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Centre</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">BOTH</span> <span class="p">)</span>
+        <span class="c1">#self.Layout()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">EVT_GRID_LABEL_LEFT_DCLICK</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">OnLabelDoubleClicked</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">EVT_GRID_CELL_RIGHT_CLICK</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">OnCellRightClicked</span><span class="p">)</span>
+
+        <span class="n">mytable</span> <span class="o">=</span> <span class="n">TransitTable</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">columnlabels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">SetTable</span><span class="p">(</span><span class="n">mytable</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">EnableEditing</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">AdjustScrollbars</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">SetColLabelSize</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">GRID_AUTOSIZE</span><span class="p">)</span>
+
+        <span class="c1">#self.grid.AutoSizeColumns()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AutoResizeCols</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">ForceRefresh</span><span class="p">()</span>
+
+        <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span> <span class="o">=</span> <span class="n">bSizer1</span><span class="o">.</span><span class="n">GetMinSize</span><span class="p">()</span>
+        <span class="n">max_width</span> <span class="o">=</span> <span class="mi">1500</span>
+        <span class="n">max_height</span> <span class="o">=</span> <span class="mi">800</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">width</span><span class="o">+</span><span class="mi">50</span><span class="p">,</span> <span class="n">max_width</span><span class="p">)</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">max_height</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">((</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+        
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Show</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="TransitGridFrame.AutoResizeCols"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.TransitGridFrame.AutoResizeCols">[docs]</a>    <span class="k">def</span> <span class="nf">AutoResizeCols</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">max_column_size</span> <span class="o">=</span> <span class="mi">200</span>
+        <span class="n">min_column_size</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">AutoSizeColumns</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">columnlabels</span><span class="p">):</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">GetColSize</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>            
+            <span class="k">if</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="n">max_column_size</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">SetColSize</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">max_column_size</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">size</span> <span class="o">&lt;</span> <span class="n">min_column_size</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">SetColSize</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">min_column_size</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TransitGridFrame.OnLabelDoubleClicked"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.TransitGridFrame.OnLabelDoubleClicked">[docs]</a>    <span class="k">def</span> <span class="nf">OnLabelDoubleClicked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">):</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">GetCol</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">col</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">GetTable</span><span class="p">()</span><span class="o">.</span><span class="n">SortColumn</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">ForceRefresh</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="TransitGridFrame.OnCellRightClicked"><a class="viewcode-back" href="../../transit_code.html#transit.fileDisplay.TransitGridFrame.OnCellRightClicked">[docs]</a>    <span class="k">def</span> <span class="nf">OnCellRightClicked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">):</span>
+
+        <span class="n">menu</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Menu</span><span class="p">()</span>
+        <span class="n">id1</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+        <span class="n">sortID</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+
+        <span class="n">xo</span><span class="p">,</span> <span class="n">yo</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">GetPosition</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">YToRow</span><span class="p">(</span><span class="n">yo</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">GetCellValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1">#print &quot;Row:&quot;, self.row</span>
+        <span class="c1">#print &quot;Col:&quot;, self.col</span>
+        <span class="c1">#print &quot;Val:&quot;, val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Refresh</span><span class="p">()</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">menuname</span><span class="p">,</span> <span class="n">menufunc</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span><span class="o">.</span><span class="n">getMenus</span><span class="p">():</span>
+            <span class="n">newid</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">NewId</span><span class="p">()</span>
+            <span class="c1">#print newid, menufunc</span>
+            <span class="n">menu</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="n">newid</span><span class="p">,</span> <span class="n">menuname</span><span class="p">)</span>
+            <span class="n">newmenufunc</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">menufunc</span><span class="p">,</span>  <span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span><span class="n">wx</span><span class="o">.</span><span class="n">EVT_MENU</span><span class="p">,</span> <span class="n">newmenufunc</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">newid</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">PopupMenu</span><span class="p">(</span><span class="n">menu</span><span class="p">)</span>
+        <span class="n">menu</span><span class="o">.</span><span class="n">Destroy</span><span class="p">()</span></div></div>
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/transit_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Michael A. DeJesus.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

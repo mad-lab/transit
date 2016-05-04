@@ -1,0 +1,374 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>transit.qcDisplay &mdash; transit v2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     'v2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="transit v2.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for transit.qcDisplay</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*- </span>
+
+<span class="c1">###########################################################################</span>
+<span class="c1">## Python code generated with wxFormBuilder (version Jun  6 2014)</span>
+<span class="c1">## http://www.wxformbuilder.org/</span>
+<span class="c1">##</span>
+<span class="c1">## PLEASE DO &quot;NOT&quot; EDIT THIS FILE!</span>
+<span class="c1">###########################################################################</span>
+
+<span class="kn">import</span> <span class="nn">wx</span>
+<span class="kn">import</span> <span class="nn">wx.xrc</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="c1">#matplotlib.use(&#39;WXAgg&#39;)</span>
+
+<span class="kn">from</span> <span class="nn">matplotlib.backends.backend_wxagg</span> <span class="kn">import</span> <span class="n">FigureCanvasWxAgg</span> <span class="k">as</span> <span class="n">FigureCanvas</span>
+<span class="kn">from</span> <span class="nn">matplotlib.backends.backend_wx</span> <span class="kn">import</span> <span class="n">NavigationToolbar2Wx</span>
+<span class="kn">from</span> <span class="nn">matplotlib.figure</span> <span class="kn">import</span> <span class="n">Figure</span>
+<span class="kn">import</span> <span class="nn">transit.transit_tools</span> <span class="kn">as</span> <span class="nn">transit_tools</span>
+
+
+
+
+<div class="viewcode-block" id="WxBitmapToPilImage"><a class="viewcode-back" href="../../transit_code.html#transit.qcDisplay.WxBitmapToPilImage">[docs]</a><span class="k">def</span> <span class="nf">WxBitmapToPilImage</span><span class="p">(</span> <span class="n">myBitmap</span> <span class="p">)</span> <span class="p">:</span>
+    <span class="k">return</span> <span class="n">WxImageToPilImage</span><span class="p">(</span> <span class="n">WxBitmapToWxImage</span><span class="p">(</span> <span class="n">myBitmap</span> <span class="p">)</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="WxBitmapToWxImage"><a class="viewcode-back" href="../../transit_code.html#transit.qcDisplay.WxBitmapToWxImage">[docs]</a><span class="k">def</span> <span class="nf">WxBitmapToWxImage</span><span class="p">(</span> <span class="n">myBitmap</span> <span class="p">)</span> <span class="p">:</span>
+    <span class="k">return</span> <span class="n">wx</span><span class="o">.</span><span class="n">ImageFromBitmap</span><span class="p">(</span> <span class="n">myBitmap</span> <span class="p">)</span></div>
+
+<span class="c1">#-----</span>
+
+<div class="viewcode-block" id="PilImageToWxBitmap"><a class="viewcode-back" href="../../transit_code.html#transit.qcDisplay.PilImageToWxBitmap">[docs]</a><span class="k">def</span> <span class="nf">PilImageToWxBitmap</span><span class="p">(</span> <span class="n">myPilImage</span> <span class="p">)</span> <span class="p">:</span>
+    <span class="k">return</span> <span class="n">WxImageToWxBitmap</span><span class="p">(</span> <span class="n">PilImageToWxImage</span><span class="p">(</span> <span class="n">myPilImage</span> <span class="p">)</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="PilImageToWxImage"><a class="viewcode-back" href="../../transit_code.html#transit.qcDisplay.PilImageToWxImage">[docs]</a><span class="k">def</span> <span class="nf">PilImageToWxImage</span><span class="p">(</span> <span class="n">myPilImage</span> <span class="p">):</span>
+    <span class="n">myWxImage</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">EmptyImage</span><span class="p">(</span> <span class="n">myPilImage</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">myPilImage</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span>
+    <span class="n">myWxImage</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span> <span class="n">myPilImage</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="s1">&#39;RGB&#39;</span> <span class="p">)</span><span class="o">.</span><span class="n">tostring</span><span class="p">()</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">myWxImage</span></div>
+
+<div class="viewcode-block" id="WxImageToWxBitmap"><a class="viewcode-back" href="../../transit_code.html#transit.qcDisplay.WxImageToWxBitmap">[docs]</a><span class="k">def</span> <span class="nf">WxImageToWxBitmap</span><span class="p">(</span> <span class="n">myWxImage</span> <span class="p">)</span> <span class="p">:</span>
+    <span class="k">return</span> <span class="n">myWxImage</span><span class="o">.</span><span class="n">ConvertToBitmap</span><span class="p">()</span></div>
+
+
+
+
+
+
+
+<span class="c1">###########################################################################</span>
+<span class="c1">## Class qcFrame</span>
+<span class="c1">###########################################################################</span>
+
+<div class="viewcode-block" id="qcFrame"><a class="viewcode-back" href="../../transit_code.html#transit.qcDisplay.qcFrame">[docs]</a><span class="k">class</span> <span class="nc">qcFrame</span> <span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">Frame</span> <span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">datasets</span><span class="p">):</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">qc_prefix</span> <span class="o">=</span> <span class="s2">&quot;[QualityControl]&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index_stats</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plots_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="n">wx</span><span class="o">.</span><span class="n">Frame</span><span class="o">.</span><span class="n">__init__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="nb">id</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Quality Control&quot;</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">Size</span><span class="p">(</span> <span class="mi">1560</span><span class="p">,</span><span class="mi">720</span> <span class="p">),</span> <span class="n">style</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">DEFAULT_FRAME_STYLE</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">TAB_TRAVERSAL</span> <span class="p">)</span>
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetSizeHintsSz</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span> <span class="p">)</span>
+        
+            <span class="n">bSizer9</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">m_scrolledWindow1</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ScrolledWindow</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">HSCROLL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">VSCROLL</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">m_scrolledWindow1</span><span class="o">.</span><span class="n">SetScrollRate</span><span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+            <span class="n">bSizer10</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">plotsScrolledWindow</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ScrolledWindow</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_scrolledWindow1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">HSCROLL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">VSCROLL</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plotsScrolledWindow</span><span class="o">.</span><span class="n">SetScrollRate</span><span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plotsScrolledWindow</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">Size</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">150</span> <span class="p">)</span> <span class="p">)</span>
+            
+            <span class="c1">#plotsSizer = wx.BoxSizer( wx.VERTICAL )</span>
+            <span class="n">plotsSizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">HORIZONTAL</span> <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">plotsBitmap1</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBitmap</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotsScrolledWindow</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">NullBitmap</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plotsBitmap2</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBitmap</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotsScrolledWindow</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">NullBitmap</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plotsBitmap3</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">StaticBitmap</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotsScrolledWindow</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">NullBitmap</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        
+            <span class="n">plotsSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotsBitmap1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+            <span class="n">plotsSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotsBitmap2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+            <span class="n">plotsSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotsBitmap3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+       
+            <span class="c1">#self.plotsBitmap.SetMaxSize( wx.Size( 400,400 ) )</span>
+            <span class="c1">#self.plotsFigure = Figure()</span>
+            <span class="c1">#self.plotsAxes = self.plotsFigure.add_subplot(111) </span>
+            <span class="c1">#self.plotsCanvas = FigureCanvas(self, -1, self.plotsFigure)</span>
+            <span class="c1">#plotsSizer.Add( self.plotsCanvas, 0, wx.ALL, 5 )</span>
+        
+
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">plotsScrolledWindow</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span> <span class="n">plotsSizer</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plotsScrolledWindow</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+            <span class="n">plotsSizer</span><span class="o">.</span><span class="n">Fit</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotsScrolledWindow</span> <span class="p">)</span>
+            <span class="n">bSizer10</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotsScrolledWindow</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">statsScrolledWindow</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ScrolledWindow</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_scrolledWindow1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultSize</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">HSCROLL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">VSCROLL</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">statsScrolledWindow</span><span class="o">.</span><span class="n">SetScrollRate</span><span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">statsScrolledWindow</span><span class="o">.</span><span class="n">SetMaxSize</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">Size</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">400</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">statsScrolledWindow</span><span class="o">.</span><span class="n">SetMinSize</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">Size</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">150</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">statsSizer</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BoxSizer</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">VERTICAL</span> <span class="p">)</span>
+        
+            <span class="c1">#self.statsListCtrl = wx.ListCtrl( self.statsScrolledWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT )</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">ListCtrl</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">statsScrolledWindow</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ID_ANY</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">DefaultPosition</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">Size</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">140</span> <span class="p">),</span> <span class="n">wx</span><span class="o">.</span><span class="n">LC_REPORT</span> <span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">LC_SINGLE_SEL</span> <span class="p">)</span>
+            <span class="n">statsSizer</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+        
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">statsScrolledWindow</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span> <span class="n">statsSizer</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">statsScrolledWindow</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+            <span class="n">statsSizer</span><span class="o">.</span><span class="n">Fit</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">statsScrolledWindow</span> <span class="p">)</span>
+            <span class="n">bSizer10</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">statsScrolledWindow</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+        
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">m_scrolledWindow1</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span> <span class="n">bSizer10</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">m_scrolledWindow1</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+            <span class="n">bSizer10</span><span class="o">.</span><span class="n">Fit</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_scrolledWindow1</span> <span class="p">)</span>
+            <span class="n">bSizer9</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_scrolledWindow1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">EXPAND</span> <span class="o">|</span><span class="n">wx</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span>
+        
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetSizer</span><span class="p">(</span> <span class="n">bSizer9</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Layout</span><span class="p">()</span>
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">Centre</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">BOTH</span> <span class="p">)</span>
+            
+            <span class="c1">########################</span>
+            <span class="c1"># Connect Events</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">Bind</span><span class="p">(</span> <span class="n">wx</span><span class="o">.</span><span class="n">EVT_LIST_ITEM_SELECTED</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onStatsItemSelect</span><span class="p">)</span>
+
+
+
+            <span class="c1">############################</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addFiles</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addPlots</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1">#self.onStatsItemSelect(None)</span>
+            <span class="c1">###########################</span>
+            <span class="c1">#self.bSizer9.Fit() </span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">qc_prefix</span><span class="p">,</span> <span class="s2">&quot;Error:&quot;</span><span class="p">,</span> <span class="n">e</span>
+            <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_obj</span><span class="p">,</span> <span class="n">exc_tb</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">exc_tb</span><span class="o">.</span><span class="n">tb_frame</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">exc_tb</span><span class="o">.</span><span class="n">tb_lineno</span><span class="p">)</span>
+
+
+
+ 
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="k">pass</span>
+    
+
+<div class="viewcode-block" id="qcFrame.addFiles"><a class="viewcode-back" href="../../transit_code.html#transit.qcDisplay.qcFrame.addFiles">[docs]</a>    <span class="k">def</span> <span class="nf">addFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datasets</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_stats</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">InsertColumn</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;File&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">250</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">InsertColumn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Density&#39;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">LIST_FORMAT_CENTRE</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">85</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">InsertColumn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Mean Read&#39;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">LIST_FORMAT_CENTRE</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">85</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">InsertColumn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;NZMean Read&#39;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">LIST_FORMAT_CENTRE</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">115</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">InsertColumn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;NZMedian Read&#39;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">LIST_FORMAT_CENTRE</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">125</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">InsertColumn</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;Max Read&#39;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">LIST_FORMAT_CENTRE</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">85</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">InsertColumn</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;Total Reads&#39;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">LIST_FORMAT_CENTRE</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">85</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">InsertColumn</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;Skew&#39;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">LIST_FORMAT_CENTRE</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">85</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">InsertColumn</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="s1">&#39;Kurtosis&#39;</span><span class="p">,</span> <span class="n">wx</span><span class="o">.</span><span class="n">LIST_FORMAT_CENTRE</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">85</span><span class="p">)</span>
+
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="p">(</span><span class="n">density</span><span class="p">,</span> <span class="n">meanrd</span><span class="p">,</span> <span class="n">nzmeanrd</span><span class="p">,</span> <span class="n">nzmedianrd</span><span class="p">,</span> <span class="n">maxrd</span><span class="p">,</span> <span class="n">totalrd</span><span class="p">,</span> <span class="n">skew</span><span class="p">,</span> <span class="n">kurtosis</span><span class="p">)</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">get_wig_stats</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">InsertStringItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_stats</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">SetStringItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_stats</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%1.1f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">density</span><span class="o">*</span><span class="mf">100.0</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">SetStringItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_stats</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%1.1f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">meanrd</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">SetStringItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_stats</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%1.1f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nzmeanrd</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">SetStringItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_stats</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%1.1f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nzmedianrd</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">SetStringItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_stats</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">maxrd</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">SetStringItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_stats</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">totalrd</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">SetStringItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_stats</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">skew</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">SetStringItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_stats</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kurtosis</span><span class="p">))</span>
+                <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">qc_prefix</span><span class="p">,</span> <span class="s2">&quot;Adding dataset (</span><span class="si">%d</span><span class="s2">): </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_stats</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">index_stats</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">qc_prefix</span><span class="p">,</span> <span class="s2">&quot;Error:&quot;</span><span class="p">,</span> <span class="n">e</span>
+            <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_obj</span><span class="p">,</span> <span class="n">exc_tb</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">exc_tb</span><span class="o">.</span><span class="n">tb_frame</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">exc_tb</span><span class="o">.</span><span class="n">tb_lineno</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="qcFrame.addPlots"><a class="viewcode-back" href="../../transit_code.html#transit.qcDisplay.qcFrame.addPlots">[docs]</a>    <span class="k">def</span> <span class="nf">addPlots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datasets</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">datasets</span><span class="p">):</span>
+                <span class="c1">#Data</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="n">reads</span> <span class="o">=</span> <span class="n">transit_tools</span><span class="o">.</span><span class="n">get_reads</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="n">reads</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span>
+                <span class="n">nzreads</span> <span class="o">=</span> <span class="n">reads</span><span class="p">[</span><span class="n">reads</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">frame_on</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="c1">#Plot 1</span>
+                <span class="n">n</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">patches</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">reads</span><span class="p">,</span> <span class="n">normed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Reads&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Probability&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Histogram of Reads</span><span class="se">\n</span><span class="s1">Dataset: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">buf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+                <span class="n">buf</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">hist_pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+                <span class="n">hist_wx_img</span> <span class="o">=</span> <span class="n">PilImageToWxImage</span><span class="p">(</span> <span class="n">hist_pil_img</span> <span class="p">)</span>
+                <span class="n">hist_wx_bitmap</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BitmapFromImage</span><span class="p">(</span><span class="n">hist_wx_img</span><span class="p">)</span>       
+    
+                <span class="c1">#Plot 2</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">frame_on</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="p">((</span><span class="n">qtheoretical</span><span class="p">,</span> <span class="n">qdata</span><span class="p">),</span> <span class="p">(</span><span class="n">slope</span><span class="p">,</span> <span class="n">intercept</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">probplot</span><span class="p">(</span><span class="n">nzreads</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="s2">&quot;geom&quot;</span><span class="p">,</span> <span class="n">sparams</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">nzreads</span><span class="p">),))</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">qdata</span><span class="p">,</span> <span class="n">qtheoretical</span><span class="p">,</span> <span class="s2">&quot;ob&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">(),</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">(),</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+
+                <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Data Quantiles&quot;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Theoretical Quantiles&quot;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;QQ-Plot with Theoretical Geom</span><span class="se">\n</span><span class="s1">Dataset: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">buf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+                <span class="n">buf</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">qq_pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+                <span class="n">qq_wx_img</span> <span class="o">=</span> <span class="n">PilImageToWxImage</span><span class="p">(</span><span class="n">qq_pil_img</span><span class="p">)</span>
+                <span class="n">qq_wx_bitmap</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BitmapFromImage</span><span class="p">(</span><span class="n">qq_wx_img</span><span class="p">)</span>
+        
+                <span class="c1">#Plot 3</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">frame_on</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">reads</span><span class="p">),</span> <span class="s2">&quot;ob&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Rank Reads</span><span class="se">\n</span><span class="s1">Dataset: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Reads&quot;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Rank&quot;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">buf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+                <span class="n">buf</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">sorted_pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+                <span class="n">sorted_wx_img</span> <span class="o">=</span> <span class="n">PilImageToWxImage</span><span class="p">(</span><span class="n">sorted_pil_img</span><span class="p">)</span>
+                <span class="n">sorted_wx_bitmap</span> <span class="o">=</span> <span class="n">wx</span><span class="o">.</span><span class="n">BitmapFromImage</span><span class="p">(</span><span class="n">sorted_wx_img</span><span class="p">)</span>                
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">plots_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">hist_wx_bitmap</span><span class="p">,</span> <span class="n">qq_wx_bitmap</span><span class="p">,</span> <span class="n">sorted_wx_bitmap</span><span class="p">])</span>
+
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">qc_prefix</span><span class="p">,</span> <span class="s2">&quot;Error:&quot;</span><span class="p">,</span> <span class="n">e</span>
+            <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_obj</span><span class="p">,</span> <span class="n">exc_tb</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">exc_tb</span><span class="o">.</span><span class="n">tb_frame</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">exc_tb</span><span class="o">.</span><span class="n">tb_lineno</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="qcFrame.onStatsItemSelect"><a class="viewcode-back" href="../../transit_code.html#transit.qcDisplay.qcFrame.onStatsItemSelect">[docs]</a>    <span class="k">def</span> <span class="nf">onStatsItemSelect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">ii</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">GetFirstSelected</span><span class="p">()</span>
+        <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">qc_prefix</span><span class="p">,</span> <span class="s2">&quot;Showing plots for &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">GetItem</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">GetText</span><span class="p">()</span>
+        <span class="n">hist_wx_bitmap</span><span class="p">,</span> <span class="n">qq_wx_bitmap</span><span class="p">,</span> <span class="n">sorted_wx_bitmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plots_list</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotsBitmap1</span><span class="o">.</span><span class="n">SetBitmap</span><span class="p">(</span><span class="n">hist_wx_bitmap</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotsBitmap2</span><span class="o">.</span><span class="n">SetBitmap</span><span class="p">(</span><span class="n">qq_wx_bitmap</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotsBitmap3</span><span class="o">.</span><span class="n">SetBitmap</span><span class="p">(</span><span class="n">sorted_wx_bitmap</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="qcFrame.statsSelected"><a class="viewcode-back" href="../../transit_code.html#transit.qcDisplay.qcFrame.statsSelected">[docs]</a>    <span class="k">def</span> <span class="nf">statsSelected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">selected_stats</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="nb">next</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">GetNextSelected</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">next</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statsListCtrl</span><span class="o">.</span><span class="n">GetItem</span><span class="p">(</span><span class="nb">next</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span><span class="o">.</span><span class="n">GetText</span><span class="p">()</span>
+            <span class="n">selected_stats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="nb">next</span>
+        <span class="k">return</span> <span class="n">selected_stats</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/transit_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Michael A. DeJesus.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>
