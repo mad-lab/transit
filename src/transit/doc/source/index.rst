@@ -1,7 +1,5 @@
 .. transit documentation master file, created by
    sphinx-quickstart on Wed May  4 13:37:43 2016.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
 Welcome to TRANSIT's documentation!
 ===================================
@@ -14,10 +12,9 @@ The main documentation for the site is organized into the following sections:
 * `Code Documentation`_
 
 
-TRANSIT Manual
-==============
 .. toctree::
    :maxdepth: 2
+   :caption: TRANSIT Manual
 
    transit_overview
    transit_install
@@ -25,10 +22,9 @@ TRANSIT Manual
    transit_methods
 
 
-TRANSIT Tutorials
-=================
 .. toctree::
    :maxdepth: 2
+   :caption: TRANSIT Tutorials
 
    transit_essentiality_tutorial
    transit_genome_tutorial
@@ -36,11 +32,9 @@ TRANSIT Tutorials
    transit_export_tutorial
 
 
-
-Code Documentation
-==================
 .. toctree::
    :maxdepth: 2
+   :caption: Code Documentation
 
    transit
 
