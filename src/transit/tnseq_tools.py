@@ -14,10 +14,12 @@ except ImportError:
 
 @total_ordering
 class Gene:
-    """This is a longer explanation, which may include math with latex syntax
-    Then, you need to provide optional subsection in this order (just to be
-    consistent and have a uniform documentation. Nothing prevent you to
-    switch the order):
+    """Class defining a gene with useful attributes for TnSeq analysis.
+
+    This class helps define a "gene" with attributes that facilitate TnSeq
+    analysis. Here "gene" can be defined to be any genomic region. The Genes
+    class (with an s) can be used to define list of Gene objects with more
+    useful operations on the "genome" level.
 
         - parameters using ``:param <name>: <description>``
         - type of the parameters ``:type <name>: <description>``
@@ -28,15 +30,16 @@ class Gene:
         - warning using ``.. warning:: text``
         - todo ``.. todo:: text``
 
-
     Attributes:
-        orf (str): ORF ID. Must be unique.
-        name (str): Human readable name of the ORF.
-        reads (list): Read-counts data for the ORF.
-        position (list): Position of TA sites for the ORF.
-        start (int): Start coordinate for the ORF.
-        end (int): End coordinate for the ORF.
-        strand (str): Strand for the ORF.
+        orf: A string defining the ID of the gene.
+        name: A string with the human readable name of the gene.
+        desc: A string with the description of the gene.
+        reads: List of lists of read-counts in possible site replicate dataset.
+        position: List of coordinates of the possible sites.
+        start: An integer defining the start coordinate for the gene.
+        end: An integer defining the end coordinate for the gene.
+        strand: A string defining the strand of the gene.
+
 
     :Example:
 
@@ -45,12 +48,26 @@ class Gene:
         >>> print G
         Rv0001 (dnaA): 2,7,4
 
-        .. warning:: orf must be unique.
         .. seealso:: :class:`Genes`
-    """
+        """
 
     def __init__(self, orf, name, desc, reads, position, start=0, end=0, strand=""):
-        """Initializes the Gene object."""
+        """Initializes the Gene object.
+
+        Args:
+            orf (str): A string defining the ID of the gene.
+            name (str): A string with the human readable name of the gene.
+            desc (str): A string with the description of the gene.
+            reads (list): List of lists of read-counts in possible site replicate dataset.
+            position (list): List of coordinates of the possible sites.
+            start (int): An integer defining the start coordinate for the gene.
+            end (int): An integer defining the end coordinate for the gene.
+            strand (str): A string defining the strand of the gene.
+
+        Returns:
+            Gene: Object of the Gene class with the defined attributes.
+
+        """
 
         self.orf = orf
         self.name = name
@@ -79,22 +96,57 @@ class Gene:
         self.s = self.get_gap_span()
         self.t = self.get_gene_span()
 
+#
+
     def __getitem__(self, i):
-        """Return read-counts at position i."""
+        """Return read-counts at position i.
+
+        Args:
+            i (int): integer of the index of the desired site.
+
+        Returns:
+            list: Reads at position i.
+        """
         return self.reads[:, i]
 
+#
+
     def __str__(self):
-        """Return a string representation of the object."""
+        """Return a string representation of the object.
+
+        Returns:
+            str: Human readable string with some of the attributes.
+        """
         return "%s\t(%s)\tk=%d\tn=%d\tr=%d\ttheta=%1.5f" % (self.orf, self.name, self.k, self.n, self.r, self.theta())
 
+#
+
     def __eq__(self, other):
+        """Compares against other gene object.
+
+        Returns:
+            bool: True if the gene objects have same orf id.
+        """
         return self.orf == other.orf
 
+#
+
     def __lt__(self, other):
+        """Compares against other gene object.
+
+        Returns:
+            bool: True if the gene object id is less than the other.
+        """
         return self.orf < other.orf 
 
+#
+
     def get_gap_span(self):
-        """Returns the span of the maxrun of the gene (i.e. number of nucleotides)."""
+        """Returns the span of the maxrun of the gene (i.e. number of nucleotides).
+        
+        Returns:
+            int: Number of nucleotides spanned by the max run.
+        """
         if len(self.position) > 0:
             if self.r == 0:
                 return 0
@@ -106,79 +158,178 @@ class Gene:
             return self.position[runend] - self.position[runstart] + 2
         else:
             return 0
-        
-    
+
+#
+
     def get_gene_span(self):
-        """Returns the number of nucleotides spanned by the gene."""
+        """Returns the number of nucleotides spanned by the gene.
+
+        Returns:
+            int: Number of nucleotides spanned by the gene's sites.
+        """
         if len(self.position) > 0:
             return self.position[-1] - self.position[0] + 2
         return 0
 
+#
 
     def theta(self):
-        """Return the insertion density ("theta") for the gene."""
+        """Return the insertion density ("theta") for the gene.
+        
+        Returns:
+            float: Density of the gene (i.e. k/n )
+        """
         if self.n:
             return float(self.k)/self.n
         else:
             return 0.0
 
+# 
+
     def phi(self):
-        """ Return the non-insertion density ("phi") for the gene."""
+        """Return the non-insertion density ("phi") for the gene.
+        
+        Returns:
+            float: Non-insertion density  (i.e. 1 - theta)
+        """
         return 1.0 - self.theta()
 
+#
+
     def total_reads(self):
-        """ Return the total reads for the gene."""
+        """Return the total reads for the gene.
+
+        Returns:        
+            float: Total sum of read-counts.
+        """
         return numpy.sum(self.reads, 1)
 
-
-    def calculate_span(self):
-        """Caclulates the span based on the coordinates"""
-        # TODO: Check if it works.
-        runs = self.runs()
-        if len(self.raw_data) > 0:
-            runs = self.runs(include_pos=True) or [(0,0)]
-            maxrun = max(runs)
-            return self.get_TA_coord(maxrun[1] + maxrun[0]-1) + 2 - self.get_TA_coord(maxrun[1]) 
-        else:
-            return -1
-
-    def calculate_length(self, raw_data):
-        """Caclulates the length based on the coordinates"""
-        # TODO: Check if it works.
-        if len(self.raw_data) > 0:
-            return self.raw_data[-1][0] + 2 - self.raw_data[0][0]
-        else:
-            return -1
-
-
+#
 
 class Genes:
+    """Class defining a list of Gene objects with useful attributes for TnSeq
+    analysis.
+
+    This class helps define a list of Gene objects with attributes that 
+    facilitate TnSeq analysis. Includes methods that calculate useful statistics
+    and even rudamentary analysis of essentiality. 
+
+        - parameters using ``:param <name>: <description>``
+        - type of the parameters ``:type <name>: <description>``
+        - returns using ``:returns: <description>``
+        - examples (doctest)
+        - seealso using ``.. seealso:: text``
+        - notes using ``.. note:: text``
+        - warning using ``.. warning:: text``
+        - todo ``.. todo:: text``
+
+    Attributes:
+        wigList: List of paths to datasets in .wig format.
+        protTable: String with path to annotation in .prot_table format.
+        norm: String with the normalization used/
+        reps: String with information on how replicates were handled.
+        minread: Integer with the minimum magnitude of read-count considered.
+        ignoreCodon: Boolean defining whether to ignore the start/stop codon.
+        nterm: Float number of the fraction of the N-terminus to ignore.
+        cterm: Float number of the fraction of the C-terminus to ignore.
+        include_nc: Boolean determining whether to include non-coding areas.
+        orf2index: Dictionary of orf id to index in the genes list.
+        genes: List of the Gene objects.
+
+
+    :Example:
+
+        >>> import tnseq_tools
+        >>> G = tnseq_tools.Genes(["data/glycerol_H37Rv_rep1.wig"], 
+        >>>         "genomes/H37Rv.prot_table")
+        >>> print G
+        Genes Object (N=3989)
+
+        .. seealso:: :class:`Gene`
+        """
+
+#
 
     def __getitem__(self, i):
-        """Defines __getitem__ method so that it works as dictionary and list."""
+        """Defines __getitem__ method so that it works as dictionary and list.
+    
+        Args:
+            i (int): Integer or string defining index or orf ID desired.
+        Returns:
+            Gene: A gene with the index or ID equal to i.
+        """
         if isinstance(i, int):
             return(self.genes[i])
 
         if isinstance(i, basestring):
             return self.genes[self.orf2index[i]]
 
+#
 
     def __contains__(self, item):
-        """Defines __contains__ to check if gene exists in the list."""
+        """Defines __contains__ to check if gene exists in the list.
+
+        Args:
+            item (str): String with the id of the gene.
+
+        Returns:
+            bool: Boolean with True if item is in the list.
+        """
         return item in self.orf2index
 
+#
 
     def __len__(self):
-        """Defines __len__ returning number of genes."""
+        """Defines __len__ returning number of genes.
+
+        Returns:
+            int: Number of genes in the list.
+        """
         return len(self.genes)
 
+#
 
     def __str__(self):
-        """Defines __str__ to print a generic str with the size of the list."""
+        """Defines __str__ to print a generic str with the size of the list.
+
+        Returns:
+            str: Human readable string with number of genes in object.
+        """
         return "Genes Object (N=%d)" % len(self.genes)
+
+#
     
     def __init__(self, wigList, protTable, norm="nonorm", reps="All", minread=1, ignoreCodon = True, nterm=0.0, cterm=0.0, include_nc = False, data=[], position=[]):
-        """Initializes the gene list based on the list of wig files and a prot_table."""
+        """Initializes the gene list based on the list of wig files and a prot_table.
+
+        This class helps define a list of Gene objects with attributes that 
+        facilitate TnSeq analysis. Includes methods that calculate useful statistics
+        and even rudamentary analysis of essentiality. 
+
+            - parameters using ``:param <name>: <description>``
+            - type of the parameters ``:type <name>: <description>``
+            - returns using ``:returns: <description>``
+            - examples (doctest)
+            - seealso using ``.. seealso:: text``
+            - notes using ``.. note:: text``
+            - warning using ``.. warning:: text``
+            - todo ``.. todo:: text``
+
+        Args:
+            wigList (list): List of paths to datasets in .wig format.
+            protTable (str): String with path to annotation in .prot_table format.
+            norm (str): String with the normalization used/
+            reps (str): String with information on how replicates were handled.
+            minread (int): Integer with the minimum magnitude of read-count considered.
+            ignoreCodon (bool): Boolean defining whether to ignore the start/stop codon.
+            nterm (float): Float number of the fraction of the N-terminus to ignore.
+            cterm (float): Float number of the fraction of the C-terminus to ignore.
+            include_nc (bool): Boolean determining whether to include non-coding areas.
+            data (list): List of data. Used to define the object without files. 
+            position (list): List of position of sites. Used to define the object without files.
+
+
+        """
         self.wigList = wigList
         self.protTable = protTable
         self.norm = norm
@@ -248,133 +399,237 @@ class Genes:
             self.orf2index[gene] = count
             count += 1
 
+#
 
     def local_insertions(self):
-        """Returns numpy array with the number of insertions, 'k', for each gene."""
+        """Returns numpy array with the number of insertions, 'k', for each gene.
+
+        Returns:
+            narray: Numpy array with the number of insertions for all genes.
+        """
         G = len(self.genes)
         K = numpy.zeros(G)
         for i in xrange(G):
             K[i] = self.genes[i].k
         return K
 
+#
 
     def local_sites(self):
-        """Returns numpy array with total number of TA sites, 'n', for each gene."""
+        """Returns numpy array with total number of TA sites, 'n', for each gene.
+
+        Returns:
+            narray: Numpy array with the number of sites for all genes.
+        """
         G = len(self.genes)
         N = numpy.zeros(G)
         for i in range(G):
             N[i] = self.genes[i].n
         return N
 
+#
 
     def local_runs(self):
-        """Returns numpy array with maximum run of non-insertions, 'r', for each gene."""
+        """Returns numpy array with maximum run of non-insertions, 'r', for each gene.
+
+        Returns:
+            narray: Numpy array with the max run of non-insertions for all genes.
+        """
         G = len(self.genes)
         R = numpy.zeros(G)
         for i in xrange(G):
             R[i] = self.genes[i].r
         return R 
 
+#
+
     def local_gap_span(self):
         """Returns numpy array with the span of nucleotides of the largest gap,
-        's', for each gene."""
+        's', for each gene.
+
+        Returns:
+            narray: Numpy array with the span of gap for all genes.
+        """
         G = len(self.genes)
         S = numpy.zeros(G)
         for i in xrange(G):
             S[i] = self.genes[i].s
         return S
+
+#
   
     def local_gene_span(self):
         """Returns numpy array with the span of nucleotides of the gene,
-        't', for each gene."""
+        't', for each gene.
+
+        Returns:
+            narray: Numpy array with the span of gene for all genes.
+        """
         G = len(self.genes)
         T = numpy.zeros(G)
         for i in xrange(G):
             T[i] = self.genes[i].t
         return T
 
+#
+
     def local_reads(self):
-        """Returns numpy array of lists containing the read counts for each gene."""
+        """Returns numpy array of lists containing the read counts for each gene.
+
+        Returns:
+            narray: Numpy array with the list of reads for all genes.
+        """
         all_reads = []
         G = len(self.genes)
         for i in xrange(G):
             all_reads.extend(self.genes[i].reads)
         return numpy.array(all_reads)
 
+#
 
     def local_thetas(self):
-        """Returns numpy array of insertion frequencies, 'theta', for each gene."""
+        """Returns numpy array of insertion frequencies, 'theta', for each gene.
+
+        Returns:
+            narray: Numpy array with the density for all genes.
+        """
         G = len(self.genes)
         theta = numpy.zeros(G)
         for i in xrange(G):
             theta[i] = self.genes[i].theta()
         return theta
 
+#
 
     def local_phis(self):
-        """Returns numpy array of non-insertion frequency, 'phi', for each gene."""
+        """Returns numpy array of non-insertion frequency, 'phi', for each gene.
+
+        Returns:
+            narray: Numpy array with the complement of density for all genes.
+        """
         return 1.0 - self.theta()
 
-
-    ######
+#
 
     def global_insertion(self):
-        """Returns total number of insertions, i.e. sum of 'k' over all genes."""
+        """Returns total number of insertions, i.e. sum of 'k' over all genes.
+
+        Returns:
+            float: Total sum of reads across all genes.
+        """
         G = len(self.genes)
         total = 0
         for i in xrange(G):
             total += self.genes[i].k
         return total
 
+#
+
     def global_sites(self):
-        """Returns total number of sites, i.e. sum of 'n' over all genes."""
+        """Returns total number of sites, i.e. sum of 'n' over all genes.
+
+        Returns:
+            int: Total number of sites across all genes.
+        """
         G = len(self.genes)
         total = 0
         for i in xrange(G):
             total += self.genes[i].n
         return total
 
+#
+
     def global_run(self):
-        """Returns the run assuming all genes were concatenated together."""
+        """Returns the run assuming all genes were concatenated together.
+
+        Returns:
+            int: Max run across all genes.
+        """
         return maxrun(self.tosses())
 
+#
+
     def global_reads(self):
-        """Returns the reads among the library."""
+        """Returns the reads among the library.
+
+        Returns:
+            list: List of all the data.
+        """
         return self.data
 
+#
+
     def global_theta(self):
-        """Returns global insertion frequency, of the library."""
+        """Returns global insertion frequency, of the library.
+
+        Returns:
+            float: Total sites with insertions divided by total sites.
+        """
         return float(self.global_insertion())/self.global_sites()
 
+#
+
     def global_phi(self):
-        """Returns global non-insertion frequency, of the library."""
+        """Returns global non-insertion frequency, of the library.
+    
+        Returns:
+            float: Complement of global theta i.e. 1.0-theta    
+        """
         return 1.0 - self.global_theta()
 
+#
+
     def total_reads(self):
-        """Returns total reads among the library."""
+        """Returns total reads among the library.
+        
+        Returns:
+            float: Total sum of read-counts accross all genes.
+        """
         reads_total = 0
         for g in self.genes:
             reads_total += g.total_reads()
         return reads_total
 
+#
+
     def tosses(self):
-        """Returns list of bernoulli trials, 'tosses', representing insertions in the gene."""
+        """Returns list of bernoulli trials, 'tosses', representing insertions in the gene.
+        
+        Returns:
+            list: Sites represented as bernoulli trials with insertions as true.
+        """
         all_tosses = []
         for g in self.genes:
             all_tosses.extend(g.tosses)
         return all_tosses
 
-
-
+#
 
 def tossify(data):
-    """Reduces the data into Bernoulli trials (or 'tosses') based on whether counts were observed or not."""
+    """Reduces the data into Bernoulli trials (or 'tosses') based on whether counts were observed or not.
+
+    Args:
+        data (list): List of numeric data.
+
+    Returns:
+        list: Data represented as bernoulli trials with >0 as true.
+    """
     K,N = data.shape
     reduced = numpy.sum(data,0)
     return numpy.zeros(N) + (numpy.sum(data, 0) > 0)
 
+#
+
 def runs(data):
-    """Return list of all the runs of consecutive non-insertions."""
+    """Return list of all the runs of consecutive non-insertions.
+
+    Args:
+        data (list): List of numeric data.
+
+    Returns:
+        list: List of the length of the runs of non-insertions. 
+                Non-zero sites are treated as runs of zero.
+    """
     runs = []
     current_r = 0
     for read in data:
@@ -393,8 +648,18 @@ def runs(data):
         return [0]
     return runs
 
+#
+
 def runindex(runs):
-    """Returns a list of the indexes of the start of the runs; complements runs()."""
+    """Returns a list of the indexes of the start of the runs; complements runs().
+    
+    Args:
+        runs (list): List of numeric data.
+
+    Returns:
+        list: List of the index of the runs of non-insertions. 
+                Non-zero sites are treated as runs of zero.
+    """
     index = 0
     index_list = []
     runindex = 0
@@ -409,7 +674,17 @@ def runindex(runs):
         index_list.append(runindex)
     return index_list
 
+#
+
 def get_file_types(wig_list):
+    """Returns the transposon type (himar1/tn5) of the list of wig files.
+
+    Args:
+        wig_list (list): List of paths to wig files.
+
+    Returns:
+        list: List of transposon type ("himar1" or "tn5").
+    """
     if not wig_list:
         return []
     
@@ -426,8 +701,29 @@ def get_file_types(wig_list):
                 prev_pos = pos
     return types
 
+#
+
 def get_data(wig_list):
-    """ Returns a tuple of (data, position) containing a matrix of raw read counts, and list of coordinates. """
+    """ Returns a tuple of (data, position) containing a matrix of raw read-counts
+        , and list of coordinates. 
+
+    Args:
+        wig_list (list): List of paths to wig files.
+
+    Returns:
+        tuple: Two lists containing data and positions of the wig files given.
+
+    :Example:
+
+        >>> import tnseq_tools
+        >>> (data, position) = tnseq_tools.get_data(["data/glycerol_H37Rv_rep1.wig", "data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+
+
+        .. seealso:: `get_file_types`, `combine_replicates`, `get_data_zero_fill`
+    """
     K = len(wig_list)
     T = 0
 
@@ -439,7 +735,7 @@ def get_data(wig_list):
         T+=1
     
     data = numpy.zeros((K,T))
-    position = numpy.zeros(T)
+    position = numpy.zeros(T, dtype=int)
     for j,path in enumerate(wig_list):
         reads = []
         i = 0
@@ -455,8 +751,19 @@ def get_data(wig_list):
             i+=1
     return (data, position)
 
+#
+
 def get_data_zero_fill(wig_list):
-    """ Returns a tuple of (data, position) containing a matrix of raw read counts, and list of coordinates. """
+    """ Returns a tuple of (data, position) containing a matrix of raw read counts,
+        and list of coordinates. Positions that are missing are filled in as zero.
+
+    Args:
+        wig_list (list): List of paths to wig files.
+
+    Returns:
+        tuple: Two lists containing data and positions of the wig files given.
+    """
+
     K = len(wig_list)
     T = 0
 
@@ -499,9 +806,18 @@ def get_data_zero_fill(wig_list):
             i+=1
     return (data, position)
 
-
+#
 
 def combine_replicates(data, method="Sum"):
+    """Returns list of data merged together.
+
+    Args:
+        data (list): List of numeric (replicate) data to be merged.
+        method (str): How to combine the replicate dataset.
+
+    Returns:
+        list: List of numeric dataset now merged together.
+    """
 
     if method == "Sum":
         combined = numpy.round(numpy.sum(data,0))
@@ -518,8 +834,25 @@ def combine_replicates(data, method="Sum"):
 
     return combined
 
+#
 
 def get_wig_stats(path):
+    """Returns statistics for the given wig file with read-counts.
+
+    Args:
+        path (str): String with the path to the wig file of interest.
+
+    Returns:
+        tuple: Tuple with the following statistical measures:
+                density
+                mean read
+                non-zero mean
+                non-zero median
+                max read
+                total reads
+                skew
+                kurtosis
+    """
     reads = []
     for line in open(path):
         if line[0] not in "0123456789": continue
@@ -540,10 +873,17 @@ def get_wig_stats(path):
     kurtosis = scipy.stats.kurtosis(reads[reads>0])
     return (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis)
 
-
+#
 
 def get_pos_hash(path):
-    """Returns a dictionary that maps coordinates to a list of genes that occur at that coordinate."""
+    """Returns a dictionary that maps coordinates to a list of genes that occur at that coordinate.
+    
+    Args:
+        path (str): Path to annotation in .prot_table format.
+    
+    Returns:
+        dict: Dictionary of position to list of genes that share that position.
+    """
     hash = {}
     for line in open(path):
         if line.startswith("#"): continue
@@ -556,7 +896,23 @@ def get_pos_hash(path):
             hash[pos].append(orf)
     return hash
 
+#
+
 def get_gene_info(path):
+    """Returns a dictionary that maps gene id to gene information.
+    
+    Args:
+        path (str): Path to annotation in .prot_table format.
+    
+    Returns:
+        dict: Dictionary of gene id to tuple of information:
+                name
+                description
+                start coordinate
+                end coordinate
+                strand
+            
+    """
     orf2info = {}
     for line in open(path):
         if line.startswith("#"): continue
@@ -570,7 +926,18 @@ def get_gene_info(path):
         orf2info[orf] = (name, desc, start, end, strand)
     return orf2info
 
+#
+
 def get_coordinate_map(galign_path, reverse=False):
+    """Attempts to get mapping of coordinates from galign file.
+    
+    Args:
+        path (str): Path to .galign file.
+        reverse (bool): Boolean specifying whether to do A to B or B to A.
+    
+    Returns:
+        dict: Dictionary of coordinate in one file to another file.
+    """
     c1Toc2 = {}
     for line in open(galign_path):
         if line.startswith("#"): continue
@@ -597,7 +964,18 @@ def get_coordinate_map(galign_path, reverse=False):
                  c1Toc2[right] = left    
     return c1Toc2
 
+#
+
 def maxrun(lst,item=0):
+    """Returns the length of the maximum run an item in a given list.
+
+    Args:
+        lst (list): List of numeric items.
+        item (float): Number to look for consecutive runs of.
+
+    Returns:
+        int: Length of the maximum run of consecutive instances of item.
+    """
     best = 0
     i,n = 0,len(lst)
     while i<n:
@@ -610,69 +988,101 @@ def maxrun(lst,item=0):
         else: i += 1
     return best
 
+#
 
 def getR1(n):
     """Small Correction term. Defaults to 0.000016 for now"""
     return(0.000016)
 
+#
 
 def getR2(n):
     """Small Correction term. Defaults to 0.00006 for now"""
     return(0.00006)
 
+#
 
 def getE1(n):
     """Small Correction term. Defaults to 0.01 for now"""
     return(0.01)
 
+#
     
 def getE2(n):
     """Small Correction term. Defaults to 0.01 for now"""
     return(0.01)
 
+#
 
 def getGamma():
     """Euler-Mascheroni constant ~ 0.577215664901 """
     return(0.5772156649015328606)
 
+#
     
-def ExpectedRuns(n,p):
+def ExpectedRuns(n,pnon):
     """Expected value of the run of non=insertions (Schilling, 1990):
     
         ER_n =  log(1/p)(nq) + gamma/ln(1/p) -1/2 + r1(n) + E1(n)
 
+    Args:
+        n (int): Integer representing the number of sites.
+        pins (float): Floating point number representing the probability of non-insertion.
+
+    Returns:
+        float: Size of the expected maximum run.
+
     """   
-    q = 1-p
+    pins = 1-pnon
     gamma = getGamma()
     r1 = getR1(n)
     E1 = getE1(n)
-    A = math.log(n*q,1.0/p)
-    B = gamma/math.log(1.0/p)
+    A = math.log(n*pins,1.0/pnon)
+    B = gamma/math.log(1.0/pnon)
     ER = A + B -0.5 + r1 + E1
     return ER 
     
+#
 
-def VarR(n,p):
+def VarR(n,pnon):
     """Variance of the expected run of non-insertons (Schilling, 1990):
+
+    .. math::
  
         VarR_n =  (pi^2)/(6*ln(1/p)^2) + 1/12 + r2(n) + E2(n)
 
+
+    Args:
+        n (int): Integer representing the number of sites.
+        pnon (float): Floating point number representing the probability of non-insertion.
+
+    Returns:
+        float: Variance of the length of the maximum run.
     """
     r2 = getR2(n)
     E2 = getE2(n)    
-    A = math.pow(math.pi,2.0)/(6* math.pow(math.log(1.0/p),2.0))
+    A = math.pow(math.pi,2.0)/(6* math.pow(math.log(1.0/pnon),2.0))
     V = A + 1/12.0 + r2 + E2
     return V
 
+#
     
 def GumbelCDF(x,u,B):
     """CDF of the Gumbel distribution:
 
         e^(-e^( (u-x)/B))
 
+    Args:
+        x (int): Length of the max run.
+        u (float): Location parameter of the Gumbel dist.
+        B (float): Scale parameter of the Gumbel dist.
+
+    Returns:
+        float: Cumulative probability o the Gumbel distribution.
     """
     return (math.exp( -1 * math.exp((u-x)/B )))
     
+#
 
 def griffin_analysis(genes_obj, pins):
     """Implements the basic Gumbel analysis of runs of non-insertion, described
@@ -714,40 +1124,17 @@ def griffin_analysis(genes_obj, pins):
             results.append([gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, exprun, pval])
     return(results)
 
-def combine_wigs(wig_data, method, min_read):
-    replicates = wig_data[0]
-    num_replicates = numpy.size(replicates, 1)
-    if num_replicates <= 1:
-        return None
-       
-    # Combine all wigs into one
-    if method.lower() == 'sum':
-        data = replicates.sum(axis=0)
-    elif method.lower() == 'mean':
-        data = replicates.mean(axis=0)
-    else:
-        # Just sum as a default
-        data = replicates.sum(axis=0)
-    
-    # Filter out reads below threshold
-    data[data < min_read] = 0;
-    
-    return (data, wig_data[1])
-
-
-def genome_theta(combined):
-    """Returns global insertion frequency of the whole genome including non-coding sequences"""
-    
-    # Get the number of insertions
-    counts = combined[0]
-    counts[counts > 0] = 1
-    num_sites = numpy.size(counts)
-    num_insertions = counts.sum()
-    
-    return float(num_insertions)/num_sites
+#
 
 def runs_w_info(data):
-    """Return list of all the runs of consecutive non-insertions with the start and end locations."""
+    """Return list of all the runs of consecutive non-insertions with the start and end locations.
+
+    Args:
+        data (list): List of numeric data to check for runs.
+    
+    Returns:
+        list: List of dictionary from run to length and position information of the tun.
+    """
     runs = []
     start = 1
     current_r = 0
@@ -767,7 +1154,21 @@ def runs_w_info(data):
         runs.append(dict(length = current_r, start = start, end = end))
     return runs
 
+#
+
 def get_genes_in_range(pos_hash, start, end):
+    """Returns list of genes that occur in a given range of coordinates.
+
+    Args:
+        pos_hash (dict): Dictionary of position to list of genes.
+        start (int): Start coordinate of the desired range.
+        end (int): End coordinate of the desired range.
+
+    Returns:
+        list: List of genes that fall within range.
+
+    """
+    
     genes = set()
     for pos in range(start, end + 1):
         if pos in pos_hash:
