@@ -81,7 +81,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['setuptools', 'numpy', 'scipy', 'pillow', 'matplotlib'],
+    install_requires=['setuptools', 'numpy', 'scipy', 'pillow', 'matplotlib>1.2.0,<1.5.0'],
     
     #dependency_links = [
     #	"git+https://github.com/wxWidgets/wxPython.git#egg=wxPython"
@@ -103,7 +103,7 @@ setup(
         'transit': ['data/*', 'doc/*.*', 'doc/images/*', 'geneomes/*']
     },
     
-    scripts=['src/tpp.py', 'src/runtransit'],
+    scripts=['src/tpp.py', 'src/transit.py'],
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
