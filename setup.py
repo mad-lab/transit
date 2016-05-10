@@ -68,12 +68,12 @@ setup(
     # What does your project relate to?
     keywords=['tnseq', 'analysis', 'biology', 'genome'],
     
-    #package_dir = {'transit': 'src'},
+    package_dir = {'transit': 'src'},
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     #packages= find_packages('src', exclude=['contrib', 'docs', 'tests']) + ['transit/doc', 'transit/data', 'transit/genomes'],
-    packages=['src/transit'],
+    packages=['transit'],
     include_package_data=True,
 
     # Alternatively, if you want to distribute just a my_module.py, uncomment
