@@ -2,6 +2,6 @@ include MANIFEST.in
 include README.md
 include LICENSE.md
 include VERSION
-recursive-include doc *
-recursive-include data *
-recursive-include genomes *
+#recursive-include doc *.
+#recursive-include data *.wig
+#recursive-include genomes *.prot_table
