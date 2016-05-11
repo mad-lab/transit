@@ -11,6 +11,8 @@ except AttributeError as e:
     from wx.lib.pubsub import Publisher as pub
     newWx = False
 
+import transit.tnseq_tools as tnseq_tools
+import transit.transit_tools as transit_tools
 
 file_prefix = "[FileDisplay]"
 
@@ -246,6 +248,16 @@ class AnalysisMethod:
         self.status_message(text)
 
 
+    def transit_error(self,text):
+        self.transit_message(text)
+        if self.wxobj:
+            transit_tools.ShowError(text)
+
+    def transit_warning(self,text):
+        self.transit_message(text)
+        if self.wxobj:
+            transit_tools.ShowWarning(text)    
+
 
 class SingleConditionMethod(AnalysisMethod):
     '''
@@ -261,7 +273,7 @@ class SingleConditionMethod(AnalysisMethod):
         self.ignoreCodon = ignoreCodon
         self.NTerminus = NTerminus
         self.CTerminus = CTerminus
-        
+
 
 
 class DualConditionMethod(AnalysisMethod):
@@ -304,7 +316,6 @@ class TransitAnalysis:
 
     def fullname(self):
         return "[%s]  -  %s" % (self.short_name, self.long_name)
-
 
 
 

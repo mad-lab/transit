@@ -688,7 +688,7 @@ def get_file_types(wig_list):
     if not wig_list:
         return []
     
-    types = types = ['tn5' for i in range(len(wig_list))]
+    types = ['tn5' for i in range(len(wig_list))]
     for i, wig_filename in enumerate(wig_list):
         with open(wig_filename) as wig_file:
             prev_pos = 0
@@ -700,6 +700,16 @@ def get_file_types(wig_list):
                 if pos != prev_pos + 1: types[i] = 'himar1'
                 prev_pos = pos
     return types
+
+#
+
+def get_unknown_file_types(wig_list, transposons):
+    """ """
+    #TODO
+    file_types = set(get_file_types(wig_list))
+    method_types = set(transposons)
+    extra_types = list(file_types - method_types)
+    return extra_types
 
 #
 

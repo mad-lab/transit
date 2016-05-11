@@ -144,21 +144,24 @@ class BinomialMethod(base.SingleConditionMethod):
     @classmethod
     def fromGUI(self, wxobj):
         """ """
-        #Get selected files
-        all_selected = wxobj.ctrlSelected()
-        if len(all_selected) ==0:
-            wxobj.ShowError("Error: No dataset selected.")
-            return None
 
         #Get Annotation file
         annotationPath = wxobj.annotation
-        if not annotationPath:
-            wxobj.ShowError("Error: No annotation file selected.")
+        if not transit_tools.validate_annotation(annotationPath):
+            return None
+
+        #Get selected files
+        ctrldata = wxobj.ctrlSelected()
+        if not transit_tools.validate_control_datasets(ctrldata):
+            return None
+
+        #Validate transposon types
+        if not transit_tools.validate_filetypes(ctrldata, transposons):
             return None
 
 
+
         #Read the parameters from the wxPython widgets
-        ctrldata = all_selected
         samples = int(wxobj.binomialSampleText.GetValue())
         burnin = int(wxobj.binomialBurnText.GetValue())
         ignoreCodon = True
@@ -169,7 +172,7 @@ class BinomialMethod(base.SingleConditionMethod):
         LOESS = False
 
         #Get output path
-        name = transit_tools.basename(all_selected[0])
+        name = transit_tools.basename(ctrldata[0])
         defaultFileName = "binomial_output.dat"
         defaultDir = os.getcwd()
         output_path = wxobj.SaveFile(defaultDir, defaultFileName)
