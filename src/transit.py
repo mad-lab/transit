@@ -81,6 +81,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         #initialize parent class
         transit_gui.MainFrame.__init__(self,parent)
 
+        self.SetIcon(images.transit_icon.GetIcon())
 
         self.workdir = os.getcwd()
         self.annotation = ""
