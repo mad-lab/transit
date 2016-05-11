@@ -34,6 +34,12 @@ The main documentation for the site is organized into the following sections:
 
 .. toctree::
    :maxdepth: 2
+   :caption: TPP Manual
+
+   tpp.rst
+
+.. toctree::
+   :maxdepth: 2
    :caption: Code Documentation
 
    transit
