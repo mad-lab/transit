@@ -9,6 +9,7 @@ The main documentation for the site is organized into the following sections:
 
 * `TRANSIT Manual`_
 * `TRANSIT Tutorials`_
+* `TPP Manual`_
 * `Code Documentation`_
 
 
