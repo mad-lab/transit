@@ -747,13 +747,21 @@ def validate_both_datasets(ctrldata, expdata):
         return True
     
 
-def validate_filetypes(datasets, transposons):
+def validate_filetypes(datasets, transposons, justWarn=True):
     #TODO: Write docstring
     unknown = tnseq_tools.get_unknown_file_types(datasets, transposons)
     if unknown:
-        self.transit_error("Error: This method does not work with the following filetype(s): %s" % (",". join(unknown)))
-        return False
+        if justWarn:
+            answer = ShowAskWarning("Warning: Some of the selected datasets look like they were created using transposons that this method was not intended to work with: %s. Proceeding may lead to errors. Click OK to continue." % (",". join(unknown)))
+            if answer == wx.ID_CANCEL:
+                return False
+            else:
+                return True
+        else:
+            self.transit_error("Error: Some of the selected datasets look like they were created using transposons that this method was not intended to work with: %s." % (",". join(unknown)))
+            return False
     return True
+
 
 
 
