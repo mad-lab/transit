@@ -711,6 +711,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             self.methodInstructions.Wrap(method_wrap_width)
             self.methodShortText.Hide()
             self.methodLongText.Hide()
+            self.methodTnText.Hide()
             self.methodDescText.Hide()
 
             self.method_choice = ""
@@ -721,18 +722,18 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             for name in methods:
                 methods[name].gui.Hide()
                 if methods[name].fullname() == selected_name:
-                    text = """%s
-                       
-    %s 
-                    """ % (methods[name].fullname(), methods[name].description)
-
                     self.methodInfoText.SetLabel("%s" % methods[name].short_name)
                     
                     #self.methodShortText.SetLabel("[%s]" % methods[name].short_name)
                     #self.methodShortText.Wrap(250)
                     #self.methodLongText.SetLabel(methods[name].long_name)
                     #self.methodLongText.Wrap(250)
-                    self.methodDescText.SetLabel(methods[name].description)
+
+                    self.methodTnText.SetLabel(methods[name].getTransposonsText())
+                    self.methodTnText.Wrap(250)
+                    self.methodTnText.Show()
+
+                    self.methodDescText.SetLabel(methods[name].getDescriptionText())
                     self.methodDescText.Wrap(250)
                     self.methodDescText.Show()
                     self.methodInstructions.SetLabel("")
