@@ -21,15 +21,6 @@ class Gene:
     class (with an s) can be used to define list of Gene objects with more
     useful operations on the "genome" level.
 
-        - parameters using ``:param <name>: <description>``
-        - type of the parameters ``:type <name>: <description>``
-        - returns using ``:returns: <description>``
-        - examples (doctest)
-        - seealso using ``.. seealso:: text``
-        - notes using ``.. note:: text``
-        - warning using ``.. warning:: text``
-        - todo ``.. todo:: text``
-
     Attributes:
         orf: A string defining the ID of the gene.
         name: A string with the human readable name of the gene.
@@ -44,9 +35,13 @@ class Gene:
     :Example:
 
         >>> import tnseq_tools
-        >>> G = tnseq_tools.Gene("Rv0001", "dnaA", [[0,0,0,0,1,0,32]], start=1, end=1500, strand="+")
+        >>> G = tnseq_tools.Gene("Rv0001", "dnaA", "DNA Replication A", [[0,0,0,0,1,3,0,1]],  [1,21,32,37,45,58,66,130], strand="+" )
         >>> print G
-        Rv0001 (dnaA): 2,7,4
+        Rv0001  (dnaA)  k=3 n=8 r=4 theta=0.37500
+        >>> print G.phi()
+        0.625
+        >>> print G.tosses
+        array([ 0.,  0.,  0.,  0.,  1.,  1.,  0.,  1.])
 
         .. seealso:: :class:`Genes`
         """
@@ -214,15 +209,6 @@ class Genes:
     facilitate TnSeq analysis. Includes methods that calculate useful statistics
     and even rudamentary analysis of essentiality. 
 
-        - parameters using ``:param <name>: <description>``
-        - type of the parameters ``:type <name>: <description>``
-        - returns using ``:returns: <description>``
-        - examples (doctest)
-        - seealso using ``.. seealso:: text``
-        - notes using ``.. note:: text``
-        - warning using ``.. warning:: text``
-        - todo ``.. todo:: text``
-
     Attributes:
         wigList: List of paths to datasets in .wig format.
         protTable: String with path to annotation in .prot_table format.
@@ -240,10 +226,30 @@ class Genes:
     :Example:
 
         >>> import tnseq_tools
-        >>> G = tnseq_tools.Genes(["data/glycerol_H37Rv_rep1.wig"], 
-        >>>         "genomes/H37Rv.prot_table")
+        >>> G = tnseq_tools.Genes(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"], "transit/genomes/H37Rv.prot_table", norm="TTR") 
         >>> print G
-        Genes Object (N=3989)
+        Genes Object (N=3990)
+        >>> print G.global_theta()
+        0.40853707222816626
+        >>> print G["Rv0001"]   # Lookup like dictionary
+        Rv0001  (dnaA)  k=0 n=31    r=31    theta=0.00000
+        >>> print G[2]          # Lookup like list
+        Rv0003  (recF)  k=5 n=35    r=14    theta=0.14286
+        >>> print G[2].reads
+        [[  62.            0.            0.            0.            0.            0.
+         0.            0.            0.            0.            0.            0.
+         0.            0.           63.            0.            0.           13.
+        46.            0.            1.            0.            0.            0.
+         0.            0.            0.            0.            0.            0.
+         0.            0.            0.            0.            0.        ]
+         [   3.14314432   67.26328843    0.            0.            0.            0.
+         0.            0.            0.           35.20321637    0.            0.
+         0.            0.           30.80281433    0.          101.20924707
+         0.           23.25926796    0.           16.97297932    8.17217523
+         0.            0.            2.51451546    3.77177318    0.62862886
+         0.            0.           69.14917502    0.            0.            0.
+         0.            0.        ]]
+
 
         .. seealso:: :class:`Gene`
         """
