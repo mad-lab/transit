@@ -4,8 +4,7 @@ import scipy.stats
 import scipy.optimize
 import warnings
 
-import transit.tnseq_tools as tnseq_tools
-
+import tnseq_tools
 
 
 def normalize_data(data, method="nonorm", wigList=[], annotationPath=""):
@@ -93,6 +92,8 @@ def nzmean_factors(data):
         >>> print factors
         array([[ 1.14836149],
                [ 0.88558737]])
+    
+    .. seealso:: :class:`normalize_data`
 
     """
     (K,N) = data.shape
@@ -127,6 +128,9 @@ def totreads_factors(data):
         >>> print factors
         array([[ 1.2988762],
                [ 0.8129396]])
+
+    .. seealso:: :class:`normalize_data`
+
     """
     (K,N) = data.shape
     total_hits = numpy.sum(data,1)
@@ -160,6 +164,7 @@ def emphist_factors(wig_list, prot_path):
         array([[ 1.        ],
                [ 0.63464722]])
 
+    .. seealso:: :class:`normalize_data`
     """
 
     G = tnseq_tools.Genes(wig_list, prot_path)
@@ -216,6 +221,8 @@ def aBGC_norm(data, doTotReads = True, bgsamples = 200000):
         >>> print normdata
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+
+    .. seealso:: :class:`normalize_data`
     """
 
     K,N = data.shape
@@ -289,6 +296,9 @@ def empirical_theta(X):
         >>> theta = norm_tools.empirical_theta(data)
         >>> print theta
         0.467133570136
+
+
+    .. seealso:: :class:`TTR_factors`
     """
     return numpy.mean(X > 0)
 
@@ -315,6 +325,8 @@ def trimmed_empirical_mu(X, t=0.05):
         >>> mu = norm_tools.trimmed_empirical_mu(data)
         >>> print mu
         120.73077107
+
+    .. seealso:: :class:`TTR_factors`
     """
 
     return scipy.stats.trim_mean(X[X > 0], t)
@@ -345,6 +357,8 @@ def TTR_factors(data, thetaEst=empirical_theta, muEst=trimmed_empirical_mu):
         >>> print factors
         array([[ 1.        ],
                [ 0.62862886]])
+    
+    .. seealso:: :class:`normalize_data`
     """
     K = len(data)
     N = len(data[0])
@@ -387,6 +401,8 @@ def zinfnb_factors(data):
         >>> print factors
         [[ 0.0121883 ]
          [ 0.00747111]]
+    
+    .. seealso:: :class:`normalize_data`
     """
     N = len(data)
     G = len(data[0])
@@ -423,6 +439,8 @@ def quantile_norm(data):
                [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
         >>> normdata = norm_tools.quantile_norm(data)
         >>> print normdata
+    
+    .. seealso:: :class:`normalize_data`
 
     """
     N = len(data)
@@ -482,6 +500,7 @@ def betageom_norm(data, doTTR = True, bgsamples=200000):
         [[ 0.  0.  0. ...,  0.  0.  0.]
          [ 0.  0.  0. ...,  0.  0.  0.]]
 
+    .. seealso:: :class:`normalize_data`
     """
 
     (K,N) = data.shape
@@ -542,6 +561,7 @@ def norm_to_target(data, target):
          [ 1.16088726]]
 
 
+    .. seealso:: :class:`normalize_data`
     """
     (K,N) = data.shape
     factors = numpy.zeros((K,1))

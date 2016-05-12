@@ -49,7 +49,7 @@ class Gene:
     def __init__(self, orf, name, desc, reads, position, start=0, end=0, strand=""):
         """Initializes the Gene object.
 
-        Args:
+        Arguments:
             orf (str): A string defining the ID of the gene.
             name (str): A string with the human readable name of the gene.
             desc (str): A string with the description of the gene.
@@ -96,7 +96,7 @@ class Gene:
     def __getitem__(self, i):
         """Return read-counts at position i.
 
-        Args:
+        Arguments:
             i (int): integer of the index of the desired site.
 
         Returns:
@@ -259,7 +259,7 @@ class Genes:
     def __getitem__(self, i):
         """Defines __getitem__ method so that it works as dictionary and list.
     
-        Args:
+        Arguments:
             i (int): Integer or string defining index or orf ID desired.
         Returns:
             Gene: A gene with the index or ID equal to i.
@@ -275,7 +275,7 @@ class Genes:
     def __contains__(self, item):
         """Defines __contains__ to check if gene exists in the list.
 
-        Args:
+        Arguments:
             item (str): String with the id of the gene.
 
         Returns:
@@ -312,16 +312,7 @@ class Genes:
         facilitate TnSeq analysis. Includes methods that calculate useful statistics
         and even rudamentary analysis of essentiality. 
 
-            - parameters using ``:param <name>: <description>``
-            - type of the parameters ``:type <name>: <description>``
-            - returns using ``:returns: <description>``
-            - examples (doctest)
-            - seealso using ``.. seealso:: text``
-            - notes using ``.. note:: text``
-            - warning using ``.. warning:: text``
-            - todo ``.. todo:: text``
-
-        Args:
+        Arguments:
             wigList (list): List of paths to datasets in .wig format.
             protTable (str): String with path to annotation in .prot_table format.
             norm (str): String with the normalization used/
@@ -614,7 +605,7 @@ class Genes:
 def tossify(data):
     """Reduces the data into Bernoulli trials (or 'tosses') based on whether counts were observed or not.
 
-    Args:
+    Arguments:
         data (list): List of numeric data.
 
     Returns:
@@ -629,12 +620,11 @@ def tossify(data):
 def runs(data):
     """Return list of all the runs of consecutive non-insertions.
 
-    Args:
+    Arguments:
         data (list): List of numeric data.
 
     Returns:
-        list: List of the length of the runs of non-insertions. 
-                Non-zero sites are treated as runs of zero.
+        list: List of the length of the runs of non-insertions. Non-zero sites are treated as runs of zero.
     """
     runs = []
     current_r = 0
@@ -659,12 +649,11 @@ def runs(data):
 def runindex(runs):
     """Returns a list of the indexes of the start of the runs; complements runs().
     
-    Args:
+    Arguments:
         runs (list): List of numeric data.
 
     Returns:
-        list: List of the index of the runs of non-insertions. 
-                Non-zero sites are treated as runs of zero.
+        list: List of the index of the runs of non-insertions. Non-zero sites are treated as runs of zero.
     """
     index = 0
     index_list = []
@@ -685,7 +674,7 @@ def runindex(runs):
 def get_file_types(wig_list):
     """Returns the transposon type (himar1/tn5) of the list of wig files.
 
-    Args:
+    Arguments:
         wig_list (list): List of paths to wig files.
 
     Returns:
@@ -723,7 +712,7 @@ def get_data(wig_list):
     """ Returns a tuple of (data, position) containing a matrix of raw read-counts
         , and list of coordinates. 
 
-    Args:
+    Arguments:
         wig_list (list): List of paths to wig files.
 
     Returns:
@@ -737,8 +726,7 @@ def get_data(wig_list):
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
 
-
-        .. seealso:: `get_file_types`, `combine_replicates`, `get_data_zero_fill`
+    .. seealso:: :class:`get_file_types` :class:`combine_replicates` :class:`get_data_zero_fill` :class:`transit.norm_tools.normalize_data`
     """
     K = len(wig_list)
     T = 0
@@ -773,7 +761,7 @@ def get_data_zero_fill(wig_list):
     """ Returns a tuple of (data, position) containing a matrix of raw read counts,
         and list of coordinates. Positions that are missing are filled in as zero.
 
-    Args:
+    Arguments:
         wig_list (list): List of paths to wig files.
 
     Returns:
@@ -827,7 +815,7 @@ def get_data_zero_fill(wig_list):
 def combine_replicates(data, method="Sum"):
     """Returns list of data merged together.
 
-    Args:
+    Arguments:
         data (list): List of numeric (replicate) data to be merged.
         method (str): How to combine the replicate dataset.
 
@@ -855,19 +843,19 @@ def combine_replicates(data, method="Sum"):
 def get_wig_stats(path):
     """Returns statistics for the given wig file with read-counts.
 
-    Args:
+    Arguments:
         path (str): String with the path to the wig file of interest.
 
     Returns:
         tuple: Tuple with the following statistical measures:
-                density
-                mean read
-                non-zero mean
-                non-zero median
-                max read
-                total reads
-                skew
-                kurtosis
+            - density
+            - mean read
+            - non-zero mean
+            - non-zero median
+            - max read
+            - total reads
+            - skew
+            - kurtosis
     """
     reads = []
     for line in open(path):
@@ -894,7 +882,7 @@ def get_wig_stats(path):
 def get_pos_hash(path):
     """Returns a dictionary that maps coordinates to a list of genes that occur at that coordinate.
     
-    Args:
+    Arguments:
         path (str): Path to annotation in .prot_table format.
     
     Returns:
@@ -917,16 +905,16 @@ def get_pos_hash(path):
 def get_gene_info(path):
     """Returns a dictionary that maps gene id to gene information.
     
-    Args:
+    Arguments:
         path (str): Path to annotation in .prot_table format.
     
     Returns:
         dict: Dictionary of gene id to tuple of information:
-                name
-                description
-                start coordinate
-                end coordinate
-                strand
+            - name
+            - description
+            - start coordinate
+            - end coordinate
+            - strand
             
     """
     orf2info = {}
@@ -947,7 +935,7 @@ def get_gene_info(path):
 def get_coordinate_map(galign_path, reverse=False):
     """Attempts to get mapping of coordinates from galign file.
     
-    Args:
+    Arguments:
         path (str): Path to .galign file.
         reverse (bool): Boolean specifying whether to do A to B or B to A.
     
@@ -985,7 +973,7 @@ def get_coordinate_map(galign_path, reverse=False):
 def maxrun(lst,item=0):
     """Returns the length of the maximum run an item in a given list.
 
-    Args:
+    Arguments:
         lst (list): List of numeric items.
         item (float): Number to look for consecutive runs of.
 
@@ -1041,7 +1029,7 @@ def ExpectedRuns(n,pnon):
     
         ER_n =  log(1/p)(nq) + gamma/ln(1/p) -1/2 + r1(n) + E1(n)
 
-    Args:
+    Arguments:
         n (int): Integer representing the number of sites.
         pins (float): Floating point number representing the probability of non-insertion.
 
@@ -1068,7 +1056,7 @@ def VarR(n,pnon):
         VarR_n =  (pi^2)/(6*ln(1/p)^2) + 1/12 + r2(n) + E2(n)
 
 
-    Args:
+    Arguments:
         n (int): Integer representing the number of sites.
         pnon (float): Floating point number representing the probability of non-insertion.
 
@@ -1088,7 +1076,7 @@ def GumbelCDF(x,u,B):
 
         e^(-e^( (u-x)/B))
 
-    Args:
+    Arguments:
         x (int): Length of the max run.
         u (float): Location parameter of the Gumbel dist.
         B (float): Scale parameter of the Gumbel dist.
@@ -1101,8 +1089,7 @@ def GumbelCDF(x,u,B):
 #
 
 def griffin_analysis(genes_obj, pins):
-    """Implements the basic Gumbel analysis of runs of non-insertion, described
-     in Griffin et al. 2011.
+    """Implements the basic Gumbel analysis of runs of non-insertion, described in Griffin et al. 2011.
 
     This analysis method calculates a p-value of observing the maximun run of
     TA sites without insertions in a row (i.e. a "run", r). Unusually long
@@ -1110,13 +1097,12 @@ def griffin_analysis(genes_obj, pins):
     there is a constant, global probability of observing an insertion
     (tantamount to a Bernoulli probability of success).
 
-    Args:
+    Arguments:
         genes_obj (Genes): An object of the Genes class defining the genes.
         pins (float): The probability of insertion.
 
     Returns:
-        list. List of lists with results and information for the genes. The
-            elements of the list are as follows:
+        list: List of lists with results and information for the genes. The elements of the list are as follows:
             - ORF ID.
             - Gene Name.
             - Gene Description.
@@ -1145,7 +1131,7 @@ def griffin_analysis(genes_obj, pins):
 def runs_w_info(data):
     """Return list of all the runs of consecutive non-insertions with the start and end locations.
 
-    Args:
+    Arguments:
         data (list): List of numeric data to check for runs.
     
     Returns:
@@ -1175,7 +1161,7 @@ def runs_w_info(data):
 def get_genes_in_range(pos_hash, start, end):
     """Returns list of genes that occur in a given range of coordinates.
 
-    Args:
+    Arguments:
         pos_hash (dict): Dictionary of position to list of genes.
         start (int): Start coordinate of the desired range.
         end (int): End coordinate of the desired range.
