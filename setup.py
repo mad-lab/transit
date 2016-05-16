@@ -22,7 +22,7 @@ with open(path.join(here, 'VERSION')) as version_file:
     #version = version_file.read().strip()
     #version = version_file.read().strip().split("-")[0].split()[1]
     #version = "1.9.9"
-    version = "2.0.1"
+    version = "2.0.6"
 
 setup(
     name='transit',
@@ -37,7 +37,7 @@ setup(
 
     # The project's main homepage.
     url='https://github.com/mad-lab/transit',
-    download_url='https://github.com/mad-lab/transit_test/archive/master.zip',
+    download_url='https://github.com/mad-lab/transit',
     
     # Author details
     author='Michael A. DeJesus',
@@ -102,7 +102,7 @@ setup(
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
     package_data={
-        'transit': ['data/*', 'doc/*.*', 'doc/images/*', 'geneomes/*']
+        'transit': ['transit/data/*', 'transit/doc/*.*', 'transit/doc/images/*', 'transit/genomes/*'],
     },
     
     scripts=['src/tpp.py', 'src/runtransit.py'],
@@ -112,6 +112,7 @@ setup(
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
     #data_files=[('transitdata', ['package_data.dat'])],
+    #data_files=[('.', ['VERSION'])],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
