@@ -215,6 +215,53 @@ def bayesian_ess_thresholds(Z_raw, ALPHA=0.05):
 
     return(ess_threshold, noness_threshold)
 
+
+def tricube(X):
+    #TODO: Write docstring
+    result = numpy.zeros(len(X))
+    ii = numpy.logical_and(X >= -1, X <= 1)
+    result[ii] = numpy.power(1 - numpy.power(numpy.abs(X[ii]), 3), 3)
+    return result
+
+
+def loess(X, Y, h=10000):
+    #TODO: Write docstring
+    smoothed = numpy.zeros(len(Y))
+    for i,x in enumerate(X):
+        W = tricube((X-x)/float(h))
+        sW = numpy.sum(W)
+        wsX = numpy.sum(W*X)
+        wsY = numpy.sum(W*Y)
+        wsXY = numpy.sum(W*X*Y)
+        sXX = numpy.sum(X*X)
+        B = (sW * wsXY - wsX * wsY)/(sW * sXX - numpy.power(wsX,2))
+        A = (wsY - B*wsX) / sW
+        smoothed[i] = B*x + A
+    return smoothed
+
+
+def loess_correction(X, Y, h=10000, window=100):
+    #TODO: Write docstring
+    Y = numpy.array(Y)
+    size = len(X)/window + 1
+    x_w = numpy.zeros(size)
+    y_w = numpy.zeros(size)
+    for i in range(len(X)/window + 1):
+        x_w[i] = window*i
+        y_w[i] = sum(Y[window*i:window*(i+1)])
+
+    ysmooth = loess(x_w, y_w, h)
+    mline = numpy.mean(y_w)
+    y_w * (ysmooth/mline)
+
+    normalized_Y = numpy.zeros(len(Y))
+    for i in range(size):
+        normalized_Y[window*i:window*(i+1)] = Y[window*i:window*(i+1)] * (ysmooth[i]/mline)
+
+    return normalized_Y
+
+
+
 def F_mean_diff_flat(A, B):
     return numpy.mean(B) - numpy.mean(A)
     

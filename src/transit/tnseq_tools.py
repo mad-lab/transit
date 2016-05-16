@@ -10,7 +10,7 @@ try:
     noNorm = False
 except ImportError:
     noNorm = True
-    warnings.warn("Problem importing the norm_tools.py module. Read-counts will not be normalized.")
+    warnings.warn("Problem importing the norm_tools.py module. Read-counts will not be normalized. Some functions may not work.")
 
 @total_ordering
 class Gene:
@@ -828,9 +828,9 @@ def combine_replicates(data, method="Sum"):
     elif method == "Mean":
         combined = numpy.round(numpy.mean(data,0))
     elif method == "TTRMean":
-        factors = transit_tools.TTR_factors(data)
+        factors = norm_tools.TTR_factors(data)
         data = factors * data
-        target_factors = transit_tools.norm_to_target(data, 100)
+        target_factors = norm_tools.norm_to_target(data, 100)
         data = target_factors * data
         combined = numpy.round(numpy.mean(data,0))
     else:
