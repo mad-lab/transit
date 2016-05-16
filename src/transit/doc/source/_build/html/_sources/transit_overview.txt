@@ -3,10 +3,10 @@
 
 
 Overview
---------
+========
 
 
-+ This is a software that can be used to analyze Tn-Seq datasets. It includes various statistical calculations of essentiality of genes or genomic regions (including conditional essentiality between 2 conditions). These methods were developed and tested as a collaboration between the Sassetti lab (UMass) and the Ioerger lab (Texas A). 
++ This is a software that can be used to analyze Tn-Seq datasets. It includes various statistical calculations of essentiality of genes or genomic regions (including conditional essentiality between 2 conditions). These methods were developed and tested as a collaboration between the Sassetti lab (UMass) and the Ioerger lab (Texas A&M).
 
 .. image:: _images/transit_interface.png
    :width: 600
@@ -14,7 +14,13 @@ Overview
 
 |
 
-+ TRANSIT assumes you have already done pre-processing of raw sequencing files (.fastq) and extracted read counts (at each TA dinucleotide). Actually, the `current protocol <http://www.springer.com/biomed/human+genetics/book/978-1-4939-2397-7>`_ utilizes internal barcodes that can be used to reduce raw read counts to unique template counts, and this this is the intended input to TRANSIT. The input for TRANSIT consists of `.wig <http://genome.ucsc.edu/goldenpath/help/wiggle.html>`_ files, which simply list the coordinate of each TA sites in the genome and the number of templates observed.
++ TRANSIT is capable of analyzing TnSeq libraries constructed with **Himar1** or **Tn5** datasets.
+
++ TRANSIT assumes you have already done pre-processing of raw sequencing files (.fastq) and extracted read counts into a `.wig formatted file <http://genome.ucsc.edu/goldenpath/help/wiggle.html>`_. The .wig file should contain the counts at all sites where an insertion could take place (including sites with no reads). For **Himar1** datasets this is all TA sites in the genome. For **Tn5** datasets this would be all nucleotides in the genome.
+
+
++ Note that while refer to "read-counts" throughout the documentation, the `current Himar1 protocol <http://www.springer.com/biomed/human+genetics/book/978-1-4939-2397-7>`_ utilizes internal barcodes that can be used to reduce raw read counts to unique template counts, and this this is the intended input to TRANSIT from Himar1 datasets.
+
 
 |
 

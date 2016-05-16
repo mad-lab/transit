@@ -1,50 +1,156 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>transit.analysis.base &mdash; transit v2.0.0 documentation</title>
-    
-    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     'v2.0.0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <link rel="top" title="transit v2.0.0 documentation" href="../../../index.html" />
-    <link rel="up" title="Module code" href="../../index.html" /> 
-  </head>
-  <body role="document">
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>transit.analysis.base &mdash; TRANSIT v2.0.0 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="TRANSIT v2.0.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> TRANSIT
+          
+
+          
+            
+            <img src="../../../_static/transit_logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v2.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">TRANSIT Manual</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../transit_overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transit_install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transit_running.html">Running TRANSIT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transit_methods.html">Analysis Methods</a></li>
+</ul>
+<p class="caption"><span class="caption-text">TRANSIT Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../transit_essentiality_tutorial.html">Tutorial: Essentiality Analysis in a Single Condition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transit_genome_tutorial.html">Tutorial: Essentiality Analysis of the Entire Genome</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transit_comparative_tutorial.html">Tutorial: Comparative Analysis - Glycerol vs Cholesterol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transit_export_tutorial.html">Tutorial: Export datasets</a></li>
+</ul>
+<p class="caption"><span class="caption-text">TPP Manual</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tpp.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tpp.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tpp.html#running-tpp">Running TPP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tpp.html#overview-of-data-processing-procedure">Overview of Data Processing Procedure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tpp.html#statistics">Statistics</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Code Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../transit.html">transit package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">TRANSIT</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>transit.analysis.base</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <h1>Source code for transit.analysis.base</h1><div class="highlight"><pre>
 <span></span><span class="c1">#__all__ = []</span>
@@ -60,6 +166,8 @@
     <span class="kn">from</span> <span class="nn">wx.lib.pubsub</span> <span class="kn">import</span> <span class="n">Publisher</span> <span class="k">as</span> <span class="n">pub</span>
     <span class="n">newWx</span> <span class="o">=</span> <span class="bp">False</span>
 
+<span class="kn">import</span> <span class="nn">transit.tnseq_tools</span> <span class="kn">as</span> <span class="nn">tnseq_tools</span>
+<span class="kn">import</span> <span class="nn">transit.transit_tools</span> <span class="kn">as</span> <span class="nn">transit_tools</span>
 
 <span class="n">file_prefix</span> <span class="o">=</span> <span class="s2">&quot;[FileDisplay]&quot;</span>
 
@@ -119,17 +227,6 @@
 
 <div class="viewcode-block" id="AnalysisGUI.Enable"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.base.AnalysisGUI.Enable">[docs]</a>    <span class="k">def</span> <span class="nf">Enable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="o">.</span><span class="n">Enable</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="AnalysisGUI.getInstructions"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.base.AnalysisGUI.getInstructions">[docs]</a>    <span class="k">def</span> <span class="nf">getInstructions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;&quot;&quot;Instruction:</span>
-
-<span class="s2">1. Make sure you have one control sample selected.</span>
-<span class="s2">2. Modify the options as desired.</span>
-<span class="s2">3. Click on the &quot;Run&quot; button.</span>
-<span class="s2">4. Choose a name for the output file.</span>
-<span class="s2">5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.</span>
-<span class="s2">                &quot;&quot;&quot;</span></div>
 
 
 
@@ -292,8 +389,18 @@
 <div class="viewcode-block" id="AnalysisMethod.transit_message_inplace"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.base.AnalysisMethod.transit_message_inplace">[docs]</a>    <span class="k">def</span> <span class="nf">transit_message_inplace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
         <span class="c1">#TODO: write docstring</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">console_message_inplace</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">status_message</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_message</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="AnalysisMethod.transit_error"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.base.AnalysisMethod.transit_error">[docs]</a>    <span class="k">def</span> <span class="nf">transit_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">text</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="p">:</span>
+            <span class="n">transit_tools</span><span class="o">.</span><span class="n">ShowError</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AnalysisMethod.transit_warning"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.base.AnalysisMethod.transit_warning">[docs]</a>    <span class="k">def</span> <span class="nf">transit_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">text</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transit_message</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wxobj</span><span class="p">:</span>
+            <span class="n">transit_tools</span><span class="o">.</span><span class="n">ShowWarning</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>    </div></div>
 
 
 <div class="viewcode-block" id="SingleConditionMethod"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.base.SingleConditionMethod">[docs]</a><span class="k">class</span> <span class="nc">SingleConditionMethod</span><span class="p">(</span><span class="n">AnalysisMethod</span><span class="p">):</span>
@@ -310,7 +417,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ignoreCodon</span> <span class="o">=</span> <span class="n">ignoreCodon</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">NTerminus</span> <span class="o">=</span> <span class="n">NTerminus</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">CTerminus</span> <span class="o">=</span> <span class="n">CTerminus</span></div>
-        
+
 
 
 <div class="viewcode-block" id="DualConditionMethod"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.base.DualConditionMethod">[docs]</a><span class="k">class</span> <span class="nc">DualConditionMethod</span><span class="p">(</span><span class="n">AnalysisMethod</span><span class="p">):</span>
@@ -352,9 +459,24 @@
 
 
 <div class="viewcode-block" id="TransitAnalysis.fullname"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.base.TransitAnalysis.fullname">[docs]</a>    <span class="k">def</span> <span class="nf">fullname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">]  -  </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">short_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">long_name</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">]  -  </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">short_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">long_name</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="TransitAnalysis.getInstructionsText"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.base.TransitAnalysis.getInstructionsText">[docs]</a>    <span class="k">def</span> <span class="nf">getInstructionsText</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span></div>
 
+<div class="viewcode-block" id="TransitAnalysis.getDescriptionText"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.base.TransitAnalysis.getDescriptionText">[docs]</a>    <span class="k">def</span> <span class="nf">getDescriptionText</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span> </div>
+
+<div class="viewcode-block" id="TransitAnalysis.getTransposonsText"><a class="viewcode-back" href="../../../transit.analysis.html#transit.analysis.base.TransitAnalysis.getTransposonsText">[docs]</a>    <span class="k">def</span> <span class="nf">getTransposonsText</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transposons</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Tn attribute missing!&quot;</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transposons</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Intended for </span><span class="si">%s</span><span class="s2"> only&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">transposons</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transposons</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Intended for </span><span class="si">%s</span><span class="s2"> &amp;&amp; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transposons</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Intended for &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transposons</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;, and &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">transposons</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div></div>
+    
 
 
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
@@ -364,44 +486,62 @@
 
 </pre></div>
 
+           </div>
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/transit_logo.png" alt="Logo"/>
-            </a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">transit v2.0.0 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
         &copy; Copyright 2016, Michael A. DeJesus.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
-    </div>
-  </body>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'v2.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>
