@@ -9,6 +9,7 @@ The main documentation for the site is organized into the following sections:
 
 * `TRANSIT Manual`_
 * `TRANSIT Tutorials`_
+* `TPP Manual`_
 * `Code Documentation`_
 
 
@@ -31,6 +32,12 @@ The main documentation for the site is organized into the following sections:
    transit_comparative_tutorial
    transit_export_tutorial
 
+
+.. toctree::
+   :maxdepth: 2
+   :caption: TPP Manual
+
+   tpp.rst
 
 .. toctree::
    :maxdepth: 2

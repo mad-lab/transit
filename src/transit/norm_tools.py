@@ -4,7 +4,7 @@ import scipy.stats
 import scipy.optimize
 import warnings
 
-
+import tnseq_tools
 
 
 def normalize_data(data, method="nonorm", wigList=[], annotationPath=""):
@@ -20,6 +20,24 @@ def normalize_data(data, method="nonorm", wigList=[], annotationPath=""):
     Returns:
         numpy array: Array with the normalized data.
         list: List containing the normalization factors. Empty if not used.
+
+    :Example:
+        >>> import transit.norm_tools as norm_tools
+        >>> import transit.tnseq_tools as tnseq_tools
+        >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+        (normdata, normfactors) = norm_tools.normalize_data(data, "TTR")   # Some methods require annotation and path to wig files.
+        >>> print normfactors
+        array([[ 1.        ],
+               [ 0.62862886]])
+        >> print normdata
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+
+    .. note:: Some normalization methods require the wigList and annotationPath arguments.
+
     """
     factors = []
     if method == "nonorm":
@@ -54,7 +72,30 @@ def normalize_data(data, method="nonorm", wigList=[], annotationPath=""):
     return (data, factors)
 
 def nzmean_factors(data):
-    """Returns the normalization factors for the data, using the NZMean method."""
+    """Returns the normalization factors for the data, using the NZMean method.
+
+    Arguments:
+        data (numpy array): (K,N) numpy array defining read-counts at N sites
+            for K datasets.
+    
+    Returns:
+        numpy array: Array with the normalization factors for the nzmean method.
+
+    :Example:
+        >>> import transit_tools.norm_tools as norm_tools
+        >>> import transit.tnseq_tools as tnseq_tools
+        >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+        >>> factors = norm_tools.nzmean_factors(data)
+        >>> print factors
+        array([[ 1.14836149],
+               [ 0.88558737]])
+    
+    .. seealso:: :class:`normalize_data`
+
+    """
     (K,N) = data.shape
     total_hits = numpy.sum(data,1)
     TAs_hit = numpy.sum(data > 0, 1)
@@ -67,7 +108,30 @@ def nzmean_factors(data):
 
 def totreads_factors(data):
     """Returns the normalization factors for the data, using the total reads
-    method."""
+    method.
+
+    Arguments:
+        data (numpy array): (K,N) numpy array defining read-counts at N sites
+            for K datasets.
+    
+    Returns:
+        numpy array: Array with the normalization factors for the totreads method.
+
+    :Example:
+        >>> import transit.norm_tools as norm_tools
+        >>> import transit.tnseq_tools as tnseq_tools
+        >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+        >>> factors = norm_tools.totreads_factors(data)
+        >>> print factors
+        array([[ 1.2988762],
+               [ 0.8129396]])
+
+    .. seealso:: :class:`normalize_data`
+
+    """
     (K,N) = data.shape
     total_hits = numpy.sum(data,1)
     TAs = float(N)
@@ -79,20 +143,39 @@ def totreads_factors(data):
     return factors
 
 def emphist_factors(wig_list, prot_path):
-    """Returns the normalized data, using the empirical hist method."""
-    orf2info = get_gene_info(prot_path)
-    hash = get_pos_hash(prot_path)
-    (data, position) = get_data(wig_list)
-    orf2reads, orf2pos = get_gene_reads(hash, data, position, orf2info)
-    K = len(data)
-    N = len(data[0])
+    """Returns the normalized data, using the empirical hist method.
+
+    Arguments:
+        wig_list (list): List of paths to wig formatted datasets.
+        prot_path (str): Path to annotation in .prot_table format.
+    
+    Returns:
+        numpy array: Array with the normalization factors for the emphist method.
+
+    :Example:
+        >>> import transit.norm_tools as norm_tools
+        >>> import transit.tnseq_tools as tnseq_tools
+        >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+        >>> factors = norm_tools.emphist_factors(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"], "transit/genomes/H37Rv.prot_table")
+        >>> print factors
+        array([[ 1.        ],
+               [ 0.63464722]])
+
+    .. seealso:: :class:`normalize_data`
+    """
+
+    G = tnseq_tools.Genes(wig_list, prot_path)
+    K = len(wig_list)
     temp = []
     for j in range(K):
         reads_per_gene = []
-        for orf in sorted(orf2reads.keys()):
-            tempdata = numpy.array(orf2reads[orf])
-            if len(tempdata) > 0:
-                reads_per_gene.append(numpy.sum(tempdata[:,j]))
+        for gene in G:
+            tempdata = numpy.array(gene.reads)
+            if len(tempdata[0]) > 0:
+                reads_per_gene.append(numpy.sum(tempdata[j,:]))
         temp.append(reads_per_gene)
 
     temp = numpy.array(temp)
@@ -115,7 +198,33 @@ def emphist_factors(wig_list, prot_path):
     return factors
 
 def aBGC_norm(data, doTotReads = True, bgsamples = 200000):
-    """Returns the normalized data using the aBGC method."""
+    """Returns the normalized data using the aBGC method.
+
+
+    Arguments:
+        data (numpy array): (K,N) numpy array defining read-counts at N sites
+            for K datasets.
+        doTotReads (bool):  Boolean specifying whether to do TTR normalization as well.
+        bgsamples (int): Integeer specifying how many samples to take.
+    
+    Returns:
+        numpy array: Array with the normalized data.
+
+    :Example:
+        >>> import transit.norm_tools as norm_tools
+        >>> import transit.tnseq_tools as tnseq_tools
+        >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+        >>> normdata = norm_tools.aBGC_norm(data)
+        >>> print normdata
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+
+    .. seealso:: :class:`normalize_data`
+    """
+
     K,N = data.shape
     norm_data = numpy.zeros(data.shape)
     S = bgsamples
@@ -160,28 +269,104 @@ def aBGC_norm(data, doTotReads = True, bgsamples = 200000):
             norm_data[j,i] = cleaninfgeom(scipy.stats.geom.ppf(ecdf(BGsample, data[j,i]), best_rho), best_rho)
 
     if doTotReads:
-        return totreads_factors(norm_data) * norm_data
+        factors = TTR_factors(norm_data)
+        norm_data = factors * norm_data
     return norm_data
 
 
 def empirical_theta(X):
-    """Calculates the observed density of the data."""
+    """Calculates the observed density of the data.
+
+    This is used as an estimate insertion density by some normalization methods.
+    May be improved by more sophisticated ways later on.
+
+    Arguments:
+        data (numpy array): (N) numpy array defining read-counts at N sites.
+    
+    Returns:
+        float: Density of the given dataset.
+
+    :Example:
+        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import transit.norm_tools as norm_tools
+        >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+        >>> theta = norm_tools.empirical_theta(data)
+        >>> print theta
+        0.467133570136
+
+
+    .. seealso:: :class:`TTR_factors`
+    """
     return numpy.mean(X > 0)
 
 def trimmed_empirical_mu(X, t=0.05):
-    """Estimates the trimmed mean of the data."""
+    """Estimates the trimmed mean of the data.
+
+    This is used as an estimate of mean count by some normalization methods.
+    May be improved by more sophisticated ways later on.
+
+    Arguments:
+        data (numpy array): (N) numpy array defining read-counts at N sites.
+        t (float): Float specifying fraction of start and end to trim.
+    
+    Returns:
+        float: (Trimmed) Mean of the given dataset.
+    
+    :Example:
+        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import transit.norm_tools as norm_tools
+        >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+        >>> mu = norm_tools.trimmed_empirical_mu(data)
+        >>> print mu
+        120.73077107
+
+    .. seealso:: :class:`TTR_factors`
+    """
+
     return scipy.stats.trim_mean(X[X > 0], t)
 
 def TTR_factors(data, thetaEst=empirical_theta, muEst=trimmed_empirical_mu):
-    """Returns the normalization factors for the data, using the TTR method."""
+    """Returns the normalization factors for the data, using the TTR method.
+
+
+    Arguments:
+        data (numpy array): (K,N) numpy array defining read-counts at N sites
+            for K datasets.
+        thetaEst (function): Function used to estimate density. Should take a list
+            of counts as input.
+        muEst (function): Function used to estimate mean count. Should take a list
+            of counts as input.
+    
+    Returns:
+        numpy array: Array with the normalization factors for the TTR method.
+
+    :Example:
+        >>> import transit.norm_tools as norm_tools
+        >>> import transit.tnseq_tools as tnseq_tools
+        >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+        >>> factors = norm_tools.TTR_factors(data)
+        >>> print factors
+        array([[ 1.        ],
+               [ 0.62862886]])
+    
+    .. seealso:: :class:`normalize_data`
+    """
     K = len(data)
     N = len(data[0])
 
     factors = numpy.zeros((K,1))
     for j in range(K):
         factors[j] = (thetaEst(data[0]) * muEst(data[0]))/(thetaEst(data[j]) * muEst(data[j]))
-
-    return factors
+    return numpy.array(factors)
 
 def Fzinfnb(params, args):
     """Objective function for the zero-inflated NB method."""
@@ -195,7 +380,30 @@ def Fzinfnb(params, args):
 
 def zinfnb_factors(data):
     """Returns the normalization factors for the data using the zero-inflated
-    negatibe binomial method."""
+    negative binomial method.
+
+
+    Arguments:
+        data (numpy array): (K,N) numpy array defining read-counts at N sites
+            for K datasets.
+    
+    Returns:
+        numpy array: Array with the normalization factors for the zinfnb method.
+
+    :Example:
+        >>> import transit.norm_tools as norm_tools
+        >>> import transit.tnseq_tools as tnseq_tools
+        >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+        >>> factors = norm_tools.zinfnb_factors(data)
+        >>> print factors
+        [[ 0.0121883 ]
+         [ 0.00747111]]
+    
+    .. seealso:: :class:`normalize_data`
+    """
     N = len(data)
     G = len(data[0])
 
@@ -208,10 +416,33 @@ def zinfnb_factors(data):
         pi, n, p = results.x
         mu = n*(1-p)/p
         factors[j,0] = 1.0/mu
-    return factors
+    return numpy.array(factors)
+
+#
 
 def quantile_norm(data):
-    """Performs Quantile Normalization as described by Bolstad et al. 2003"""
+    """Performs Quantile Normalization as described by Bolstad et al. 2003
+
+    Arguments:
+        data (numpy array): (K,N) numpy array defining read-counts at N sites
+            for K datasets.
+    
+    Returns:
+        numpy array: Array with the data normalized by the quantile normalization method.
+
+    :Example:
+        >>> import transit.norm_tools as norm_tools
+        >>> import transit.tnseq_tools as tnseq_tools
+        >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+        >>> normdata = norm_tools.quantile_norm(data)
+        >>> print normdata
+    
+    .. seealso:: :class:`normalize_data`
+
+    """
     N = len(data)
     G = len(data[0])
     #Sort columns
@@ -228,7 +459,7 @@ def quantile_norm(data):
     norm_data = numpy.zeros(data.shape)
     for i in range(G):
         norm_data[:,i] = [rank2count[ranks[j,i]] for j in range(N)]
-    return norm_data
+    return numpy.array(norm_data)
 
 
 def ecdf(S, x):
@@ -245,8 +476,33 @@ def cleaninfgeom(x, rho):
 
 
 
-def betageom_norm(data, doNZMean = True, bgsamples=200000):
-    """Returns normalized data according to the BGC method."""
+def betageom_norm(data, doTTR = True, bgsamples=200000):
+    """Returns normalized data according to the BGC method.
+
+    Arguments:
+        data (numpy array): (K,N) numpy array defining read-counts at N sites
+            for K datasets.
+        doTTR (bool): Boolean specifying whether to do TTR norm as well.
+        bgsamples (int): Integer specifying how many samples to take.
+    
+    Returns:
+        numpy array: Array with the data normalized using the betageom method.
+
+    :Example:
+        >>> import transit.norm_tools as norm_tools
+        >>> import transit.tnseq_tools as tnseq_tools
+        >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+        >>> normdata = norm_tools.betageom_norm(data)
+        >>> print normdata
+        [[ 0.  0.  0. ...,  0.  0.  0.]
+         [ 0.  0.  0. ...,  0.  0.  0.]]
+
+    .. seealso:: :class:`normalize_data`
+    """
+
     (K,N) = data.shape
     total_hits = numpy.sum(data,1)
     TAs_hit = numpy.sum(data > 0,1)
@@ -274,14 +530,39 @@ def betageom_norm(data, doNZMean = True, bgsamples=200000):
         for i in range(N):
             norm_data[j,i] = cleaninfgeom(scipy.stats.geom.ppf(ecdf(BGsample, data[j,i]), 1.0/grand_mean), 1.0/grand_mean)
 
-    if doNZMean:
-        return nzmean_norm(norm_data)
+    if doTTR:
+        factors = TTR_factors(norm_data)
+        norm_data = factors * norm_data
     return norm_data
 
 
 
 def norm_to_target(data, target):
-    """Returns factors to normalize the data to the given target value."""
+    """Returns factors to normalize the data to the given target value.
+
+    Arguments:
+        data (numpy array): (K,N) numpy array defining read-counts at N sites
+            for K datasets.
+        target (float): Floating point specifying the target for the mean of the data/
+         
+    Returns:
+        numpy array: Array with the factors necessary to normalize mean to target.
+
+    :Example:
+        >>> import transit.norm_tools as norm_tools
+        >>> import transit.tnseq_tools as tnseq_tools
+        >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+        >>> factors = norm_tools.norm_to_target(data, 100)
+        >>> print factors
+        [[ 1.8548104 ]
+         [ 1.16088726]]
+
+
+    .. seealso:: :class:`normalize_data`
+    """
     (K,N) = data.shape
     factors = numpy.zeros((K,1))
     factors[:,0] = float(target)/numpy.mean(data,1)

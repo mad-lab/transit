@@ -28,10 +28,14 @@ import scipy.optimize
 import scipy.stats
 import transit
 
+import transit.tnseq_tools as tnseq_tools
+
 def aton(aa):
+    #TODO: Write docstring
     return(((aa-1)*3)+1)
 
 def parseCoords(strand, aa_start, aa_end, start, end):
+    #TODO: Write docstring
     if strand == "+":
         return((aton(aa_start) + start,  aton(aa_end) + start))
     # Coordinates are Reversed... to match with Trash FILE TA coordinates
@@ -41,6 +45,7 @@ def parseCoords(strand, aa_start, aa_end, start, end):
 
 
 def get_wig_stats(path):
+    #TODO: Write docstring
     reads = []
     for line in open(path):
         if line[0] not in "0123456789": continue
@@ -63,6 +68,7 @@ def get_wig_stats(path):
 
 
 def get_reads(path):
+    #TODO: Write docstring
     data = []
     for line in open(path):
         if line[0] not in "0123456789": continue
@@ -73,14 +79,17 @@ def get_reads(path):
 
 
 def fetch_name(filepath):
+    #TODO: Write docstring
     return os.path.splitext(ntpath.basename(filepath))[0]
 
 
 def basename(filepath):
+    #TODO: Write docstring
     return ntpath.basename(filepath)
 
 
 def cleanargs(rawargs):
+    #TODO: Write docstring
     args = []
     kwargs = {}
     count = 0
@@ -99,6 +108,7 @@ def cleanargs(rawargs):
 
 
 def get_pos_hash(path):
+    #TODO: Write docstring
     hash = {}
     for line in open(path):
         if line.startswith("#"): continue
@@ -113,6 +123,7 @@ def get_pos_hash(path):
 
 
 def get_data(wig_list):
+    #TODO: Write docstring
     """ Returns a tuple of (data, position) containing a matrix of raw read counts, and list of coordinates. """
     K = len(wig_list)
     T = 0
@@ -141,6 +152,7 @@ def get_data(wig_list):
 
 
 def combine_replicates(data, method="Sum"):
+    #TODO: Write docstring
 
     if method == "Sum":
         combined = numpy.round(numpy.sum(data,0))
@@ -160,6 +172,7 @@ def combine_replicates(data, method="Sum"):
 
 
 def normalize_data(data, method="nonorm", wigList=[], annotationPath=""):
+    #TODO: Write docstring
 
     factors = []
     if method == "nzmean":
@@ -195,6 +208,7 @@ def normalize_data(data, method="nonorm", wigList=[], annotationPath=""):
 
 
 def nzmean_factors(data):
+    #TODO: Write docstring
     (K,N) = data.shape
     total_hits = numpy.sum(data,1)
     TAs_hit = numpy.sum(data > 0, 1)
@@ -208,6 +222,7 @@ def nzmean_factors(data):
 
 
 def totreads_factors(data):
+    #TODO: Write docstring
     (K,N) = data.shape
     total_hits = numpy.sum(data,1)
     TAs = float(N)
@@ -220,6 +235,7 @@ def totreads_factors(data):
 
 
 def emphist_factors(wig_list, prot_path):
+    #TODO: Write docstring
     orf2info = get_gene_info(prot_path)
     hash = get_pos_hash(prot_path)
     (data, position) = get_data(wig_list)
@@ -257,6 +273,7 @@ def emphist_factors(wig_list, prot_path):
 
 
 def aBGC_norm(data, doTotReads = True, bgsamples = 200000):
+    #TODO: Write docstring
     K,N = data.shape
     norm_data = numpy.zeros(data.shape)
     S = bgsamples
@@ -307,12 +324,15 @@ def aBGC_norm(data, doTotReads = True, bgsamples = 200000):
 
 
 def empirical_theta(X):
+    #TODO: Write docstring
     return numpy.mean(X > 0)
 
 def trimmed_empirical_mu(X, t=0.05):
+    #TODO: Write docstring
     return scipy.stats.trim_mean(X[X > 0], t)
 
 def TTR_factors(data, thetaEst=empirical_theta, muEst=trimmed_empirical_mu):
+    #TODO: Write docstring
     K = len(data)
     N = len(data[0])
 
@@ -325,6 +345,7 @@ def TTR_factors(data, thetaEst=empirical_theta, muEst=trimmed_empirical_mu):
 
 
 def Fzinfnb(params, args):
+    #TODO: Write docstring
     pi, mu, r = params
     Fdata = args
     temp0 = numpy.nan_to_num(numpy.log(pi + scipy.stats.nbinom.pmf(Fdata[Fdata==0], mu, r)))
@@ -334,6 +355,7 @@ def Fzinfnb(params, args):
 
 
 def zinfnb_factors(data):
+    #TODO: Write docstring
    
     N = len(data)
     G = len(data[0])
@@ -356,6 +378,7 @@ def zinfnb_factors(data):
 
 
 def thetanorm_factors(data):
+    #TODO: Write docstring
 
     K = len(data)
     N = len(data[0])
@@ -371,6 +394,7 @@ def thetanorm_factors(data):
 
 
 def quantile_norm(data):
+    #TODO: Write docstring
     """Performs Quantile Normalization as described by Bolstad et al. 2003"""
     
     N = len(data)
@@ -400,10 +424,12 @@ def quantile_norm(data):
 
 
 def ecdf(S, x):
+    #TODO: Write docstring
     return numpy.sum(S<=x)/float(len(S))
 
 
 def cleaninfgeom(x, rho):
+    #TODO: Write docstring
     if x == float('inf'):
         return scipy.stats.geom.ppf(0.9999999999999999, rho)
     else:
@@ -412,6 +438,7 @@ def cleaninfgeom(x, rho):
 
 
 def betageom_norm(data, doNZMean = True, bgsamples=200000):
+    #TODO: Write docstring
     (K,N) = data.shape
     total_hits = numpy.sum(data,1)
     TAs_hit = numpy.sum(data > 0,1)
@@ -458,6 +485,7 @@ def betageom_norm(data, doNZMean = True, bgsamples=200000):
 
 
 def nzmean_norm(data):
+    #TODO: Write docstring
     (K,N) = data.shape
     total_hits = numpy.sum(data,1)
     TAs_hit = numpy.sum(data > 0,1)
@@ -470,6 +498,7 @@ def nzmean_norm(data):
     
 
 def norm_to_target(data, target):
+    #TODO: Write docstring
     (K,N) = data.shape
     factors = numpy.zeros((K,1))
     factors[:,0] = float(target)/numpy.mean(data,1)
@@ -477,6 +506,7 @@ def norm_to_target(data, target):
 
 
 def get_gene_reads(hash, data, position, orf2info, ignoreCodon=True, ignoreNTerm=0, ignoreCTerm=0, orf_list=set()):
+    #TODO: Write docstring
     (K,N) = data.shape
 
     orf2reads = dict([(orf,[]) for orf in orf_list])
@@ -527,6 +557,7 @@ def get_gene_reads(hash, data, position, orf2info, ignoreCodon=True, ignoreNTerm
 
 
 def tricube(X):
+    #TODO: Write docstring
     result = numpy.zeros(len(X))
     ii = numpy.logical_and(X >= -1, X <= 1)
     result[ii] = numpy.power(1 - numpy.power(numpy.abs(X[ii]), 3), 3)
@@ -534,6 +565,7 @@ def tricube(X):
 
 
 def loess(X, Y, h=10000):
+    #TODO: Write docstring
     smoothed = numpy.zeros(len(Y))
     for i,x in enumerate(X):
         W = tricube((X-x)/float(h))
@@ -551,6 +583,7 @@ def loess(X, Y, h=10000):
 
 
 def loess_correction(X, Y, h=10000, window=100):
+    #TODO: Write docstring
     Y = numpy.array(Y)
     size = len(X)/window + 1
     x_w = numpy.zeros(size)
@@ -571,6 +604,7 @@ def loess_correction(X, Y, h=10000, window=100):
 
 
 def fdr_post_prob(Z_raw, ALPHA=0.05):
+    #TODO: Write docstring
     Z = numpy.sort(Z_raw)[::-1]
     W = 1 - Z
     N = len(Z)
@@ -607,6 +641,7 @@ def fdr_post_prob(Z_raw, ALPHA=0.05):
 
 
 def get_gene_info(path):
+    #TODO: Write docstring
     orf2info = {}
     for line in open(path):
         if line.startswith("#"): continue
@@ -621,6 +656,7 @@ def get_gene_info(path):
     return orf2info
 
 def get_gene_name(path):
+    #TODO: Write docstring
     orf2info = {}
     for line in open(path):
         if line.startswith("#"): continue
@@ -637,6 +673,7 @@ def get_gene_name(path):
 
 
 def getTabTableData(path, colnames):
+    #TODO: Write docstring
     row = 0
     data = []
     for line in open(path):
@@ -651,21 +688,79 @@ def getTabTableData(path, colnames):
 
 
 def ShowMessage(MSG=""):
+    #TODO: Write docstring
     wx.MessageBox(MSG, 'Info',
         wx.OK | wx.ICON_INFORMATION)
 
 def ShowAskWarning(MSG=""):
+    #TODO: Write docstring
     dial = wx.MessageDialog(None, MSG, 'Warning',
         wx.OK | wx.CANCEL | wx.ICON_EXCLAMATION)
     return dial.ShowModal()
 
 def ShowError(MSG=""):
+    #TODO: Write docstring
     dial = wx.MessageDialog(None, MSG, 'Error',
         wx.OK | wx.ICON_ERROR)
     dial.ShowModal()
 
 def transit_message(msg=""):
+    #TODO: Write docstring
     print transit.prefix, msg
+
+
+def transit_error(text):
+    #TODO: Write docstring
+    transit_message(text)
+    try:
+        ShowError(text)
+    except:
+        pass
+
+
+def validate_annotation(annotation):
+    #TODO: Write docstring
+    if not annotation:
+        transit_error("Error: No annotation file selected!")
+        return False
+    return True
+
+def validate_control_datasets(ctrldata):
+    #TODO: Write docstring
+    if len(ctrldata) == 0:
+        transit_error("Error: No control datasets selected!")
+        return False
+    return True
+
+def validate_both_datasets(ctrldata, expdata):
+    #TODO: Write docstring
+    if len(self.ctrldata) == 0 and len(self.expdata) == 0:
+        self.transit_error("Error: No datasets selected!")
+        return False
+    elif len(self.ctrldata) == 0:
+        self.transit_error("Error: No control datasets selected!")
+        return False
+    elif len(self.expdata) == 0:
+        self.transit_error("Error: No experimental datasets selected!")
+        return False
+    else:
+        return True
+    
+
+def validate_filetypes(datasets, transposons, justWarn=True):
+    #TODO: Write docstring
+    unknown = tnseq_tools.get_unknown_file_types(datasets, transposons)
+    if unknown:
+        if justWarn:
+            answer = ShowAskWarning("Warning: Some of the selected datasets look like they were created using transposons that this method was not intended to work with: %s. Proceeding may lead to errors. Click OK to continue." % (",". join(unknown)))
+            if answer == wx.ID_CANCEL:
+                return False
+            else:
+                return True
+        else:
+            self.transit_error("Error: Some of the selected datasets look like they were created using transposons that this method was not intended to work with: %s." % (",". join(unknown)))
+            return False
+    return True
 
 
 

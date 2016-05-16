@@ -226,10 +226,21 @@ class MainFrame ( wx.Frame ):
         self.methodLongText.Wrap(250)
         self.methodLongText.Hide()
         self.methodInfoSizer.Add( self.methodLongText, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
         self.methodDescText = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.methodDescText.Wrap(250)
         self.methodDescText.Hide()
         self.methodInfoSizer.Add( self.methodDescText, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        self.methodTnText = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.methodTnText.Wrap(250)
+
+        font = wx.Font(8, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        self.methodTnText.SetFont(font)
+        self.methodTnText.Hide()
+
+        self.methodInfoSizer.Add( self.methodTnText, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
 
         self.methodInstructions = wx.StaticText( self.optionsWindow, wx.ID_ANY, self.instructions_text, wx.DefaultPosition, wx.DefaultSize, 0 )
         self.methodInstructions.Wrap( 250 )

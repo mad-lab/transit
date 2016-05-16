@@ -140,23 +140,22 @@ class RankProductMethod(base.DualConditionMethod):
     @classmethod
     def fromGUI(self, wxobj):
         """ """
-        #Get selected ctrl files
-        ctrl_selected = wxobj.ctrlSelected()
-        if len(ctrl_selected) ==0:
-            wxobj.ShowError("Error: No Control dataset selected.")
-            return None
-
-        exp_selected = wxobj.expSelected()
-        if len(exp_selected) ==0:
-            wxobj.ShowError("Error: No Experimental dataset selected.")
-            return None
-
 
         #Get Annotation file
         annotationPath = wxobj.annotation
-        if not annotationPath:
-            wxobj.ShowError("Error: No annotation file selected.")
+        if not transit_tools.validate_annotation(annotationPath):
             return None
+
+        #Get selected files
+        ctrldata = wxobj.ctrlSelected()
+        expdata = wxobj.expSelected()
+        if not transit_tools.validate_both_datasets(ctrldata, expdata):
+            return None
+
+        #Validate transposon types
+        if not transit_tools.validate_filetypes(ctrldata+expdata, transposons):
+            return None
+
 
 
         #Read the parameters from the wxPython widgets
@@ -179,8 +178,8 @@ class RankProductMethod(base.DualConditionMethod):
         output_file = open(output_path, "w")
 
 
-        return self(ctrl_selected,
-                exp_selected,
+        return self(ctrldata,
+                expdata,
                 annotationPath,
                 output_file,
                 normalization,

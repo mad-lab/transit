@@ -11,6 +11,8 @@ except AttributeError as e:
     from wx.lib.pubsub import Publisher as pub
     newWx = False
 
+import transit.tnseq_tools as tnseq_tools
+import transit.transit_tools as transit_tools
 
 file_prefix = "[FileDisplay]"
 
@@ -70,17 +72,6 @@ class AnalysisGUI:
 
     def Enable(self):
         self.panel.Enable()
-
-
-    def getInstructions(self):
-        return """Instruction:
-
-1. Make sure you have one control sample selected.
-2. Modify the options as desired.
-3. Click on the "Run" button.
-4. Choose a name for the output file.
-5. Wait until the execution finishes and the output is added to the file list at the bottom of the screen.
-                """
 
 
 
@@ -246,6 +237,16 @@ class AnalysisMethod:
         self.status_message(text)
 
 
+    def transit_error(self,text):
+        self.transit_message(text)
+        if self.wxobj:
+            transit_tools.ShowError(text)
+
+    def transit_warning(self,text):
+        self.transit_message(text)
+        if self.wxobj:
+            transit_tools.ShowWarning(text)    
+
 
 class SingleConditionMethod(AnalysisMethod):
     '''
@@ -261,7 +262,7 @@ class SingleConditionMethod(AnalysisMethod):
         self.ignoreCodon = ignoreCodon
         self.NTerminus = NTerminus
         self.CTerminus = CTerminus
-        
+
 
 
 class DualConditionMethod(AnalysisMethod):
@@ -305,7 +306,22 @@ class TransitAnalysis:
     def fullname(self):
         return "[%s]  -  %s" % (self.short_name, self.long_name)
 
+    def getInstructionsText(self):
+        return ""
 
+    def getDescriptionText(self):
+        return self.description 
+
+    def getTransposonsText(self):
+        if len(self.transposons) == 0:
+            return "Tn attribute missing!"
+        elif len(self.transposons) == 1:
+            return "Intended for %s only" % self.transposons[0]
+        elif len(self.transposons) == 2:
+            return "Intended for %s && %s" % tuple(self.transposons)
+        else:
+            return "Intended for " + ", ".join(self.transposons[:-1]) + ", and " + self.transposons[-1]
+    
 
 
 if __name__ == "__main__":

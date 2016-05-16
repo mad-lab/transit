@@ -2,7 +2,7 @@
 
 
 Installation
-------------
+============
 TRANSIT can be downloaded from the public GitHub server,
 `http://github.com/mad-lab/transit <http://github.com/mad-lab/transit>`_. It is released under a GPL
 License. It can be downloaded with git as follows:
@@ -23,7 +23,7 @@ the list of requirements:
 |
 
 Requirements
-~~~~~~~~~~~~
+------------
 The following libraries/modules are required to run TRANSIT:
 
 
@@ -43,7 +43,7 @@ Windows. Below more detailed instructions are provided.
 |
 
 Detailed Instructions: Linux
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 
 Most of the requirements are available in default package sources in
 most Linux distributions. The following commands will install python,
@@ -123,7 +123,7 @@ Go to the directory with the extracted source-code, and run make to create the e
 |
 
 Detailed Instructions: OSX
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 First, download and install the latest Python 2.7.x installation file from the official python website:
 
 
@@ -187,7 +187,7 @@ Go to the directory with the extracted source-code, and run make to create the e
 |
 
 Detailed Instructions: Windows
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------
 First, download and install the latest Python 2.7.x installation file
 from the official python website:
 

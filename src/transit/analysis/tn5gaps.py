@@ -150,30 +150,29 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         self.minread = minread
 
 
+
     @classmethod
     def fromGUI(self, wxobj):
         """ """
-        #Get selected files
-        all_selected = wxobj.ctrlSelected()
-        if len(all_selected) ==0:
-            wxobj.ShowError("Error: No dataset selected.")
-            return None
-
         #Get Annotation file
         annotationPath = wxobj.annotation
-        if not annotationPath:
-            wxobj.ShowError("Error: No annotation file selected.")
+        if not transit_tools.validate_annotation(annotationPath):
             return None
-        
-        #See if correct wig files are being used
-        types = tnseq_tools.get_file_types(all_selected)
+
+        #Get selected files
+        ctrldata = wxobj.ctrlSelected()
+        if not transit_tools.validate_control_datasets(ctrldata):
+            return None
+
+        #Validate transposon types
+        types = tnseq_tools.get_file_types(ctrldata)
         if 'himar1' in types:
-            answer = wxobj.ShowAskWarning("Warning: One of the selected wig files looks like a Himar1 dataset. This method is designed to work on Tn5 wig files. Proceeding will fill in missing data with zeroes. Click OK to continue.")
+            answer = transit_tools.ShowAskWarning("Warning: One of the selected wig files looks like a Himar1 dataset. This method is designed to work on Tn5 wig files. Proceeding will fill in missing data with zeroes. Click OK to continue.")
             if answer == wx.ID_CANCEL:
                 return None
 
+
         #Read the parameters from the wxPython widgets
-        ctrldata = all_selected
         ignoreCodon = True
         minread = int(wxobj.tn5GapsReadChoice.GetString(wxobj.tn5GapsReadChoice.GetCurrentSelection()))
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
@@ -183,7 +182,7 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         LOESS = False
 
         #Get output path
-        name = transit_tools.basename(all_selected[0])
+        name = transit_tools.basename(ctrldata[0])
         defaultFileName = "tn5_gaps_output.dat"
         defaultDir = os.getcwd()
         output_path = wxobj.SaveFile(defaultDir, defaultFileName)
@@ -233,6 +232,9 @@ class Tn5GapsMethod(base.SingleConditionMethod):
                 minread,
                 NTerminus,
                 CTerminus)
+
+
+
 
     def Run(self):
         self.transit_message("Starting Tn5 gaps method")
