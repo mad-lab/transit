@@ -42,8 +42,101 @@ Windows. Below more detailed instructions are provided.
 
 |
 
+
+
+Use as a Python Package
+-----------------------------------------------------
+
+
+TRANSIT can be (optionally) installed as a python package. This can simplify the installation process as it will automatically install most of the requirements. In addition, it will allow users to use some of transit functions in their own scripts if they desire.
+
+
+
+
+
 Detailed Instructions: Linux
 ----------------------------
+
+
+Method 1: Install as a Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Most of the requirements are available in default package sources in
+most Linux distributions. The following commands will install python:
+
+
+::
+
+
+    #Ubuntu:
+    sudo apt-get install python
+    
+    #Fedora:
+    sudo yum install python
+
+
+
+Next you need install pip which allows you automate the process of installing python packages, and wxPython to run in GUI mode:
+
+::
+
+    
+    #Ubuntu:
+    sudo apt-get install pip python-wxgtk3.0
+    
+    #Fedora:
+    sudo yum install pip python-wxgtk3.0
+
+
+Finally you can use pip to install the TRANSIT package:
+
+
+:: 
+
+    sudo pip install https://github.com/mad-lab/transit/archive/master.zip
+
+This will automatically download and install TRANSIT and all remaining requirements.
+
+
+Optional: If you will be using the pre-processor, TPP, you will also need to install `BWA <http://bio-bwa.sourceforge.net/>`_. Download the source files:
+
+::
+
+    
+    `http://sourceforge.net/projects/bio-bwa/files/`_
+
+
+Extract the files:
+
+::
+
+    
+    tar -xvjf bwa-0.7.12.tar.bz2
+
+
+Go to the directory with the extracted source-code, and run make to create the executable files:
+
+::
+
+    
+    cd bwa-0.7.12
+    make
+
+
+
+|
+
+
+Now you will be able to run
+
+
+|
+
+
+Method 2: Install Source Locally
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 Most of the requirements are available in default package sources in
 most Linux distributions. The following commands will install python,
@@ -124,6 +217,86 @@ Go to the directory with the extracted source-code, and run make to create the e
 
 Detailed Instructions: OSX
 --------------------------
+
+
+
+
+
+Method 1: Install as a Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+First, download and install the latest Python 2.7.x installation file from the official python website:
+
+
+
+    `http://www.python.org/downloads/ <http://www.python.org/downloads/>`_
+
+
+Next make sure you have pip installed. Pip can be installed through easy_install, which should come with OSX:
+
+::
+
+    
+    sudo easy_install pip
+
+
+Download and install the OSX binary of wxpython (cocoa version) for python 2.7:
+
+::
+
+    
+    `http://downloads.sourceforge.net/wxpython/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg`_
+
+
+Finally you can use pip to install the TRANSIT package:
+
+
+:: 
+
+    sudo pip install https://github.com/mad-lab/transit/archive/master.zip
+
+This will automatically download and install TRANSIT and all remaining requirements.
+
+
+|
+
+
+Optional: If you will be using the pre-processor, TPP, you will also need to install `BWA <http://bio-bwa.sourceforge.net/>`_. Download the source files:
+
+::
+
+    
+    `http://sourceforge.net/projects/bio-bwa/files/`_
+
+
+Extract the files:
+
+::
+
+    
+    tar -xvjf bwa-0.7.12.tar.bz2
+
+
+Go to the directory with the extracted source-code, and run make to create the executable files:
+
+::
+
+    
+    cd bwa-0.7.12
+    make
+
+
+
+|
+
+
+
+
+
+Method 2: Install Source Locally
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 First, download and install the latest Python 2.7.x installation file from the official python website:
 
 
