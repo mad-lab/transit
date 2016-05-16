@@ -2,6 +2,6 @@ include MANIFEST.in
 include README.md
 include LICENSE.md
 include VERSION
-recursive-include doc *
-recursive-include data *
-recursive-include genomes *
+recursive-include src/transit/data *
+recursive-include src/transit/genomes *
+recursive-include src/transit/doc/build/html/ *

@@ -19,7 +19,10 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     
 # Get current version
 with open(path.join(here, 'VERSION')) as version_file:
-    version = version_file.read().strip()
+    #version = version_file.read().strip()
+    version = version_file.read().strip().split("-")[0].split()[1]
+    #version = "1.9.9"
+    #version = "2.0.0"
 
 setup(
     name='transit',
@@ -34,10 +37,11 @@ setup(
 
     # The project's main homepage.
     url='https://github.com/mad-lab/transit',
-
+    download_url='https://github.com/mad-lab/transit',
+    
     # Author details
-    author='The Python Packaging Authority',
-    author_email='pypa-dev@googlegroups.com',
+    author='Michael A. DeJesus',
+    author_email='mad@cs.tamu.edu',
 
     # Choose your license
     license='GNU GPL',
@@ -62,13 +66,13 @@ setup(
     ],
 
     # What does your project relate to?
-    keywords='tnseq analysis biology genome',
+    keywords=['tnseq', 'analysis', 'biology', 'genome'],
     
-    package_dir = {'': 'src'},
+    package_dir = {'transit': 'src/transit'},
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages= find_packages('src', exclude=['contrib', 'docs', 'tests']) + ['docs', 'data', 'genomes'],
+    packages= find_packages('src', exclude=['contrib', 'tests']),
     include_package_data=True,
 
     # Alternatively, if you want to distribute just a my_module.py, uncomment
@@ -79,7 +83,11 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['setuptools', 'numpy', 'scipy', 'pillow', 'matplotlib'],
+    install_requires=['setuptools', 'numpy', 'scipy', 'pillow', 'matplotlib>1.2.0,<1.5.0'],
+    
+    #dependency_links = [
+    #	"git+https://github.com/wxWidgets/wxPython.git#egg=wxPython"
+	#],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -93,15 +101,17 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    #package_data={
-    #    'docs': ['package_data.dat'],
-    #},
+    package_data={
+        'transit': ['data/*', 'doc/*.*', 'doc/images/*', 'genomes/*']
+    },
+    
+    scripts=['src/tpp.py', 'src/runtransit.py'],
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    #data_files=[('my_data', ['data/data_file'])],
+    #data_files=[('transitdata', ['package_data.dat'])],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
