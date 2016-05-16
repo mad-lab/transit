@@ -20,7 +20,9 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 # Get current version
 with open(path.join(here, 'VERSION')) as version_file:
     #version = version_file.read().strip()
-    version = version_file.read().strip().split("-")[0].split()[1]
+    #version = version_file.read().strip().split("-")[0].split()[1]
+    #version = "1.9.9"
+    version = "2.0.1"
 
 setup(
     name='transit',
@@ -103,7 +105,7 @@ setup(
         'transit': ['data/*', 'doc/*.*', 'doc/images/*', 'geneomes/*']
     },
     
-    scripts=['src/tpp.py', 'src/transit.py'],
+    scripts=['src/tpp.py', 'src/runtransit.py'],
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
