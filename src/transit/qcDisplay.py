@@ -22,6 +22,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
 import transit.transit_tools as transit_tools
+import transit.tnseq_tools as tnseq_tools
 
 
 
@@ -173,7 +174,7 @@ class qcFrame ( wx.Frame ):
         try:
             for path in datasets:
                 name = transit_tools.basename(path)
-                (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = transit_tools.get_wig_stats(path)
+                (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(path)
                 self.statsListCtrl.InsertStringItem(self.index_stats, name)
                 self.statsListCtrl.SetStringItem(self.index_stats, 1, "%1.1f" % (density*100.0))
                 self.statsListCtrl.SetStringItem(self.index_stats, 2, "%1.1f" % (meanrd))
@@ -197,7 +198,8 @@ class qcFrame ( wx.Frame ):
             for i,path in enumerate(datasets):
                 #Data
                 name = transit_tools.basename(path)
-                reads = transit_tools.get_reads(path)
+                reads,position = tnseq_tools.get_data([path])
+                reads = reads[0]
                 reads = numpy.array(reads)
                 nzreads = reads[reads>0]
 

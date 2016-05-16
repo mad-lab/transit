@@ -259,12 +259,12 @@ class HMMMethod(base.SingleConditionMethod):
         
         #Get orf data
         self.transit_message("Getting Data")
-        (data, position) = transit_tools.get_data(self.ctrldata)
-        hash = transit_tools.get_pos_hash(self.annotation_path)
-        rv2info = transit_tools.get_gene_info(self.annotation_path)
+        (data, position) = tnseq_tools.get_data(self.ctrldata)
+        hash = tnseq_tools.get_pos_hash(self.annotation_path)
+        rv2info = tnseq_tools.get_gene_info(self.annotation_path)
         self.transit_message("Combining Replicates as '%s'" % self.replicates)
 
-        O = transit_tools.combine_replicates(data, method=self.replicates) + 1 # Adding 1 to because of shifted geometric in scipy
+        O = tnseq_tools.combine_replicates(data, method=self.replicates) + 1 # Adding 1 to because of shifted geometric in scipy
 
         #Parameters
         Nstates = 4

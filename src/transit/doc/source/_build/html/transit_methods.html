@@ -1,51 +1,192 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Analysis Methods &mdash; transit v2.0.0 documentation</title>
-    
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     'v2.0.0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="transit v2.0.0 documentation" href="index.html" /> 
-  </head>
-  <body role="document">
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">transit v2.0.0 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Analysis Methods &mdash; TRANSIT v2.0.0 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="TRANSIT v2.0.0 documentation" href="index.html"/>
+        <link rel="next" title="Tutorial: Essentiality Analysis in a Single Condition" href="transit_essentiality_tutorial.html"/>
+        <link rel="prev" title="Running TRANSIT" href="transit_running.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> TRANSIT
+          
+
+          
+            
+            <img src="_static/transit_logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v2.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">TRANSIT Manual</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="transit_overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transit_install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transit_running.html">Running TRANSIT</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Analysis Methods</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#gumbel">Gumbel</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#how-does-it-work">How does it work?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters">Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#outputs-and-diagnostics">Outputs and diagnostics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#run-time">Run-time</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#tn-gaps">Tn Gaps</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">How does it work?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Outputs and diagnostics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">Run-time</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#hmm">HMM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">How does it work?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output-and-diagnostics">Output and Diagnostics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">Run-time</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#re-sampling">Re-sampling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id8">How does it work?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">Output and Diagnostics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">Run-time</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">TRANSIT Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="transit_essentiality_tutorial.html">Tutorial: Essentiality Analysis in a Single Condition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transit_genome_tutorial.html">Tutorial: Essentiality Analysis of the Entire Genome</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transit_comparative_tutorial.html">Tutorial: Comparative Analysis - Glycerol vs Cholesterol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transit_export_tutorial.html">Tutorial: Export datasets</a></li>
+</ul>
+<p class="caption"><span class="caption-text">TPP Manual</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tpp.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpp.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpp.html#running-tpp">Running TPP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpp.html#overview-of-data-processing-procedure">Overview of Data Processing Procedure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpp.html#statistics">Statistics</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Code Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="transit.html">transit package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">TRANSIT</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Analysis Methods</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/transit_methods.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="analysis-methods">
 <h1>Analysis Methods<a class="headerlink" href="#analysis-methods" title="Permalink to this headline">¶</a></h1>
+<p>TRANSIT has analysis methods capable of analyzing <strong>Himar1</strong> and <strong>Tn5</strong> datasets.
+Below is a description of some of the methods.</p>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
@@ -56,6 +197,10 @@ single condition. It does a gene-by-gene analysis of the insertions at
 TA sites with each gene, makes a call based on the longest consecutive
 sequence of TA sites without insertion in the genes, calculates the
 probabily of this using a Baysian model.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Intended only for <strong>Himar1</strong> datasets.</p>
+</div>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
@@ -191,29 +336,34 @@ replicates; replicate datasets will be automatically merged.</p>
 <div class="section" id="tn-gaps">
 <h2>Tn Gaps<a class="headerlink" href="#tn-gaps" title="Permalink to this headline">¶</a></h2>
 <p>The Tn5 Gaps method can be used to determine which genes are essential
-in a single condition for a TN5 dataset. It does an analysis of the
+in a single condition for <strong>Tn5</strong> datasets. It does an analysis of the
 insertions at each site within the genome, makes a call for a given
 gene based on the length of the most heavily overlapping run of sites
 without insertions (gaps), calculates the probabily of this using a
-Bayesian model.</p>
+the Gumbel distribution.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Intended only for <strong>Tn5</strong> datasets.</p>
+</div>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
 <div class="section" id="id1">
 <h3>How does it work?<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<p>This method of analysis is based on the original gumbel analysis
-method. For a formal description of how the original method works, see
-our paper:</p>
+<p>This method is loosely is based on the original gumbel analysis
+method described in this paper:</p>
 <p>Griffin, J.E., Gawronski, J.D., DeJesus, M.A., Ioerger, T.R., Akerley, B.J., Sassetti, C.M. (2011).
 <a class="reference external" href="http://www.ncbi.nlm.nih.gov/pubmed/21980284">High-resolution phenotypic profiling defines genes essential for mycobacterial survival and cholesterol catabolism.</a>  <em>PLoS Pathogens</em>, 7(9):e1002251.</p>
 <p>The Tn5 Gaps method modifies the original method in order to work on
-TN5 datasets by analyzing non-insertion runs throughout the whole
+Tn5 datasets, which have significantly lower saturation of insertion sites
+than Himar1 datasets. The main difference comes from the fact that
+the runs of non-insertion (or &#8220;gaps&#8221;) are analyzed throughout the whole
 genome, including non-coding regions, instead of within single genes.
 In doing so, the expected maximum run length is calculated and a
 p-value can be derived for every run. A gene is then classified by
 using the p-value of the run with the largest number of nucleotides
 overlapping with the gene.</p>
-<p>This method was tested on a salmonella TN5 dataset presented in this
+<p>This method was tested on a salmonella Tn5 dataset presented in this
 paper:</p>
 <p>Langridge GC1, Phan MD, Turner DJ, Perkins TT, Parts L, Haase J,
 Charles I, Maskell DJ, Peters SE, Dougan G, Wain J, Parkhill J, Turner
@@ -247,39 +397,61 @@ location chosen by the user. This file will automatically be loaded
 into the Results Files section of the GUI, allowing you to display it
 as a table. Alternatively, the file can be opened in a spreadsheet
 software like Excel as a tab-separated file. The columns of the output
-file are defined as follows:
-Column Header Column Definition ORF Gene ID. Name Name of the gene.
-Desc Gene description. k Number of Transposon Insertions Observed
-within the ORF. n Total Number of TA dinucleotides within the ORF. r
-Length of the Maximum Run of Non-Insertions observed. ovr The number
-of nucleotides in the overlap with the longest run partially covering
-the gene. lenovr The length of the above run with the largest overlap
-with the gene. pval P-value calculated by the permutation test. padj
-Adjusted p-value controlling for the FDR (Benjamini-Hochberg). call
-Essentiality call for the gene. Depends on FDR corrected thresholds.
-Essential or Non-Essential</p>
-<p>Note: Technically, Bayesian models are used to calculate posterior
-probabilities, not p-values (which is a concept associated with the
-frequentist framework). However, we have implemented a method for
-computing the approximate false-discovery rate (FDR) that serves a
-similar purpose. This determines a threshold for significance on the
-posterior probabilities that is corrected for multiple tests. The
-actual thresholds used are reported in the headers of the output file
-(and are near 1 for essentials and near 0 for non-essentials). There
-can be many genes that score between the two thresholds (t1 &lt; zbar &lt;
-t2). This reflects intrinsic uncertainty associated with either low
-read counts, sparse insertion density, or small genes. If the
-insertion_density is too low, the method may not work as well, and
-might indicate an unusually large number of Uncertain or Essential
-genes.</p>
+file are defined as follows:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column Header</th>
+<th class="head">Column Definition</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>ORF</td>
+<td>Gene ID.</td>
+</tr>
+<tr class="row-odd"><td>Name</td>
+<td>Name of the gene.</td>
+</tr>
+<tr class="row-even"><td>Desc</td>
+<td>Gene description.</td>
+</tr>
+<tr class="row-odd"><td>k</td>
+<td>Number of Transposon Insertions Observed within the ORF.</td>
+</tr>
+<tr class="row-even"><td>n</td>
+<td>Total Number of TA dinucleotides within the ORF.</td>
+</tr>
+<tr class="row-odd"><td>r</td>
+<td>Length of the Maximum Run of Non-Insertions observed.</td>
+</tr>
+<tr class="row-even"><td>ovr</td>
+<td>The number of nucleotides in the overlap with the longest run partially covering the gene.</td>
+</tr>
+<tr class="row-odd"><td>lenovr</td>
+<td>The length of the above run with the largest overlap with the gene.</td>
+</tr>
+<tr class="row-even"><td>pval</td>
+<td>P-value calculated by the permutation test.</td>
+</tr>
+<tr class="row-odd"><td>padj</td>
+<td>Adjusted p-value controlling for the FDR (Benjamini-Hochberg).</td>
+</tr>
+<tr class="row-even"><td>call</td>
+<td>Essentiality call for the gene. Depends on FDR corrected thresholds. Essential or Non-Essential.</td>
+</tr>
+</tbody>
+</table>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
 </div>
 <div class="section" id="id4">
 <h3>Run-time<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
-<p>The Gumbel method takes on the order of 10 minutes.
-Other notes: Gumbel can be run on multiple replicates; replicate
+<p>The Tn5Gaps method takes on the order of 10 minutes.
+Other notes: Tn5Gaps can be run on multiple replicates; replicate
 datasets will be automatically merged.</p>
 <div class="line-block">
 <div class="line"><br /></div>
@@ -289,6 +461,10 @@ datasets will be automatically merged.</p>
 <div class="section" id="hmm">
 <h2>HMM<a class="headerlink" href="#hmm" title="Permalink to this headline">¶</a></h2>
 <p>The HMM method can be used to determine the essentiality of the entire genome, as opposed to gene-level analysis of the other methods. It is capable of identifying regions that have unusually high or unusually low read counts (i.e. growth advantage or growth defect regions), in addition to the more common categories of essential and non-essential.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Intended only for <strong>Himar1</strong> datasets.</p>
+</div>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
@@ -454,6 +630,10 @@ of the method should not affect the running-time.</div>
 used to determine conditional essentiality of genes. It is based on a
 permutation test, and is capable of determining read-counts that are
 significantly different across conditions.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Can be used for both <strong>Himar1</strong> and <strong>Tn5</strong> datasets</p>
+</div>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
@@ -491,14 +671,18 @@ which are likely not significant. This dramatically speeds up the
 computation at the cost of less accurate estimates for those genes
 that terminate early (i.e. deemed not significant). This option is
 OFF by default.</li>
+<li><strong>Include Zeros:</strong> By default resampling will ignore sites that are zero
+accross all the datasets (i.e. completely empty), which is useful for
+decreasing running time (specially for large datasets like Tn5). This
+option allows the user to include these empty rows.</li>
 <li><strong>Normalization Method:</strong> Determines which normalization method to
 use when comparing datasets. Proper normalization is important as it
 ensures that other sources of variability are not mistakenly treated
 as real differences.<ul>
 <li><strong>TTR</strong>: Trimmed Total Reads (TTR), normalized by the total
 read-counts (like totreads), but trims top and bottom 5% of
-read-counts. This is the recommended normalization method for most
-cases as it has the beneffit of normalizing for difference in
+read-counts. <strong>This is the recommended normalization method for most
+cases</strong> as it has the beneffit of normalizing for difference in
 saturation in the context of resampling.</li>
 <li><strong>nzmean</strong>: Normalizes datasets to have the same mean over the
 non-zero sites.</li>
@@ -592,85 +776,71 @@ resampling option, the run-time is reduced to around 10 minutes.</p>
 </div>
 
 
+           </div>
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/transit_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Analysis Methods</a><ul>
-<li><a class="reference internal" href="#gumbel">Gumbel</a><ul>
-<li><a class="reference internal" href="#how-does-it-work">How does it work?</a></li>
-<li><a class="reference internal" href="#parameters">Parameters</a></li>
-<li><a class="reference internal" href="#outputs-and-diagnostics">Outputs and diagnostics</a></li>
-<li><a class="reference internal" href="#run-time">Run-time</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#tn-gaps">Tn Gaps</a><ul>
-<li><a class="reference internal" href="#id1">How does it work?</a></li>
-<li><a class="reference internal" href="#id2">Parameters</a></li>
-<li><a class="reference internal" href="#id3">Outputs and diagnostics</a></li>
-<li><a class="reference internal" href="#id4">Run-time</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#hmm">HMM</a><ul>
-<li><a class="reference internal" href="#id5">How does it work?</a></li>
-<li><a class="reference internal" href="#id6">Parameters</a></li>
-<li><a class="reference internal" href="#output-and-diagnostics">Output and Diagnostics</a></li>
-<li><a class="reference internal" href="#id7">Run-time</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#re-sampling">Re-sampling</a><ul>
-<li><a class="reference internal" href="#id8">How does it work?</a></li>
-<li><a class="reference internal" href="#id9">Parameters</a></li>
-<li><a class="reference internal" href="#id10">Output and Diagnostics</a></li>
-<li><a class="reference internal" href="#id11">Run-time</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="transit_essentiality_tutorial.html" class="btn btn-neutral float-right" title="Tutorial: Essentiality Analysis in a Single Condition" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="transit_running.html" class="btn btn-neutral" title="Running TRANSIT" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/transit_methods.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Michael A. DeJesus.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">transit v2.0.0 documentation</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Michael A. DeJesus.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
-    </div>
-  </body>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'v2.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

@@ -2,12 +2,13 @@
 
 
 Tutorial: Essentiality Analysis of the Entire Genome
-============================
+====================================================
 
 To illustrate how TRANSIT works, we are going to go through a tutorial
 where we analyze datasets of H37Rv M. tuberculosis grown on glycerol
 and cholesterol.
 
+|
 
 Run TRANSIT
 -----------

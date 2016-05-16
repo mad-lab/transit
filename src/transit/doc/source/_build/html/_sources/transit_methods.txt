@@ -1,12 +1,16 @@
 
 
 Analysis Methods
-----------------
+================
+
+
+TRANSIT has analysis methods capable of analyzing **Himar1** and **Tn5** datasets.
+Below is a description of some of the methods.
 
 |
 
 Gumbel
-~~~~~~
+------
 
 The Gumbel can be used to determine which genes are essential in a
 single condition. It does a gene-by-gene analysis of the insertions at
@@ -14,10 +18,14 @@ TA sites with each gene, makes a call based on the longest consecutive
 sequence of TA sites without insertion in the genes, calculates the
 probabily of this using a Baysian model.
 
+.. NOTE::
+   Intended only for **Himar1** datasets.
+
+
 |
 
 How does it work?
-`````````````````
+~~~~~~~~~~~~~~~~~
 
 | For a formal description of how this method works, see our paper:
 |  DeJesus, M.A., Zhang, Y.J., Sassettti, C.M., Rubin, E.J.,
@@ -27,7 +35,7 @@ How does it work?
 |
 
 Parameters
-``````````
+~~~~~~~~~~
 
 -  **Samples:** Gumbel uses Metropolis-Hastings (MH) to generate samples
    of posterior distributions. The default setting is to run the
@@ -62,7 +70,7 @@ Parameters
 |
 
 Outputs and diagnostics
-```````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~
 
 The Gumbel method generates a tab-seperated output file at the location
 chosen by the user. This file will automatically be loaded into the
@@ -112,7 +120,7 @@ defined as follows:
 |
 
 Run-time
-````````
+~~~~~~~~
 
 The Gumbel method takes on the order of 10 minutes for 10,000 samples.
 Run-time is linearly proportional to the 'samples' parameter, or length
@@ -126,36 +134,43 @@ replicates; replicate datasets will be automatically merged.
 |
 
 Tn Gaps
-~~~~~~~
+-------
 
 The Tn5 Gaps method can be used to determine which genes are essential
-in a single condition for a TN5 dataset. It does an analysis of the
+in a single condition for **Tn5** datasets. It does an analysis of the
 insertions at each site within the genome, makes a call for a given
 gene based on the length of the most heavily overlapping run of sites
 without insertions (gaps), calculates the probabily of this using a
-Bayesian model.
+the Gumbel distribution.
+
+.. NOTE::
+   Intended only for **Tn5** datasets.
+
 
 
 |
 
 How does it work?
-`````````````````
-This method of analysis is based on the original gumbel analysis
-method. For a formal description of how the original method works, see
-our paper:
+~~~~~~~~~~~~~~~~~
+
+This method is loosely is based on the original gumbel analysis
+method described in this paper:
 
 Griffin, J.E., Gawronski, J.D., DeJesus, M.A., Ioerger, T.R., Akerley, B.J., Sassetti, C.M. (2011). 
 `High-resolution phenotypic profiling defines genes essential for mycobacterial survival and cholesterol catabolism. <http://www.ncbi.nlm.nih.gov/pubmed/21980284>`_  *PLoS Pathogens*, 7(9):e1002251.
 
+
 The Tn5 Gaps method modifies the original method in order to work on
-TN5 datasets by analyzing non-insertion runs throughout the whole
+Tn5 datasets, which have significantly lower saturation of insertion sites
+than Himar1 datasets. The main difference comes from the fact that 
+the runs of non-insertion (or "gaps") are analyzed throughout the whole
 genome, including non-coding regions, instead of within single genes.
 In doing so, the expected maximum run length is calculated and a
 p-value can be derived for every run. A gene is then classified by
 using the p-value of the run with the largest number of nucleotides
 overlapping with the gene.
 
-This method was tested on a salmonella TN5 dataset presented in this
+This method was tested on a salmonella Tn5 dataset presented in this
 paper:
 
 Langridge GC1, Phan MD, Turner DJ, Perkins TT, Parts L, Haase J,
@@ -174,7 +189,7 @@ output of our analysis.
 |
 
 Parameters
-``````````
+~~~~~~~~~~
 
 
 + **Minimum Read:** The minimum read count that is considered a true read. Because the Gumbel method depends on determining gaps of TA sites lacking insertions, it may be suceptible to spurious reads (e.g. errors). The default value of 1 will consider all reads as true reads. A value of 2, for example, will ignore read counts of 1.
@@ -187,45 +202,48 @@ Parameters
 |
 
 Outputs and diagnostics
-```````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~
+
 The Tn5 Gaps method generates a tab-seperated output file at the
 location chosen by the user. This file will automatically be loaded
 into the Results Files section of the GUI, allowing you to display it
 as a table. Alternatively, the file can be opened in a spreadsheet
 software like Excel as a tab-separated file. The columns of the output
 file are defined as follows:
-Column Header Column Definition ORF Gene ID. Name Name of the gene.
-Desc Gene description. k Number of Transposon Insertions Observed
-within the ORF. n Total Number of TA dinucleotides within the ORF. r
-Length of the Maximum Run of Non-Insertions observed. ovr The number
-of nucleotides in the overlap with the longest run partially covering
-the gene. lenovr The length of the above run with the largest overlap
-with the gene. pval P-value calculated by the permutation test. padj
-Adjusted p-value controlling for the FDR (Benjamini-Hochberg). call
-Essentiality call for the gene. Depends on FDR corrected thresholds.
-Essential or Non-Essential
 
-Note: Technically, Bayesian models are used to calculate posterior
-probabilities, not p-values (which is a concept associated with the
-frequentist framework). However, we have implemented a method for
-computing the approximate false-discovery rate (FDR) that serves a
-similar purpose. This determines a threshold for significance on the
-posterior probabilities that is corrected for multiple tests. The
-actual thresholds used are reported in the headers of the output file
-(and are near 1 for essentials and near 0 for non-essentials). There
-can be many genes that score between the two thresholds (t1 < zbar <
-t2). This reflects intrinsic uncertainty associated with either low
-read counts, sparse insertion density, or small genes. If the
-insertion_density is too low, the method may not work as well, and
-might indicate an unusually large number of Uncertain or Essential
-genes.
+
++-----------------+--------------------------------------------------------------------------------------------------+
+| Column Header   | Column Definition                                                                                |
++=================+==================================================================================================+ 
+| ORF             | Gene ID.                                                                                         |
++-----------------+--------------------------------------------------------------------------------------------------+
+| Name            | Name of the gene.                                                                                |
++-----------------+--------------------------------------------------------------------------------------------------+
+| Desc            | Gene description.                                                                                |
++-----------------+--------------------------------------------------------------------------------------------------+
+| k               | Number of Transposon Insertions Observed within the ORF.                                         |
++-----------------+--------------------------------------------------------------------------------------------------+
+| n               | Total Number of TA dinucleotides within the ORF.                                                 |
++-----------------+--------------------------------------------------------------------------------------------------+
+| r               | Length of the Maximum Run of Non-Insertions observed.                                            |
++-----------------+--------------------------------------------------------------------------------------------------+
+| ovr             | The number of nucleotides in the overlap with the longest run partially covering the gene.       |
++-----------------+--------------------------------------------------------------------------------------------------+
+| lenovr          | The length of the above run with the largest overlap with the gene.                              |
++-----------------+--------------------------------------------------------------------------------------------------+
+| pval            | P-value calculated by the permutation test.                                                      |
++-----------------+--------------------------------------------------------------------------------------------------+
+| padj            | Adjusted p-value controlling for the FDR (Benjamini-Hochberg).                                   |
++-----------------+--------------------------------------------------------------------------------------------------+
+| call            | Essentiality call for the gene. Depends on FDR corrected thresholds. Essential or Non-Essential. |
++-----------------+--------------------------------------------------------------------------------------------------+
 
 |
 
 Run-time
-````````
-The Gumbel method takes on the order of 10 minutes.
-Other notes: Gumbel can be run on multiple replicates; replicate
+~~~~~~~~
+The Tn5Gaps method takes on the order of 10 minutes.
+Other notes: Tn5Gaps can be run on multiple replicates; replicate
 datasets will be automatically merged.
 
 
@@ -237,14 +255,17 @@ datasets will be automatically merged.
 |
 
 HMM
-~~~
+---
 
 The HMM method can be used to determine the essentiality of the entire genome, as opposed to gene-level analysis of the other methods. It is capable of identifying regions that have unusually high or unusually low read counts (i.e. growth advantage or growth defect regions), in addition to the more common categories of essential and non-essential.
+
+.. NOTE::
+   Intended only for **Himar1** datasets.
 
 |
 
 How does it work?
-`````````````````
+~~~~~~~~~~~~~~~~~
 
 | For a formal description of how this method works, see our paper:
 |  DeJesus, M.A., Ioerger, T.R. `A Hidden Markov Model for identifying essential and growth-defect regions in bacterial genomes from transposon insertion sequencing data. <http://www.ncbi.nlm.nih.gov/pubmed/24103077>`_ *BMC Bioinformatics.* 2013. 14:303
@@ -252,7 +273,7 @@ How does it work?
 |
 
 Parameters
-``````````
+~~~~~~~~~~
 
 The HMM method automatically estimates the necessary statistical
 parameters from the datasets. You can change how the method handles
@@ -267,7 +288,7 @@ replicate datasets:
 |
 
 Output and Diagnostics
-``````````````````````
+~~~~~~~~~~~~~~~~~~~~~~
 
 | The HMM method outputs two files. The first file provides the most
   likely assignment of states for all the TA sites in the genome. Sites
@@ -338,7 +359,7 @@ Output and Diagnostics
 |
 
 Run-time
-````````
+~~~~~~~~
 
 | The HMM method takes less than 10 minutes to complete. The parameters
   of the method should not affect the running-time.
@@ -348,17 +369,22 @@ Run-time
 |
 
 Re-sampling
-~~~~~~~~~~~
+-----------
 
 The re-sampling method is a comparative analysis the allows that can be
 used to determine conditional essentiality of genes. It is based on a
 permutation test, and is capable of determining read-counts that are
 significantly different across conditions.
 
+
+.. NOTE::
+   Can be used for both **Himar1** and **Tn5** datasets
+
+
 |
 
 How does it work?
-`````````````````
+~~~~~~~~~~~~~~~~~
 
 This technique has yet to be formally published in the context of
 differential essentiality analysis. Briefly, the read-counts at each
@@ -373,7 +399,7 @@ original, observed difference in read-counts.
 |
 
 Parameters
-``````````
+~~~~~~~~~~
 
 The resampling method is non-parametric, and therefore does not require
 any parameters governing the distributions or the model. The following
@@ -395,6 +421,11 @@ parameters are available for the method:
    that terminate early (i.e. deemed not significant). This option is
    OFF by default.
 
+-  **Include Zeros:** By default resampling will ignore sites that are zero
+   accross all the datasets (i.e. completely empty), which is useful for 
+   decreasing running time (specially for large datasets like Tn5). This 
+   option allows the user to include these empty rows.
+
 -  **Normalization Method:** Determines which normalization method to
    use when comparing datasets. Proper normalization is important as it
    ensures that other sources of variability are not mistakenly treated
@@ -402,9 +433,9 @@ parameters are available for the method:
 
    -  **TTR**: Trimmed Total Reads (TTR), normalized by the total
       read-counts (like totreads), but trims top and bottom 5% of
-      read-counts. This is the recommended normalization method for most
-      cases as it has the beneffit of normalizing for difference in
-      saturation in the context of resampling.
+      read-counts. **This is the recommended normalization method for most
+      cases** as it has the beneffit of normalizing for difference in
+      saturation in the context of resampling. 
    -  **nzmean**: Normalizes datasets to have the same mean over the
       non-zero sites.
    -  **totreads**: Normalizes datasets by total read-counts, and scales
@@ -431,7 +462,7 @@ parameters are available for the method:
 |
 
 Output and Diagnostics
-``````````````````````
+~~~~~~~~~~~~~~~~~~~~~~
 
 The re-sampling method ouputs a tab-delimited file with results for each
 gene in the genome. P-values are adjusted for multiple comparisons using
@@ -465,7 +496,7 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 | 
 
 Run-time
-````````
+~~~~~~~~
 
 A typical run of the re-sampling method with 10,000 samples will take
 around 45 minutes (with the histogram option ON). Using the adaptive

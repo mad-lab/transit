@@ -20,12 +20,6 @@
 #    along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#importing wx files
-
-__version__ = "v2.0.0"
-
-
-
 import sys
 import wx
 #Check if wx is the newest 3.0+ version:
@@ -51,10 +45,8 @@ from functools import partial
 
 import traceback
 
-# trash view stuff
 import transit
 import transit.analysis
-
 import transit.trash as trash
 import transit.transit_gui as transit_gui
 import transit.transit_tools as transit_tools
@@ -91,7 +83,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         #print gumbel.Gumbel.__bases__
 
         self.logoImg.SetBitmap(images.transit_logo2.GetImage().ConvertToBitmap())
-        self.versionLabel.SetLabel(__version__)
+        self.versionLabel.SetLabel(transit.__version__)
         self.methodSizerText.Hide()        
 
         self.index_ctrl = 0
@@ -438,7 +430,7 @@ class TnSeekFrame(transit_gui.MainFrame):
                 for fullpath in paths:
                     print "\t%s" % fullpath
                     name = transit_tools.basename(fullpath)
-                    (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = transit_tools.get_wig_stats(fullpath)
+                    (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
                     self.list_ctrl.InsertStringItem(self.index_ctrl, name)
                     self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
                     self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
@@ -473,7 +465,7 @@ class TnSeekFrame(transit_gui.MainFrame):
                 for fullpath in paths:
                     print "\t%s" % fullpath
                     name = transit_tools.basename(fullpath)
-                    (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = transit_tools.get_wig_stats(fullpath)
+                    (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
                     self.list_exp.InsertStringItem(self.index_exp, name)
                     self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
                     self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
@@ -575,7 +567,7 @@ class TnSeekFrame(transit_gui.MainFrame):
         if len(datasets) == 2:
             if self.verbose:
                 transit_tools.transit_message("Showing scatter plot for: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            (data, position) = transit_tools.get_data(datasets)
+            (data, position) = tnseq_tools.get_data(datasets)
             X = data[0,:]
             Y = data[1,:]
 
@@ -638,7 +630,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         info = wx.AboutDialogInfo()
         #info.SetIcon(wx.Icon('hunter.png', wx.BITMAP_TYPE_PNG))
         info.SetName('TRANSIT')
-        info.SetVersion(__version__)
+        info.SetVersion(transit.__version__)
         info.SetDescription(description)
         info.SetCopyright('(C) 2015 - 2016\n Michael A. DeJesus\nThomas R. Ioerger')
         info.SetWebSite('http://saclab.tamu.edu/essentiality/transit/')
@@ -942,7 +934,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             transit_tools.ShowError(MSG="Need to select at least one control or experimental dataset.")
             return
 
-        data, position = transit_tools.get_data(datasets_selected)
+        data, position = tnseq_tools.get_data(datasets_selected)
         (K,N) = data.shape
         window = 100
         for j in range(K):
@@ -954,7 +946,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 x_w[i] = window*i
                 y_w[i] = sum(data[j][window*i:window*(i+1)])
 
-            y_smooth = transit_tools.loess(x_w, y_w, h=10000)
+            y_smooth = stat_tools.loess(x_w, y_w, h=10000)
             plt.plot(x_w, y_w, "g+")
             plt.plot(x_w, y_smooth, "b-")
             plt.xlabel("Genomic Position")
@@ -1206,10 +1198,10 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if not outputPath: return
             if self.verbose:
                 transit_tools.transit_message("Converting annotation file from prot_table format to PTT format")
-            (data, position) = transit_tools.get_data(datasets)
-            orf2info = transit_tools.get_gene_info(annotationpath)
-            hash = transit_tools.get_pos_hash(annotationpath)
-            (orf2reads, orf2pos) = transit_tools.get_gene_reads(hash, data, position, orf2info)
+            (data, position) = tnseq_tools.get_data(datasets)
+            orf2info = tnseq_tools.get_gene_info(annotationpath)
+            hash = tnseq_tools.get_pos_hash(annotationpath)
+            (orf2reads, orf2pos) = tnseq_tools.get_gene_reads(hash, data, position, orf2info)
 
             output = open(outputPath, "w")
             output.write("geneID\tstart\tend\tstrand\tTA coordinates\n")
@@ -1249,10 +1241,10 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if not outputPath: return
             if self.verbose:
                 transit_tools.transit_message("Converting annotation file from PTT format to prot_table format")
-            #(data, position) = transit_tools.get_data(datasets)
-            #orf2info = transit_tools.get_gene_info(annotationpath)
-            #hash = transit_tools.get_pos_hash(annotationpath)
-            #(orf2reads, orf2pos) = transit_tools.get_gene_reads(hash, data, position, orf2info)
+            #(data, position) = tnseq_tools.get_data(datasets)
+            #orf2info = tnseq_tools.get_gene_info(annotationpath)
+            #hash = tnseq_tools.get_pos_hash(annotationpath)
+            #(orf2reads, orf2pos) = tnseq_tools.get_gene_reads(hash, data, position, orf2info)
             
             
             output = open(outputPath, "w")

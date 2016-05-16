@@ -2,13 +2,13 @@
 
 
 Running TRANSIT
----------------
+===============
 
 
 |
 
 GUI Mode
-~~~~~~~~
+--------
 To run TRANSIT in GUI mode (should be the same on Linux, Windows and MacOS), from the command line run:
 
 ::
@@ -22,7 +22,7 @@ where PATH is the path to the TRANSIT installation directory. You might be able 
 |
 
 Command line Mode
-~~~~~~~~~~~~~~~~~
+-----------------
 TRANSIT can also be run from the command line, without the GUI interface. This is convenient if you want to run many analyses in batch, as you can write a script that automatically runs that automatically runs TRANSIT from the command line. TRANSIT expects the user to specify which analysis method they wish to run. The user can choose from "gumbel", "hmm", or "resampling". By choosing a method, and adding the "-h" flag, you will get a list of all the necessary parameters and optional flags for the chosen method:
 
 ::
@@ -35,7 +35,7 @@ TRANSIT can also be run from the command line, without the GUI interface. This i
 |
 
 Gumbel
-``````
+~~~~~~
 
 To run the Gumbel analysis from the command line, type "python PATH/src/transit.py gumbel" followed by the following arguments:
 
@@ -113,7 +113,7 @@ To run the Gumbel analysis from the command line, type "python PATH/src/transit.
 |
 
 Tn5 Gaps
-````````
+~~~~~~~~
 
 To run the Tn5 Gaps analysis from the command line, type "python
 PATH/src/transit.py tn5gaps" followed by the following arguments:
@@ -148,7 +148,7 @@ Example HMM command:
 | 
 
 Resampling
-``````````
+~~~~~~~~~~
 
 To run the Resampling analysis from the command line, type "python
 PATH/src/transit.py resampling" followed by the following arguments:

@@ -1,48 +1,172 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Installation &mdash; transit v2.0.0 documentation</title>
-    
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     'v2.0.0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="transit v2.0.0 documentation" href="index.html" /> 
-  </head>
-  <body role="document">
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">transit v2.0.0 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation &mdash; TRANSIT v2.0.0 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="TRANSIT v2.0.0 documentation" href="index.html"/>
+        <link rel="next" title="Running TRANSIT" href="transit_running.html"/>
+        <link rel="prev" title="Overview" href="transit_overview.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> TRANSIT
+          
+
+          
+            
+            <img src="_static/transit_logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v2.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">TRANSIT Manual</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="transit_overview.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use-as-a-python-package">Use as a Python Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#detailed-instructions-linux">Detailed Instructions: Linux</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#method-1-install-as-a-python-package">Method 1: Install as a Python Package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#method-2-install-source-locally">Method 2: Install Source Locally</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#detailed-instructions-osx">Detailed Instructions: OSX</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Method 1: Install as a Python Package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">Method 2: Install Source Locally</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#detailed-instructions-windows">Detailed Instructions: Windows</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="transit_running.html">Running TRANSIT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transit_methods.html">Analysis Methods</a></li>
+</ul>
+<p class="caption"><span class="caption-text">TRANSIT Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="transit_essentiality_tutorial.html">Tutorial: Essentiality Analysis in a Single Condition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transit_genome_tutorial.html">Tutorial: Essentiality Analysis of the Entire Genome</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transit_comparative_tutorial.html">Tutorial: Comparative Analysis - Glycerol vs Cholesterol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transit_export_tutorial.html">Tutorial: Export datasets</a></li>
+</ul>
+<p class="caption"><span class="caption-text">TPP Manual</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tpp.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpp.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpp.html#running-tpp">Running TPP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpp.html#overview-of-data-processing-procedure">Overview of Data Processing Procedure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpp.html#statistics">Statistics</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Code Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="transit.html">transit package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">TRANSIT</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Installation</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/transit_install.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
@@ -78,8 +202,81 @@ Windows. Below more detailed instructions are provided.</p>
 <div class="line"><br /></div>
 </div>
 </div>
+<div class="section" id="use-as-a-python-package">
+<h2>Use as a Python Package<a class="headerlink" href="#use-as-a-python-package" title="Permalink to this headline">¶</a></h2>
+<p>TRANSIT can be (optionally) installed as a python package. This can simplify the installation process as it will automatically install most of the requirements. In addition, it will allow users to use some of transit functions in their own scripts if they desire. Below is a brief example of importing transit functions into python. See the documentation of the package for further examples:</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">transit.norm_tools</span> <span class="k">as</span> <span class="nn">norm_tools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">transit.tnseq_tools</span> <span class="k">as</span> <span class="nn">tnseq_tools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span> <span class="o">=</span> <span class="n">tnseq_tools</span><span class="o">.</span><span class="n">get_data</span><span class="p">([</span><span class="s2">&quot;transit/data/glycerol_H37Rv_rep1.wig&quot;</span><span class="p">,</span> <span class="s2">&quot;transit/data/glycerol_H37Rv_rep2.wig&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">data</span>
+<span class="go">array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0., ...,  0.,  0.,  0.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">factors</span> <span class="o">=</span> <span class="n">norm_tools</span><span class="o">.</span><span class="n">TTR_factors</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">factors</span>
+<span class="go">array([[ 1.        ],</span>
+<span class="go">       [ 0.62862886]])</span>
+</pre></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="transit.html#module-transit" title="transit"><code class="xref py py-class docutils literal"><span class="pre">transit</span></code></a></p>
+</div>
+</div></blockquote>
+</div>
 <div class="section" id="detailed-instructions-linux">
 <h2>Detailed Instructions: Linux<a class="headerlink" href="#detailed-instructions-linux" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="method-1-install-as-a-python-package">
+<h3>Method 1: Install as a Python Package<a class="headerlink" href="#method-1-install-as-a-python-package" title="Permalink to this headline">¶</a></h3>
+<p>Most of the requirements are available in default package sources in
+most Linux distributions. The following commands will install python:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Ubuntu:</span>
+<span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python</span>
+
+<span class="c1">#Fedora:</span>
+<span class="n">sudo</span> <span class="n">yum</span> <span class="n">install</span> <span class="n">python</span>
+</pre></div>
+</div>
+<p>Next you need install pip which allows you automate the process of installing python packages, and wxPython to run in GUI mode:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Ubuntu:</span>
+<span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">pip</span> <span class="n">python</span><span class="o">-</span><span class="n">wxgtk3</span><span class="o">.</span><span class="mi">0</span>
+
+<span class="c1">#Fedora:</span>
+<span class="n">sudo</span> <span class="n">yum</span> <span class="n">install</span> <span class="n">pip</span> <span class="n">python</span><span class="o">-</span><span class="n">wxgtk3</span><span class="o">.</span><span class="mi">0</span>
+</pre></div>
+</div>
+<p>Finally you can use pip to install the TRANSIT package:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">mad</span><span class="o">-</span><span class="n">lab</span><span class="o">/</span><span class="n">transit</span><span class="o">/</span><span class="n">archive</span><span class="o">/</span><span class="n">master</span><span class="o">.</span><span class="n">zip</span>
+</pre></div>
+</div>
+<p>This will automatically download and install TRANSIT and all remaining requirements.</p>
+<p>Optional: If you will be using the pre-processor, TPP, you will also need to install <a class="reference external" href="http://bio-bwa.sourceforge.net/">BWA</a>. Download the source files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>`http://sourceforge.net/projects/bio-bwa/files/`_
+</pre></div>
+</div>
+<p>Extract the files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tar</span> <span class="o">-</span><span class="n">xvjf</span> <span class="n">bwa</span><span class="o">-</span><span class="mf">0.7</span><span class="o">.</span><span class="mf">12.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+</pre></div>
+</div>
+<p>Go to the directory with the extracted source-code, and run make to create the executable files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">bwa</span><span class="o">-</span><span class="mf">0.7</span><span class="o">.</span><span class="mi">12</span>
+<span class="n">make</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="method-2-install-source-locally">
+<h3>Method 2: Install Source Locally<a class="headerlink" href="#method-2-install-source-locally" title="Permalink to this headline">¶</a></h3>
 <p>Most of the requirements are available in default package sources in
 most Linux distributions. The following commands will install python,
 numpy, scipy, matplotlib on the Ubuntu or Fedora Linux distributions:</p>
@@ -133,8 +330,49 @@ commands:</p>
 <div class="line"><br /></div>
 </div>
 </div>
+</div>
 <div class="section" id="detailed-instructions-osx">
 <h2>Detailed Instructions: OSX<a class="headerlink" href="#detailed-instructions-osx" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id2">
+<h3>Method 1: Install as a Python Package<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>First, download and install the latest Python 2.7.x installation file from the official python website:</p>
+<blockquote>
+<div><a class="reference external" href="http://www.python.org/downloads/">http://www.python.org/downloads/</a></div></blockquote>
+<p>Next make sure you have pip installed. Pip can be installed through easy_install, which should come with OSX:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">easy_install</span> <span class="n">pip</span>
+</pre></div>
+</div>
+<p>Download and install the OSX binary of wxpython (cocoa version) for python 2.7:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>`http://downloads.sourceforge.net/wxpython/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg`_
+</pre></div>
+</div>
+<p>Finally you can use pip to install the TRANSIT package:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">mad</span><span class="o">-</span><span class="n">lab</span><span class="o">/</span><span class="n">transit</span><span class="o">/</span><span class="n">archive</span><span class="o">/</span><span class="n">master</span><span class="o">.</span><span class="n">zip</span>
+</pre></div>
+</div>
+<p>This will automatically download and install TRANSIT and all remaining requirements.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>Optional: If you will be using the pre-processor, TPP, you will also need to install <a class="reference external" href="http://bio-bwa.sourceforge.net/">BWA</a>. Download the source files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>`http://sourceforge.net/projects/bio-bwa/files/`_
+</pre></div>
+</div>
+<p>Extract the files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tar</span> <span class="o">-</span><span class="n">xvjf</span> <span class="n">bwa</span><span class="o">-</span><span class="mf">0.7</span><span class="o">.</span><span class="mf">12.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+</pre></div>
+</div>
+<p>Go to the directory with the extracted source-code, and run make to create the executable files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">bwa</span><span class="o">-</span><span class="mf">0.7</span><span class="o">.</span><span class="mi">12</span>
+<span class="n">make</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="id4">
+<h3>Method 2: Install Source Locally<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>First, download and install the latest Python 2.7.x installation file from the official python website:</p>
 <blockquote>
 <div><a class="reference external" href="http://www.python.org/downloads/">http://www.python.org/downloads/</a></div></blockquote>
@@ -168,6 +406,7 @@ commands:</p>
 </div>
 <div class="line-block">
 <div class="line"><br /></div>
+</div>
 </div>
 </div>
 <div class="section" id="detailed-instructions-windows">
@@ -218,61 +457,71 @@ choose the files that match your Windows version i.e. 32/64 bit)</p>
 </div>
 
 
+           </div>
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/transit_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Installation</a><ul>
-<li><a class="reference internal" href="#requirements">Requirements</a></li>
-<li><a class="reference internal" href="#detailed-instructions-linux">Detailed Instructions: Linux</a></li>
-<li><a class="reference internal" href="#detailed-instructions-osx">Detailed Instructions: OSX</a></li>
-<li><a class="reference internal" href="#detailed-instructions-windows">Detailed Instructions: Windows</a></li>
-</ul>
-</li>
-</ul>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="transit_running.html" class="btn btn-neutral float-right" title="Running TRANSIT" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="transit_overview.html" class="btn btn-neutral" title="Overview" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/transit_install.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Michael A. DeJesus.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">transit v2.0.0 documentation</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Michael A. DeJesus.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
-    </div>
-  </body>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'v2.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

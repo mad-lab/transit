@@ -3,14 +3,6 @@ transit package
 
 |
 
-Subpackages
------------
-
-.. toctree::
-
-    transit.analysis
-    transit.normalization
-
 Submodules
 ----------
 

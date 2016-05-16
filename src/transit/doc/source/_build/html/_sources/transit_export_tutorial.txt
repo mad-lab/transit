@@ -2,8 +2,16 @@
 
 
 Tutorial: Export datasets
-============================
+=========================
 
+
+TRANSIT has the capability to export .wig files into different formats.
+This tutorial shows a quick overview of how to export to the IGV format.
+This can be useful to be able to import read-count data into 
+`IGV from the Broad Institute <https://www.broadinstitute.org/igv/>`_ and use
+its visualization capabilities.
+
+|
 
 Adding the annotation file
 --------------------------
