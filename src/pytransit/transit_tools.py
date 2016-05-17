@@ -26,9 +26,9 @@ import ntpath
 import numpy
 import scipy.optimize
 import scipy.stats
-import transit
+import pytransit
 
-import transit.tnseq_tools as tnseq_tools
+import pytransit.tnseq_tools as tnseq_tools
 
 def aton(aa):
     #TODO: Write docstring
@@ -107,7 +107,7 @@ def ShowError(MSG=""):
 
 def transit_message(msg=""):
     #TODO: Write docstring
-    print transit.prefix, msg
+    print pytransit.prefix, msg
 
 
 def transit_error(text):
