@@ -11,10 +11,10 @@ import datetime
 import matplotlib.pyplot as plt
 
 import base
-import transit.transit_tools as transit_tools
-import transit.tnseq_tools as tnseq_tools
-import transit.norm_tools as norm_tools
-import transit.stat_tools as stat_tools
+import pytransit.transit_tools as transit_tools
+import pytransit.tnseq_tools as tnseq_tools
+import pytransit.norm_tools as norm_tools
+import pytransit.stat_tools as stat_tools
 
 
 

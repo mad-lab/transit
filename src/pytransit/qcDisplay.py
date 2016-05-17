@@ -21,8 +21,8 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
-import transit.transit_tools as transit_tools
-import transit.tnseq_tools as tnseq_tools
+import pytransit.transit_tools as transit_tools
+import pytransit.tnseq_tools as tnseq_tools
 
 
 
