@@ -22,7 +22,7 @@ with open(path.join(here, 'VERSION')) as version_file:
     #version = version_file.read().strip()
     #version = version_file.read().strip().split("-")[0].split()[1]
     #version = "1.9.9"
-    version = "2.0.7"
+    version = "2.0.9"
 
 setup(
     name='transit',
@@ -105,7 +105,7 @@ setup(
         'transit': ['transit/data/*', 'transit/doc/*.*', 'transit/doc/images/*', 'transit/genomes/*'],
     },
     
-    scripts=['src/tpp.py', 'src/runtransit.py'],
+    scripts=['src/tpp.py', 'src/transit.py'],
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
