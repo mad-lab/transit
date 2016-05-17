@@ -12,11 +12,11 @@ import datetime
 import matplotlib.pyplot as plt
 
 import base
-import transit
-import transit.transit_tools as transit_tools
-import transit.tnseq_tools as tnseq_tools
-import transit.norm_tools as norm_tools
-import transit.stat_tools as stat_tools
+import pytransit
+import pytransit.transit_tools as transit_tools
+import pytransit.tnseq_tools as tnseq_tools
+import pytransit.norm_tools as norm_tools
+import pytransit.stat_tools as stat_tools
 
 
 
@@ -73,7 +73,7 @@ class ResamplingFile(base.TransitFile):
             filepath = os.path.join(ntpath.dirname(displayFrame.path), transit_tools.fetch_name(displayFrame.path))
             filename = os.path.join(filepath, gene+".png")
             if os.path.exists(filename):
-                imgWindow = transit.fileDisplay.ImgFrame(None, filename)
+                imgWindow = pytransit.fileDisplay.ImgFrame(None, filename)
                 imgWindow.Show()
             else:
                 ShowError(MSG="Error Displaying File. Histogram image not found. Make sure results were obtained with the histogram option turned on.")

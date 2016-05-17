@@ -33,14 +33,14 @@ except AttributeError as e:
     from wx.lib.pubsub import Publisher as pub
     newWx = False
 
-import transit
-import transit.transit_tools as transit_tools
-import transit.transit_gui as transit_gui
-import transit.analysis
+import pytransit
+import pytransit.transit_tools as transit_tools
+import pytransit.transit_gui as transit_gui
+import pytransit.analysis
 
 
 method_wrap_width = 250
-methods = transit.analysis.methods
+methods = pytransit.analysis.methods
 
 
 wildcard = "Python source (*.py)|*.py|" \
@@ -71,6 +71,7 @@ if __name__ == "__main__":
             print "Please use one of the known methods (or see documentation to add a new one):"
             for m in methods:
                 print "\t - %s" % m
+            print "Usage: python %s <method>" % sys.argv[0]
         else:
             methodobj = methods[method_name].method.fromconsole()
             methodobj.Run()            

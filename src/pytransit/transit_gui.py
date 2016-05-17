@@ -37,20 +37,20 @@ from functools import partial
 
 import traceback
 
-import transit
-import transit.analysis
-import transit.trash as trash
-import transit.transit_tools as transit_tools
-import transit.tnseq_tools as tnseq_tools
-import transit.norm_tools as norm_tools
-import transit.fileDisplay as fileDisplay
-import transit.qcDisplay as qcDisplay
-import transit.images as images
+import pytransit
+import pytransit.analysis
+import pytransit.trash as trash
+import pytransit.transit_tools as transit_tools
+import pytransit.tnseq_tools as tnseq_tools
+import pytransit.norm_tools as norm_tools
+import pytransit.fileDisplay as fileDisplay
+import pytransit.qcDisplay as qcDisplay
+import pytransit.images as images
 
 
 
 method_wrap_width = 250
-methods = transit.analysis.methods
+methods = pytransit.analysis.methods
 
 
 wildcard = "Python source (*.py)|*.py|" \
@@ -624,7 +624,7 @@ class TnSeekFrame(MainFrame):
         #print gumbel.Gumbel.__bases__
 
         self.logoImg.SetBitmap(images.transit_logo2.GetImage().ConvertToBitmap())
-        self.versionLabel.SetLabel(transit.__version__)
+        self.versionLabel.SetLabel(pytransit.__version__)
         self.methodSizerText.Hide()        
 
         self.index_ctrl = 0
@@ -852,7 +852,7 @@ class TnSeekFrame(MainFrame):
 
     def filterMethodsByTransposon(self):
         newmethods = {}
-        fullmethods = transit.analysis.methods
+        fullmethods = pytransit.analysis.methods
         goodTn = False
         for method in fullmethods:
             goodTn = False
@@ -1171,7 +1171,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         info = wx.AboutDialogInfo()
         #info.SetIcon(wx.Icon('hunter.png', wx.BITMAP_TYPE_PNG))
         info.SetName('TRANSIT')
-        info.SetVersion(transit.__version__)
+        info.SetVersion(pytransit.__version__)
         info.SetDescription(description)
         info.SetCopyright('(C) 2015 - 2016\n Michael A. DeJesus\nThomas R. Ioerger')
         info.SetWebSite('http://saclab.tamu.edu/essentiality/transit/')
@@ -1193,7 +1193,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
     def documentationFunc(self, event):
 
-        filepath = "http://saclab.tamu.edu/essentiality/transit/transit.html"
+        filepath = "http://saclab.tamu.edu/essentiality/transit/pytransit.html"
         output = ""
         error = ""
         try:

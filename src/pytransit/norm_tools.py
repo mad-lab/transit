@@ -22,8 +22,8 @@ def normalize_data(data, method="nonorm", wigList=[], annotationPath=""):
         list: List containing the normalization factors. Empty if not used.
 
     :Example:
-        >>> import transit.norm_tools as norm_tools
-        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import pytransit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
@@ -82,8 +82,8 @@ def nzmean_factors(data):
         numpy array: Array with the normalization factors for the nzmean method.
 
     :Example:
-        >>> import transit_tools.norm_tools as norm_tools
-        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import pytransit._tools.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
@@ -118,8 +118,8 @@ def totreads_factors(data):
         numpy array: Array with the normalization factors for the totreads method.
 
     :Example:
-        >>> import transit.norm_tools as norm_tools
-        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import pytransit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
@@ -153,8 +153,8 @@ def emphist_factors(wig_list, prot_path):
         numpy array: Array with the normalization factors for the emphist method.
 
     :Example:
-        >>> import transit.norm_tools as norm_tools
-        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import pytransit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
@@ -211,8 +211,8 @@ def aBGC_norm(data, doTotReads = True, bgsamples = 200000):
         numpy array: Array with the normalized data.
 
     :Example:
-        >>> import transit.norm_tools as norm_tools
-        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import pytransit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
@@ -287,8 +287,8 @@ def empirical_theta(X):
         float: Density of the given dataset.
 
     :Example:
-        >>> import transit.tnseq_tools as tnseq_tools
-        >>> import transit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
+        >>> import pytransit.norm_tools as norm_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
@@ -316,8 +316,8 @@ def trimmed_empirical_mu(X, t=0.05):
         float: (Trimmed) Mean of the given dataset.
     
     :Example:
-        >>> import transit.tnseq_tools as tnseq_tools
-        >>> import transit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
+        >>> import pytransit.norm_tools as norm_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
@@ -347,8 +347,8 @@ def TTR_factors(data, thetaEst=empirical_theta, muEst=trimmed_empirical_mu):
         numpy array: Array with the normalization factors for the TTR method.
 
     :Example:
-        >>> import transit.norm_tools as norm_tools
-        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import pytransit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
@@ -391,8 +391,8 @@ def zinfnb_factors(data):
         numpy array: Array with the normalization factors for the zinfnb method.
 
     :Example:
-        >>> import transit.norm_tools as norm_tools
-        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import pytransit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
@@ -431,8 +431,8 @@ def quantile_norm(data):
         numpy array: Array with the data normalized by the quantile normalization method.
 
     :Example:
-        >>> import transit.norm_tools as norm_tools
-        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import pytransit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
@@ -489,8 +489,8 @@ def betageom_norm(data, doTTR = True, bgsamples=200000):
         numpy array: Array with the data normalized using the betageom method.
 
     :Example:
-        >>> import transit.norm_tools as norm_tools
-        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import pytransit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
@@ -549,8 +549,8 @@ def norm_to_target(data, target):
         numpy array: Array with the factors necessary to normalize mean to target.
 
     :Example:
-        >>> import transit.norm_tools as norm_tools
-        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import pytransit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],

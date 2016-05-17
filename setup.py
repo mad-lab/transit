@@ -22,10 +22,11 @@ with open(path.join(here, 'VERSION')) as version_file:
     #version = version_file.read().strip()
     #version = version_file.read().strip().split("-")[0].split()[1]
     #version = "1.9.9"
-    version = "2.0.9"
+    version = "1.9.10"
+    #version = "2.0.0"
 
 setup(
-    name='transit',
+    name='pytransit',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -68,7 +69,7 @@ setup(
     # What does your project relate to?
     keywords=['tnseq', 'analysis', 'biology', 'genome'],
     
-    package_dir = {'transit': 'src/transit'},
+    package_dir = {'pytransit': 'src/pytransit'},
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
@@ -102,7 +103,7 @@ setup(
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
     package_data={
-        'transit': ['transit/data/*', 'transit/doc/*.*', 'transit/doc/images/*', 'transit/genomes/*'],
+        'pytransit': ['pytransit/data/*', 'pytransit/doc/*.*', 'pytransit/doc/images/*', 'pytransit/genomes/*']
     },
     
     scripts=['src/tpp.py', 'src/transit.py'],

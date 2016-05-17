@@ -31,8 +31,8 @@ import trash
 
 import wx.grid
 
-import transit
-import transit.analysis
+import pytransit
+import pytransit.analysis
 
 def fetch_name(filepath):
     return os.path.splitext(ntpath.basename(filepath))[0]
@@ -128,13 +128,13 @@ def unknownFileHeaderText(path):
 
 
 def getInfoFromFileType(X):
-    for method in transit.analysis.methods:
-        for filetype in transit.analysis.methods[method].filetypes:
+    for method in pytransit.analysis.methods:
+        for filetype in pytransit.analysis.methods[method].filetypes:
             FT = filetype()
             if X == FT.identifier:
                 return (method, FT)
 
-    return ("unknown", transit.analysis.base.TransitFile())
+    return ("unknown", pytransit.analysis.base.TransitFile())
 
     
 

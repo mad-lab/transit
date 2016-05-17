@@ -11,8 +11,10 @@ except AttributeError as e:
     from wx.lib.pubsub import Publisher as pub
     newWx = False
 
-import transit.tnseq_tools as tnseq_tools
-import transit.transit_tools as transit_tools
+
+import pytransit
+import pytransit.tnseq_tools as tnseq_tools
+import pytransit.transit_tools as transit_tools
 
 file_prefix = "[FileDisplay]"
 
