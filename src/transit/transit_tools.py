@@ -734,14 +734,14 @@ def validate_control_datasets(ctrldata):
 
 def validate_both_datasets(ctrldata, expdata):
     #TODO: Write docstring
-    if len(self.ctrldata) == 0 and len(self.expdata) == 0:
-        self.transit_error("Error: No datasets selected!")
+    if len(ctrldata) == 0 and len(expdata) == 0:
+        transit_error("Error: No datasets selected!")
         return False
-    elif len(self.ctrldata) == 0:
-        self.transit_error("Error: No control datasets selected!")
+    elif len(ctrldata) == 0:
+        transit_error("Error: No control datasets selected!")
         return False
-    elif len(self.expdata) == 0:
-        self.transit_error("Error: No experimental datasets selected!")
+    elif len(expdata) == 0:
+        transit_error("Error: No experimental datasets selected!")
         return False
     else:
         return True
@@ -758,7 +758,7 @@ def validate_filetypes(datasets, transposons, justWarn=True):
             else:
                 return True
         else:
-            self.transit_error("Error: Some of the selected datasets look like they were created using transposons that this method was not intended to work with: %s." % (",". join(unknown)))
+            transit_error("Error: Some of the selected datasets look like they were created using transposons that this method was not intended to work with: %s." % (",". join(unknown)))
             return False
     return True
 
