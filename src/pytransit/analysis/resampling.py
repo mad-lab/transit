@@ -237,8 +237,8 @@ class ResamplingMethod(base.DualConditionMethod):
         output_file = open(output_path, "w")
 
 
-        return self(ctrl_selected,
-                exp_selected,
+        return self(ctrldata,
+                expdata,
                 annotationPath,
                 output_file,
                 normalization,
