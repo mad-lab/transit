@@ -293,15 +293,27 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
         adaptive: Cuts-off resampling early depending on significance.
 
     Returns:
-        A tuple with the following entries::
-            test_obs -- Test statistic of observation.
-            mean1 -- Arithmetic mean of first set of data.
-            mean2 -- Arithmetic mean of second set of data.
-            log2FC -- Normalized log2FC the means.
-            pval_ltail -- Lower tail p-value.
-            pval_utail -- Upper tail p-value.
-            pval_2tail -- Two-tailed p-value.
-        
+        Tuple with described values
+            - test_obs -- Test statistic of observation.
+            - mean1 -- Arithmetic mean of first set of data.
+            - mean2 -- Arithmetic mean of second set of data.
+            - log2FC -- Normalized log2FC the means.
+            - pval_ltail -- Lower tail p-value.
+            - pval_utail -- Upper tail p-value.
+            - pval_2tail -- Two-tailed p-value.
+            - test_sample -- List of samples of the test statistic.
+    
+    :Example:
+        >>> import pytransit.stat_tools as stat_tools
+        >>> import numpy
+        >>> X = numpy.random.random(100)
+        >>> Y = numpy.random.random(100)
+        >>> (test_obs, mean1, mean2, log2fc, pval_ltail, pval_utail, pval_2tail, test_sample) = stat_tools.resampling(X,Y)
+        >>> pval_2tail
+        0.2167
+        >>> test_sample[:3]
+        [0.076213992904990535, -0.0052513291091412784, -0.0038425140184765172]
+    
     """
     count_ltail = 0
     count_utail = 0

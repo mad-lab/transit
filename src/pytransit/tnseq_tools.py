@@ -34,7 +34,7 @@ class Gene:
 
     :Example:
 
-        >>> import tnseq_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> G = tnseq_tools.Gene("Rv0001", "dnaA", "DNA Replication A", [[0,0,0,0,1,3,0,1]],  [1,21,32,37,45,58,66,130], strand="+" )
         >>> print G
         Rv0001  (dnaA)  k=3 n=8 r=4 theta=0.37500
@@ -225,7 +225,7 @@ class Genes:
 
     :Example:
 
-        >>> import tnseq_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> G = tnseq_tools.Genes(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"], "transit/genomes/H37Rv.prot_table", norm="TTR") 
         >>> print G
         Genes Object (N=3990)
@@ -720,7 +720,7 @@ def get_data(wig_list):
 
     :Example:
 
-        >>> import tnseq_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["data/glycerol_H37Rv_rep1.wig", "data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
