@@ -77,7 +77,7 @@ author = u'Michael A. DeJesus'
 #
 # The short X.Y version.
 
-import pytransit.
+import pytransit
 version = pytransit.__version__
 # The full version, including alpha/beta/rc tags.
 release = pytransit.__version__

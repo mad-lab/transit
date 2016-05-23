@@ -1,10 +1,10 @@
 transit Package
 ===============
 
-:mod:`transit` Package
+:mod:`pytransit` Package
 ----------------------
 
-.. automodule:: transit.__init__
+.. automodule:: pytransit.__init__
     :members:
     :undoc-members:
     :show-inheritance:
@@ -12,7 +12,7 @@ transit Package
 :mod:`draw_trash` Module
 ------------------------
 
-.. automodule:: transit.draw_trash
+.. automodule:: pytransit.draw_trash
     :members:
     :undoc-members:
     :show-inheritance:
@@ -20,7 +20,7 @@ transit Package
 :mod:`fileDisplay` Module
 -------------------------
 
-.. automodule:: transit.fileDisplay
+.. automodule:: pytransit.fileDisplay
     :members:
     :undoc-members:
     :show-inheritance:
@@ -28,7 +28,7 @@ transit Package
 :mod:`images` Module
 --------------------
 
-.. automodule:: transit.images
+.. automodule:: pytransit.images
     :members:
     :undoc-members:
     :show-inheritance:
@@ -36,7 +36,7 @@ transit Package
 :mod:`norm_tools` Module
 ------------------------
 
-.. automodule:: transit.norm_tools
+.. automodule:: pytransit.norm_tools
     :members:
     :undoc-members:
     :show-inheritance:
@@ -44,7 +44,7 @@ transit Package
 :mod:`qcDisplay` Module
 -----------------------
 
-.. automodule:: transit.qcDisplay
+.. automodule:: pytransit.qcDisplay
     :members:
     :undoc-members:
     :show-inheritance:
@@ -52,7 +52,7 @@ transit Package
 :mod:`stat_tools` Module
 ------------------------
 
-.. automodule:: transit.stat_tools
+.. automodule:: pytransit.stat_tools
     :members:
     :undoc-members:
     :show-inheritance:
@@ -60,7 +60,7 @@ transit Package
 :mod:`tnseq_tools` Module
 -------------------------
 
-.. automodule:: transit.tnseq_tools
+.. automodule:: pytransit.tnseq_tools
     :members:
     :undoc-members:
     :show-inheritance:
@@ -68,7 +68,7 @@ transit Package
 :mod:`transit_gui` Module
 -------------------------
 
-.. automodule:: transit.transit_gui
+.. automodule:: pytransit.transit_gui
     :members:
     :undoc-members:
     :show-inheritance:
@@ -76,7 +76,7 @@ transit Package
 :mod:`transit_tools` Module
 ---------------------------
 
-.. automodule:: transit.transit_tools
+.. automodule:: pytransit.transit_tools
     :members:
     :undoc-members:
     :show-inheritance:
@@ -84,7 +84,7 @@ transit Package
 :mod:`trash` Module
 -------------------
 
-.. automodule:: transit.trash
+.. automodule:: pytransit.trash
     :members:
     :undoc-members:
     :show-inheritance:
@@ -92,7 +92,7 @@ transit Package
 :mod:`view_trash` Module
 ------------------------
 
-.. automodule:: transit.view_trash
+.. automodule:: pytransit.view_trash
     :members:
     :undoc-members:
     :show-inheritance:
@@ -102,6 +102,6 @@ Subpackages
 
 .. toctree::
 
-    transit.analysis
-    transit.normalization
+    pytransit.analysis
+    pytransit.normalization
 
