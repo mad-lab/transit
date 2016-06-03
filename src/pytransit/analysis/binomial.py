@@ -398,7 +398,8 @@ class BinomialMethod(base.SingleConditionMethod):
 
         z_bar = numpy.apply_along_axis(numpy.mean, 1, Z[:, self.burnin:])
         theta_bar = numpy.apply_along_axis(numpy.mean, 1, theta[:, self.burnin:])
-        (ess_threshold, noness_threshold) = transit_tools.fdr_post_prob(z_bar)
+        #(ess_threshold, noness_threshold) = stat_tools.fdr_post_prob(z_bar)
+        (ess_threshold, noness_threshold) = stat_tools.bayesian_ess_thresholds(z_bar)
 
         self.output.write("#Binomial\n")
         #output.write("#Command: %s\n" % " ".join(["%s=%s" %(key,val) for (key,val) in kwargs.items()]))
