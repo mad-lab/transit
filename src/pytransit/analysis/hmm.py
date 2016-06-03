@@ -27,7 +27,7 @@ Reference: DeJesus et al. (2013; BMC Bioinformatics)
 """
 transposons = ["himar1"]
 columns_sites = ["Location","Read Count","Probability - ES","Probability - GD","Probability - NE","Probability - GA","State","Gene"]
-columns_genes = ["Orf","Name","Description","N","n0","n1","n2","n3", "Avg. Insertions", "Avg. Reads", "State Call"] 
+columns_genes = ["Orf","Name","Description","Total Sites","Num. ES","Num. GD","Num. NE","Num. GA", "Avg. Insertions", "Avg. Reads", "State Call"] 
 
 
 ############# Analysis Method ##############
@@ -73,7 +73,7 @@ class HMMSitesFile(base.TransitFile):
 class HMMGenesFile(base.TransitFile):
 
     def __init__(self):
-        base.TransitFile.__init__(self, "#HMM - Genes", columns_sites)
+        base.TransitFile.__init__(self, "#HMM - Genes", columns_genes)
 
     def getHeader(self, path):
         es=0; gd=0; ne=0; ga=0; T=0;
@@ -275,6 +275,7 @@ class HMMMethod(base.SingleConditionMethod):
         size = len(reads_nz)
         mean_r = numpy.average(reads_nz[:int(0.95 * size)])
         mu = numpy.array([1/0.99, 0.01 * mean_r + 2,  mean_r, mean_r*5.0])
+        #mu = numpy.array([1/0.99, 0.1 * mean_r + 2,  mean_r, mean_r*5.0])
         L = 1.0/mu
         B = [] # Emission Probability Distributions
         for i in range(Nstates):
@@ -518,6 +519,7 @@ class HMMMethod(base.SingleConditionMethod):
         theta = numpy.mean(data > 0)
         G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, data=data, position=position)
 
+        num2label = {0:"ES", 1:"GD", 2:"NE", 3:"GA"}
         output.write("#HMM - Genes\n")        
         for gene in G:
             
@@ -529,13 +531,13 @@ class HMMMethod(base.SingleConditionMethod):
             # State
             genestates = [pos2state[p] for p in gene.position]
             statedist = {}
-            for st in states:
+            for st in genestates:
                 if st not in statedist: statedist[st] = 0
                 statedist[st] +=1
 
             # State counts
-            n0 = statedist.get("ES", 0); n1 = statedist.get("GD", 0);
-            n2 = statedist.get("NE", 0); n3 = statedist.get("GA", 0);
+            n0 = statedist.get(0, 0); n1 = statedist.get(1, 0);
+            n2 = statedist.get(2, 0); n3 = statedist.get(3, 0);
 
 
             if gene.n > 0:
@@ -543,7 +545,9 @@ class HMMMethod(base.SingleConditionMethod):
                 V = tnseq_tools.VarR(gene.n,   1.0 - theta)
                 if n0 == gene.n: S = "ES"
                 elif n0 >= int(E+(3*math.sqrt(V))): S = "ES"
-                else: S = max([(statedist.get(s, 0), s) for s in ["ES", "GD", "NE", "GA"]])[1]
+                else:
+                    temp = max([(statedist.get(s, 0), s) for s in [0, 1, 2, 3]])[1]
+                    S = num2label[temp]
             else:
                 E = 0.0
                 V = 0.0
