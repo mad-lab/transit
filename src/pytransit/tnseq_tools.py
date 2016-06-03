@@ -970,6 +970,23 @@ def get_coordinate_map(galign_path, reverse=False):
 
 #
 
+def read_genome(path):
+    """Reads in FASTA formatted genome file.
+
+    Arguments:
+        path (str): Path to .galign file.
+
+    Returns:
+        string: String with the genomic sequence.
+    """
+    seq = ""
+    for line in open(path):
+        if line.startswith(">"): continue
+        seq += line.strip()
+    return seq
+
+#
+
 def maxrun(lst,item=0):
     """Returns the length of the maximum run an item in a given list.
 
