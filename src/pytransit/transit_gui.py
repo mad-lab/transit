@@ -1457,7 +1457,8 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                     zbar = float(tmp[-2])
                 except:
                     zbar = 0
-                Y.append(zbar)
+                if zbar >= 0:
+                    Y.append(zbar)
 
             Y.sort()
             index=range(1,len(Y)+1)
