@@ -1,7 +1,7 @@
 # TRANSIT 2.0
 
 
-**Version 2.0 released (June 15th, 2006)**
+**Version 2.0 released (June 15th, 2016)**
 
 Welcome! This is the distribution for the TRANSIT and TPP tools developed by the Ioerger Lab.
 
