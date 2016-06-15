@@ -22,7 +22,7 @@ with open(path.join(here, 'VERSION')) as version_file:
     #version = version_file.read().strip()
     #version = version_file.read().strip().split("-")[0].split()[1]
     #version = "1.9.9"
-    version = "1.9.19"
+    version = "1.9.20"
     #version = "2.0.0"
 
 setup(
