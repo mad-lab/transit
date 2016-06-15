@@ -2,8 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## Version 2.0.0 - 2016-05-16
-
+## Version 2.0.0 - 2016-06-15
 
 - TRANSIT: 
     - Added new method for datasets created with Tn5 transposons.
@@ -11,10 +10,11 @@ All notable changes to this project will be documented in this file.
     - Added textbox with short description of the chosen method.
     - Changed methods choices to be in menu (on top).
     - Changed the file display window.
+    - Added Help menu with link to online documentation.
     - Added new logo.
-    - Lots of changes under the hood. 
     - Added option to export (normalized) datasets to IGV or combined wig format.
     - Can now select multiple .wig files at the same time (Ctrl + select).
+    - Lots of changes under the hood. 
 
 
 ## Version 1.4.5 - 2016-01-10
