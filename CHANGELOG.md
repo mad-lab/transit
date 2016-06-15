@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## Version 2.0.0 - 2016-06-15
+## Version 2.0.0 - 2016-06-16
 
 - TRANSIT: 
     - Added new method for datasets created with Tn5 transposons.
