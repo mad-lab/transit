@@ -22,11 +22,11 @@ with open(path.join(here, 'VERSION')) as version_file:
     #version = version_file.read().strip()
     #version = version_file.read().strip().split("-")[0].split()[1]
     #version = "1.9.9"
-    version = "1.9.10"
+    version = "1.9.19"
     #version = "2.0.0"
 
 setup(
-    name='pytransit',
+    name='tnseq-transit',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -49,32 +49,27 @@ setup(
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
-        # How mature is this project? Common values are
-        #   3 - Alpha
-        #   4 - Beta
-        #   5 - Production/Stable
-        'Development Status :: 5 - Production/Stable',
-
-        # Specify the Python versions you support here. In particular, ensure
-        # that you indicate whether you support Python 2, Python 3 or both.
-        #'Programming Language :: Python :: 2',
-        #'Programming Language :: Python :: 2.6',
+        'Development Status :: 3 - Alpha',
+        #'Development Status :: 5 - Production/Stable',
         'Programming Language :: Python :: 2.7',
-        #'Programming Language :: Python :: 3',
-        #'Programming Language :: Python :: 3.3',
-        #'Programming Language :: Python :: 3.4',
-        #'Programming Language :: Python :: 3.5',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Operating System :: OS Independent',
+        'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
 
     # What does your project relate to?
     keywords=['tnseq', 'analysis', 'biology', 'genome'],
     
-    package_dir = {'pytransit': 'src/pytransit'},
+    #package_dir = {'tnseq-transit': 'src/pytransit'},
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages= find_packages('src', exclude=['contrib', 'tests']),
+    packages = find_packages('src', exclude=['contrib', 'tests']),
+    #packages = ['pytransit'],
+    package_dir = {'pytransit': 'src/pytransit',  'pytpp': 'src/pytpp'},
     include_package_data=True,
+    #py_modules = ['tpp'],
 
     # Alternatively, if you want to distribute just a my_module.py, uncomment
     # this:
@@ -106,7 +101,7 @@ setup(
         'pytransit': ['pytransit/data/*', 'pytransit/doc/*.*', 'pytransit/doc/images/*', 'pytransit/genomes/*']
     },
     
-    scripts=['src/tpp.py', 'src/transit.py'],
+    #scripts=['src/tpp.py', 'src/transit.py'],
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
@@ -117,10 +112,11 @@ setup(
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
-    #entry_points={
-    #    'console_scripts': [
-    #        'sample=sample:main',
-    #    ],
-    #},
+    entry_points={
+        'console_scripts': [
+            'transit=pytransit.__main__:main',
+            'tpp=pytpp.__main__:main',
+        ],
+    },
 )
 
