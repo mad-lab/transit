@@ -22,8 +22,8 @@ with open(path.join(here, 'VERSION')) as version_file:
     #version = version_file.read().strip()
     #version = version_file.read().strip().split("-")[0].split()[1]
     #version = "1.9.9"
-    version = "1.9.20"
-    #version = "2.0.0"
+    #version = "1.9.20"
+    version = "2.0.0"
 
 setup(
     name='tnseq-transit',
@@ -49,8 +49,8 @@ setup(
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        #'Development Status :: 5 - Production/Stable',
+        #'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Programming Language :: Python :: 2.7',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
