@@ -4,4 +4,7 @@ include LICENSE.md
 include VERSION
 recursive-include src/pytransit/data *
 recursive-include src/pytransit/genomes *
-recursive-include src/pytransit/doc/build/html/ *
+recursive-include src/pytransit/doc/build/html *.html
+recursive-include src/pytransit/doc/build/html/_images *.png
+recursive-include src/pytransit/doc/build/html/_modules *
+recursive-include src/pytransit/doc/build/html/_static *
