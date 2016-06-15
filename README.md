@@ -1,5 +1,8 @@
 # TRANSIT 2.0
 
+
+**Version 2.0 released (June 15th, 2006)**
+
 Welcome! This is the distribution for the TRANSIT and TPP tools developed by the Ioerger Lab.
 
 TRANSIT is a tool for the analysis of Tn-Seq data. It provides an easy to use graphical interface and access to three different analysis methods that allow the user to determine essentiality in a single condition as well as between conditions.
