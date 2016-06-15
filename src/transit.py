@@ -20,22 +20,8 @@
 #    along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-
-import sys
-import wx
-#Check if wx is the newest 3.0+ version:
-try:
-    from wx.lib.pubsub import pub
-    pub.subscribe
-    newWx = True
-except AttributeError as e:
-    from wx.lib.pubsub import Publisher as pub
-    newWx = False
 
 import pytransit.__main__
-
-
 
 
 if __name__ == "__main__":
