@@ -1,18 +1,21 @@
 
 import sys
-import wx
-#Check if wx is the newest 3.0+ version:
 try:
-    from wx.lib.pubsub import pub
-    pub.subscribe
-    newWx = True
-except AttributeError as e:
-    from wx.lib.pubsub import Publisher as pub
-    newWx = False
+    import wx
+    hasWx = True
+    #Check if wx is the newest 3.0+ version:
+    try:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        newWx = True
+    except AttributeError as e:
+        from wx.lib.pubsub import Publisher as pub
+        newWx = False
+except Exception as e:
+    hasWx = False
 
 import pytransit
 import pytransit.transit_tools as transit_tools
-import pytransit.transit_gui as transit_gui
 import pytransit.analysis
 
 method_wrap_width = 250
@@ -26,7 +29,9 @@ transit_prefix = "[TRANSIT]"
 
 def main(args=None):
     #If no arguments, show GUI:
-    if len(sys.argv) == 1:
+    if len(sys.argv) == 1 and hasWx:
+        import pytransit.transit_gui as transit_gui
+
 
         transit_tools.transit_message("Running in GUI Mode")
 
@@ -38,7 +43,14 @@ def main(args=None):
         frame.Show(True)
         #start the applications
         app.MainLoop()
-
+    elif len(sys.argv) == 1 and not hasWx:
+        print "Please install wxPython to run in GUI Mode."
+        print "To run in Console Mode please follow these instructions:"
+        print ""
+        print "Usage: python %s <method>" % sys.argv[0]
+        print "List of known methods:"
+        for m in methods:
+            print "\t - %s" % m
     else:
         method_name = sys.argv[1]
         if method_name not in methods:

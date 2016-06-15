@@ -1,5 +1,21 @@
 import sys
-import wx
+
+try:
+    import wx
+    hasWx = True
+    #Check if wx is the newest 3.0+ version:
+    try:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        newWx = True
+    except AttributeError as e:
+        from wx.lib.pubsub import Publisher as pub
+        newWx = False
+except Exception as e:
+    hasWx = False
+    newWx = False
+
+
 import os
 import time
 import math

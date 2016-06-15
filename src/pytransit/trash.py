@@ -17,8 +17,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
+try:
+    import wx
+    hasWx = True
+except Exception as e:
+    hasWx = False
 
-import wx
+
 import view_trash
 import draw_trash
 from math import *

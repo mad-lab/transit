@@ -33,7 +33,7 @@ try:
     import wx
     import wx.lib.filebrowsebutton
     hasWx = True
-except AttributeError as e:
+except Exception as e:
     hasWx = False
 
 from tpp_tools import *

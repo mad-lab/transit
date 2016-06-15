@@ -40,7 +40,7 @@ def main():
     vars = Globals()
     #vars.version = "$Revision: 1.5 $".split()[1]
 
-    if(len(sys.argv) <= 1):
+    if len(sys.argv) <= 1 and hasWx:
         app = wx.App(False)
         form = MyForm(vars)
         form.update_dataset_list()
@@ -59,8 +59,15 @@ def main():
                 message("transposon type: %s" % vars.transposon)
                 save_config(vars)
                 driver(vars)
+
         else:
             pass
+
+    elif len(sys.argv) <= 1 and not hasWx:
+        print "Please install wxPython to run in GUI Mode."
+        print "To run in Console Mode please follow these instructions:"
+        print ""
+        show_help()
 
     else:
         flag = False
