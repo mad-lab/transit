@@ -448,7 +448,7 @@ def extract_reads(vars):
     # instead of using select_cycles, do these both in one shot by looking for constant seqs
     message("creating %s" % vars.barcodes2)
     message("creating %s" % vars.genomic2)
-    extract_barcodes(vars.tgtta2,vars.barcodes2,vars.genomic2)
+    extract_barcodes(vars.tgtta2,vars.barcodes2,vars.genomic2, vars.mm1)
 
     message("creating %s" % vars.barcodes1)
     replace_ids(vars.tgtta1,vars.barcodes2,vars.barcodes1)
@@ -460,7 +460,7 @@ def extract_reads(vars):
 #    if genomic part is too short, just output at least 20bp of const so as not to mess up BWA
 #    could the start of these be shifted slightly?
 
-def extract_barcodes(fn_tgtta2,fn_barcodes2,fn_genomic2):
+def extract_barcodes(fn_tgtta2,fn_barcodes2,fn_genomic2,mm1):
   const1 = "GATGGCCGGTGGATTTGTG"
   const2 = "TGGTCGTGGTAT"
   const3 = "TAACAGGTTGGCTGATAAG"
@@ -477,9 +477,9 @@ def extract_barcodes(fn_tgtta2,fn_barcodes2,fn_genomic2):
       #a  = line.find(const1)
       #b  = line.find(const2)
       #c  = line.find(const3)
-      a  = mmfind(line,len(line),const1,nconst1,vars.mm1)
-      b  = mmfind(line,len(line),const2,nconst2,vars.mm1)
-      c  = mmfind(line,len(line),const3,nconst3,vars.mm1)
+      a  = mmfind(line,len(line),const1,nconst1, mm1)
+      b  = mmfind(line,len(line),const2,nconst2, mm1)
+      c  = mmfind(line,len(line),const3,nconst3, mm1)
       bstart,bend = a+nconst1,b
       gstart,gend = b+nconst2,len(line)
       if c!=-1 and c-gstart>20: gend = c
