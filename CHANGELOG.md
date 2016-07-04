@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Version 2.0.0 - 2016-06-16
 
+- TRANSIT:
+    - Fixed crash in TPP.
+    - Misc changes for outputs.
+
+
+## Version 2.0.0 - 2016-06-16
+
 - TRANSIT: 
     - Added new method for datasets created with Tn5 transposons.
     - Added label indicating intended transposons for the methods.
