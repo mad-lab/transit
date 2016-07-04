@@ -16,7 +16,7 @@ except Exception as e:
     hasWx = False
     newWx = False
     
-
+import traceback
 import datetime
 
 import pytransit
@@ -144,15 +144,19 @@ class AnalysisMethod:
         try:
             return self.fromargs(sys.argv[2:])
         except IndexError as e:
+            traceback.print_exc()
             print self.usage_string()
         except TypeError as e:
             print "Error: %s" % str(e)
+            traceback.print_exc()
             print self.usage_string()
         except ValueError as e:
             print "Error: %s" % str(e)
+            traceback.print_exc()
             print self.usage_string()
         except Exception as e:
             print "Error: %s" % str(e)
+            traceback.print_exc()
             print self.usage_string()
         sys.exit() 
 
