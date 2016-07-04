@@ -582,8 +582,6 @@ if __name__ == "__main__":
 
     (args, kwargs) = transit_tools.cleanargs(sys.argv)
 
-    print "ARGS:", args
-    print "KWARGS:", kwargs
 
     G = HMMMethod.fromargs(sys.argv[1:])
 

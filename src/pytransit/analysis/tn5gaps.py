@@ -221,9 +221,6 @@ class Tn5GapsMethod(base.SingleConditionMethod):
     def fromargs(self, rawargs): 
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
-        print "ARGS:", args
-        print "KWARGS:", kwargs
-
         ctrldata = args[0].split(",")
         annotationPath = args[1]
         outpath = args[2]
@@ -403,9 +400,6 @@ class Tn5GapsMethod(base.SingleConditionMethod):
 if __name__ == "__main__":
 
     (args, kwargs) = transit_tools.cleanargs(sys.argv[1:])
-
-    print "ARGS:", args
-    print "KWARGS:", kwargs
 
     G = Tn5GapsMethod.fromargs(sys.argv[1:])
 

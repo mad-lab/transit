@@ -270,11 +270,7 @@ class ResamplingMethod(base.DualConditionMethod):
     @classmethod
     def fromargs(self, rawargs):
 
-        print "RAW:", rawargs
         (args, kwargs) = transit_tools.cleanargs(rawargs)
-
-        print "ARGS:", args
-        print "KWARGS:", kwargs
 
         ctrldata = args[0].split(",")
         expdata = args[1].split(",")
@@ -431,9 +427,6 @@ class ResamplingMethod(base.DualConditionMethod):
 if __name__ == "__main__":
 
     (args, kwargs) = transit_tools.cleanargs(sys.argv)
-
-    print "ARGS:", args
-    print "KWARGS:", kwargs
 
     #TODO: Figure out issue with inputs (transit requires initial method name, running as script does not !!!!)
 

@@ -212,8 +212,6 @@ class BinomialMethod(base.SingleConditionMethod):
     def fromargs(self, rawargs): 
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
-        print "ARGS:", args
-        print "KWARGS:", kwargs
 
         ctrldata = args[0].split(",")
         annotationPath = args[1]
@@ -473,9 +471,6 @@ class BinomialMethod(base.SingleConditionMethod):
 if __name__ == "__main__":
 
     (args, kwargs) = transit_tools.cleanargs(sys.argv)
-
-    print "ARGS:", args
-    print "KWARGS:", kwargs
 
     G = BinomialMethod.fromargs(sys.argv[1:])
 
