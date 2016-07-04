@@ -103,5 +103,4 @@ Subpackages
 .. toctree::
 
     pytransit.analysis
-    pytransit.normalization
 
