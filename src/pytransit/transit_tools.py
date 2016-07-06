@@ -179,6 +179,40 @@ def validate_filetypes(datasets, transposons, justWarn=True):
     return True
 
 
+def get_pos_hash(path):
+    """Returns a dictionary that maps coordinates to a list of genes that occur at that coordinate.
+    
+    Arguments:
+        path (str): Path to annotation in .prot_table or GFF3 format.
+    
+    Returns:
+        dict: Dictionary of position to list of genes that share that position.
+    """
+    filename, file_extension = os.path.splitext(path)
+    if file_extension.lower() in [".gff", ".gff3"]:
+        return tnseq_tools.get_pos_hash_gff(path)
+    else:
+        return tnseq_tools.get_pos_hash_pt(path)
+       
 
-
+def get_gene_info(path):
+    """Returns a dictionary that maps gene id to gene information.
+    
+    Arguments:
+        path (str): Path to annotation in .prot_table or GFF3 format.
+    
+    Returns:
+        dict: Dictionary of gene id to tuple of information:
+            - name
+            - description
+            - start coordinate
+            - end coordinate
+            - strand
+            
+    """
+    filename, file_extension = os.path.splitext(path)
+    if file_extension.lower() in [".gff", ".gff3"]:
+        return tnseq_tools.get_gene_info_gff(path)
+    else:
+        return tnseq_tools.get_gene_info_pt(path)
 

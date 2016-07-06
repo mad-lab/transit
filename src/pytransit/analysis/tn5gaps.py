@@ -275,7 +275,7 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         # Get the runs
         self.transit_message("Getting non-insertion runs in genome")
         run_arr = tnseq_tools.runs_w_info(counts)
-        pos_hash = tnseq_tools.get_pos_hash(self.annotation_path)
+        pos_hash = transit_tools.get_pos_hash(self.annotation_path)
 
         # Finally, calculate the results
         self.transit_message("Running Tn5 gaps method")

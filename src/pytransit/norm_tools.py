@@ -147,7 +147,7 @@ def emphist_factors(wig_list, prot_path):
 
     Arguments:
         wig_list (list): List of paths to wig formatted datasets.
-        prot_path (str): Path to annotation in .prot_table format.
+        prot_path (str): Path to annotation in .prot_table or GFF3 format.
     
     Returns:
         numpy array: Array with the normalization factors for the emphist method.

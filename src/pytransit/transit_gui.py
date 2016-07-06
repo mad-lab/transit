@@ -114,7 +114,7 @@ class MainFrame ( wx.Frame ):
         bSizer10.Add( self.m_staticText5, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
         
 
-        self.annotationFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Annotation File (.prot_table)]', size= wx.Size(400, 30))
+        self.annotationFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Annotation File (.prot_table or .gff3)]', size= wx.Size(400, 30))
 
 
         bSizer10.Add( self.annotationFilePicker, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
@@ -1227,7 +1227,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
     def annotationFileFunc(self, event):
 
-        wc = u"Prot Table (*.prot_table)|*.prot_table;|\nProt Table (*.txt)|*.txt;|\nProt Table (*.dat)|*.dat;|\nAll files (*.*)|*.*" 
+        wc = u"Known Annotation Formats (*.prot_table,*.gff3,*.gff)|*.prot_table;*.gff3;*.gff;|\nProt Table (*.prot_table)|*.prot_table;|\nGFF3 (*.gff,*.gff3)|*.gff;*.gff3;|\nAll files (*.*)|*.*" 
         self.annotation = self.OpenFile(DIR=self.workdir, FILE="", WC=wc)
         if self.annotation:
             self.annotationFilePicker.SetLabel(transit_tools.basename(self.annotation))
@@ -1639,8 +1639,8 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         position = position.astype(int)
 
 
-        hash = tnseq_tools.get_pos_hash(annotationPath)
-        rv2info = tnseq_tools.get_gene_info(annotationPath)
+        hash = transit_tools.get_pos_hash(annotationPath)
+        rv2info = transit_tools.get_gene_info(annotationPath)
 
         output = open(path, "w")
         output.write("#Converted to CombinedWig with TRANSIT.\n")
@@ -1746,8 +1746,8 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 transit_tools.transit_message("Converting annotation file from prot_table format to PTT format")
             (data, position) = tnseq_tools.get_data(datasets)
-            orf2info = tnseq_tools.get_gene_info(annotationpath)
-            hash = tnseq_tools.get_pos_hash(annotationpath)
+            orf2info = transit_tools.get_gene_info(annotationpath)
+            hash = transit_tools.get_pos_hash(annotationpath)
             (orf2reads, orf2pos) = tnseq_tools.get_gene_reads(hash, data, position, orf2info)
 
             output = open(outputPath, "w")
@@ -1789,8 +1789,8 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 transit_tools.transit_message("Converting annotation file from PTT format to prot_table format")
             #(data, position) = tnseq_tools.get_data(datasets)
-            #orf2info = tnseq_tools.get_gene_info(annotationpath)
-            #hash = tnseq_tools.get_pos_hash(annotationpath)
+            #orf2info = transit_tools.get_gene_info(annotationpath)
+            #hash = transit_tools.get_pos_hash(annotationpath)
             #(orf2reads, orf2pos) = tnseq_tools.get_gene_reads(hash, data, position, orf2info)
             
             
@@ -1835,6 +1835,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if not outputPath: return
             if self.verbose:
                 transit_tools.transit_message("Converting annotation file from GFF3 format to prot_table format")
+
 
             output = open(outputPath, "w")
             for line in open(annotationpath):

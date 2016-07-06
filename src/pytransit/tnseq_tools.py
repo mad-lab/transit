@@ -1,10 +1,13 @@
 import sys
+import os
 import math
 import warnings
 import numpy
 import scipy.stats
 from functools import total_ordering
 
+
+import transit_tools
 try:
     import norm_tools
     noNorm = False
@@ -305,7 +308,7 @@ class Genes:
 
 #
     
-    def __init__(self, wigList, protTable, norm="nonorm", reps="All", minread=1, ignoreCodon = True, nterm=0.0, cterm=0.0, include_nc = False, data=[], position=[]):
+    def __init__(self, wigList, annotation, norm="nonorm", reps="All", minread=1, ignoreCodon = True, nterm=0.0, cterm=0.0, include_nc = False, data=[], position=[]):
         """Initializes the gene list based on the list of wig files and a prot_table.
 
         This class helps define a list of Gene objects with attributes that 
@@ -328,7 +331,7 @@ class Genes:
 
         """
         self.wigList = wigList
-        self.protTable = protTable
+        self.annotation = annotation
         self.norm = norm
         self.reps = reps
         self.minread = minread
@@ -337,17 +340,21 @@ class Genes:
         self.cterm = cterm
         self.include_nc = include_nc
 
+        isProt = True
+        filename, file_extension = os.path.splitext(self.annotation)
+        if file_extension.lower() in [".gff", ".gff3"]:
+            isProt = False
 
         self.orf2index = {}
         self.genes = []
         
-        orf2info = get_gene_info(self.protTable)
+        orf2info = transit_tools.get_gene_info(self.annotation)
         if not numpy.any(data):
             (data, position) = get_data(self.wigList)
-        hash = get_pos_hash(self.protTable)
+        hash = transit_tools.get_pos_hash(self.annotation)
 
         if not noNorm:
-            (data, factors) = norm_tools.normalize_data(data, norm, self.wigList, self.protTable)
+            (data, factors) = norm_tools.normalize_data(data, norm, self.wigList, self.annotation)
         else:
             factors = []
        
@@ -382,10 +389,17 @@ class Genes:
                 orf2posindex[gene].append(i)
 
         count = 0
-        for line in open(self.protTable):
+        for line in open(self.annotation):
+            if line.startswith("#"): continue
             tmp = line.split("\t")
-            gene = tmp[8]
-            name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
+        
+            if isProt:
+                gene = tmp[8]
+                name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
+            else:
+                features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
+                gene = features["ID"]
+                name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
             posindex = orf2posindex.get(gene, [])
             if posindex:
                 pos_start = orf2posindex[gene][0]
@@ -879,7 +893,7 @@ def get_wig_stats(path):
 
 #
 
-def get_pos_hash(path):
+def get_pos_hash_pt(path):
     """Returns a dictionary that maps coordinates to a list of genes that occur at that coordinate.
     
     Arguments:
@@ -902,7 +916,34 @@ def get_pos_hash(path):
 
 #
 
-def get_gene_info(path):
+def get_pos_hash_gff(path):
+    """Returns a dictionary that maps coordinates to a list of genes that occur at that coordinate.
+    
+    Arguments:
+        path (str): Path to annotation in GFF3 format.
+    
+    Returns:
+        dict: Dictionary of position to list of genes that share that position.
+    """
+    hash = {}
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.strip().split("\t")
+        features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
+        if "ID" not in features: continue
+        orf = features["ID"]
+        chr = tmp[0]
+        type = tmp[2]
+        start = int(tmp[3])
+        end = int(tmp[4])
+        for pos in range(start, end+1):
+            if pos not in hash: hash[pos] = []
+            hash[pos].append(orf)
+    return hash
+
+#
+
+def get_gene_info_pt(path):
     """Returns a dictionary that maps gene id to gene information.
     
     Arguments:
@@ -927,6 +968,47 @@ def get_gene_info(path):
         start = int(tmp[1])
         end = int(tmp[2])
         strand = tmp[3]
+        orf2info[orf] = (name, desc, start, end, strand)
+    return orf2info
+
+#
+
+def get_gene_info_gff(path):
+    """Returns a dictionary that maps gene id to gene information.
+    
+    Arguments:
+        path (str): Path to annotation in GFF3 format.
+    
+    Returns:
+        dict: Dictionary of gene id to tuple of information:
+            - name
+            - description
+            - start coordinate
+            - end coordinate
+            - strand
+            
+    """
+    orf2info = {}
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.strip().split("\t")
+        chr = tmp[0]
+        type = tmp[2]
+        start = int(tmp[3])
+        end = int(tmp[4])
+        length = ((end-start+1)/3)-1
+        strand = tmp[6]
+        features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
+        if "ID" not in features: continue
+        orf = features["ID"]
+        name = features.get("Name", "-")
+        if name == "-": name = features.get("name", "-")
+
+        desc = features.get("Description", "-")
+        if desc == "-": desc = features.get("description", "-")
+        if desc == "-": desc = features.get("Desc", "-")
+        if desc == "-": desc = features.get("desc", "-")
+
         orf2info[orf] = (name, desc, start, end, strand)
     return orf2info
 
