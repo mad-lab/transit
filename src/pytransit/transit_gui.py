@@ -1609,6 +1609,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
     def convertToCombinedWigGUI(self, datasets):
         annotationPath = self.annotation
         if datasets and annotationPath:
+            normchoice = self.chooseNormalization()
             defaultFile = "combined_read_counts.txt"
             defaultDir = os.getcwd()
             outputPath = self.SaveFile(defaultDir, defaultFile)
@@ -1616,7 +1617,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 return
             if self.verbose:
                 transit_tools.transit_message("Converting the following datasets to Combined Wig format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            self.convertToCombinedWig(datasets, annotationPath, outputPath)
+            self.convertToCombinedWig(datasets, annotationPath, outputPath, normchoice)
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
         elif not datasets:
@@ -1628,9 +1629,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
     
 
-    def convertToCombinedWig(self, dataset_list, annotationPath, path):
-        normchoice = self.chooseNormalization()
-
+    def convertToCombinedWig(self, dataset_list, annotationPath, path, normchoice):
         if not normchoice:
             normchoice = "nonorm"
 
@@ -1646,6 +1645,11 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         output.write("#Converted to CombinedWig with TRANSIT.\n")
         if normchoice != "nonorm":
             output.write("#Reads normalized using '%s'\n" % normchoice)
+            if type(factors[0]) == type(0.0):
+                output.write("#Normalization Factors: %s\n" % "\t".join(["%s" % f for f in factors.flatten()]))
+            else:
+                output.write("#Normalization Factors: %s\n" % " ".join([",".join(["%s" % bx for bx in b]) for b in factors]))
+
 
         (K,N) = fulldata.shape
         output.write("#Files:\n")
