@@ -148,12 +148,34 @@ class BinomialMethod(base.SingleConditionMethod):
                 LOESS=False,
                 ignoreCodon=True,
                 NTerminus=0.0,
-                CTerminus=0.0, wxobj=None):
+                CTerminus=0.0,
+                pi0=0.5,
+                pi1=0.5,
+                M0=1.0,
+                M1=1.0,
+                a0=10.0,
+                a1=10.0,
+                b0=1.0,
+                b1=1.0,
+                alpha_w=0.5,
+                beta_w=0.5,
+                wxobj=None):
 
         base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         self.samples = samples
         self.burnin = burnin
+
+        self.pi0 = pi0
+        self.pi1 = pi1
+        self.M0 = M0
+        self.M1 = M1
+        self.a0 = a0
+        self.a1 = a1
+        self.b0 = b0
+        self.b1 = b1
+        self.alpha_w = alpha_w
+        self.beta_w = beta_w
 
 
     @classmethod
@@ -186,6 +208,8 @@ class BinomialMethod(base.SingleConditionMethod):
         normalization = None
         LOESS = False
 
+
+
         #Get output path
         name = transit_tools.basename(ctrldata[0])
         defaultFileName = "binomial_output.dat"
@@ -195,18 +219,19 @@ class BinomialMethod(base.SingleConditionMethod):
         output_file = open(output_path, "w")
 
 
-
         return self(ctrldata,
                 annotationPath,
                 output_file,
-                samples,
-                burnin,
-                replicates,
-                normalization,
-                LOESS,
-                ignoreCodon,
-                NTerminus,
-                CTerminus, wxobj)
+                samples=samples,
+                burnin=burnin,
+                replicates=replicates,
+                normalization=normalization,
+                LOESS=LOESS,
+                ignoreCodon=ignoreCodon,
+                NTerminus=NTerminus,
+                CTerminus=CTerminus,
+                wxobj=wxobj)
+
 
     @classmethod
     def fromargs(self, rawargs): 
@@ -227,17 +252,40 @@ class BinomialMethod(base.SingleConditionMethod):
         NTerminus = float(kwargs.get("iN", 0.0))
         CTerminus = float(kwargs.get("iC", 0.0))
 
+        pi0 = float(kwargs.get("pi0", 0.5))
+        pi1 = float(kwargs.get("pi1", 0.5))
+        M0 = float(kwargs.get("M0", 1.0))
+        M1 = float(kwargs.get("M1", 1.0))
+        a0 = float(kwargs.get("a0", 10.0))
+        a1 = float(kwargs.get("a1", 10.0))
+        b0 = float(kwargs.get("b0", 1.0))
+        b1 = float(kwargs.get("b1", 1.0))
+        alpha_w = float(kwargs.get("aw", 0.5))
+        beta_w = float(kwargs.get("bw", 0.5))
+
+
         return self(ctrldata,
                 annotationPath,
                 output_file,
-                samples,
-                burnin,
-                replicates,
-                normalization,
-                LOESS,
-                ignoreCodon,
-                NTerminus,
-                CTerminus)
+                samples=samples,
+                burnin=burnin,
+                replicates=replicates,
+                normalization=normalization,
+                LOESS=LOESS,
+                ignoreCodon=ignoreCodon,
+                NTerminus=NTerminus,
+                CTerminus=CTerminus,
+                pi0=pi0,
+                pi1=pi1,
+                M0=M0,
+                M1=M1,
+                a0=a0,
+                a1=a1,
+                b0=b0,
+                b1=b1,
+                alpha_w=alpha_w,
+                beta_w=beta_w)
+
 
     def Run(self):
 
@@ -255,10 +303,6 @@ class BinomialMethod(base.SingleConditionMethod):
         self.transit_message("Setting Parameters")
         w1 = 0.15
         w0 = 1.0 - w1
-        ALPHA = 1
-        BETA = 1
-        ALPHA_w = 600
-        BETA_w = 3400
         mu_c = 0
 
         Ngenes = len(G)
@@ -271,19 +315,11 @@ class BinomialMethod(base.SingleConditionMethod):
         rho0 = numpy.zeros(sample_size); rho0[0] = 0.5;  Kp0 = numpy.zeros(sample_size); Kp0[0] = 10;
         rho1 = numpy.zeros(sample_size); rho1[0] = 0.10; Kp1 = numpy.zeros(sample_size); Kp1[0] = 3;
 
-        pi0 = 0.5; M0 = 1;
-        pi1 = 0.5; M1 = 1;
-
-        a0 = 10; b0 = 1;
-        a1 = 10; b1 = 1;
-
         Z = numpy.zeros((Ngenes, sample_size))
         pz1 = numpy.zeros(sample_size);
         n1 = 0
-        alpha_w = 0.5; beta_w = 0.5;
 
-
-        w1 = scipy.stats.beta.rvs(alpha_w, beta_w)
+        w1 = scipy.stats.beta.rvs(self.alpha_w, self.beta_w)
         W1 = numpy.zeros(sample_size); W1[0] = w1
 
 
@@ -327,8 +363,8 @@ class BinomialMethod(base.SingleConditionMethod):
 
             if rho0_c <= 0: rho0[i] = rho0[i-1]
             else:
-                fc = numpy.log(scipy.stats.beta.pdf(rho0_c, M0*pi0, M0*(1-pi0)))
-                f0 = numpy.log(scipy.stats.beta.pdf(rho0[i-1], M0*pi0, M0*(1-pi0)))
+                fc = numpy.log(scipy.stats.beta.pdf(rho0_c, self.M0*self.pi0, self.M0*(1.0-self.pi0)))
+                f0 = numpy.log(scipy.stats.beta.pdf(rho0[i-1], self.M0*self.pi0, self.M0*(1.0-self.pi0)))
                 fc += numpy.sum(numpy.log(scipy.stats.beta.pdf(theta[i0,i], Kp0[i-1]*rho0_c, Kp0[i-1]*(1-rho0_c))))
                 f0 += numpy.sum(numpy.log(scipy.stats.beta.pdf(theta[i0,i], Kp0[i-1]*rho0[i-1], Kp0[i-1]*(1-rho0[i-1]))))
     
@@ -340,8 +376,8 @@ class BinomialMethod(base.SingleConditionMethod):
 
             if Kp0_c <= 0: Kp0[i] = Kp0[i-1]
             else:
-                fc = numpy.log(scipy.stats.gamma.pdf(Kp0_c, a0, b0));
-                f0 = numpy.log(scipy.stats.gamma.pdf(Kp0[i-1], a0, b0));
+                fc = numpy.log(scipy.stats.gamma.pdf(Kp0_c, self.a0, self.b0));
+                f0 = numpy.log(scipy.stats.gamma.pdf(Kp0[i-1], self.a0, self.b0));
                 fc += numpy.sum(numpy.log(scipy.stats.beta.pdf(theta[i0,i], Kp0_c*rho0[i], Kp0_c*(1-rho0[i]))))
                 f0 += numpy.sum(numpy.log(scipy.stats.beta.pdf(theta[i0,i], Kp0[i-1]*rho0[i], Kp0[i-1]*(1-rho0[i]))))
     
@@ -357,8 +393,8 @@ class BinomialMethod(base.SingleConditionMethod):
             if rho1_c <= 0:
                 rho1[i] = rho1[i-1]
             else:
-                fc = numpy.log(scipy.stats.beta.pdf(rho1_c, M1*pi1, M1*(1-pi1)))
-                f1 = numpy.log(scipy.stats.beta.pdf(rho1[i-1], M1*pi1, M1*(1-pi1)))
+                fc = numpy.log(scipy.stats.beta.pdf(rho1_c, self.M1*self.pi1, self.M1*(1-self.pi1)))
+                f1 = numpy.log(scipy.stats.beta.pdf(rho1[i-1], self.M1*self.pi1, self.M1*(1-self.pi1)))
                 fc += numpy.sum(numpy.log(scipy.stats.beta.pdf(theta[i1,i], Kp1[i-1]*rho1_c, Kp1[i-1]*(1-rho1_c))))
                 f1 += numpy.sum(numpy.log(scipy.stats.beta.pdf(theta[i1,i], Kp1[i-1]*rho1[i-1], Kp1[i-1]*(1-rho1[i-1]))))
     
@@ -369,8 +405,8 @@ class BinomialMethod(base.SingleConditionMethod):
 
             if Kp1_c <= 0: Kp1[i] = Kp1[i-1]
             else:
-                fc = numpy.log(scipy.stats.gamma.pdf(Kp1_c, a1, b1));
-                f1 = numpy.log(scipy.stats.gamma.pdf(Kp1[i-1], a1, b1));
+                fc = numpy.log(scipy.stats.gamma.pdf(Kp1_c, self.a1, self.b1));
+                f1 = numpy.log(scipy.stats.gamma.pdf(Kp1[i-1], self.a1, self.b1));
                 fc += numpy.sum(numpy.log(scipy.stats.beta.pdf(theta[i1,i], Kp1_c*rho1[i], Kp1_c*(1-rho1[i]))))
                 f1 += numpy.sum(numpy.log(scipy.stats.beta.pdf(theta[i1,i], Kp1[i-1]*rho1[i], Kp1[i-1]*(1-rho1[i]))))
 
@@ -399,7 +435,7 @@ class BinomialMethod(base.SingleConditionMethod):
 
             i1 = Z[:,i] == 1; n1 = numpy.sum(i1);
             #w1 = 0.15
-            w1 = scipy.stats.beta.rvs(alpha_w + n1, beta_w + Ngenes - n1)
+            w1 = scipy.stats.beta.rvs(self.alpha_w + n1, self.beta_w + Ngenes - n1)
             W1[i] = w1
 
 
@@ -430,6 +466,10 @@ class BinomialMethod(base.SingleConditionMethod):
         self.output.write("#Kp0  Acceptance Rate:\t%f%%\n" % ((100.0*acc_k0)/sample_size))
         self.output.write("#rho1 Acceptance Rate:\t%f%%\n" % ((100.0*acc_p1)/sample_size))
         self.output.write("#Kp1  Acceptance Rate:\t%f%%\n" % ((100.0*acc_k1)/sample_size))
+        self.output.write("#Hyperparameters rho: \t%1.2f\t%3.1f\t%1.2f\t%3.1f\n" % (self.pi0, self.M0, self.pi1, self.M1))
+        self.output.write("#Hyperparameters Kp: \t%3.1f\t%3.1f\t%3.1f\t%3.1f\n" % (self.a0, self.b0, self.a1, self.b1))
+        self.output.write("#Hyperparameters W: \t%1.3f\t%1.3f\n" % (self.alpha_w, self.beta_w))
+
 
         self.output.write("#%s\n" % "\t".join(columns))
 
@@ -465,6 +505,22 @@ class BinomialMethod(base.SingleConditionMethod):
             -b <int>        :=  Number of burn-in samples to take. Default: -b 500
             -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
             -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+
+            Hyper-parameters:
+            -pi0 <float>     :=  Hyper-parameters for rho, non-essential genes. Default: -pi0 0.5
+            -pi1 <float>     :=  Hyper-parameters for rho, essential genes. Default: -pi1 0.5
+            -M0 <float>     :=  Hyper-parameters for rho, non-essential genes. Default: -M0 1.0
+            -M1 <float>     :=  Hyper-parameters for rho, essential genes. Default: -M1 1.0
+
+            -a0 <float>     :=  Hyper-parameters for kappa, non-essential genes. Default: -a0 10
+            -a1 <float>     :=  Hyper-parameters for kappa, essential genes. Default: -a1 10
+            -b0 <float>     :=  Hyper-parameters for kappa, non-essential genes. Default: -b0 1.0
+            -b1 <float>     :=  Hyper-parameters for kappa, essential genes. Default: -b1 1.0
+
+            -aw <float>     :=  Hyper-parameters for prior prob of gene being essential. Default: -aw 0.5
+            -bw <float>     :=  Hyper-parameters for prior prob of gene being essential. Default: -bw 0.5
+
+
             """ % (sys.argv[0])
 
 
