@@ -333,14 +333,12 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
 
     test_obs = testFunc(data1, data2)
 
-    norm_mean1 = 0.0
-    norm_mean2 = 0.0
     try:
-        if n1 > 0:
-            norm_mean1 = mean1/float(n1)
-        if n2 > 0:
-            norm_mean2 = mean2/float(n2)
-        log2FC = math.log((norm_mean2+1.0)/(norm_mean1+1.0),2)
+        # Only adjust log2FC if one of the means is zero
+        if mean1 > 0 and mean2 > 0:
+            log2FC = math.log((mean2)/(mean1),2)  
+        else:
+            log2FC = math.log((mean2+1.0)/(mean1+1.0),2)
     except:
         log2FC = 0.0
 
