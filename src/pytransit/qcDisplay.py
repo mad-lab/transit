@@ -230,12 +230,9 @@ class qcFrame ( wx.Frame ):
                 ((qtheoretical, qdata), (slope, intercept, r)) = scipy.stats.probplot(nzreads, dist="geom", sparams=(1.0/numpy.mean(nzreads),))
 
                 n_qdata = len(qdata)
-                
                 qtheoretical = qtheoretical[:int(n_qdata*0.99)]
                 qdata = qdata[:int(n_qdata*0.99)]
-                print qdata
                 ax.plot(qdata, qtheoretical, "ob")
-                #ax.plot(ax.get_xlim(), ax.get_ylim(), ls="-", c="r")
 
                 maxval = max(numpy.max(qtheoretical), numpy.max(qdata))
                 ax.plot((0, maxval), (0, maxval), ls="-", c="r")
