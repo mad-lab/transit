@@ -42,7 +42,7 @@ long_name = "Resampling test of conditional essentiality between two conditions"
 description = """Method for determining conditional essentiality based on resampling (i.e. permutation test). Identifies significant changes in mean read-counts for each gene after normalization."""
 
 transposons = ["himar1", "tn5"]
-columns = ["Orf","Name","Desc","Sites","Mean A","Mean B","Delta sum","log2FC","pvalue","adj. pvalue"]
+columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","Sum Ctrl", "Sum Exp", "Delta Sum","log2FC","p-value","Adj. p-value"]
 
 class ResamplingAnalysis(base.TransitAnalysis):
     def __init__(self):
@@ -122,6 +122,13 @@ class ResamplingGUI(base.AnalysisGUI):
         resamplingSampleLabel.Wrap( -1 )
         resamplingLabelSizer.Add( resamplingSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
+
+        # Pseudocount Label
+        resamplingPseudocountLabel = wx.StaticText(resamplingPanel, wx.ID_ANY, u"Pseudocount", wx.DefaultPosition, wx.DefaultSize, 0)
+        resamplingPseudocountLabel.Wrap( -1 )
+        resamplingLabelSizer.Add( resamplingPseudocountLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+
         # Norm Label
         resamplingNormLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Normalization", wx.DefaultPosition, wx.DefaultSize, 0 )
         resamplingNormLabel.Wrap( -1 )
@@ -135,6 +142,12 @@ class ResamplingGUI(base.AnalysisGUI):
         # Samples Text
         self.wxobj.resamplingSampleText = wx.TextCtrl( resamplingPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
         resamplingControlSizer.Add( self.wxobj.resamplingSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+
+        # Pseudocounts
+        self.wxobj.resamplingPseudocountText = wx.TextCtrl(resamplingPanel, wx.ID_ANY, u"0.0", wx.DefaultPosition, wx.DefaultSize, 0)
+        resamplingControlSizer.Add( self.wxobj.resamplingPseudocountText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
 
         # Norm Choices
         resamplingNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
@@ -157,6 +170,7 @@ class ResamplingGUI(base.AnalysisGUI):
 
         resamplingTopSizer.Add( resamplingTopSizer2, 1, wx.EXPAND, 5 )
 
+        
 
         resamplingSizer.Add( resamplingTopSizer, 1, wx.EXPAND, 5 )
         resamplingSizer.Add( self.wxobj.resamplingAdaptiveCheckBox, 0, wx.EXPAND, 5 )
@@ -195,6 +209,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 adaptive=False,
                 doHistogram=False,
                 includeZeros=False,
+                pseudocount=0.0,
                 replicates="Sum",
                 LOESS=False,
                 ignoreCodon=True,
@@ -207,7 +222,7 @@ class ResamplingMethod(base.DualConditionMethod):
         self.adaptive = adaptive
         self.doHistogram = doHistogram
         self.includeZeros = includeZeros
-
+        self.pseudocount = pseudocount
 
 
 
@@ -239,6 +254,7 @@ class ResamplingMethod(base.DualConditionMethod):
         doHistogram = wxobj.resamplingHistogramCheckBox.GetValue()
 
         includeZeros = wxobj.resamplingZeroCheckBox.GetValue()
+        pseudocount = float(wxobj.resamplingPseudocountText.GetValue())
 
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
         CTerminus = float(wxobj.globalCTerminusText.GetValue())
@@ -261,6 +277,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 adaptive,
                 doHistogram,
                 includeZeros,
+                pseudocount,
                 replicates,
                 LOESS,
                 ignoreCodon,
@@ -284,6 +301,7 @@ class ResamplingMethod(base.DualConditionMethod):
         doHistogram = kwargs.get("h", False)
         replicates = kwargs.get("r", "Sum")
         includeZeros = kwargs.get("iz", False)
+        pseudocount = float(kwargs.get("pc", 0.00))
     
         
         LOESS = kwargs.get("l", False)
@@ -300,6 +318,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 adaptive,
                 doHistogram,
                 includeZeros,
+                pseudocount,
                 replicates,
                 LOESS,
                 ignoreCodon,
@@ -341,15 +360,19 @@ class ResamplingMethod(base.DualConditionMethod):
         for gene in G:
             count+=1
             if gene.k == 0 or gene.n == 0:
-                (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) = (0, 0, 0, 0, 1.00, 1.00, 1.00, [])
+                (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist, data1, data2) = (0, 0, 0, 0, 1.00, 1.00, 1.00, [], [0], [0])
             else:
 
                 if not self.includeZeros:
                     ii = numpy.sum(gene.reads,0) > 0
                 else:
                     ii = numpy.ones(gene.n) == 1
+               
+
+                data1 = gene.reads[:Kctrl,ii].flatten()+self.pseudocount
+                data2 = gene.reads[Kctrl:,ii].flatten()+self.pseudocount
                 
-                (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(gene.reads[:Kctrl,ii].flatten(), gene.reads[Kctrl:,ii].flatten(), S=self.samples, testFunc=stat_tools.F_sum_diff_flat, adaptive=self.adaptive)
+                (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_sum_diff_flat, adaptive=self.adaptive)
 
 
             if self.doHistogram:
@@ -367,8 +390,9 @@ class ResamplingMethod(base.DualConditionMethod):
                 plt.clf()
 
 
-
-            data.append([gene.orf, gene.name, gene.desc, gene.n, mean1, mean2, test_obs, log2FC, pval_2tail])
+            sum1 = numpy.sum(data1)
+            sum2 = numpy.sum(data2)
+            data.append([gene.orf, gene.name, gene.desc, gene.n, mean1, mean2, sum1, sum2, test_obs, log2FC, pval_2tail])
             self.progress_update("resampling", count)
             self.transit_message_inplace("Running Resampling Method... %1.1f%%" % (100.0*count/N))
 
@@ -396,8 +420,8 @@ class ResamplingMethod(base.DualConditionMethod):
         self.output.write("#%s\n" % "\t".join(columns))
 
         for i,row in enumerate(data):
-            (orf, name, desc, n, mean1, mean2, test_obs, log2FC, pval_2tail) = row
-            self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.2f\t%1.2f\t%1.5f\t%1.5f\n" % (orf, name, desc, n, mean1, mean2, test_obs, log2FC, pval_2tail, qval[i]))
+            (orf, name, desc, n, mean1, mean2, sum1, sum2, test_obs, log2FC, pval_2tail) = row
+            self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.1f\t%1.1f\t%1.2f\t%1.2f\t%1.5f\t%1.5f\n" % (orf, name, desc, n, mean1, mean2, sum1, sum2, test_obs, log2FC, pval_2tail, qval[i]))
         self.output.close()
 
         self.transit_message("Adding File: %s" % (self.output.name))
@@ -416,6 +440,7 @@ class ResamplingMethod(base.DualConditionMethod):
         -h              :=  Output histogram of the permutations for each gene. Default: Turned Off.
         -a              :=  Perform adaptive resampling. Default: Turned Off.
         -iz             :=  Include rows with zero accross conditions.
+        -pc             :=  Pseudocounts to be added at each site.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.
         -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
         -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
