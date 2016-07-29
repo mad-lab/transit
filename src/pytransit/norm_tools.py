@@ -57,9 +57,9 @@ def normalize_data(data, method="nonorm", wigList=[], annotationPath=""):
     elif method == "quantile":
         data = quantile_norm(data)
     elif method == "betageom":
-        data = betageom_norm(data)
+        data, factors = betageom_norm(data)
     elif method == "aBGC":
-        data = aBGC_norm(data)
+        data, factors = aBGC_norm(data)
     elif method == "emphist":
         assert ctrlList != None, "Control list cannot be empty!"
         assert expList != None, "Experimental list cannot be empty!"
@@ -231,6 +231,7 @@ def aBGC_norm(data, doTotReads = True, bgsamples = 200000):
     F = [i/100.0 for i in range(0,31) if i % 2 == 0]
     BGC = []
     param_list = []
+    bgc_factors = []
     for j in range(K):
 
         nzdata = data[j][data[j] > 0]
@@ -247,11 +248,13 @@ def aBGC_norm(data, doTotReads = True, bgsamples = 200000):
                 A = (numpy.sum(numpy.power(numpy.log(1.0-tQ),2)))/(numpy.sum(nzdata*numpy.log(1.0-tQ)))
                 Kp = (2.0 * numpy.exp(A) - 1)   /(numpy.exp(A) + rho - 1)
                 temp = scipy.stats.geom.rvs(scipy.stats.beta.rvs(Kp*rho, Kp*(1-rho), size=S), size=S)
+                bgc_factors.append((rho, Kp))
             except Except as e:
                 print "aBGC Error:", str(e)
                 print "%rho=s\tKp=%s\tA=%s" % (rho, Kp, A)
                 temp = scipy.stats.geom.rvs(0.01, size=S)
 
+            
             corrected_nzdata = [cleaninfgeom(scipy.stats.geom.ppf(ecdf(temp, x), rho_to_fit), rho_to_fit) for x in nzdata]
             corrected_nzmean = numpy.mean(corrected_nzdata)
 
@@ -271,7 +274,7 @@ def aBGC_norm(data, doTotReads = True, bgsamples = 200000):
     if doTotReads:
         factors = TTR_factors(norm_data)
         norm_data = factors * norm_data
-    return norm_data
+    return (norm_data, bgc_factors)
 
 
 def empirical_theta(X):
@@ -510,6 +513,7 @@ def betageom_norm(data, doTTR = True, bgsamples=200000):
     grand_total = numpy.sum(mean_hits)
     grand_mean = grand_total/float(K)
     norm_data = numpy.zeros(data.shape)
+    bgc_factors = []
     for j in range(K):
 
         tQ = numpy.arange(0,N)/float(N)
@@ -520,6 +524,7 @@ def betageom_norm(data, doTTR = True, bgsamples=200000):
         A = (numpy.sum(numpy.power(numpy.log(1.0-tQ),2)))/(numpy.sum(eX*numpy.log(1.0-tQ)))
         Kp = max((2.0 * numpy.exp(A) - 1)   /(numpy.exp(A) + rho - 1), 10)
 
+        bgc_factors.append((rho,Kp))
         try:
             BGsample = scipy.stats.geom.rvs(scipy.stats.beta.rvs(Kp*rho, Kp*(1-rho), size=bgsamples), size=bgsamples)
         except Exception as e:
@@ -533,7 +538,7 @@ def betageom_norm(data, doTTR = True, bgsamples=200000):
     if doTTR:
         factors = TTR_factors(norm_data)
         norm_data = factors * norm_data
-    return norm_data
+    return (norm_data, bgc_factors)
 
 
 
