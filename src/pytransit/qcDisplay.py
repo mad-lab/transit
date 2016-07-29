@@ -46,7 +46,7 @@ def PilImageToWxBitmap( myPilImage ) :
 
 def PilImageToWxImage( myPilImage ):
     myWxImage = wx.EmptyImage( myPilImage.size[0], myPilImage.size[1] )
-    myWxImage.SetData( myPilImage.convert( 'RGB' ).tostring() )
+    myWxImage.SetData( myPilImage.convert( 'RGB' ).tobytes() )
     return myWxImage
 
 def WxImageToWxBitmap( myWxImage ) :
@@ -228,8 +228,17 @@ class qcFrame ( wx.Frame ):
                 plt.clf()
                 ax = fig.add_subplot(111, frame_on=False)
                 ((qtheoretical, qdata), (slope, intercept, r)) = scipy.stats.probplot(nzreads, dist="geom", sparams=(1.0/numpy.mean(nzreads),))
+
+                n_qdata = len(qdata)
+                
+                qtheoretical = qtheoretical[:int(n_qdata*0.99)]
+                qdata = qdata[:int(n_qdata*0.99)]
+                print qdata
                 ax.plot(qdata, qtheoretical, "ob")
-                ax.plot(ax.get_xlim(), ax.get_ylim(), ls="-", c="r")
+                #ax.plot(ax.get_xlim(), ax.get_ylim(), ls="-", c="r")
+
+                maxval = max(numpy.max(qtheoretical), numpy.max(qdata))
+                ax.plot((0, maxval), (0, maxval), ls="-", c="r")
 
                 plt.xlabel("Data Quantiles")
                 plt.ylabel("Theoretical Quantiles")
