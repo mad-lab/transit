@@ -373,6 +373,10 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
 
 
 
+def cumulative_average(new_x, n, prev_avg):
+    return ((new_x + (n*prev_avg))/(n+1.0), n+1)
+
+
 
 
 
