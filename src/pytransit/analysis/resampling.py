@@ -1,5 +1,20 @@
 import sys
-import wx
+
+try:
+    import wx
+    hasWx = True
+    #Check if wx is the newest 3.0+ version:
+    try:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        newWx = True
+    except AttributeError as e:
+        from wx.lib.pubsub import Publisher as pub
+        newWx = False
+except Exception as e:
+    hasWx = False
+    newWx = False
+
 import os
 import time
 import ntpath
@@ -255,11 +270,7 @@ class ResamplingMethod(base.DualConditionMethod):
     @classmethod
     def fromargs(self, rawargs):
 
-        print "RAW:", rawargs
         (args, kwargs) = transit_tools.cleanargs(rawargs)
-
-        print "ARGS:", args
-        print "KWARGS:", kwargs
 
         ctrldata = args[0].split(",")
         expdata = args[1].split(",")
@@ -416,9 +427,6 @@ class ResamplingMethod(base.DualConditionMethod):
 if __name__ == "__main__":
 
     (args, kwargs) = transit_tools.cleanargs(sys.argv)
-
-    print "ARGS:", args
-    print "KWARGS:", kwargs
 
     #TODO: Figure out issue with inputs (transit requires initial method name, running as script does not !!!!)
 

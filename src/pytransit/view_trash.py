@@ -7,8 +7,15 @@
 ## PLEASE DO "NOT" EDIT THIS FILE!
 ###########################################################################
 
-import wx
-import wx.xrc
+import sys
+
+try:
+    import wx
+    import wx.xrc
+    hasWx = True
+except Exception as e:
+    hasWx = False
+
 
 ###########################################################################
 ## Class MainFrame

@@ -7,8 +7,14 @@
 ## PLEASE DO "NOT" EDIT THIS FILE!
 ###########################################################################
 
-import wx
-import wx.xrc
+try:
+    import wx
+    import wx.xrc
+    hasWx = True
+except Exception as e:
+    hasWx = False
+
+
 import sys
 import os
 import io

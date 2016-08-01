@@ -8,7 +8,7 @@ __all__ = [ basename(f)[:-3] for f in modules if isfile(f)]
 import base
 
 import gumbel
-import example
+#import example
 import tn5gaps
 import binomial
 import griffin
@@ -18,7 +18,7 @@ import rankproduct
 
 
 methods = {}
-methods["example"] = example.ExampleAnalysis()
+#methods["example"] = example.ExampleAnalysis()
 methods["gumbel"] = gumbel.GumbelAnalysis()
 methods["binomial"] = binomial.BinomialAnalysis()
 methods["griffin"] = griffin.GriffinAnalysis()

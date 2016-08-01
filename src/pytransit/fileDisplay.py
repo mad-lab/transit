@@ -17,9 +17,15 @@
 #    You should have received a copy of the GNU General Public License
 #    along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
-import wx
-import wx.xrc
-import wx.lib.mixins.listctrl as listmix
+try:
+    import wx
+    import wx.xrc
+    import wx.lib.mixins.listctrl as listmix
+    hasWx = True
+except Exception as e:
+    hasWx = False
+
+
 import ntpath
 import subprocess
 import os

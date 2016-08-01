@@ -18,7 +18,6 @@
 #    along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import wx
 import view_trash
 from math import *
 import os

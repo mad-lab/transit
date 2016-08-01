@@ -9,19 +9,24 @@
 
 import sys
 
-
-import wx
-#Check if wx is the newest 3.0+ version:
 try:
-    from wx.lib.pubsub import pub
-    pub.subscribe
-    newWx = True
-except AttributeError as e:
-    from wx.lib.pubsub import Publisher as pub
-    newWx = False
+    import wx
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
 
-import wx.xrc
-from wx.lib.buttons import GenBitmapTextButton
+    hasWx = True
+    
+    #Check if wx is the newest 3.0+ version:
+    try:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        newWx = True
+    except AttributeError as e:
+        from wx.lib.pubsub import Publisher as pub
+        newWx = False
+except Exception as e:
+    hasWx = False
+    newWx = False
 
 import os
 import time
@@ -1193,7 +1198,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
     def documentationFunc(self, event):
 
-        filepath = "http://saclab.tamu.edu/essentiality/transit/pytransit.html"
+        filepath = "http://saclab.tamu.edu/essentiality/transit/transit.html"
         output = ""
         error = ""
         try:
@@ -1452,7 +1457,8 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                     zbar = float(tmp[-2])
                 except:
                     zbar = 0
-                Y.append(zbar)
+                if zbar >= 0:
+                    Y.append(zbar)
 
             Y.sort()
             index=range(1,len(Y)+1)

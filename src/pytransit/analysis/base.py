@@ -1,16 +1,23 @@
 #__all__ = []
 import sys
-import wx
-import datetime
-#Check if wx is the newest 3.0+ version:
-try:
-    from wx.lib.pubsub import pub
-    pub.subscribe
-    newWx = True
-except AttributeError as e:
-    from wx.lib.pubsub import Publisher as pub
-    newWx = False
 
+try:
+    import wx
+    hasWx = True
+    #Check if wx is the newest 3.0+ version:
+    try:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        newWx = True
+    except AttributeError as e:
+        from wx.lib.pubsub import Publisher as pub
+        newWx = False
+except Exception as e:
+    hasWx = False
+    newWx = False
+    
+import traceback
+import datetime
 
 import pytransit
 import pytransit.tnseq_tools as tnseq_tools
@@ -137,15 +144,19 @@ class AnalysisMethod:
         try:
             return self.fromargs(sys.argv[2:])
         except IndexError as e:
+            traceback.print_exc()
             print self.usage_string()
         except TypeError as e:
             print "Error: %s" % str(e)
+            traceback.print_exc()
             print self.usage_string()
         except ValueError as e:
             print "Error: %s" % str(e)
+            traceback.print_exc()
             print self.usage_string()
         except Exception as e:
             print "Error: %s" % str(e)
+            traceback.print_exc()
             print self.usage_string()
         sys.exit() 
 

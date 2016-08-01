@@ -1,5 +1,20 @@
 import sys
-import wx
+
+try:
+    import wx
+    hasWx = True
+    #Check if wx is the newest 3.0+ version:
+    try:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        newWx = True
+    except AttributeError as e:
+        from wx.lib.pubsub import Publisher as pub
+        newWx = False
+except Exception as e:
+    hasWx = False
+    newWx = False
+
 import os
 import time
 import math
@@ -197,8 +212,6 @@ class BinomialMethod(base.SingleConditionMethod):
     def fromargs(self, rawargs): 
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
-        print "ARGS:", args
-        print "KWARGS:", kwargs
 
         ctrldata = args[0].split(",")
         annotationPath = args[1]
@@ -458,9 +471,6 @@ class BinomialMethod(base.SingleConditionMethod):
 if __name__ == "__main__":
 
     (args, kwargs) = transit_tools.cleanargs(sys.argv)
-
-    print "ARGS:", args
-    print "KWARGS:", kwargs
 
     G = BinomialMethod.fromargs(sys.argv[1:])
 

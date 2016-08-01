@@ -1,4 +1,7 @@
-# TRANSIT
+# TRANSIT 2.0
+
+
+**Version 2.0 released (June 15th, 2016)**
 
 Welcome! This is the distribution for the TRANSIT and TPP tools developed by the Ioerger Lab.
 
@@ -7,12 +10,10 @@ TRANSIT is a tool for the analysis of Tn-Seq data. It provides an easy to use gr
 
 ## Instructions
 
-For full instructions on how to install and run TRANSIT (and the optional pre-processor, TPP), please see the documentation included in this distribution ("doc" folder) or visit the following web pages:
+For full instructions on how to install and run TRANSIT (and the optional pre-processor, TPP), please see the documentation included in this distribution ("doc" folder) or visit the following web page:
 
 
 http://saclab.tamu.edu/essentiality/transit/transit.html
-
-http://saclab.tamu.edu/essentiality/transit/TPP.html
 
 
 ## Datasets
