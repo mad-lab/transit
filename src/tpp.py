@@ -391,6 +391,7 @@ def extract_staggered(infile,outfile,vars):
   Tn5 = "TAAGAGACAG"
   if vars.transposon=='Tn5': Tn = Tn5
   elif vars.transposon=='Himar1': Tn = Himar1
+  Tn = vars.seq
   lenTn = len(Tn)
   ADAPTER2 = "TACCACGACCA"
   lenADAP = len(ADAPTER2)
@@ -852,13 +853,17 @@ def generate_output(vars):
 
   primer = "CTAGAGGGCCCAATTCGCCCTATAGTGAGT"
   vector = "CTAGACCGTCCAGTCTGGCAGGCCGGAAAC"
+  adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
+  Himar1 = "ACTTATCAGCCAACCTGTTA"
 
-  tot_reads,nprimer,nvector = 0,0,0
+  tot_reads,nprimer,nvector,nadapter,misprimed = 0,0,0,0,0
   prefixes = {}
   for line in open(vars.reads1):
     if line[0]=='>': tot_reads += 1; continue
     if primer in line: nprimer += 1
     if vector in line: nvector += 1
+    if adapter in line: nadapter += 1
+    if Himar1[:-5] in line and Himar1 not in line: misprimed += 1
     #prefix = line[:30]
     #if prefix not in prefixes: prefixes[prefix] = 0
     #prefixes[prefix] += 1
@@ -877,7 +882,7 @@ def generate_output(vars):
   max_coord = counts[-1][0]
   NZmean = tc/float(tas_hit)
   FR_corr = corr([x[1] for x in counts],[x[3] for x in counts])
-  BC_corr = corr([x for x in rcounts if x!=0],[x for x in tcounts if x!=0])
+  BC_corr = -1#corr([x for x in rcounts if x!=0],[x for x in tcounts if x!=0])
 
   read_length = get_read_length(vars.base + ".reads1")
   mean_r1_genomic = get_genomic_portion(vars.base + ".tgtta1")
@@ -894,13 +899,13 @@ def generate_output(vars):
   output.write('# read1: %s\n' % vars.fq1)
   output.write('# read2: %s\n' % vars.fq2)
   output.write('# ref_genome: %s\n' % vars.ref)
-  output.write("# total_reads %s (read pairs)\n" % tot_reads)
+  output.write("# total_reads %s (or read pairs)\n" % tot_reads)
   #output.write("# truncated_reads %s (fragments shorter than the read length; ADAP2 appears in read1)\n" % vars.truncated_reads)
   output.write("# TGTTA_reads %s (reads with valid Tn prefix, and insert size>20bp)\n" % vars.tot_tgtta)
   output.write("# reads1_mapped %s\n" % vars.r1)
   output.write("# reads2_mapped %s\n" % vars.r2)
   output.write("# mapped_reads %s (both R1 and R2 map into genome)\n" % vars.mapped)
-  output.write("# read_count %s (TA sites only)\n" % rc)
+  output.write("# read_count %s (TA sites only, for Himar1)\n" % rc)
   output.write("# template_count %s\n" % tc)
   output.write("# template_ratio %0.2f (reads per template)\n" % ratio)
   output.write("# TA_sites %s\n" % ta_sites)
@@ -911,15 +916,17 @@ def generate_output(vars):
   output.write("# NZ_mean %0.1f (among templates)\n" % NZmean)
   output.write("# FR_corr %0.3f (Fwd templates vs. Rev templates)\n" % FR_corr)
   output.write("# BC_corr %0.3f (reads vs. templates, summed over both strands)\n" % BC_corr)
-  output.write("# primer_matches: %s reads contain %s\n" % (nprimer,primer))
-  output.write("# vector_matches: %s reads contain %s\n" % (nvector,vector))
+  output.write("# primer_matches: %s reads (%0.1f%%) contain %s (Himar1)\n" % (nprimer,nprimer*100/float(tot_reads),primer))
+  output.write("# vector_matches: %s reads (%0.1f%%) contain %s (Himar1)\n" % (nvector,nvector*100/float(tot_reads),vector))
+  output.write("# adapter_matches: %s reads (%0.1f%%) contain %s (Illumina/TruSeq index)\n" % (nadapter,nadapter*100/float(tot_reads),adapter))
+  output.write("# misprimed_reads: %s reads (%0.1f%%) contain Himar1 prefix but don't end in TGTTA\n" % (misprimed,misprimed*100/float(tot_reads)))
   output.write("# read_length: %s bp\n" % read_length)
   output.write("# mean_R1_genomic_length: %0.1f bp\n" % mean_r1_genomic)
   if vars.single_end==False: output.write("# mean_R2_genomic_length: %0.1f bp\n" % mean_r2_genomic)
 
   #output.write("# most_abundant_prefix: %s reads start with %s\n" % (temp[0][1],temp[0][0]))
   # since these are reads (within Tn prefix stripped off), I expect ~1/4 to match Tn prefix
-  vals = [vars.fq1,vars.fq2,tot_reads,vars.tot_tgtta,vars.r1,vars.r2,vars.mapped,rc,tc,ratio,ta_sites,tas_hit,max_tc,density,max_coord,NZmean,FR_corr,BC_corr,nprimer,nvector]
+  vals = [vars.fq1,vars.fq2,tot_reads,vars.tot_tgtta,vars.r1,vars.r2,vars.mapped,rc,tc,ratio,ta_sites,tas_hit,max_tc,density,max_coord,NZmean,FR_corr,BC_corr,nprimer,nvector,nadapter,misprimed]
   output.write('\t'.join([str(x) for x in vals])+"\n")
   output.close()
 
@@ -976,7 +983,7 @@ def save_config(vars):
   f.close()
 
 def show_help():
-  print 'usage: python PATH/src/tpp.pyc -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE -reads2 PATH_TO_FASTQ_OR_FASTA_FILE -prefix OUTPUT_BASE_FILENAME [-maxreads N] [-mismatches N] [-tn5]'
+  print 'usage: python PATH/src/tpp.pyc -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE -reads2 PATH_TO_FASTQ_OR_FASTA_FILE -prefix OUTPUT_BASE_FILENAME [-maxreads N] [-mismatches N] [-tn5|-himar1] [-seq <prefix>]'
     
 class Globals:
   pass
@@ -1015,7 +1022,11 @@ if __name__ == "__main__":
                 sys.exit()
             if sys.argv[i] == '-tn5': 
                 vars.transposon = 'Tn5'
-            if sys.argv[i] == '-reads1': 
+            elif sys.argv[i] == '-himar1': 
+                vars.transposon = 'Himar1'
+            elif sys.argv[i] == '-seq': 
+                vars.prefix = sys.argv[i+1]
+            elif sys.argv[i] == '-reads1': 
                 vars.fq1 = sys.argv[i+1]
             elif sys.argv[i] == '-reads2':
                 flag = True
