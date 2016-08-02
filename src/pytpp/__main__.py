@@ -78,7 +78,11 @@ def main():
                 sys.exit()
             if sys.argv[i] == '-tn5':
                 vars.transposon = 'Tn5'
-            if sys.argv[i] == '-reads1':
+            elif sys.argv[i] == '-himar1': 
+                vars.transposon = 'Himar1'
+            elif sys.argv[i] == '-primer': 
+                vars.prefix = sys.argv[i+1]
+            elif sys.argv[i] == '-reads1':
                 vars.fq1 = sys.argv[i+1]
             elif sys.argv[i] == '-reads2':
                 flag = True
@@ -89,7 +93,7 @@ def main():
                 vars.ref = sys.argv[i+1]
             elif sys.argv[i] == '-maxreads':
                 vars.maxreads = int(sys.argv[i+1])
-            elif sys.argv[i] == '-prefix':
+            elif sys.argv[i] == '-output':
                 vars.base = sys.argv[i+1]
             elif sys.argv[i] == '-mismatches':
                 vars.mm1 = int(sys.argv[i+1])
