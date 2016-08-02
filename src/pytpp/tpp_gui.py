@@ -126,38 +126,51 @@ if hasWx:
             self.picker2 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 2', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa;*.fastq.gz', size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue=vars.fq2, labelText='', changeCallback=self.OnChanged2)
             sizer2.Add(self.picker2, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer2,0,wx.EXPAND,0)
-
-            sizer4 = wx.BoxSizer(wx.HORIZONTAL)
-            label4 = wx.StaticText(panel, label='Prefix to use for output filenames:',size=(350,-1))
-            sizer4.Add(label4,0,0,0)
-            self.base = wx.TextCtrl(panel,value=vars.base,size=(400,30))
-            sizer4.Add(self.base, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer.Add(sizer4,0,wx.ALL,0)
-
-            sizer7 = wx.BoxSizer(wx.HORIZONTAL)
-            label7 = wx.StaticText(panel, label='Transposon used:',size=(350,-1))
-            sizer7.Add(label7,0,0,0)
-            self.transposon = wx.ComboBox(panel,choices=['Himar1','Tn5'],size=(400,30))
-            self.transposon.SetStringSelection(vars.transposon)
-            sizer7.Add(self.transposon, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer.Add(sizer7,0,wx.ALL,0)    
-
+            
             sizer5 = wx.BoxSizer(wx.HORIZONTAL)
-            label5 = wx.StaticText(panel, label='Max reads (leave blank to use all):',size=(350,-1))
+            label5 = wx.StaticText(panel, label='Prefix to use for output filenames:',size=(350,-1))
             sizer5.Add(label5,0,0,0)
-            self.maxreads = wx.TextCtrl(panel,size=(400,30))
-            sizer5.Add(self.maxreads, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+            self.base = wx.TextCtrl(panel,value=vars.base,size=(400,30))
+            sizer5.Add(self.base, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer5,0,wx.ALL,0)
 
+            sizer8 = wx.BoxSizer(wx.HORIZONTAL)
+            label8 = wx.StaticText(panel, label='Transposon used:',size=(350,-1))
+            sizer8.Add(label8,0,0,0)
+            self.transposon = wx.ComboBox(panel,choices=['Himar1','Tn5'],size=(400,30))
+            self.transposon.SetStringSelection(vars.transposon)
+            sizer8.Add(self.transposon, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer.Add(sizer8,0,wx.ALL,0)
+            
+            sizer4 = wx.BoxSizer(wx.HORIZONTAL)
+            label4 = wx.StaticText(panel, label='Primer sequence:',size=(350,-1))
+            sizer4.Add(label4,0,0,0)
+            self.prefix = wx.TextCtrl(panel,value="ACTTATCAGCCAACCTGTTA",size=(400,30))
+            sizer4.Add(self.prefix, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer.Add(sizer4,0,wx.ALL,0)
+            
+            self.Bind(wx.EVT_COMBOBOX, self.OnTransposonSelection, id=self.transposon.GetId())
+
             sizer6 = wx.BoxSizer(wx.HORIZONTAL)
-            label6 = wx.StaticText(panel, label='Mismatches allowed in Tn prefix:',size=(350,-1))
+            label6 = wx.StaticText(panel, label='Max reads (leave blank to use all):',size=(350,-1))
             sizer6.Add(label6,0,0,0)
+            self.maxreads = wx.TextCtrl(panel,size=(400,30))
+            sizer6.Add(self.maxreads, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer.Add(sizer6,0,wx.ALL,0)
+
+            sizer7 = wx.BoxSizer(wx.HORIZONTAL)
+            label7 = wx.StaticText(panel, label='Mismatches allowed in Tn prefix:',size=(350,-1))
+            sizer7.Add(label7,0,0,0)
             self.mismatches = wx.TextCtrl(panel,value=str(vars.mm1),size=(400,30))
-            sizer6.Add(self.mismatches, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer.Add(sizer6,0,wx.ALL,0)    
+            sizer7.Add(self.mismatches, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer.Add(sizer7,0,wx.ALL,0)    
 
             #self.picker1.OnChanged = self.OnChanged(self.picker1.GetValue())
-
+        
+        def OnTransposonSelection(self, event):
+            if self.transposon.GetValue()=="Tn5": self.prefix.SetValue("TAAGAGACAG")
+            elif self.transposon.GetValue()=="Himar1": self.prefix.SetValue("ACTTATCAGCCAACCTGTTA")
+            else: self.prefix.SetValue("")
 
         def OnChanged(self, str_path):
             print "changed"
@@ -268,7 +281,7 @@ if hasWx:
           # bwapath = self.picker0.GetPath()
           bwapath = self.picker0.GetValue()
           #fq1,fq2,ref,base,maxreads = self.picker1.GetPath(),self.picker2.GetPath(),self.picker3.GetPath(),self.base.GetValue(),self.maxreads.GetValue()
-          fq1, fq2, ref, base, maxreads = self.picker1.GetValue(), self.picker2.GetValue(), self.picker3.GetValue(), self.base.GetValue(), self.maxreads.GetValue()
+          fq1, fq2, ref, base, prefix, maxreads = self.picker1.GetValue(), self.picker2.GetValue(), self.picker3.GetValue(), self.base.GetValue(), self.prefix.GetValue(), self.maxreads.GetValue()
     
           mm1 = self.mismatches.GetValue()
           try: mm1 = int(mm1)
