@@ -153,7 +153,7 @@ def extract_staggered(infile,outfile,vars):
     if tot%1000000==0: message("%s reads processed" % tot)
     readlen = len(line)
     a = mmfind(line,readlen,Tn,lenTn,vars.mm1) # allow some mismatches
-    b = mmfind(line,readlen,ADAPTER2,lenADAP,vars.mm1) # look for end of short frags
+    b = mmfind(line,readlen,ADAPTER2,lenADAP, 1) # look for end of short frags
     if a>=P and a<=Q:
       gstart,gend = a+lenTn,readlen
       if b!=-1: gend = b; vars.truncated_reads += 1
