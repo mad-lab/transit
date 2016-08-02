@@ -162,6 +162,11 @@ def extract_staggered(infile,outfile,vars):
       output.write(line[gstart:gend]+"\n")
       vars.tot_tgtta += 1
   output.close()
+  if vars.tot_tgtta == 0:
+    raise ValueError("Input files did not contain any reads matching prefix sequence with %d mismatches" % vars.mm1)
+
+
+
 
 def message(s):
   print "[tn_preprocess]",s
@@ -379,11 +384,17 @@ def driver(vars):
     if vars.transposon=="Tn5": vars.prefix = "TAAGAGACAG"
     elif vars.transposon=="Himar1": vars.prefix = "ACTTATCAGCCAACCTGTTA"
 
-  extract_reads(vars)
+  try:
+     extract_reads(vars)
 
-  run_bwa(vars)
+     run_bwa(vars)
+ 
+     generate_output(vars)
 
-  generate_output(vars)
+  except ValueError as err:
+    message("Error: %s" % " ".join(err.args))
+    message("Exiting.")
+    sys.exit()
 
   message("Done.")
 
@@ -424,6 +435,7 @@ def extract_reads(vars):
       message("assuming single-ended reads")
       message("creating %s" % vars.tgtta1)
       extract_staggered(vars.reads1,vars.tgtta1,vars)
+
       return 
 
     if(flag[1] == 'FASTQ'):  
@@ -441,7 +453,7 @@ def extract_reads(vars):
     extract_staggered(vars.reads1,vars.tgtta1,vars)
 
     message("creating %s" % vars.tgtta2)
-    select_reads(vars.tgtta1,vars.reads2,vars.tgtta2)
+    select_read(vars.tgtta1,vars.reads2,vars.tgtta2)
     #message("creating %s" % vars.barcodes2)
     #select_cycles(vars.tgtta2,22,30,vars.barcodes2)
     #message("creating %s" % vars.genomic2)
@@ -587,6 +599,9 @@ def generate_output(vars):
   for data in counts: tcfile.write('\t'.join([str(x) for x in data])+"\n")
   tcfile.close()
 
+  if vars.mapped == 0:
+    raise ValueError('No reads mapped by BWA.')
+
   message("writing %s" % vars.wig)
   output = open(vars.wig,"w")
 
@@ -610,6 +625,9 @@ def generate_output(vars):
     if vector in line: nvector += 1
     if adapter in line: nadapter += 1
     if Himar1[:-5] in line and Himar1 not in line: misprimed += 1
+
+
+  
 
   rcounts = [x[5] for x in counts]
   tcounts = [x[6] for x in counts]
