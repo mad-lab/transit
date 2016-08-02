@@ -2,7 +2,23 @@
 All notable changes to this project will be documented in this file.
 
 
-## Version 2.0.0 - 2016-06-16
+## Version 2.0.3 - 2016-08-03
+    
+-TRANSIT:
+    - Added extra columns to resampling output.
+    - Fixed bug with some log2FC calculations.
+    - Export to combined wig format now asks normalization BEFORE file name.
+    - Fixed bug in Quality Control displays.
+    - Miscellanous bug changes.
+   
+
+## Version 2.0.2 - 2016-07-06
+
+- TRANSIT:
+    - Now accepts GFF3 formatted annotations.
+
+
+## Version 2.0.1 - 2016-07-05
 
 - TRANSIT:
     - Fixed crash in TPP.
