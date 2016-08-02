@@ -25,4 +25,3 @@ import pytpp.__main__
 if __name__ == "__main__":
     pytpp.__main__.main()
 
-
