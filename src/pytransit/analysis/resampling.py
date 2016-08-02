@@ -91,7 +91,7 @@ class ResamplingFile(base.TransitFile):
                 imgWindow = pytransit.fileDisplay.ImgFrame(None, filename)
                 imgWindow.Show()
             else:
-                ShowError(MSG="Error Displaying File. Histogram image not found. Make sure results were obtained with the histogram option turned on.")
+                transit_tools.ShowError(MSG="Error Displaying File. Histogram image not found. Make sure results were obtained with the histogram option turned on.")
                 print "Error Displaying File. Histogram image does not exist."
 
 
