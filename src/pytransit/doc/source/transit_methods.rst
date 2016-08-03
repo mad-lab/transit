@@ -133,10 +133,13 @@ replicates; replicate datasets will be automatically merged.
 
 |
 
-Tn Gaps
--------
 
-The Tn5 Gaps method can be used to determine which genes are essential
+.. _`tn5gaps`:
+
+Tn5Gaps
+--------
+
+The Tn5Gaps method can be used to determine which genes are essential
 in a single condition for **Tn5** datasets. It does an analysis of the
 insertions at each site within the genome, makes a call for a given
 gene based on the length of the most heavily overlapping run of sites
@@ -160,7 +163,7 @@ Griffin, J.E., Gawronski, J.D., DeJesus, M.A., Ioerger, T.R., Akerley, B.J., Sas
 `High-resolution phenotypic profiling defines genes essential for mycobacterial survival and cholesterol catabolism. <http://www.ncbi.nlm.nih.gov/pubmed/21980284>`_  *PLoS Pathogens*, 7(9):e1002251.
 
 
-The Tn5 Gaps method modifies the original method in order to work on
+The Tn5Gaps method modifies the original method in order to work on
 Tn5 datasets, which have significantly lower saturation of insertion sites
 than Himar1 datasets. The main difference comes from the fact that 
 the runs of non-insertion (or "gaps") are analyzed throughout the whole
@@ -204,7 +207,7 @@ Parameters
 Outputs and diagnostics
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The Tn5 Gaps method generates a tab-seperated output file at the
+The Tn5Gaps method generates a tab-seperated output file at the
 location chosen by the user. This file will automatically be loaded
 into the Results Files section of the GUI, allowing you to display it
 as a table. Alternatively, the file can be opened in a spreadsheet
@@ -368,6 +371,8 @@ Run-time
 
 |
 
+.. _resampling:
+
 Re-sampling
 -----------
 
@@ -393,7 +398,7 @@ read-counts in condition A is substracted from the total read counts at
 condition B, to obtain an observed difference in read counts. The TA
 sites are then permuted for a given number of "samples". For each one of
 these permutations, the difference is read-counts is determined. This
-forms a null disttribution, from which a p-value is calculated for the
+forms a null distribution, from which a p-value is calculated for the
 original, observed difference in read-counts.
 
 |
@@ -429,35 +434,8 @@ parameters are available for the method:
 -  **Normalization Method:** Determines which normalization method to
    use when comparing datasets. Proper normalization is important as it
    ensures that other sources of variability are not mistakenly treated
-   as real differences.
-
-   -  **TTR**: Trimmed Total Reads (TTR), normalized by the total
-      read-counts (like totreads), but trims top and bottom 5% of
-      read-counts. **This is the recommended normalization method for most
-      cases** as it has the beneffit of normalizing for difference in
-      saturation in the context of resampling. 
-   -  **nzmean**: Normalizes datasets to have the same mean over the
-      non-zero sites.
-   -  **totreads**: Normalizes datasets by total read-counts, and scales
-      them to have the same mean over all counts.
-   -  **zinfnb**: Fits a zero-inflated negative binomial model, and then
-      divides read-counts by the mean. The zero-inflated negative
-      binomial model will treat some empty sites as belonging to the
-      "true" negative binomial distribution responsible for read-counts
-      while treating the others as "essential" (and thus not influencing
-      its parameters).
-   -  **quantile**: Normalizes datasets using the quantile normalization
-      method described by `Bolstad et al.
-      (2003) <http://www.ncbi.nlm.nih.gov/pubmed/12538238>`_. In this
-      normalization procedure, datasets are sorted, an empirical
-      distribution is estimated as the mean across the sorted datasets
-      at each site, and then the original (unsorted) datasets are
-      assigned values from the empirical distribution based on their
-      quantiles.
-   -  **betageom**: Normalizes the datasets to fit an "ideal" Geometric
-      distribution with a variable probability parameter *p*. Specially
-      useful for datasets that contain a large skew.
-   -  **nonorm**: No normalization is performed.
+   as real differences. See the :ref:`Normalization <normalization>` section for a description
+   of normalization method available in TRANSIT.
 
 |
 
@@ -501,6 +479,62 @@ Run-time
 A typical run of the re-sampling method with 10,000 samples will take
 around 45 minutes (with the histogram option ON). Using the adaptive
 resampling option, the run-time is reduced to around 10 minutes.
+
+
+
+--------------
+
+|
+
+.. _normalization:
+
+Normalization
+-------------
+
+
+Proper normalization is important as it ensures that other sources of variability are not mistakenly treated
+as real differences in datasets. TRANSIT provides various normalization methods, which are briefly described below:
+
+- **TTR:**
+    Trimmed Total Reads (TTR), normalized by the total
+    read-counts (like totreads), but trims top and bottom 5% of
+    read-counts. **This is the recommended normalization method for most cases**
+    as it has the beneffit of normalizing for difference in
+    saturation in the context of resampling.
+
+- **nzmean:**
+    Normalizes datasets to have the same mean over the
+    non-zero sites.
+
+- **totreads:**
+    Normalizes datasets by total read-counts, and scales
+    them to have the same mean over all counts.
+
+- **zinfnb:**
+    Fits a zero-inflated negative binomial model, and then
+    divides read-counts by the mean. The zero-inflated negative
+    binomial model will treat some empty sites as belonging to the
+    "true" negative binomial distribution responsible for read-counts
+    while treating the others as "essential" (and thus not influencing
+    its parameters).
+
+- **quantile:**
+    Normalizes datasets using the quantile normalization
+    method described by `Bolstad et al.
+    (2003) <http://www.ncbi.nlm.nih.gov/pubmed/12538238>`_. In this
+    normalization procedure, datasets are sorted, an empirical
+    distribution is estimated as the mean across the sorted datasets
+    at each site, and then the original (unsorted) datasets are
+    assigned values from the empirical distribution based on their
+    quantiles.
+
+- **betageom:**
+    Normalizes the datasets to fit an "ideal" Geometric
+    distribution with a variable probability parameter *p*. Specially
+    useful for datasets that contain a large skew.
+
+- **nonorm:**
+    No normalization is performed.
 
 
 

@@ -122,7 +122,7 @@ The main fields to fill out in the GUI are...
       single-ended. Since there are no barcodes, each read will be
       counted as a unique template.*
 
--  prefix to use for filename (for the multiple intermediate files that
+-  prefix to use for output filename (for the multiple intermediate files that
    will get generated in the process; when you pick datasets, a temp
    file name will automatically be suggested for you, but you can change
    it to whatever you want)
@@ -134,6 +134,19 @@ The main fields to fill out in the GUI are...
    counted only at TA sites, whereas for Tn5, reads are counted at ALL
    sites in the genome (since it does not have significant sequence
    specificity) and written out in the .counts and .wig files.
+
+-  primer sequence - This represents the end of the transposon that
+   appears as a constant prefix in read 1 (possibly shifted by a few
+   random bases), resulting from amplifying transposon:genomic junctions.  
+   TPP searches for this prefix and strips it off, to
+   map the suffixes of reads into the genome.  TPP has default sequences
+   defined for both Himar1 and Tn5 data, based on the most commonly
+   used protocols (`Long et al. (2015) <http://www.springer.com/biomed/human+genetics/book/978-1-4939-2397-7>`__; `Langridge et al. (2009) <http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2792183/>`__).  However, if you amplify junctions with a different
+   primer, this field gives you the opportunity to change the sequence
+   TPP searches for in each read.  Note that you should not
+   entirer the ENTIRE primer sequence, but rather just
+   the part of the primer sequence that will show up at the beginning 
+   of every read.
 
 -  max reads - Normally, leave this blank by default, and TPP will
    process all reads. However, if you want to do a quick run on a subset
@@ -176,31 +189,35 @@ filenames and parameters as command-line arguments.
 ::
 
     For a list of possible command line arguments, type: python tpp.py -help
-    usage: python TRANSIT_PATH/src/tpp.py -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE [-reads2 PATH_TO_FASTQ_OR_FASTA_FILE] -prefix OUTPUT_BASE_FILENAME [-maxreads N] [-tn5]
+    usage: python TRANSIT_PATH/src/tpp.py -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE [-reads2 PATH_TO_FASTQ_OR_FASTA_FILE] -output OUTPUT_BASE_FILENAME [-maxreads N] [-tn5|-himar1] [-primer <seq>]
 
 The input arguments and file types are as follows:
 
 
-+-------------+---------------------------------------------------------------+-------------------------------------+
-| Flag        | Value                                                         | Comments                            |
-+=============+===============================================================+=====================================+
-| -bwa        | path executable                                               |                                     |
-+-------------+---------------------------------------------------------------+-------------------------------------+
-| -ref        | reference genome sequence                                     | FASTA file                          |
-+-------------+---------------------------------------------------------------+-------------------------------------+
-| -reads1     | file of read 1 of paired reads                                | FASTA or FASTQ format (or gzipped)  |
-+-------------+---------------------------------------------------------------+-------------------------------------+
-| -reads2     | file of read 2 of paired reads (optional for single-end reads | FASTA or FASTQ format (or gzipped)  |
-+-------------+---------------------------------------------------------------+-------------------------------------+
-| -prefix     | base filename to use for output files                         |                                     |
-+-------------+---------------------------------------------------------------+-------------------------------------+
-| -maxreads   | subset of reads to process (optional); if blank, use          |                                     |
-+-------------+---------------------------------------------------------------+-------------------------------------+
-| -mismatches | how many to allow when searching reads for sequence patterns  |                                     |
-+-------------+---------------------------------------------------------------+-------------------------------------+
-| -tn5        | process reads as a Tn5 library (Himar1 is assumed by default  |                                     |
-+-------------+---------------------------------------------------------------+-------------------------------------+
-
++-----------------+---------------------------------------------------------------+------------------------------------------------------+
+| Flag            | Value                                                         | Comments                                             |
++=================+===============================================================+======================================================+
+| -bwa            | path executable                                               |                                                      |
++-----------------+---------------------------------------------------------------+------------------------------------------------------+
+| -ref            | reference genome sequence                                     | FASTA file                                           |
++-----------------+---------------------------------------------------------------+------------------------------------------------------+
+| -reads1         | file of read 1 of paired reads                                | FASTA or FASTQ format (or gzipped)                   |
++-----------------+---------------------------------------------------------------+------------------------------------------------------+
+| -reads2         | file of read 2 of paired reads (optional for single-end reads | FASTA or FASTQ format (or gzipped)                   |
++-----------------+---------------------------------------------------------------+------------------------------------------------------+
+| -output&dagger; | base filename to use for output files                         |                                                      |
++-----------------+---------------------------------------------------------------+------------------------------------------------------+
+| -maxreads       | subset of reads to process (optional); if blank, use          |                                                      |
++-----------------+---------------------------------------------------------------+------------------------------------------------------+
+| -mismatches     | how many to allow when searching reads for sequence patterns  |                                                      |
++-----------------+---------------------------------------------------------------+------------------------------------------------------+
+| -tn5            | process reads as a Tn5 library (Himar1 is assumed by default  | Reads mapping to any site will be considered.        |
++-----------------+---------------------------------------------------------------+------------------------------------------------------+
+| -himar1         | process reads as a Himar1 library (assumed by default)        | Considers reads that map to TA sites only.           |
++-----------------+---------------------------------------------------------------+------------------------------------------------------+
+| -primer         |   nucleotide sequence                                         | Constant prefix of reads that TPP searches for.      |
++-----------------+---------------------------------------------------------------+------------------------------------------------------+
+&dagger; In earlier versions of Transit, this flag used to be '-prefix', but we changed it to '-output'
 
 (Note: if you have already run TPP once, the you can leave out the
 specification of the path for BWA, and it will automatically take the
@@ -216,7 +233,7 @@ Here is a brief summary of the steps performed in converting raw reads
 #. Convert .fastq files to .fasta format (.reads).
 
 #. Identify reads with the transposon prefix in R1 . The sequence
-   searched for is ACTTATCAGCCAACCTGTTA, which must start between cycles
+   searched for is ACTTATCAGCCAACCTGTTA (or TAAGAGACAG for Tn5), which must start between cycles
    5 and 10 (inclusive). (Note that this ends in the canonical terminus
    of the Himar1 transposon, TGTTA.) The "staggered" position of this
    sequence is due to insertion a few nucleotides of variable length in
@@ -251,7 +268,7 @@ Here is a brief summary of the steps performed in converting raw reads
    run in 'sampe' mode (treating reads as pairs). Both reads of a pair
    must map (on opposite strands) to be counted.
 
-#. Count the reads mapping to each TA site in the reference genome.
+#. Count the reads mapping to each TA site in the reference genome (or all sites for Tn5).
 
 #. Reduce raw read counts to unique template counts. Group reads by
    barcode AND mapping location of read 2 (aka fragment "endpoints").
@@ -309,9 +326,13 @@ spreadsheet, as some people like to do to track multiple datasets.
 +-----------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | BC_corr               | correlation between read counts and template counts over non-zero sites                                                     |
 +-----------------------+-----------------------------------------------------------------------------------------------------------------------------+
-| primer_matches        | how many reads match the primer sequence (primer-dimer problem in sample prep)                                              |
+| primer_matches        | how many reads match the Himar1 primer sequence (primer-dimer problem in sample prep)                                       |
 +-----------------------+-----------------------------------------------------------------------------------------------------------------------------+
-| vector_matches        | how many reads match the phage sequence (transposon vector) used in Tn mutant library construction                          |
+| vector_matches        | how many reads match the phiMycoMarT7 sequence (transposon vector) used in Tn mutant library construction                   |
++-----------------------+-----------------------------------------------------------------------------------------------------------------------------+
+| adapter               | how many reads match the Illumina adapter (primer-dimers, no inserts).                                                      |
++-----------------------+-----------------------------------------------------------------------------------------------------------------------------+
+| misprimed             | how many reads match the Himar1 primer but lack the TGTTA, meaning they primed at random sites (non-Tn junctions)           |
 +-----------------------+-----------------------------------------------------------------------------------------------------------------------------+
 
 
@@ -321,31 +342,37 @@ Here is an example of a .tn\_stats file:
 ::
 
     # title: Tn-Seq Pre-Processor
-    # date: 02/18/2015 09:36:04
-    # command: python /pacific/home/ioerger/transit/tpp.py
-    # read1: /pacific/HomeFrozen/Tn-H37Rv-in-vitro_R1.fastq
-    # read2: /pacific/HomeFrozen/Tn-H37Rv-in-vitro_R2.fastq
-    # ref_genome: /pacific/home/ioerger/transit/genomes/H37Rv.fna
-    # total_reads 1301968 (read pairs)
-    # truncated_reads 26000 (fragments shorter than the read length; ADAP2 appears in read1)
-    # TGTTA_reads 1090333 (reads with valid Tn prefix, and insert size>20bp)
-    # reads1_mapped 1016860
-    # reads2_mapped 427481
-    # mapped_reads 413251 (both R1 and R2 map into genome)
-    # read_count 400069 (TA sites only)
-    # template_count 211128
-    # template_ratio 1.89 (reads per template)
+    # date: 08/03/2016 13:01:47
+    # command: python ../../src/tpp.py -bwa /pacific/home/ioerger/bwa-0.7.12/bwa -ref H37Rv.fna -reads1 TnSeq_H37Rv_CB_1M_R1.fastq -reads2 TnSeq_H37Rv_CB_1M_R2.fastq -output TnSeq_H37Rv_CB
+    # transposon type: Himar1
+    # read1: TnSeq_H37Rv_CB_1M_R1.fastq
+    # read2: TnSeq_H37Rv_CB_1M_R2.fastq
+    # ref_genome: H37Rv.fna
+    # total_reads 1000000 (or read pairs)
+    # TGTTA_reads 977626 (reads with valid Tn prefix, and insert size>20bp)
+    # reads1_mapped 943233
+    # reads2_mapped 892527
+    # mapped_reads 885796 (both R1 and R2 map into genome)
+    # read_count 879663 (TA sites only, for Himar1)
+    # template_count 605660
+    # template_ratio 1.45 (reads per template)
     # TA_sites 74605
-    # TAs_hit 21072
-    # density 0.282
-    # max_count 2306 (among templates)
-    # max_site 212278 (coordinate)
-    # NZ_mean 10.0 (among templates)
-    # FR_corr 0.917 (Fwd templates vs. Rev templates)
-    # BC_corr 0.965 (reads vs. templates, summed over both strands)
-    # primer_matches: 78 reads contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT
-    # vector_matches: 2 reads contain CTAGACCGTCCAGTCTGGCAGGCCGGAAAC
-    /pacific/HomeFrozen/Tn-H37Rv-in-vitro_R1.fastq  /pacific/HomeFrozen/Tn-H37Rv-in-vitro_R2.fastq  1301968 1090333 1016860 427481  413251  1016860 427481  400069  211128  1.89491209124   74605   21072   2306    212278  10.0193621868   0.917104229568  0.96542310842   78  2
+    # TAs_hit 50382
+    # density 0.675
+    # max_count 356 (among templates)
+    # max_site 2631639 (coordinate)
+    # NZ_mean 12.0 (among templates)
+    # FR_corr 0.821 (Fwd templates vs. Rev templates)
+    # BC_corr 0.990 (reads vs. templates, summed over both strands)
+    # primer_matches: 10190 reads (1.0%) contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT (Himar1)
+    # vector_matches: 5608 reads (0.6%) contain CTAGACCGTCCAGTCTGGCAGGCCGGAAAC (phiMycoMarT7)
+    # adapter_matches: 0 reads (0.0%) contain GATCGGAAGAGCACACGTCTGAACTCCAGTCAC (Illumina/TruSeq index)
+    # misprimed_reads: 6390 reads (0.6%) contain Himar1 prefix but don't end in TGTTA
+    # read_length: 125 bp
+    # mean_R1_genomic_length: 92.9 bp
+    # mean_R2_genomic_length: 79.1 bp
+    TnSeq_H37Rv_CB_1M_R1.fastq  TnSeq_H37Rv_CB_1M_R2.fastq  1000000 977626  943233  892527  885796  879663  605660  1.45240398904   74605   50382   356 0.675316667784  2631639 12.0213568338   0.8209081083    0.989912222642  10190   5608    0   6390
+
 
 **Interpretation:** To assess the quality of a dataset, I would
 recommend starting by looking at 3 primary statistics:

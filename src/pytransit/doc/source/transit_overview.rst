@@ -14,9 +14,9 @@ Overview
 
 |
 
-+ TRANSIT is capable of analyzing TnSeq libraries constructed with **Himar1** or **Tn5** datasets.
++ TRANSIT is capable of analyzing TnSeq libraries constructed with Himar1 or :ref:`**Tn5** <tn5-main-overview>` datasets.
 
-+ TRANSIT assumes you have already done pre-processing of raw sequencing files (.fastq) and extracted read counts into a `.wig formatted file <http://genome.ucsc.edu/goldenpath/help/wiggle.html>`_. The .wig file should contain the counts at all sites where an insertion could take place (including sites with no reads). For **Himar1** datasets this is all TA sites in the genome. For **Tn5** datasets this would be all nucleotides in the genome.
++ TRANSIT assumes you have already done pre-processing of raw sequencing files (.fastq) and extracted read counts into a `.wig formatted file <http://genome.ucsc.edu/goldenpath/help/wiggle.html>`_. The .wig file should contain the counts at all sites where an insertion could take place (including sites with no reads). For Himar1 datasets this is all TA sites in the genome. For :ref:`Tn5 <tn5-main-overview>` datasets this would be all nucleotides in the genome.
 
 
 + Note that while refer to "read-counts" throughout the documentation, the `current Himar1 protocol <http://www.springer.com/biomed/human+genetics/book/978-1-4939-2397-7>`_ utilizes internal barcodes that can be used to reduce raw read counts to unique template counts, and this this is the intended input to TRANSIT from Himar1 datasets.
@@ -85,6 +85,23 @@ Overview
 + Note: in this version of TRANSIT, most of the methods are oriented toward gene-level analysis. There are methods for analyzing essentiality of arbitrary genomic regions (e.g. sliding windows, HMMs...). We plan to incorporate some of these in future versions.
 
 
+
+.. _tn5-main-overview:
+
+Tn5 Datasets
+------------
+
+Transit can now process and analyze Tn5 datasets  This is a different transposon than Himar1.
+The major difference is Tn5 can insert at any site in the genome, and is not restricted
+to TA dinucleotides (and saturation is typically much lower).  This affects 
+the statistical analyses (which were originally designed for Himar1 and can't directly
+be applied to Tn5). Therefore, :ref:`Resampling <resampling>` was extended to handle Tn5 for comparative analysis, and 
+:ref:`Tn5Gaps <tn5gaps>` is a new statistical model for identifying essential genes in single Tn5 datasets.
+Amplification of Tn5 libraries
+uses different primers, and this affects the pre-processing by TPP.  But TPP has
+be modified to recognize the primer sequence for the most widely
+used protocol for Tn5.  Furthermore, TPP now has an option for users to define their
+own primer sequences, if they use a different sample prep protocol.
 
 
 
