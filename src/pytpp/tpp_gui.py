@@ -145,7 +145,7 @@ if hasWx:
             sizer4 = wx.BoxSizer(wx.HORIZONTAL)
             label4 = wx.StaticText(panel, label='Primer sequence:',size=(350,-1))
             sizer4.Add(label4,0,0,0)
-            self.prefix = wx.TextCtrl(panel,value="ACTTATCAGCCAACCTGTTA",size=(400,30))
+            self.prefix = wx.TextCtrl(panel,value="TAAGAGACAG" if self.transposon.GetValue()=="Tn5" else "ACTTATCAGCCAACCTGTTA",size=(400,30))
             sizer4.Add(self.prefix, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer4,0,wx.ALL,0)
             
