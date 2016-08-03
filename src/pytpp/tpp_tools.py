@@ -466,7 +466,7 @@ def extract_reads(vars):
     extract_staggered(vars.reads1,vars.tgtta1,vars)
 
     message("creating %s" % vars.tgtta2)
-    select_read(vars.tgtta1,vars.reads2,vars.tgtta2)
+    select_reads(vars.tgtta1,vars.reads2,vars.tgtta2)
     #message("creating %s" % vars.barcodes2)
     #select_cycles(vars.tgtta2,22,30,vars.barcodes2)
     #message("creating %s" % vars.genomic2)
@@ -548,7 +548,7 @@ def bwa_subprocess(command, outfile):
     for line in iter(process.stderr.readline, ''):
         if "Permission denied" in line:
             raise IOError("Error: BWA encountered a permissions error: \n\n%s" % line)
-
+        sys.stderr.write("%s\n" % line.strip())
 
 
 
@@ -576,7 +576,7 @@ def run_bwa(vars):
       outfile = open(vars.sai2, "w")
       bwa_subprocess(cmd, outfile)
 
-      cmd = [vars.bwa, vars.ref, vars.sai1, vars.sai2, vars.tgtta1, vars.genomic2]
+      cmd = [vars.bwa, "sampe", vars.ref, vars.sai1, vars.sai2, vars.tgtta1, vars.genomic2]
       outfile = open(vars.sam, "w")
       bwa_subprocess(cmd, outfile)
 
