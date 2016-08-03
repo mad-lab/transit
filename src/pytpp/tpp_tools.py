@@ -24,6 +24,9 @@ import glob,os,sys,time,math
 import sys, re, shutil
 import platform
 import gzip
+import subprocess
+
+
 
 def analyze_dataset(wigfile):
   data = []
@@ -88,15 +91,15 @@ def fix_paired_headers_for_bwa(reads1,reads2):
       if tot%1000000==0: message("%s reads processed" % tot)
       # find first position where there is a difference
       i,n = 0,len(e)
-      if len(f)!=n: raise Exception('unexpected format of headers in .fastq files')
+      if len(f)!=n: raise Exception('Error: unexpected format of headers in .fastq files')
       while i<n and e[i]==f[i]: i += 1
-      if i==n: raise Exception('unexpected format of headers in .fastq files')
+      if i==n: raise Exception('Error: unexpected format of headers in .fastq files')
       e = e.replace(' ','_')
       f = f.replace(' ','_')
       e = e.replace('/','_') # this was neceesary for bwa 0.7.10 but not 0.7.12
       f = f.replace('/','_')
       #if i<n-1:
-      if e[i+1:]!=f[i+1:]: raise Exception('unexpected format of headers in .fastq files')
+      if e[i+1:]!=f[i+1:]: raise Exception('Error: unexpected format of headers in .fastq files')
       e,f = e[:-1],f[:-1] # strip EOL
       # needed for bwa 0.7.12? which apparently trims off last 2 chars to make ids identical
       # "/[1|2]" are automatically trimmed, but not /3
@@ -163,7 +166,7 @@ def extract_staggered(infile,outfile,vars):
       vars.tot_tgtta += 1
   output.close()
   if vars.tot_tgtta == 0:
-    raise ValueError("Input files did not contain any reads matching prefix sequence with %d mismatches" % vars.mm1)
+    raise ValueError("Error: Input files did not contain any reads matching prefix sequence with %d mismatches" % vars.mm1)
 
 
 
@@ -392,9 +395,19 @@ def driver(vars):
      generate_output(vars)
 
   except ValueError as err:
-    message("Error: %s" % " ".join(err.args))
+    message("")
+    message("%s" % " ".join(err.args))
     message("Exiting.")
     sys.exit()
+
+  except IOError as err:
+    message("")
+    message("%s" % " ".join(err.args))
+    message("Make sure you have read/write access in the directories containing the necessary files.")
+    message("Note: If TPP cannot find index files for the FASTA sequence (i.e. *.fna.bwt, *.fna.pac, *.fna.ann, *.fna.sa), it will attempt to create them.")
+    message("Exiting.")
+    sys.exit()
+
 
   message("Done.")
 
@@ -524,31 +537,49 @@ def extract_barcodes(fn_tgtta2,fn_barcodes2,fn_genomic2,mm1):
   fl_genomic2.close()
   if DEBUG==1: sys.exit(0)
 
+
+
+def bwa_subprocess(command, outfile):
+    commandstr = " ".join(command)
+    if outfile.name != "<stdout>":
+        commandstr += " > %s" % outfile.name
+    message(commandstr)
+    process = subprocess.Popen(command, stdout=outfile, stderr=subprocess.PIPE)
+    for line in iter(process.stderr.readline, ''):
+        if "Permission denied" in line:
+            raise IOError("Error: BWA encountered a permissions error: \n\n%s" % line)
+
+
+
+
+
 def run_bwa(vars):
     message("mapping reads using BWA...(this takes a couple of minutes)")
 
     if not os.path.exists(vars.ref+".amb"):
-      cmd = vars.bwa+" index "+vars.ref
-      message(cmd)
-      os.system(cmd)
+      cmd = [vars.bwa, "index", vars.ref]
+      bwa_subprocess(cmd, sys.stdout)
+       
 
-    cmd = "%s aln %s %s > %s" % (vars.bwa,vars.ref,vars.tgtta1,vars.sai1)
-    message(cmd)
-    os.system(cmd)
+    cmd = [vars.bwa, "aln",  vars.ref, vars.tgtta1]
+    outfile = open(vars.sai1, "w")
+    bwa_subprocess(cmd, outfile)
+
 
     if vars.single_end==True:
-      cmd = "%s samse %s %s %s > %s" % (vars.bwa,vars.ref,vars.sai1,vars.tgtta1,vars.sam)
-      message(cmd)
-      os.system(cmd)
+      cmd = [vars.bwa, "samse", vars.ref, vars.sai1, vars.tgtta1]
+      outfile = open(vars.sam, "w")
+      bwa_subprocess(cmd, outfile)
 
     else:
-      cmd = "%s aln %s %s > %s" % (vars.bwa,vars.ref,vars.genomic2,vars.sai2)
-      message(cmd)
-      os.system(cmd)
+      cmd = [vars.bwa, "aln", vars.ref, vars.genomic2]
+      outfile = open(vars.sai2, "w")
+      bwa_subprocess(cmd, outfile)
 
-      cmd = "%s sampe %s %s %s %s %s > %s" % (vars.bwa,vars.ref,vars.sai1,vars.sai2,vars.tgtta1,vars.genomic2,vars.sam)
-      message(cmd)
-      os.system(cmd)
+      cmd = [vars.bwa, vars.ref, vars.sai1, vars.sai2, vars.tgtta1, vars.genomic2]
+      outfile = open(vars.sam, "w")
+      bwa_subprocess(cmd, outfile)
+
 
 
 def stats(vals):
@@ -563,6 +594,10 @@ def stats(vals):
 def corr(X,Y):
   muX,sdX = stats(X)
   muY,sdY = stats(Y)
+
+  if sdX == 0 or sdY == 0:
+    raise ValueError("Warning: Standard deviations of counts is zero.")
+
   cX = [x-muX for x in X]
   cY = [y-muY for y in Y]
   s = sum([x*y for (x,y) in zip(cX,cY)])
@@ -600,7 +635,7 @@ def generate_output(vars):
   tcfile.close()
 
   if vars.mapped == 0:
-    raise ValueError('No reads mapped by BWA.')
+    raise ValueError('Error: BWA was unable to map any reads to the genome.')
 
   message("writing %s" % vars.wig)
   output = open(vars.wig,"w")
@@ -640,8 +675,16 @@ def generate_output(vars):
   max_tc = counts[-1][6]
   max_coord = counts[-1][0]
   NZmean = tc/float(tas_hit)
-  FR_corr = corr([x[1] for x in counts],[x[3] for x in counts])
-  BC_corr = corr([x for x in rcounts if x!=0],[x for x in tcounts if x!=0])
+
+  try:
+    FR_corr = corr([x[1] for x in counts],[x[3] for x in counts])
+  except ValueError:
+    FR_corr = float("nan")
+  try:
+    BC_corr = corr([x for x in rcounts if x!=0],[x for x in tcounts if x!=0])
+  except ValueError:
+    BC_corr = float("nan")
+ 
 
   read_length = get_read_length(vars.base + ".reads1")
   mean_r1_genomic = get_genomic_portion(vars.base + ".tgtta1")
