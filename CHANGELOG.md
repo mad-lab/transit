@@ -10,6 +10,11 @@ All notable changes to this project will be documented in this file.
     - Export to combined wig format now asks normalization BEFORE file name.
     - Fixed bug in Quality Control displays.
     - Miscellanous bug changes.
+    - Updates to Documentation
+
+-TPP:
+    - Now accepts custom primer sequences.
+    - Reporting additional diagnostic statistics for reads mapping to phiMycoMarT7, and Illumina adapters.
    
 
 ## Version 2.0.2 - 2016-07-06

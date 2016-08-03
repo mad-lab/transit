@@ -13,17 +13,16 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
+
 # Get the long description from the README file
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
     
 # Get current version
-with open(path.join(here, 'VERSION')) as version_file:
-    #version = version_file.read().strip()
-    #version = version_file.read().strip().split("-")[0].split()[1]
-    #version = "1.9.9"
-    #version = "1.9.20"
-    version = "2.0.1"
+import sys
+sys.path.insert(1, "src/")
+import pytransit
+version =  pytransit.__version__[1:] #"2.0.3"
 
 setup(
     name='tnseq-transit',

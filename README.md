@@ -1,7 +1,11 @@
 # TRANSIT 2.0
 
 
-**Version 2.0 released (June 15th, 2016)**
+**Version 2.0.3 released (Auguest, 2016)**
+- Added support for Tn5 datasets in TPP and TRANSIT, and custom primers.
+- Added support for annotations in GFF3 format.
+
+
 
 Welcome! This is the distribution for the TRANSIT and TPP tools developed by the Ioerger Lab.
 
