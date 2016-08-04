@@ -72,31 +72,46 @@ def main():
     else:
         flag = False
         initialize_globals(vars)
-        for i in range(0, len(sys.argv)):
+        i,n = 1,len(sys.argv)
+        while i<n:
             if sys.argv[i] == '-help':
                 show_help()
                 sys.exit()
-            if sys.argv[i] == '-tn5':
+            elif sys.argv[i] == '-tn5':
                 vars.transposon = 'Tn5'
+                i += 1
             elif sys.argv[i] == '-himar1': 
                 vars.transposon = 'Himar1'
+                i += 1
             elif sys.argv[i] == '-primer': 
                 vars.prefix = sys.argv[i+1]
+                i += 2
             elif sys.argv[i] == '-reads1':
                 vars.fq1 = sys.argv[i+1]
+                i += 2
             elif sys.argv[i] == '-reads2':
                 flag = True
                 vars.fq2 = sys.argv[i+1]
+                i += 2
             elif sys.argv[i] == '-bwa':
                 vars.bwa = sys.argv[i+1]
+                i += 2
             elif sys.argv[i] == '-ref':
                 vars.ref = sys.argv[i+1]
+                i += 2
             elif sys.argv[i] == '-maxreads':
                 vars.maxreads = int(sys.argv[i+1])
+                i += 2
             elif sys.argv[i] == '-output':
                 vars.base = sys.argv[i+1]
+                i += 2
             elif sys.argv[i] == '-mismatches':
                 vars.mm1 = int(sys.argv[i+1])
+                i += 2
+            else:
+                print "error: unrecognized flag:",sys.argv[i]
+                show_help()
+                sys.exit()
         if flag==False: vars.fq2 = ""
         if vars.fq2=="": msg = 'running pre-processing on %s' % (vars.fq1)
         else: msg = 'running pre-processing on %s and %s' % (vars.fq1,vars.fq2)

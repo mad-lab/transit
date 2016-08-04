@@ -786,7 +786,7 @@ def save_config(vars):
   f.close()
 
 def show_help():
-  print 'usage: python PATH/src/tpp.pyc -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE -reads2 PATH_TO_FASTQ_OR_FASTA_FILE -output OUTPUT_BASE_FILENAME [-maxreads N] [-mismatches N] [-tn5|-himar1] [-primer <seq>]'
+  print 'usage: python PATH/src/tpp.pyc -bwa <PATH_TO_EXECUTABLE> -ref <REF_SEQ> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-tn5|-himar1] [-primer <seq>]'
     
 class Globals:
   pass
