@@ -6,7 +6,7 @@ Overview
 ========
 
 
-+ This is a software that can be used to analyze Tn-Seq datasets. It includes various statistical calculations of essentiality of genes or genomic regions (including conditional essentiality between 2 conditions). These methods were developed and tested as a collaboration between the Sassetti lab (UMass) and the Ioerger lab (Texas A&M).
++ This is a software that can be used to analyze Tn-Seq datasets. It includes various statistical calculations of essentiality of genes or genomic regions (including conditional essentiality between 2 conditions). These methods were developed and tested as a collaboration between the Sassetti lab (UMass) and the Ioerger lab (Texas A&M) [DeJesus2015TRANSIT]_.
 
 .. image:: _images/transit_interface.png
    :width: 600
@@ -104,5 +104,64 @@ used protocol for Tn5.  Furthermore, TPP now has an option for users to define t
 own primer sequences, if they use a different sample prep protocol.
 
 
+
+Developers
+----------
+
+==================  ============  ==============================================================================
+ Name                Time Active          Contact Information
+==================  ============  ==============================================================================
+Michael A. DeJesus  2015-Present  `http://students.cs.tamu.edu/mad <http://students.cs.tamu.edu/mad>`_
+Thomas R. Ioerger   2015-Present  `http://faculty.cs.tamu.edu/ioerger/ <http://faculty.cs.tamu.edu/ioerger/>`_
+Chaitra Ambadipudi  2015           
+Eric Nelson         2016           
+==================  ============  ==============================================================================
+
+
+
+
+References
+----------
+
+
+If you use TRANSIT, please cite the following reference: 
+
+
+.. [DeJesus2015TRANSIT] `DeJesus, M.A., Ambadipudi, C., Baker, R., Sassetti, C., and Ioerger, T.R. (2015). TRANSIT - a Software Tool for Himar1 TnSeq Analysis. PLOS Computational Biology, 11(10):e1004401 <http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1004401>`_
+
+
+
+Development of TRANSIT is funded by the National Institutes of Health (www.nih.gov/) grant U19 AI107774.
+
+
+
+Other references, including methods utilized by TRANSIT:
+
+
+
+.. [DeJesus2013]  `DeJesus, M.A., Zhang, Y.J., Sassettti, C.M., Rubin, E.J.,
+  Sacchettini, J.C., and Ioerger, T.R. (2013). Bayesian analysis of gene essentiality based on sequencing of transposon insertion libraries. Bioinformatics, 29(6):695-703. <http://www.ncbi.nlm.nih.gov/pubmed/23361328>`_
+
+
+.. [DeJesus2013HMM] `DeJesus, M.A., Ioerger, T.R. A Hidden Markov Model for identifying essential and growth-defect regions in bacterial genomes from transposon insertion sequencing data. BMC Bioinformatics. 2013. 14:303 <http://www.ncbi.nlm.nih.gov/pubmed/24103077>`_
+
+
+.. [DeJesus2014] `DeJesus, M.A. and Ioerger, T.R. (2014). Capturing uncertainty by modeling local transposon insertion frequencies improves discrimination of essential genes. IEEE Transactions on Computational Biology and Bioinformatics, 12(1):92-102. <http://www.ncbi.nlm.nih.gov/pubmed/26357081>`_
+
+
+
+.. [DeJesus2016] `DeJesus, M.A. and Ioerger, T.R. (2016). Normalization of transposon-mutant library sequencing datasets to improve identification of conditionally essential genes. Journal of Bioinformatics and Computational Biology, 14(3):1642004 <http://www.ncbi.nlm.nih.gov/pubmed/26932272>`_
+
+
+.. [] ` <>`_
+
+
+.. [] ` <>`_
+
+
+.. [] ` <>`_
+
+
+.. [] ` <>`_
 
 

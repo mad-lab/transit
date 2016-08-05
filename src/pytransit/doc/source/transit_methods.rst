@@ -27,7 +27,10 @@ probabily of this using a Baysian model.
 How does it work?
 ~~~~~~~~~~~~~~~~~
 
-| For a formal description of how this method works, see our paper:
+| For a formal description of how this method works, see our paper [DeJesus2013]_:
+
+|
+
 |  DeJesus, M.A., Zhang, Y.J., Sassettti, C.M., Rubin, E.J.,
   Sacchettini, J.C., and Ioerger, T.R. (2013).
 | `Bayesian analysis of gene essentiality based on sequencing of transposon insertion libraries. <http://www.ncbi.nlm.nih.gov/pubmed/23361328>`_ *Bioinformatics*, 29(6):695-703.
@@ -270,7 +273,8 @@ The HMM method can be used to determine the essentiality of the entire genome, a
 How does it work?
 ~~~~~~~~~~~~~~~~~
 
-| For a formal description of how this method works, see our paper:
+| For a formal description of how this method works, see our paper [DeJesus2013HMM]_:
+|
 |  DeJesus, M.A., Ioerger, T.R. `A Hidden Markov Model for identifying essential and growth-defect regions in bacterial genomes from transposon insertion sequencing data. <http://www.ncbi.nlm.nih.gov/pubmed/24103077>`_ *BMC Bioinformatics.* 2013. 14:303
 
 |

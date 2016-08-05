@@ -31,7 +31,7 @@ The following libraries/modules are required to run TRANSIT:
 + `Numpy 1.6.1+ <http://www.numpy.org/>`_
 + `Scipy 0.14.0+ <http://www.scipy.org/>`_
 + `matplotlib 1.1.1+ <http://matplotlib.org/users/installing.html>`_
-+ `wxpython 2.8.0+ <http://www.wxpython.org/>`_ (for Mac OSX, use the **cocoa** version of wxPython)
++ `wxpython 2.8.0+ <http://www.wxpython.org/>`_ (for Mac OSX, use the **cocoa** version of wxPython; If using El Capitan, please see :ref:`OSX El Capitan notice <osx_el_capitan>` for special instructions)
 + `PIL (Python Imaging Library) <http://www.pythonware.com/products/pil/>`_ or Pillow.
 
 
@@ -258,6 +258,14 @@ Download and install the OSX binary of wxpython (cocoa version) for python 2.7:
     
     `http://downloads.sourceforge.net/wxpython/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg`_
 
+.. _osx_el_capitan:
+
+.. NOTE::
+   If you are running OSX El Capitan or later, you will need to use a repackaged version of the 
+   wxpython installer. You can `download a repackaged version from our servers <http://orca1.tamu.edu/essentiality/transit/wxPython3.0-osx-cocoa-py2.7_mad_elcapitan.pkg>`_ or you can follow `these detailed instructions to repackage the installer <http://davixx.fr/blog/2016/01/25/wxpython-on-os-x-el-capitan/>`_ if you prefer.
+
+
+
 
 Finally you can use pip to install the TRANSIT package:
 
@@ -339,6 +347,16 @@ Download and install the OSX binary of wxpython (cocoa version) for python 2.7:
 
     
     `http://downloads.sourceforge.net/wxpython/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg`_
+
+.. NOTE::
+   If you are running OSX El Capitan or later, you will need to use a repackaged version of the 
+   wxpython installer. You can `download a repackaged version from our servers <http://orca1.tamu.edu/essentiality/transit/wxPython3.0-osx-cocoa-py2.7_mad_elcapitan.pkg>`_ or you can follow `these detailed instructions to repackage the installer <http://davixx.fr/blog/2016/01/25/wxpython-on-os-x-el-capitan/>`_ if you prefer.
+
+
+
+
+
+
 
 Optional: If you will be using the pre-processor, TPP, you will also need to install `BWA <http://bio-bwa.sourceforge.net/>`_ . Download the source files:
 
