@@ -16,7 +16,7 @@ The Gumbel can be used to determine which genes are essential in a
 single condition. It does a gene-by-gene analysis of the insertions at
 TA sites with each gene, makes a call based on the longest consecutive
 sequence of TA sites without insertion in the genes, calculates the
-probabily of this using a Baysian model.
+probability of this using a Bayesian model.
 
 .. NOTE::
    Intended only for **Himar1** datasets.
@@ -47,7 +47,7 @@ Parameters
    posterior probabilities. Less iterations may work, but at the risk of
    lower accuracy.
 
--  **Burn-In:** Because the MH sampler many not have stabalized in the
+-  **Burn-In:** Because the MH sampler many not have stabilized in the
    first few iterations, a "burn-in" period is defined. Samples obtained
    in this "burn-in" period are discarded, and do not count towards
    estimates.
@@ -61,12 +61,12 @@ Parameters
 
 -  **Minimum Read:** The minimum read count that is considered a true
    read. Because the Gumbel method depends on determining gaps of TA
-   sites lacking insertions, it may be suceptible to spurious reads
+   sites lacking insertions, it may be susceptible to spurious reads
    (e.g. errors). The default value of 1 will consider all reads as true
    reads. A value of 2, for example, will ignore read counts of 1.
 
 -  **Replicates:** Determines how to deal with replicates by averaging
-   the read-counts or suming read counts accross datasets. This should
+   the read-counts or summing read counts across datasets. This should
    not have an affect for the Gumbel method, aside from potentially
    affecting spurious reads.
 
@@ -75,7 +75,7 @@ Parameters
 Outputs and diagnostics
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The Gumbel method generates a tab-seperated output file at the location
+The Gumbel method generates a tab-separated output file at the location
 chosen by the user. This file will automatically be loaded into the
 Results Files section of the GUI, allowing you to display it as a table.
 Alternatively, the file can be opened in a spreadsheet software like
@@ -97,14 +97,14 @@ defined as follows:
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------+
 | r               | Length of the Maximum Run of Non-Insertions observed.                                                                         |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------+
-| s               | Span of nucleotidies for the Maximum Run of Non-Insertions.                                                                   |
+| s               | Span of nucleotides for the Maximum Run of Non-Insertions.                                                                   |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------+
 | zbar            | Posterior Probability of Essentiality.                                                                                        |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------+
 | Call            | Essentiality call for the gene. Depends on FDR corrected thresholds. E=Essential U=Uncertain, NE=Non-Essential, S=too short   |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------+
 
-| 
+|
 |  Note: Technically, Bayesian models are used to calculate posterior
   probabilities, not p-values (which is a concept associated with the
   frequentist framework). However, we have implemented a method for
@@ -146,7 +146,7 @@ The Tn5Gaps method can be used to determine which genes are essential
 in a single condition for **Tn5** datasets. It does an analysis of the
 insertions at each site within the genome, makes a call for a given
 gene based on the length of the most heavily overlapping run of sites
-without insertions (gaps), calculates the probabily of this using a
+without insertions (gaps), calculates the probability of this using a
 the Gumbel distribution.
 
 .. NOTE::
@@ -162,13 +162,13 @@ How does it work?
 This method is loosely is based on the original gumbel analysis
 method described in this paper:
 
-Griffin, J.E., Gawronski, J.D., DeJesus, M.A., Ioerger, T.R., Akerley, B.J., Sassetti, C.M. (2011). 
+Griffin, J.E., Gawronski, J.D., DeJesus, M.A., Ioerger, T.R., Akerley, B.J., Sassetti, C.M. (2011).
 `High-resolution phenotypic profiling defines genes essential for mycobacterial survival and cholesterol catabolism. <http://www.ncbi.nlm.nih.gov/pubmed/21980284>`_  *PLoS Pathogens*, 7(9):e1002251.
 
 
 The Tn5Gaps method modifies the original method in order to work on
 Tn5 datasets, which have significantly lower saturation of insertion sites
-than Himar1 datasets. The main difference comes from the fact that 
+than Himar1 datasets. The main difference comes from the fact that
 the runs of non-insertion (or "gaps") are analyzed throughout the whole
 genome, including non-coding regions, instead of within single genes.
 In doing so, the expected maximum run length is calculated and a
@@ -210,7 +210,7 @@ Parameters
 Outputs and diagnostics
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The Tn5Gaps method generates a tab-seperated output file at the
+The Tn5Gaps method generates a tab-separated output file at the
 location chosen by the user. This file will automatically be loaded
 into the Results Files section of the GUI, allowing you to display it
 as a table. Alternatively, the file can be opened in a spreadsheet
@@ -220,7 +220,7 @@ file are defined as follows:
 
 +-----------------+--------------------------------------------------------------------------------------------------+
 | Column Header   | Column Definition                                                                                |
-+=================+==================================================================================================+ 
++=================+==================================================================================================+
 | ORF             | Gene ID.                                                                                         |
 +-----------------+--------------------------------------------------------------------------------------------------+
 | Name            | Name of the gene.                                                                                |
@@ -287,10 +287,10 @@ parameters from the datasets. You can change how the method handles
 replicate datasets:
 
 -  **Replicates:** Determines how the HMM deals with replicate datasets
-   by either averaging the read-counts or suming read counts accross
+   by either averaging the read-counts or summing read counts across
    datasets. For regular datasets (i.e. mean-read count > 100) the
    recommended setting is to average read-counts together. For sparse
-   datasets, it suming read-counts may produce more accurate results.
+   datasets, it summing read-counts may produce more accurate results.
 
 |
 
@@ -325,7 +325,7 @@ Output and Diagnostics
 | 8          | Gene(s) that share(s) the TA site.                                                                  |
 +------------+-----------------------------------------------------------------------------------------------------+
 
-| 
+|
 |  The second file provides a gene-level classification for all the
   genes in the genome. Genes are classified as "E" (Essential), "GD"
   (Growth-Defect), "NE" (Non-Essential), or "GA" (Growth-Advantage)
@@ -358,7 +358,7 @@ Output and Diagnostics
 | State Call        | State Classification (ES = Essential, GD = Growth Defect, NE = Non-Essential, GA = Growth-Defect)   |
 +-------------------+-----------------------------------------------------------------------------------------------------+
 
-| 
+|
 |  Note: Libraries that are too sparse (e.g. < 30%) or which contain
   very low read-counts may be problematic for the HMM method, causing it
   to label too many Growth-Defect genes.
@@ -398,7 +398,7 @@ How does it work?
 This technique has yet to be formally published in the context of
 differential essentiality analysis. Briefly, the read-counts at each
 genes are determined for each replicate of each condition. The total
-read-counts in condition A is substracted from the total read counts at
+read-counts in condition A is subtracted from the total read counts at
 condition B, to obtain an observed difference in read counts. The TA
 sites are then permuted for a given number of "samples". For each one of
 these permutations, the difference is read-counts is determined. This
@@ -431,8 +431,8 @@ parameters are available for the method:
    OFF by default.
 
 -  **Include Zeros:** By default resampling will ignore sites that are zero
-   accross all the datasets (i.e. completely empty), which is useful for 
-   decreasing running time (specially for large datasets like Tn5). This 
+   across all the datasets (i.e. completely empty), which is useful for
+   decreasing running time (specially for large datasets like Tn5). This
    option allows the user to include these empty rows.
 
 -  **Normalization Method:** Determines which normalization method to
@@ -446,7 +446,7 @@ parameters are available for the method:
 Output and Diagnostics
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The re-sampling method ouputs a tab-delimited file with results for each
+The re-sampling method outputs a tab-delimited file with results for each
 gene in the genome. P-values are adjusted for multiple comparisons using
 the Benjamini-Hochberg procedure (called "q-values" or "p-adj."). A
 typical threshold for conditional essentiality on is q-value < 0.05.
@@ -475,7 +475,7 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 | p-adj.          | Adjusted p-value controlling for the FDR (Benjamini-Hochberg)   |
 +-----------------+-----------------------------------------------------------------+
 
-| 
+|
 
 Run-time
 ~~~~~~~~
@@ -539,8 +539,3 @@ as real differences in datasets. TRANSIT provides various normalization methods,
 
 - **nonorm:**
     No normalization is performed.
-
-
-
-
-
