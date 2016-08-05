@@ -7,7 +7,7 @@ Tutorial: Export datasets
 
 TRANSIT has the capability to export .wig files into different formats.
 This tutorial shows a quick overview of how to export to the IGV format.
-This can be useful to be able to import read-count data into 
+This can be useful to be able to import read-count data into
 `IGV from the Broad Institute <https://www.broadinstitute.org/igv/>`_ and use
 its visualization capabilities.
 
@@ -19,7 +19,7 @@ Before we can export .wig datasets to IGV format, we need to add an
 annotation file for the organism. Click on the file dialog button, on
 the top of the TRANSIT window (see image below), and browse and select
 the appropriate annotation file. Note: Annotation files must be in
-".prot_table" format, described above:
+".prot_table" or GFF3 format, described above:
 
 
 .. image:: _images/transit_tutorial_annotation.png
@@ -54,4 +54,3 @@ which datasets we wish to export. Note: Only selected datasets
 .. image:: _images/transit_export_options.png
    :width: 600
    :align: center
-
