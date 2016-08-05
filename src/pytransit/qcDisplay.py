@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 
 ###########################################################################
 ## Python code generated with wxFormBuilder (version Jun  6 2014)
@@ -63,7 +63,7 @@ def WxImageToWxBitmap( myWxImage ) :
 ###########################################################################
 
 class qcFrame ( wx.Frame ):
-    
+
     def __init__( self, parent, datasets):
 
         try:
@@ -71,72 +71,82 @@ class qcFrame ( wx.Frame ):
             self.index_stats = 0
             self.plots_list = []
 
-            wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = "Quality Control", pos = wx.DefaultPosition, size = wx.Size( 1560,720 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
-        
+            wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = "Quality Control", pos = wx.DefaultPosition, size = wx.Size( 1560,800 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+
             self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
-        
+
             bSizer9 = wx.BoxSizer( wx.VERTICAL )
-        
+
             self.m_scrolledWindow1 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
             self.m_scrolledWindow1.SetScrollRate( 5, 5 )
             bSizer10 = wx.BoxSizer( wx.VERTICAL )
-        
+
             self.plotsScrolledWindow = wx.ScrolledWindow( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
             self.plotsScrolledWindow.SetScrollRate( 5, 5 )
-            self.plotsScrolledWindow.SetMinSize( wx.Size( -1, 150 ) )
-            
+            self.plotsScrolledWindow.SetMinSize( wx.Size( -1, 550 ) )
+
             #plotsSizer = wx.BoxSizer( wx.VERTICAL )
             plotsSizer = wx.BoxSizer( wx.HORIZONTAL )
 
             self.plotsBitmap1 = wx.StaticBitmap( self.plotsScrolledWindow, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
             self.plotsBitmap2 = wx.StaticBitmap( self.plotsScrolledWindow, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
             self.plotsBitmap3 = wx.StaticBitmap( self.plotsScrolledWindow, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-        
+
             plotsSizer.Add( self.plotsBitmap1, 0, wx.ALL, 5 )
             plotsSizer.Add( self.plotsBitmap2, 0, wx.ALL, 5 )
             plotsSizer.Add( self.plotsBitmap3, 0, wx.ALL, 5 )
-       
+
             #self.plotsBitmap.SetMaxSize( wx.Size( 400,400 ) )
             #self.plotsFigure = Figure()
-            #self.plotsAxes = self.plotsFigure.add_subplot(111) 
+            #self.plotsAxes = self.plotsFigure.add_subplot(111)
             #self.plotsCanvas = FigureCanvas(self, -1, self.plotsFigure)
             #plotsSizer.Add( self.plotsCanvas, 0, wx.ALL, 5 )
-        
 
-        
+
             self.plotsScrolledWindow.SetSizer( plotsSizer )
             self.plotsScrolledWindow.Layout()
             plotsSizer.Fit( self.plotsScrolledWindow )
-            bSizer10.Add( self.plotsScrolledWindow, 1, wx.EXPAND |wx.ALL, 5 )
-        
+            bSizer10.Add( self.plotsScrolledWindow, 0, wx.EXPAND |wx.ALL, 5 )
+
             self.statsScrolledWindow = wx.ScrolledWindow( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
             self.statsScrolledWindow.SetScrollRate( 5, 5 )
-            self.statsScrolledWindow.SetMaxSize( wx.Size( -1, 400 ) )
-            self.statsScrolledWindow.SetMinSize( wx.Size( -1, 150 ) )
+            self.statsScrolledWindow.SetMaxSize( wx.Size( -1, -1 ) )
+            self.statsScrolledWindow.SetMinSize( wx.Size( -1, 200 ) )
+
+
+            self.noticeLabel = wx.StaticText( self.statsScrolledWindow, wx.ID_ANY, u"*Note: Plot 1 and 2 truncate the top 1% of reads for readability.", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE)
+            #noteSizer = wx.BoxSizer( wx.VERTICAL )
+            #noteSizer.Add(self.noticeLabel, wx.ALL|wx.EXPAND, 5 )
+
+
+
             statsSizer = wx.BoxSizer( wx.VERTICAL )
-        
-            #self.statsListCtrl = wx.ListCtrl( self.statsScrolledWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT )
             self.statsListCtrl = wx.ListCtrl( self.statsScrolledWindow, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1, 140 ), wx.LC_REPORT |wx.LC_SINGLE_SEL )
+
+
+            statsSizer.Add( self.noticeLabel, 0, wx.EXPAND, 5 )
             statsSizer.Add( self.statsListCtrl, 1, wx.ALL|wx.EXPAND, 5 )
-        
-        
+
+
+
+
             self.statsScrolledWindow.SetSizer( statsSizer )
             self.statsScrolledWindow.Layout()
             statsSizer.Fit( self.statsScrolledWindow )
             bSizer10.Add( self.statsScrolledWindow, 0, wx.EXPAND |wx.ALL, 5 )
-        
-        
+
+
             self.m_scrolledWindow1.SetSizer( bSizer10 )
             self.m_scrolledWindow1.Layout()
             bSizer10.Fit( self.m_scrolledWindow1 )
             bSizer9.Add( self.m_scrolledWindow1, 1, wx.EXPAND |wx.ALL, 5 )
-        
-        
+
+
             self.SetSizer( bSizer9 )
             self.Layout()
-        
+
             self.Centre( wx.BOTH )
-            
+
             ########################
             # Connect Events
             self.statsListCtrl.Bind( wx.EVT_LIST_ITEM_SELECTED, self.onStatsItemSelect)
@@ -149,7 +159,7 @@ class qcFrame ( wx.Frame ):
             self.statsListCtrl.Select(0)
             #self.onStatsItemSelect(None)
             ###########################
-            #self.bSizer9.Fit() 
+            #self.bSizer9.Fit()
 
         except Exception as e:
             print self.qc_prefix, "Error:", e
@@ -159,10 +169,10 @@ class qcFrame ( wx.Frame ):
 
 
 
- 
+
     def __del__( self ):
         pass
-    
+
 
     def addFiles(self, datasets):
         self.index_stats = 0
@@ -208,30 +218,34 @@ class qcFrame ( wx.Frame ):
                 reads = reads[0]
                 reads = numpy.array(reads)
                 nzreads = reads[reads>0]
+                n_nz = len(nzreads)
+                truncnzreads = sorted(nzreads)[:int(n_nz*0.99)]
 
                 fig = plt.figure(facecolor='white', figsize=(5, 5), dpi=100)
                 ax = fig.add_subplot(111, frame_on=False)
+
                 #Plot 1
-                n, bins, patches = ax.hist(reads, normed=1, facecolor='c', alpha=0.75, bins=100)
+                n, bins, patches = ax.hist(truncnzreads, normed=1, facecolor='c', alpha=0.75, bins=100)
                 plt.xlabel('Reads')
                 plt.ylabel('Probability')
-                plt.title('Histogram of Reads\nDataset: %s' % name)
+
+                plt.title('Histogram of Non-Zero Reads\nDataset: %s' % name)
                 plt.grid(True)
                 buf = io.BytesIO()
                 fig.savefig(buf, format='png')
                 buf.seek(0)
                 hist_pil_img = Image.open(buf)
                 hist_wx_img = PilImageToWxImage( hist_pil_img )
-                hist_wx_bitmap = wx.BitmapFromImage(hist_wx_img)       
-    
+                hist_wx_bitmap = wx.BitmapFromImage(hist_wx_img)
+
                 #Plot 2
                 plt.clf()
                 ax = fig.add_subplot(111, frame_on=False)
-                ((qtheoretical, qdata), (slope, intercept, r)) = scipy.stats.probplot(nzreads, dist="geom", sparams=(1.0/numpy.mean(nzreads),))
+                ((qtheoretical, qdata), (slope, intercept, r)) = scipy.stats.probplot(truncnzreads, dist="geom", sparams=(1.0/numpy.mean(truncnzreads),))
 
                 n_qdata = len(qdata)
-                qtheoretical = qtheoretical[:int(n_qdata*0.99)]
-                qdata = qdata[:int(n_qdata*0.99)]
+                #qtheoretical = qtheoretical[:int(n_qdata*0.99)]
+                #qdata = qdata[:int(n_qdata*0.99)]
                 ax.plot(qdata, qtheoretical, "ob")
 
                 maxval = max(numpy.max(qtheoretical), numpy.max(qdata))
@@ -247,7 +261,7 @@ class qcFrame ( wx.Frame ):
                 qq_pil_img = Image.open(buf)
                 qq_wx_img = PilImageToWxImage(qq_pil_img)
                 qq_wx_bitmap = wx.BitmapFromImage(qq_wx_img)
-        
+
                 #Plot 3
                 plt.clf()
                 ax = fig.add_subplot(111, frame_on=False)
@@ -261,7 +275,7 @@ class qcFrame ( wx.Frame ):
                 buf.seek(0)
                 sorted_pil_img = Image.open(buf)
                 sorted_wx_img = PilImageToWxImage(sorted_pil_img)
-                sorted_wx_bitmap = wx.BitmapFromImage(sorted_wx_img)                
+                sorted_wx_bitmap = wx.BitmapFromImage(sorted_wx_img)
 
                 self.plots_list.append([hist_wx_bitmap, qq_wx_bitmap, sorted_wx_bitmap])
 
@@ -293,4 +307,3 @@ class qcFrame ( wx.Frame ):
             selected_stats.append(path)
             current = next
         return selected_stats
-
