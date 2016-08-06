@@ -2,25 +2,22 @@
 All notable changes to this project will be documented in this file.
 
 
-## Version 2.0.3 - 2016-08-03
+## Version 2.0.2 - 2016-08-03
     
 -TRANSIT:
+    - Now accepts GFF3 formatted annotations.
     - Added extra columns to resampling output.
     - Fixed bug with some log2FC calculations.
-    - Export to combined wig format now asks normalization BEFORE file name.
-    - Fixed bug in Quality Control displays.
-    - Miscellanous bug changes.
+    - Export to combined wig format now asks for normalization BEFORE file name.
+    - Fixed bug preventing Quality Control window from opening.
+    - Miscellanous bug fixes.
     - Updates to Documentation
 
 -TPP:
     - Now accepts custom primer sequences.
     - Reporting additional diagnostic statistics for reads mapping to phiMycoMarT7, and Illumina adapters.
+    - Miscellaneous bug fixes.
    
-
-## Version 2.0.2 - 2016-07-06
-
-- TRANSIT:
-    - Now accepts GFF3 formatted annotations.
 
 
 ## Version 2.0.1 - 2016-07-05
