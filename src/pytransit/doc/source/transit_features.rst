@@ -28,6 +28,7 @@ as well as figures corresponding to whatever dataset is currently highlighted.
    :align: center
 
 
+
 QC Metrics Table
 ~~~~~~~~~~~~~~~~
 
@@ -36,35 +37,70 @@ to the one in the main TRANSIT interface. This table has an extended set of
 metrics to provide a better picture of the quality of the datasets:
 
 
-
-+-----------------+-----------------------------------------------------------------+
-| Column Header   | Column Definition                                               |
-+=================+=================================================================+
-| Orf             | Gene ID.                                                        |
-+-----------------+-----------------------------------------------------------------+
-| Name            | Name of the gene.                                               |
-+-----------------+-----------------------------------------------------------------+
-| Description     | Gene description.                                               |
-+-----------------+-----------------------------------------------------------------+
-| N               | Number of TA sites in the gene.                                 |
-+-----------------+-----------------------------------------------------------------+
-| TAs Hit         | Number of TA sites with at least one insertion.                 |
-+-----------------+-----------------------------------------------------------------+
-| Sum Rd 1        | Sum of read counts in condition 1.                              |
-+-----------------+-----------------------------------------------------------------+
-| Sum Rd 2        | Sum of read counts in condition 2.                              |
-+-----------------+-----------------------------------------------------------------+
-| Delta Rd        | Difference in the sum of read counts.                           |
-+-----------------+-----------------------------------------------------------------+
-| p-value         | P-value calculated by the permutation test.                     |
-+-----------------+-----------------------------------------------------------------+
-| p-adj.          | Adjusted p-value controlling for the FDR (Benjamini-Hochberg)   |
-+-----------------+-----------------------------------------------------------------+
-
+=============  ==============================================  =============================================================================================================
+Column Header  Column Definition                                 Comments
+=============  ==============================================  =============================================================================================================
+File           Name of dataset file.
+Density        Fraction of sites with insertions.               "Well saturated" Himar1 datasets have >30% saturation. Beneath this, statistical methods may have trouble.
+Mean Read      Average read-count, including empty sites.
+NZMean Read    Average read-count, excluding empty sites.       A value between 30-200 is usually good for Himar1 datasets. Too high or too low can indicate problems.
+NZMedian Read  Median read-count, excluding empty sites.        As read-counts can often have spikes, median serves as a good robust estimate.
+Max Read       Largest read-count in the dataset.               Useful to determine whether there are outliers/spikes, which may indicate sequencing issues.
+Total Reads    Sum of total read-counts in the dataset.         Indicates how much sequencing material was obtained. Typically >1M reads is desired for Himar1 datasets.
+Skew           Skew of read-counts in the dataset.              Large skew may indicate issues with a dataset. Typically a skew < 50 is desired. May be higher when
+                                                                library is under strong selection
+Kurtosis       Kurtosis of the read-counts in the dataset.
+=============  ==============================================  =============================================================================================================
 
 
 
 QC Figures
 ~~~~~~~~~~
 
-Useful figures at the top of the Quality Control window contain
+The Quality Control window also contains several plots that are helpful to
+visualize the quality of the datasets. These plots are unique to the dataset
+selected in the Metrics Table (below the figures). They will update depending
+on which row in the Metrics Table is selected:
+
+Figure 1: Histogram of Reads
+````````````````````````````
+
+
+.. image:: _images/transit_quality_control_histogram.png
+   :width: 600
+   :align: center
+
+
+The first plot in the Quality Control window is a histogram of the non-zero read-counts in the selected dataset. While read-counts are not truly geometrically distributed, "well-behaved" datasets often look "Geometric-like", i.e. low counts are more frequent than very large counts. Datasets which where this is not the case may reflect a problem.
+
+
+
+Figure 2: QQ Plot of Reads vs Geometric Distribution
+````````````````````````````````````````````````````
+
+
+.. image:: _images/transit_quality_control_qqplot.png
+   :width: 600
+   :align: center
+
+
+
+The second plot in the Quality Control window is a quantile-quantile plot ("QQ plot") of the non-zero read-counts in the selected dataset, versus a theoretical geometric distribution fit on these read-counts. While read-counts are not truly geometrically distributed, the geometric distribution (a special case of the Negative Binomial distribution), can serve as a quick comparison to see how well-behaved the datasets are.
+
+
+As the read-counts are not truly geometric, some curvature in the QQplot is expected. However, if the plot curves strongly from the identity line (y=x) then the read-counts may be highly skewed. In this case, using the "betageom" normalization option when doing statistical analyses may be a good idea as it is helpful in correcting the skew. 
+
+
+
+Figure 3: Ranked plot of Read-Counts
+````````````````````````````````````
+
+
+.. image:: _images/transit_quality_control_ranked.png
+   :width: 600
+   :align: center
+
+
+
+The second plot in the Quality Control window is a plot of the read-counts in sorted order. This may be helpful in indentifying outliers that may exist in the dataset. Typically, some large counts are expected and some normalization methods, like TTR, are robust to such outliers. However, too many outliers, or one single outlier that is overhwelmingly different than the rest may indicate an issue like PCR amplification (especially in libraries constructed older protocols).
+
