@@ -20,7 +20,9 @@ The main documentation for the site is organized into the following sections:
    transit_overview
    transit_install
    transit_running
+   transit_features
    transit_methods
+
 
 
 .. toctree::
@@ -48,4 +50,3 @@ The main documentation for the site is organized into the following sections:
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
