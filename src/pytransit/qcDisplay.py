@@ -270,6 +270,7 @@ class qcFrame ( wx.Frame ):
                 plt.xlabel("Reads")
                 plt.ylabel("Rank")
                 plt.grid(True)
+                plt.xticks(rotation=45)
                 buf = io.BytesIO()
                 fig.savefig(buf, format='png')
                 buf.seek(0)
