@@ -14,7 +14,7 @@ Overview
 
 |
 
-+ TRANSIT is capable of analyzing TnSeq libraries constructed with Himar1 or :ref:`**Tn5** <tn5-main-overview>` datasets.
++ TRANSIT is capable of analyzing TnSeq libraries constructed with Himar1 or :ref:`Tn5 <tn5-main-overview>` datasets.
 
 + TRANSIT assumes you have already done pre-processing of raw sequencing files (.fastq) and extracted read counts into a `.wig formatted file <http://genome.ucsc.edu/goldenpath/help/wiggle.html>`_. The .wig file should contain the counts at all sites where an insertion could take place (including sites with no reads). For Himar1 datasets this is all TA sites in the genome. For :ref:`Tn5 <tn5-main-overview>` datasets this would be all nucleotides in the genome.
 
@@ -28,22 +28,22 @@ Overview
 
 |
 
-+ Most of the analysis methods in TRANSIT require an **annotation** to know the gene coordinates and names. This is the top file input in the GUI window. The annotation has to be in a somewhat non-standard format called a ".prot_table". If you know what you are doing, it is easy to convert annotations for other organsims into .prot_table format. But for convenience, we are distributing the prot_tables for 3 common versions of the H37Rv genome: H37Rv.prot_table (NC_000962.2, from Stewart Cole), H37RvMA2.prot_table (sequenced version from the Sassetti lab), and H37RvBD.prot_table (sequenced by the Broad Institute). All of these are slightly different, and it is **critical** that you use the same annotation file as the reference genome sequence used for mapping the reads (during pre-processing).
++ Most of the analysis methods in TRANSIT require an **annotation** to know the gene coordinates and names. This is the top file input in the GUI window. The annotation has to be in a somewhat non-standard format called a ".prot_table". If you know what you are doing, it is easy to convert annotations for other organisms into .prot_table format. But for convenience, we are distributing the prot_tables for 3 common versions of the H37Rv genome: H37Rv.prot_table (NC_000962.2, from Stewart Cole), H37RvMA2.prot_table (sequenced version from the Sassetti lab), and H37RvBD.prot_table (sequenced by the Broad Institute). All of these are slightly different, and it is **critical** that you use the same annotation file as the reference genome sequence used for mapping the reads (during pre-processing).
 
 |
 
-+ There are 2 main types of essentiality analyses: individaul, comaparative. In individual analysis, the goal is to distinguish essential vs. non-essential in a single growth condition, and to assess the statistical significance of these calls. Two methods for this are the Gumbel method and the HMM. They are computationally distinct. The Gumbel method is looking for significant stretches of TA sites lacking insertions, whereas the HMM looks for regions where the mean read count is locally suppresed or increased. The HMM can detect 'growth-advantaged' and 'growth-defect' regions. The HMM is also a bit more robust on low-density datasets (insertion density 20-30%). But both methods have their merits and are complementary. For compararative analysis, TRANSIT uses 're-sampling', which is analogous to a permutation test, to determine if the sum of read counts differs significantly between two conditions. Hence this can be used to identify conditionally essential regions and quantify the statistical significance.
++ There are 2 main types of essentiality analyses: individual, comparative. In individual analysis, the goal is to distinguish essential vs. non-essential in a single growth condition, and to assess the statistical significance of these calls. Two methods for this are the Gumbel method and the HMM. They are computationally distinct. The Gumbel method is looking for significant stretches of TA sites lacking insertions, whereas the HMM looks for regions where the mean read count is locally suppressed or increased. The HMM can detect 'growth-advantaged' and 'growth-defect' regions. The HMM is also a bit more robust on low-density datasets (insertion density 20-30%). But both methods have their merits and are complementary. For comparative analysis, TRANSIT uses 're-sampling', which is analogous to a permutation test, to determine if the sum of read counts differs significantly between two conditions. Hence this can be used to identify conditionally essential regions and quantify the statistical significance.
 
 |
 
-+ TRANSIT has been designed to handle multiple replicates. If you have two or more replicate dataset of the same libarary selected in the same condition, you can provide them, and more of the computational methods will do something reasonable with them.
++ TRANSIT has been designed to handle multiple replicates. If you have two or more replicate dataset of the same library selected in the same condition, you can provide them, and more of the computational methods will do something reasonable with them.
 
 |
 
 + For those methods that generate p-values, we often also calculate adjusted p-value (or 'q-values') which are corrected for multiple tests typically the Benjamini-Hochberg procedure. A typical threshold for significance would be q<0.05 (not p<0.05).
 
 
-+ It is important to understand the GUI model that TRANSIT uses It allows you to load up datasets (.wig files), select them, choose an analysis method, set parameters, and start the computation. It will generate **output files** in your local directory with the results. These files can then be loaded into the interface and browser with custom displays and graphs. The interface has 3 main windows or sections: 'Control Samples', 'Experimental Samples', 'Results Files.' The first two are for loading input files ('Control Samples' would be like replicate datasets from a reference condition, like in vitro, rich media, etc.; 'Experimental Samples' would be where you would load replicates for a comparative conditions, like in vivo, or minimmal media, or low-iron, etc.) The 'Results Files' section is initially empty, but after a computation finishes, it will automatically be populated with the corresponding output file. See the 'Tutorial' section below in this documentation for an illustraion of the overall process for a typical work-flow.
++ It is important to understand the GUI model that TRANSIT uses It allows you to load up datasets (.wig files), select them, choose an analysis method, set parameters, and start the computation. It will generate **output files** in your local directory with the results. These files can then be loaded into the interface and browser with custom displays and graphs. The interface has 3 main windows or sections: 'Control Samples', 'Experimental Samples', 'Results Files.' The first two are for loading input files ('Control Samples' would be like replicate datasets from a reference condition, like in vitro, rich media, etc.; 'Experimental Samples' would be where you would load replicates for a comparative conditions, like in vivo, or minimal media, or low-iron, etc.) The 'Results Files' section is initially empty, but after a computation finishes, it will automatically be populated with the corresponding output file. See the 'Tutorial' section below in this documentation for an illustration of the overall process for a typical work-flow.
 
 |
 
@@ -52,7 +52,7 @@ Overview
 |
 
     + Track view shows you a visual representation of the read counts at each site at a locus of interest (for selected datasets) somewhat like IGV.
-    
+
 .. image:: _images/transit_dataset_track_view.png
    :width: 600
    :align: center
@@ -66,7 +66,7 @@ Overview
    :align: center
 
 
-|    
+|
     + Volcano plots can be used to visualize the results of resampling and assess the distribution between over- and under-represented genes in condition B vs. condition A. In addition you can look at histogram of the re-sample distributions for each gene.
 
 .. image:: _images/transit_result_volcano_graph.png
@@ -93,9 +93,9 @@ Tn5 Datasets
 
 Transit can now process and analyze Tn5 datasets  This is a different transposon than Himar1.
 The major difference is Tn5 can insert at any site in the genome, and is not restricted
-to TA dinucleotides (and saturation is typically much lower).  This affects 
+to TA dinucleotides (and saturation is typically much lower).  This affects
 the statistical analyses (which were originally designed for Himar1 and can't directly
-be applied to Tn5). Therefore, :ref:`Resampling <resampling>` was extended to handle Tn5 for comparative analysis, and 
+be applied to Tn5). Therefore, :ref:`Resampling <resampling>` was extended to handle Tn5 for comparative analysis, and
 :ref:`Tn5Gaps <tn5gaps>` is a new statistical model for identifying essential genes in single Tn5 datasets.
 Amplification of Tn5 libraries
 uses different primers, and this affects the pre-processing by TPP.  But TPP has
@@ -113,8 +113,8 @@ Developers
 ==================  ============  ==============================================================================
 Michael A. DeJesus  2015-Present  `http://students.cs.tamu.edu/mad <http://students.cs.tamu.edu/mad>`_
 Thomas R. Ioerger   2015-Present  `http://faculty.cs.tamu.edu/ioerger/ <http://faculty.cs.tamu.edu/ioerger/>`_
-Chaitra Ambadipudi  2015           
-Eric Nelson         2016           
+Chaitra Ambadipudi  2015
+Eric Nelson         2016
 ==================  ============  ==============================================================================
 
 
@@ -124,7 +124,7 @@ References
 ----------
 
 
-If you use TRANSIT, please cite the following reference: 
+If you use TRANSIT, please cite the following reference:
 
 
 .. [DeJesus2015TRANSIT] `DeJesus, M.A., Ambadipudi, C., Baker, R., Sassetti, C., and Ioerger, T.R. (2015). TRANSIT - a Software Tool for Himar1 TnSeq Analysis. PLOS Computational Biology, 11(10):e1004401 <http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1004401>`_
@@ -151,17 +151,3 @@ Other references, including methods utilized by TRANSIT:
 
 
 .. [DeJesus2016] `DeJesus, M.A. and Ioerger, T.R. (2016). Normalization of transposon-mutant library sequencing datasets to improve identification of conditionally essential genes. Journal of Bioinformatics and Computational Biology, 14(3):1642004 <http://www.ncbi.nlm.nih.gov/pubmed/26932272>`_
-
-
-.. [] ` <>`_
-
-
-.. [] ` <>`_
-
-
-.. [] ` <>`_
-
-
-.. [] ` <>`_
-
-
