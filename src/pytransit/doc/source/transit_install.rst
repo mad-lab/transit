@@ -182,7 +182,7 @@ First, download and install the latest Python 2.7.x installation file from the o
 
 
 
-    `http://www.python.org/downloads/ <http://www.python.org/downloads/>`_
+ + `http://www.python.org/downloads/ <http://www.python.org/downloads/>`_
 
 
 Next make sure you have pip installed. Pip can be installed through easy_install, which should come with OSX:
@@ -195,10 +195,7 @@ Next make sure you have pip installed. Pip can be installed through easy_install
 
 Download and install the OSX binary of wxpython (cocoa version) for python 2.7:
 
-::
-
-
-    `http://downloads.sourceforge.net/wxpython/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg`_
+ + `http://downloads.sourceforge.net/wxpython/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg <http://downloads.sourceforge.net/wxpython/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg>`_
 
 .. _osx_el_capitan:
 
@@ -234,8 +231,7 @@ Method 2: Install Source Locally
 First, download and install the latest Python 2.7.x installation file from the official python website:
 
 
-
-    `http://www.python.org/downloads/ <http://www.python.org/downloads/>`_
+ + `http://www.python.org/downloads/ <http://www.python.org/downloads/>`_
 
 
 Next make sure you have pip installed. Pip can be installed through easy_install, which should come with OSX:
@@ -259,10 +255,8 @@ Next install numpy, scipy, and matplotlib and pillow using pip:
 
 Download and install the OSX binary of wxpython (cocoa version) for python 2.7:
 
-::
 
-
-    `http://downloads.sourceforge.net/wxpython/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg`_
+ + `http://downloads.sourceforge.net/wxpython/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg <http://downloads.sourceforge.net/wxpython/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg>`_
 
 .. NOTE::
    If you are running OSX El Capitan or later, you will need to use a repackaged version of the
@@ -287,10 +281,7 @@ First, download and install the latest Python 2.7.x installation file
 from the official python website:
 
 
-::
-
-
-    `http://www.python.org/downloads/`_
+ + `http://www.python.org/downloads/ <http://www.python.org/downloads/>`_
 
 
 Next, you will need to install pip. If you are using python 2.7.9+
@@ -334,10 +325,7 @@ First, download and install the latest Python 2.7.x installation file
 from the official python website:
 
 
-::
-
-
-    `http://www.python.org/downloads/`_
+ + `http://www.python.org/downloads/ <http://www.python.org/downloads/>`_
 
 
 Next, you will need to install pip. If you are using python 2.7.9+
@@ -426,10 +414,8 @@ Linux & OSX Instructions
 
 Download the source files:
 
-::
 
-
-    `http://sourceforge.net/projects/bio-bwa/files/`_
+ + `http://sourceforge.net/projects/bio-bwa/files/ <http://sourceforge.net/projects/bio-bwa/files/>`_
 
 
 Extract the files:
@@ -463,9 +449,51 @@ For Windows, we provide a windows executable (.exe) for Windows 64 bit:
 The 32-bit version of Windows is not recommended as it is limited in the amount of system memory that can be used.
 
 
+|
 
+|
+----
+
+|
+
+|
 
 .. _transit-troubleshoot:
 
 Troubleshooting
 ---------------
+
+
+1. Gtk-ERROR \*\*: GTK+ 2.x symbols detected
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+This error can occur if you have GTK2 already installed and then install wxPython version 3.0+. To fix this, please try installing an
+
+
+
+
+2. wxPython & OSX: "The Installer could not install the software because there was no software found to install."
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are running OSX El Capitan or later, you will need to use a repackaged
+version of the wxpython installer as OSX El Capitan has removed support for older packaging methods still used by wxPython. You can `download a repackaged version of wxPython
+from our servers <http://orca1.tamu.edu/essentiality/transit/wxPython3.0-osx-cocoa-py2.7_mad_elcapitan.pkg>`_ or you can follow `these detailed instructions to repackage the installer <http://davixx.fr/blog/2016/01/25/wxpython-on-os-x-el-capitan/>`_ if you prefer.
+
+
+
+3. No window appears when running in GUI mode.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+This problem is likely due to running an unsupported version of matplotlib.
+Please download and install the version 1.4.3. You can download  and manually
+install the source from the following location:
+
+ + `matplotlib-1.4.3 <https://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.4.3/>`_
+
+Or, if you have pip installed, you can install using pip and specify the desired version:
+
+::
+
+    pip install 'matplotlib>=1.1.0,<1.5.0' --force-reinstall
