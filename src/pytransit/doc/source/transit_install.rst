@@ -9,15 +9,15 @@ License. It can be downloaded with git as follows:
 
 ::
 
-    
-    
+
     git clone https://github.com/mad-lab/transit/
-    
+
 
 TRANSIT is python-based You must have python installed (installed by
 default on most systems). In addition, TRANSIT relies on some python
-packages/libraries/modules that you might need to install. Below are
-the list of requirements:
+packages/libraries/modules that you might need to install (see `Requirements`_).
+
+If you encounter problems, please :ref:`contact us <developers>` or head to the :ref:`Troubleshooting section <transit-troubleshoot>`.
 
 
 |
@@ -61,10 +61,10 @@ TRANSIT can be (optionally) installed as a python package. This can simplify the
         >>> print factors
         array([[ 1.        ],
                [ 0.62862886]])
-    
+
     .. seealso:: :class:`transit`
 
-    
+
 
 
 
@@ -78,67 +78,29 @@ Method 1: Install as a Python Package
 
 
 Most of the requirements are available in default package sources in
-most Linux distributions. The following commands will install python:
+most Linux distributions. The following commands will install python, pip, wxPython, and several other dependencies needed by the python modules:
 
 
 ::
 
-
     #Ubuntu:
-    sudo apt-get install python
-    
+    sudo apt-get install python python-dev python-pip pkg-config python-wxgtk3.0 libpng-dev libjpeg8-dev libfreetype6-dev
+
     #Fedora:
-    sudo yum install python
-
-
-
-Next you need install pip which allows you automate the process of installing python packages, and wxPython to run in GUI mode:
-
-::
-
-    
-    #Ubuntu:
-    sudo apt-get install pip python-wxgtk3.0
-    
-    #Fedora:
-    sudo yum install pip python-wxgtk3.0
+    sudo yum install python python-dev python-pip pkg-config python-wxgtk3.0 libpng-dev libjpeg8-dev libfreetype6-dev
 
 
 Finally you can use pip to install the TRANSIT package:
 
-
-:: 
-
-    sudo pip install https://github.com/mad-lab/transit/archive/master.zip
-
-This will automatically download and install TRANSIT and all remaining requirements.
-
-
-Optional: If you will be using the pre-processor, TPP, you will also need to install `BWA <http://bio-bwa.sourceforge.net/>`_. Download the source files:
-
 ::
 
-    
-    `http://sourceforge.net/projects/bio-bwa/files/`_
+    sudo pip install tnseq-transit
+
+This will automatically download and install TRANSIT as a package, and all remaining required python packages. Once TRANSIT is installed as a package, it can be executed as
 
 
-Extract the files:
-
-::
-
-    
-    tar -xvjf bwa-0.7.12.tar.bz2
-
-
-Go to the directory with the extracted source-code, and run make to create the executable files:
-
-::
-
-    
-    cd bwa-0.7.12
-    make
-
-
+.. NOTE::
+   If you will be using the pre-processor, TPP, you will also need to install :ref:`install BWA <bwa-unix>`.
 
 
 |
@@ -154,10 +116,10 @@ numpy, scipy, matplotlib on the Ubuntu or Fedora Linux distributions:
 
 ::
 
-    
+
     #Ubuntu:
     sudo apt-get install python python-numpy python-scipy python-matplotlib python-wxgtk3.0
-    
+
     #Fedora:
     sudo yum install python numpy scipy python-matplotlib python-wxgtk3.0
 
@@ -169,10 +131,10 @@ modules like Pillow:
 
 ::
 
-    
+
     #Ubuntu:
     sudo apt-get install pip
-    
+
     #Fedora:
     sudo yum install pip
 
@@ -183,13 +145,13 @@ commands:
 
 ::
 
-    
+
     #Ubuntu:
     pip uninstall pillow
     pip uninstall Pillow
     sudo apt-get install libjpeg-dev zlib1g-dev
     pip install -I Pillow
-    
+
     #Fedora:
     pip uninstall pillow
     pip uninstall Pillow
@@ -197,29 +159,9 @@ commands:
     pip install -I Pillow
 
 
-Optional: If you will be using the pre-processor, TPP, you will also need to install `BWA <http://bio-bwa.sourceforge.net/>`_. Download the source files:
 
-::
-
-    
-    `http://sourceforge.net/projects/bio-bwa/files/`_
-
-
-Extract the files:
-
-::
-
-    
-    tar -xvjf bwa-0.7.12.tar.bz2
-
-
-Go to the directory with the extracted source-code, and run make to create the executable files:
-
-::
-
-    
-    cd bwa-0.7.12
-    make
+.. NOTE::
+       If you will be using the pre-processor, TPP, you will also need to install :ref:`install BWA <bwa-unix>`.
 
 
 
@@ -247,7 +189,7 @@ Next make sure you have pip installed. Pip can be installed through easy_install
 
 ::
 
-    
+
     sudo easy_install pip
 
 
@@ -255,13 +197,13 @@ Download and install the OSX binary of wxpython (cocoa version) for python 2.7:
 
 ::
 
-    
+
     `http://downloads.sourceforge.net/wxpython/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg`_
 
 .. _osx_el_capitan:
 
 .. NOTE::
-   If you are running OSX El Capitan or later, you will need to use a repackaged version of the 
+   If you are running OSX El Capitan or later, you will need to use a repackaged version of the
    wxpython installer. You can `download a repackaged version from our servers <http://orca1.tamu.edu/essentiality/transit/wxPython3.0-osx-cocoa-py2.7_mad_elcapitan.pkg>`_ or you can follow `these detailed instructions to repackage the installer <http://davixx.fr/blog/2016/01/25/wxpython-on-os-x-el-capitan/>`_ if you prefer.
 
 
@@ -270,9 +212,9 @@ Download and install the OSX binary of wxpython (cocoa version) for python 2.7:
 Finally you can use pip to install the TRANSIT package:
 
 
-:: 
+::
 
-    sudo pip install https://github.com/mad-lab/transit/archive/master.zip
+    sudo pip install tnseq-transit
 
 This will automatically download and install TRANSIT and all remaining requirements.
 
@@ -280,36 +222,10 @@ This will automatically download and install TRANSIT and all remaining requireme
 |
 
 
-Optional: If you will be using the pre-processor, TPP, you will also need to install `BWA <http://bio-bwa.sourceforge.net/>`_. Download the source files:
-
-::
-
-    
-    `http://sourceforge.net/projects/bio-bwa/files/`_
-
-
-Extract the files:
-
-::
-
-    
-    tar -xvjf bwa-0.7.12.tar.bz2
-
-
-Go to the directory with the extracted source-code, and run make to create the executable files:
-
-::
-
-    
-    cd bwa-0.7.12
-    make
-
-
+.. NOTE::
+   If you will be using the pre-processor, TPP, you will also need to install :ref:`install BWA <bwa-unix>`.
 
 |
-
-
-
 
 
 Method 2: Install Source Locally
@@ -318,7 +234,7 @@ Method 2: Install Source Locally
 First, download and install the latest Python 2.7.x installation file from the official python website:
 
 
-    
+
     `http://www.python.org/downloads/ <http://www.python.org/downloads/>`_
 
 
@@ -326,7 +242,7 @@ Next make sure you have pip installed. Pip can be installed through easy_install
 
 ::
 
-    
+
     sudo easy_install pip
 
 
@@ -334,7 +250,7 @@ Next install numpy, scipy, and matplotlib and pillow using pip:
 
 ::
 
-    
+
     sudo pip install numpy
     sudo pip install scipy
     sudo pip install matplotlib
@@ -345,43 +261,16 @@ Download and install the OSX binary of wxpython (cocoa version) for python 2.7:
 
 ::
 
-    
+
     `http://downloads.sourceforge.net/wxpython/wxPython3.0-osx-3.0.2.0-cocoa-py2.7.dmg`_
 
 .. NOTE::
-   If you are running OSX El Capitan or later, you will need to use a repackaged version of the 
+   If you are running OSX El Capitan or later, you will need to use a repackaged version of the
    wxpython installer. You can `download a repackaged version from our servers <http://orca1.tamu.edu/essentiality/transit/wxPython3.0-osx-cocoa-py2.7_mad_elcapitan.pkg>`_ or you can follow `these detailed instructions to repackage the installer <http://davixx.fr/blog/2016/01/25/wxpython-on-os-x-el-capitan/>`_ if you prefer.
 
 
-
-
-
-
-
-Optional: If you will be using the pre-processor, TPP, you will also need to install `BWA <http://bio-bwa.sourceforge.net/>`_ . Download the source files:
-
-::
-
-    
-    `http://sourceforge.net/projects/bio-bwa/files/`_
-
-
-Extract the files:
-
-::
-
-    
-    tar -xvjf bwa-0.7.12.tar.bz2
-
-
-Go to the directory with the extracted source-code, and run make to create the executable files:
-
-::
-
-    
-    cd bwa-0.7.12
-    make
-
+.. NOTE::
+     If you will be using the pre-processor, TPP, you will also need to install :ref:`install BWA <bwa-unix>`.
 
 
 
@@ -389,13 +278,18 @@ Go to the directory with the extracted source-code, and run make to create the e
 
 Detailed Instructions: Windows
 ------------------------------
+
+
+Method 1: Install as a Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 First, download and install the latest Python 2.7.x installation file
 from the official python website:
 
 
 ::
 
-    
+
     `http://www.python.org/downloads/`_
 
 
@@ -408,7 +302,7 @@ running the `get-pip.py <https://bootstrap.pypa.io/get-pip.py>`_ script:
 
 ::
 
-    
+
     python.exe get-pip.py
 
 
@@ -417,7 +311,54 @@ install .whl (wheel) files:
 
 ::
 
-    
+    pip.exe install wheel
+
+Finally, install the transit package using pip:
+
+
+::
+
+    pip.exe install tnseq-transit
+
+
+
+.. NOTE::
+    If you will be using the pre-processor, TPP, you will also need to install :ref:`install BWA <bwa-win>`.
+
+
+
+Method 2: Install Source Locally
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+First, download and install the latest Python 2.7.x installation file
+from the official python website:
+
+
+::
+
+
+    `http://www.python.org/downloads/`_
+
+
+Next, you will need to install pip. If you are using python 2.7.9+
+then pip will come pre-installed and included in the default script
+directory (i.e. C:\Python27\Scripts ). If you are using python 2.7.8
+or older, you will need to manually install pip by downloading and
+running the `get-pip.py <https://bootstrap.pypa.io/get-pip.py>`_ script:
+
+
+::
+
+
+    python.exe get-pip.py
+
+
+Make sure that "wheel" is installed. This is necessary to allow you to
+install .whl (wheel) files:
+
+::
+
+
     pip.exe install wheel
 
 
@@ -453,7 +394,7 @@ Finally, install the files using pip:
 
 ::
 
-    
+
     pip.exe install numpy-1.9.2+mkl-cp27-none-win_amd64.whl
     pip.exe install scipy-0.15.1-cp27-none-win_amd64.whl
     pip.exe install matplotlib-1.4.3-cp27-none-win_amd64.whl
@@ -462,12 +403,69 @@ Finally, install the files using pip:
     pip.exe install wxPython_common-3.0.2.0-py2-none-any.whl
 
 
-Optional: If you will be using the pre-processor, TPP, you will also need to install `BWA <http://bio-bwa.sourceforge.net/>`_. We provide a windows executable (.exe) for Windows 64 bit:
 
-`bwa-0.7.12_windows.zip <http://saclab.tamu.edu/essentiality/transit/bwa-0.7.12_windows.zip>`_
-
-
+.. NOTE::
+       If you will be using the pre-processor, TPP, you will also need to install :ref:`install BWA <bwa-win>`.
 
 
+|
 
 
+Optional: Install BWA to use with TPP pre-processor
+---------------------------------------------------
+
+If you will be using the pre-processor, TPP, you will also need to install `BWA <http://bio-bwa.sourceforge.net/>`_.
+
+
+
+
+.. _bwa-unix:
+
+Linux & OSX Instructions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Download the source files:
+
+::
+
+
+    `http://sourceforge.net/projects/bio-bwa/files/`_
+
+
+Extract the files:
+
+::
+
+
+    tar -xvjf bwa-0.7.12.tar.bz2
+
+
+Go to the directory with the extracted source-code, and run make to create the executable files:
+
+::
+
+
+    cd bwa-0.7.12
+    make
+
+
+.. _bwa-win:
+
+Windows Instructions
+~~~~~~~~~~~~~~~~~~~~
+
+For Windows, we provide a windows executable (.exe) for Windows 64 bit:
+
+  + `bwa-0.7.12_windows.zip <http://saclab.tamu.edu/essentiality/transit/bwa-0.7.12_windows.zip>`_
+
+
+
+The 32-bit version of Windows is not recommended as it is limited in the amount of system memory that can be used.
+
+
+
+
+.. _transit-troubleshoot:
+
+Troubleshooting
+---------------
