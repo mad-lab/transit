@@ -463,6 +463,7 @@ The 32-bit version of Windows is not recommended as it is limited in the amount 
 Troubleshooting
 ---------------
 
+|
 
 1. Gtk-ERROR \*\*: GTK+ 2.x symbols detected
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -471,7 +472,7 @@ Troubleshooting
 This error can occur if you have GTK2 already installed and then install wxPython version 3.0+. To fix this, please try installing an
 
 
-
+|
 
 2. wxPython & OSX: "The Installer could not install the software because there was no software found to install."
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -481,6 +482,7 @@ version of the wxpython installer as OSX El Capitan has removed support for olde
 from our servers <http://orca1.tamu.edu/essentiality/transit/wxPython3.0-osx-cocoa-py2.7_mad_elcapitan.pkg>`_ or you can follow `these detailed instructions to repackage the installer <http://davixx.fr/blog/2016/01/25/wxpython-on-os-x-el-capitan/>`_ if you prefer.
 
 
+|
 
 3. No window appears when running in GUI mode.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -497,3 +499,84 @@ Or, if you have pip installed, you can install using pip and specify the desired
 ::
 
     pip install 'matplotlib>=1.1.0,<1.5.0' --force-reinstall
+
+
+|
+
+4. Unable to locate package python-wxgtk3.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your version of Linux might not have the repository address that includes python-wxgtk3.0. You can attempt to install version 2.8 instead:
+
+::
+
+    sudo apt-get install python-wxgtk2.8
+
+
+
+or you can add the repository that includes version 3.0 and install it:
+
+::
+
+    # Add repo for 14.04
+    sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu utopic main restricted universe"
+
+    #Update repo information
+    sudo apt-get update
+
+    #Install wxPython 3.0
+    sudo apt-get install python-wxgtk3.0
+
+    #Remove repo to prevent version conflicts
+    sudo add-apt-repository --remove "deb http://archive.ubuntu.com/ubuntu utopic main restricted universe"
+
+
+|
+
+5. pip: SystemError: Cannot compile 'Python.h'.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This occurs when you do not have the development libraries for python. You can fix this by installing the python-dev packages:
+
+
+::
+
+    sudo apt-get install python-dev
+
+
+|
+
+6. pip: "The following required packages can not be built: freetype,png," etc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This occurs when you do not have some dependencies that are necessary to build some of the python modules TRANSIT requires (usually matplotlib). Installing the following linux dependencies should fix this:
+
+::
+
+    sudo apt-get install libpng-dev libjpeg8-dev libfreetype6-dev
+
+
+|
+
+7. pip: "No lapack/blas resources found"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This occurs when you do not have some dependencies that are necessary to build some of the python modules TRANSIT requires (usually numpy/scipy). Installing the following linux dependencies should fix this:
+
+
+::
+
+    sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
+
+
+|
+
+8. "resources.ContextualVersionConflict (six 1.5.2)..."
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This occurs some of the python modules are out of date. You can use pip to upgrade them as follows:
+
+
+::
+
+    sudo pip install six --upgrade
