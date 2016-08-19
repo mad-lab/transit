@@ -410,7 +410,7 @@ class ResamplingMethod(base.DualConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: norm=%s, samples=%s, adaptive=%s, histogram=%s, includeZeros=%s, output=%s\n" % (self.normalization, self.samples, self.adaptive, self.doHistogram, self.includeZeros, self.output))
+            self.output.write("#GUI with: norm=%s, samples=%s, pseudocounts=%1.2f, adaptive=%s, histogram=%s, includeZeros=%s, output=%s\n" % (self.normalization, self.samples, self.pseudocount, self.adaptive, self.doHistogram, self.includeZeros, self.output.name))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
         self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata))) 
