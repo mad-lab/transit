@@ -498,7 +498,7 @@ class BinomialMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s binomial <comma-separated .wig files> <annotation .prot_table> <output file> [Optional Arguments]
+        return """python %s binomial <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
         Optional Arguments:
             -s <int>        :=  Number of samples to take. Default: -s 10000

@@ -405,7 +405,7 @@ class HMMMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s hmm <comma-separated .wig files> <annotation .prot_table> <output file>
+        return """python %s hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output file>
 
         Optional Arguments:
             -r <string>     :=  How to handle replicates. Sum, Mean, TTRMean. Default: -r TTRMean
