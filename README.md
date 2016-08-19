@@ -7,8 +7,9 @@
  - New way to export normalized datasets.
 
 **Version 2.0.2 changes (August, 2016)**
-- Added support for Tn5 datasets in TPP and TRANSIT, and custom primers.
+- Added support for Tn5 datasets in TPP, and custom primers.
 - Added support for annotations in GFF3 format.
+- Ability to add pseudo-counts in resampling.
 - Misc. Bug fixes
 - **New [mailing list](https://groups.google.com/forum/#!forum/tnseq-transit/join)**
 
