@@ -1,10 +1,5 @@
-# TRANSIT 2.0
+# TRANSIT 2.0.2
 
-
-**New in Version 2.0+**
- - Support for Tn5 datasets.
- - New analysis methods.
- - New way to export normalized datasets.
 
 **Version 2.0.2 changes (August, 2016)**
 - Added support for for custom primers in TPP.
@@ -12,6 +7,12 @@
 - Ability to specify pseudocounts in resampling.
 - Misc. Bug fixes
 - **New [mailing list](https://groups.google.com/forum/#!forum/tnseq-transit/join)**
+
+
+**New in Version 2.0+**
+ - Support for Tn5 datasets.
+ - New analysis methods.
+ - New way to export normalized datasets.
 
 
 
