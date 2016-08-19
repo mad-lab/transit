@@ -198,7 +198,9 @@ class Tn5GapsMethod(base.SingleConditionMethod):
 
         #Get output path
         name = transit_tools.basename(ctrldata[0])
-        defaultFileName = "tn5_gaps_output.dat"
+        defaultFileName = "tn5_gaps_output_m%d_r%s.dat" % (minread, replicates)
+        
+
         defaultDir = os.getcwd()
         output_path = wxobj.SaveFile(defaultDir, defaultFileName)
         if not output_path: return None
