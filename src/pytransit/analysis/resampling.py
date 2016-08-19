@@ -261,7 +261,11 @@ class ResamplingMethod(base.DualConditionMethod):
         LOESS = False
 
         #Get output path
-        defaultFileName = "resampling_output.dat"
+        defaultFileName = "resampling_output_s%d_pc%1.2f" % (samples, pseudocount)
+        if adaptive: defaultFileName+= "_adaptive"
+        if includeZeros: defaultFileName+= "_iz"
+        defaultFileName+=".dat"
+    
         defaultDir = os.getcwd()
         output_path = wxobj.SaveFile(defaultDir, defaultFileName)
         if not output_path: return None
