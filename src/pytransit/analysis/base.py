@@ -18,9 +18,6 @@ except Exception as e:
     
 import traceback
 import datetime
-
-import pytransit
-import pytransit.tnseq_tools as tnseq_tools
 import pytransit.transit_tools as transit_tools
 
 file_prefix = "[FileDisplay]"
