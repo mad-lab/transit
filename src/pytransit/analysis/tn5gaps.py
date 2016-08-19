@@ -36,7 +36,7 @@ import pytransit.stat_tools as stat_tools
 
 short_name = "tn5gaps"
 long_name = "Analysis of essentiality on gaps in entire genome (Tn5)."
-description = "A analysis method using the Gumbel extreme value distribution that uses longest runs over a whole genome instead of individual genes."
+description = "A analysis method based on the extreme value (Gumbel) distribution that considers longest runs over the whole genome instead of individual genes."
 transposons = ["tn5"]
 columns = ["Orf","Name","Desc","k","n","r","ovr","lenovr","pval","padj","call"]
 
@@ -252,7 +252,7 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         self.transit_message("Starting Tn5 gaps method")
         start_time = time.time()
         
-        self.transit_message("Getting data")
+        self.transit_message("Getting data (May take a while)")
         genes_obj = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
         
         # Combine all wigs
