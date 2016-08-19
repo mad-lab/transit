@@ -457,7 +457,7 @@ class BinomialMethod(base.SingleConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s, samples=%s, burnin=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output, self.samples, self.burnin))
+            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s, samples=%s, burnin=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output.name, self.samples, self.burnin))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
 
