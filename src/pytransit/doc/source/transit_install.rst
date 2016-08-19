@@ -469,7 +469,7 @@ Troubleshooting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-This error can occur if you have GTK2 already installed and then install wxPython version 3.0+. To fix this, please try installing an
+This error can occur if you have GTK2 already installed and then install wxPython version 3.0+. To fix this, please try installing version 2.8 of wxPython or install a new version of GTK3. More information on this error to come. 
 
 
 |
