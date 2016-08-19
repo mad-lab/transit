@@ -13,6 +13,18 @@ The main documentation for the site is organized into the following sections:
 * `Code Documentation`_
 
 
+Mailing List
+~~~~~~~~~~~~
+
+You can join our mailing list to get announcements of new versions, discuss any bugs, or request features! Just head over to the following site and enter your email address:
+
+
+ + `https://groups.google.com/forum/#!forum/tnseq-transit/join <https://groups.google.com/forum/#!forum/tnseq-transit/join>`_
+
+
+
+
+
 .. toctree::
    :maxdepth: 2
    :caption: TRANSIT Manual
