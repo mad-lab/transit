@@ -2,10 +2,11 @@
 All notable changes to this project will be documented in this file.
 
 
-## Version 2.0.2 - 2016-08-03
+## Version 2.0.2 - 2016-08-19
     
 -TRANSIT:
     - Now accepts GFF3 formatted annotations.
+    - Added ability to specify pseudocounts for resampling.
     - Added extra columns to resampling output.
     - Fixed bug with some log2FC calculations.
     - Export to combined wig format now asks for normalization BEFORE file name.
