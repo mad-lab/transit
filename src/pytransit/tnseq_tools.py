@@ -394,7 +394,7 @@ class Genes:
             tmp = line.split("\t")
         
             if isProt:
-                gene = tmp[8]
+                gene = tmp[8].strip()
                 name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
             else:
                 features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
