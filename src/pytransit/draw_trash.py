@@ -42,28 +42,6 @@ def normalize(X, old_min, old_max, new_min, new_max):
         return (((X - old_min) * new_range) / old_range) + new_min
 
 
-def read_prot_table(path):
-    orf2data = {}
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        orf2data[tmp[8]] = [int(tmp[1]), int(tmp[2]), tmp[3], tmp[7]]
-    return(orf2data)
-
-
-def hash_prot_genes(path):
-    hash = {}
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        start, end = int(tmp[1]), int(tmp[2])
-        for i in range(start,end+1):
-            #if i not in hash:
-            #    hash[i] = tmp[8]
-            hash[i] = tmp[8]
-    return hash
-
-
 linuxFonts = []
 linuxFonts.append("/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans-Bold.ttf")
 linuxFonts.append("/usr/share/fonts/dejavu-lgc/DejaVuLGCSerifCondensed-Bold.ttf")
@@ -162,16 +140,16 @@ def draw_genes(draw, GENES, orf2data, start, end, start_x, start_y, width, heigh
     for gene in GENES:
 
         if gene not in orf2data: continue
-        gene_start = orf2data[gene][0]
-        gene_end = orf2data[gene][1]
-        strand = orf2data[gene][2]
-        name = orf2data[gene][3]
+        gene_start = orf2data[gene][2]
+        gene_end = orf2data[gene][3]
+        strand = orf2data[gene][4]
+        name = orf2data[gene][0]
 
         new_min = start_x
         new_max = start_x + width
 
-        norm_start = normalize(max(orf2data[gene][0], start), start, end, new_min, new_max)
-        norm_end = normalize(min(orf2data[gene][1], end), start, end, new_min, new_max)
+        norm_start = normalize(max(gene_start, start), start, end, new_min, new_max)
+        norm_end = normalize(min(gene_end, end), start, end, new_min, new_max)
 
 
         #if True:
@@ -218,7 +196,7 @@ def get_dynamic_height(N):
     return (canvas_h)
 
 
-def draw_canvas(fulldata, hash, orf2data, labels=[], min_read=0, max_read=2000, start=1, end=500, canvas_h=-1, canvas_w=1000):
+def draw_canvas(fulldata, position, hash, orf2data, labels=[], min_read=0, max_read=2000, start=1, end=500, canvas_h=-1, canvas_w=1000):
     
 
     temp_image = Image.new("RGB",(200, 200),"white")
@@ -269,9 +247,10 @@ def draw_canvas(fulldata, hash, orf2data, labels=[], min_read=0, max_read=2000, 
     for j,data in enumerate(fulldata):
         #print j
         temp = []
-        for pos,read in data:
+        for i,read in enumerate(data):
+            pos = position[i]
             if start <= pos <= end:
-                gene = hash.get(pos,"non-coding")
+                gene = hash.get(pos,["non-coding"])[0]
                 if gene == "non-coding" and len(GENES) > 0 and not GENES[-1].startswith("non-coding"):
                     gene+="_%d" % nc_count
                     nc_count +=1

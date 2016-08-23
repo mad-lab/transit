@@ -30,6 +30,9 @@ from math import *
 import os
 import ntpath
 
+import traceback
+
+
 try:
     import Image
     import ImageDraw
@@ -40,6 +43,9 @@ except ImportError:
     import PIL.ImageFont as ImageFont
 
 
+import pytransit.transit_tools as transit_tools
+import pytransit.tnseq_tools as tnseq_tools
+import pytransit.norm_tools as norm_tools
 
 
 def WxBitmapToPilImage( myBitmap ) :
@@ -82,56 +88,27 @@ class TrashFrame(view_trash.MainFrame):
         self.start = 1
         self.end = 10000
 
-        self.orf2data = draw_trash.read_prot_table(annotation)
-        self.hash = draw_trash.hash_prot_genes(annotation)
+        #self.orf2data = draw_trash.read_prot_table(annotation)
+        #self.hash = draw_trash.hash_prot_genes(annotation)
 
+        self.orf2data = transit_tools.get_gene_info(annotation)
+        self.hash = transit_tools.get_pos_hash(annotation)
+        
         self.features = []
 
         #Data to facilitate search
         self.name2id = {}
-        for line in open(annotation):
-            if line.startswith("#"): continue
-            tmp = line.strip().split("\t")
-            name = tmp[7].lower()
-            orfid = tmp[8]
+        for orf,(name, desc, start, end, strand) in self.orf2data.items():
             if name not in self.name2id: self.name2id[name] = []
-            self.name2id[name].append(orfid)
+            self.name2id[name].append(orf)
 
         self.lowerid2id = dict([(x.lower(), x) for x in self.orf2data.keys()])
-
         self.labels = [fetch_name(d) for d in dataset_list]
-
-        self.fulldata = []
-        for dataset in dataset_list:
-            temp = []
-            for line in open(dataset):
-                if line.startswith("#"): continue
-                if line.startswith("variable"): continue
-                if line.startswith("location"): continue
-                tmp = line.split()
-                pos = int(tmp[0])
-                read = float(tmp[1])
-                temp.append((pos,read))
-            self.fulldata.append(temp)
-
-    
-        #Calculate stats to normalize data
-        N = len(self.fulldata)
-        total_hits = [sum([c for pos,c in X]) for X in self.fulldata]
-        TAs_hit = [sum([1 for pos,c in X if c > 0])  for X in self.fulldata]
-        mean_hits = [total_hits[i]/float(TAs_hit[i]) for i in range(N)]
-        grand_total = sum(mean_hits)
-        grand_mean = grand_total/float(N)
-        factors = [grand_mean/float(mean_hits[i]) for i in range(N)]
+        (self.fulldata, self.position) = tnseq_tools.get_data(dataset_list)
 
         #Save normalized data
-        print track_prefix, "Normalization factors", factors
-        self.fulldata_norm = []
-        for j,data in enumerate(self.fulldata):
-            self.fulldata_norm.append([])
-            for i,x in enumerate(data):
-                self.fulldata_norm[j].append((x[0], x[1]*factors[j]))
-
+        (self.fulldata_norm, factors) = norm_tools.normalize_data(self.fulldata, method="nzmean")
+        print track_prefix, "Normalization factors", factors.flatten()
 
         #initialize parent class
         view_trash.MainFrame.__init__(self,parent)
@@ -162,9 +139,9 @@ class TrashFrame(view_trash.MainFrame):
 
     
             if self.normCheck.GetValue():
-                image_pil = draw_trash.draw_canvas(self.fulldata_norm, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
+                image_pil = draw_trash.draw_canvas(self.fulldata_norm, self.position, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
             else:
-                image_pil = draw_trash.draw_canvas(self.fulldata, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
+                image_pil = draw_trash.draw_canvas(self.fulldata, self.position, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
 
             #image_pil = draw_trash.draw_canvas(start, end, min_read, max_read, self.data, self.hash, self.orf2data)
             #image_wxBit = PilImageToWxBitmap( image_pil )
@@ -177,6 +154,7 @@ class TrashFrame(view_trash.MainFrame):
 
         except Exception, e:
             print track_prefix + '[ERROR]:', e
+            traceback.print_exc()
             #put a blank string in text when 'Clear' is clicked
 
 
@@ -319,7 +297,7 @@ class TrashFrame(view_trash.MainFrame):
 
         except Exception, e:
             print track_prefix + '[ERROR]:', e
- 
+            traceback.print_exc() 
         
 
 
