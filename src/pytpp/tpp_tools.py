@@ -746,6 +746,9 @@ def error(s):
   print "error:",s
   sys.exit(0)
 
+def warning(s):
+  print "warning:",s
+
 def verify_inputs(vars):
   if not os.path.exists(vars.fq1): error("file not found: "+vars.fq1)
   vars.single_end = False
@@ -754,6 +757,19 @@ def verify_inputs(vars):
   if not os.path.exists(vars.ref): error("file not found: "+vars.ref)
   if vars.base == '': error("prefix cannot be empty")
   if vars.fq1 == vars.fq2: error('fastq files cannot be identical')
+
+  if os.path.isdir(vars.bwa):
+    bwaexec_unix = os.path.join(vars.bwa, "bwa")
+    bwaexec_win = os.path.join(vars.bwa, "bwa.exe")
+    if os.path.exists(bwaexec_unix) and not os.path.isdir(bwaexec_unix):
+      warning("did not include BWA executable name. Assuming BWA executable is named 'bwa'")
+      vars.bwa = bwaexec_unix
+    elif os.path.exists(bwaexec_win) and not os.path.isdir(bwaexec_win):
+      warning("did not include BWA executable name. Assuming BWA executable is named 'bwa.exe'")
+      vars.bwa = bwaexec_win
+    else:
+      error('cannot find BWA executable. Please include the full executable name as well as its directory.')
+
 
 def initialize_globals(vars):
       vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
