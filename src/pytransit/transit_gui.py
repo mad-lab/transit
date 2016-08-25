@@ -1423,7 +1423,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                     tmp = line.strip().split("\t")
                     try:
                         #log2FC = math.log(float(tmp[6])/float(tmp[5]),2)
-                        log2FC = float(tmp[-3])
+                        log2FC = float(tmp[-6])
                         log10qval = -math.log(float(tmp[-1].strip()), 10)
                     except:
                         log2FC = 0
