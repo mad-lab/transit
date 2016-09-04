@@ -190,7 +190,7 @@ if hasWx:
             self.list_ctrl = wx.ListCtrl(panel, size=(500,500), style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.BORDER_SUNKEN)
             self.list_ctrl.InsertColumn(0, 'Dataset (*.tn_stats)',width=300)
             self.list_ctrl.InsertColumn(1, 'total reads',wx.LIST_FORMAT_RIGHT,width=125)
-            self.list_ctrl.InsertColumn(2, 'TGTTA prefix', wx.LIST_FORMAT_RIGHT,width=125)
+            self.list_ctrl.InsertColumn(2, 'Tn prefix', wx.LIST_FORMAT_RIGHT,width=125)
             self.list_ctrl.InsertColumn(3, 'R1_mapped', wx.LIST_FORMAT_RIGHT,width=90)
             self.list_ctrl.InsertColumn(4, 'R2_mapped', wx.LIST_FORMAT_RIGHT,width=90)
             self.list_ctrl.InsertColumn(5, 'mapped\nreads', wx.LIST_FORMAT_RIGHT,width=90)
@@ -248,8 +248,9 @@ if hasWx:
           datasets.sort(reverse=True)
           for (filedate,fname) in datasets:
             stats = self.read_stats_file(fname)
-        
-            vals = [stats.get("total_reads","?"),stats.get("TGTTA_reads","?"),stats.get("reads1_mapped", "?"),stats.get("reads2_mapped","?"),stats.get("mapped_reads","?"),stats.get("template_count","?"), stats.get("TAs_hit","?"), stats.get("density", "?"), stats.get("NZ_mean", "?"), stats.get("max_count", "?"), stats.get("primer_matches:","?"),stats.get("vector_matches:","?")]
+            ntrim = stats.get("TGTTA_reads","?")
+            if ntrim=="?": ntrim = stats.get("trimmed_reads","?")
+            vals = [stats.get("total_reads","?"),ntrim,stats.get("reads1_mapped", "?"),stats.get("reads2_mapped","?"),stats.get("mapped_reads","?"),stats.get("template_count","?"), stats.get("TAs_hit","?"), stats.get("density", "?"), stats.get("NZ_mean", "?"), stats.get("max_count", "?"), stats.get("primer_matches:","?"),stats.get("vector_matches:","?")]
 
             #dataset = "[%s] %s" % (time.strftime("%m/%d/%y",time.localtime(os.path.getmtime(fname))),fname[:fname.rfind('.')])
             dsname = "[%s] %s" % (time.strftime("%m/%d/%y",time.localtime(filedate)),fname[:fname.rfind('.')])
