@@ -266,8 +266,8 @@ class TrashFrame(view_trash.MainFrame):
             return
 
 
-        start, end, strand, name = self.orf2data.get(orf_match, [0, 2000, "+", "-"])
-
+        #start, end, strand, name = self.orf2data.get(orf_match, [0, 2000, "+", "-"])
+        (name, desc, start, end, strand) = self.orf2data.get(orf_match, ["-", "-", 0, 2000, "+"])
         print track_prefix, "Matched data:", start, end, strand, name
        
         try:
