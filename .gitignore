@@ -5,6 +5,8 @@ __pycache__/
 # C extensions
 *.so
 
+#atom files
+*.nfs*
 # Distribution / packaging
 .Python
 env/
