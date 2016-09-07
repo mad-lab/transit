@@ -371,8 +371,8 @@ def read_counts(ref,sam,vars):
 def driver(vars):
   vars.reads1 = vars.base+".reads1"
   vars.reads2 = vars.base+".reads2"
-  vars.tgtta1 = vars.base+".tgtta1"
-  vars.tgtta2 = vars.base+".tgtta2"
+  vars.trimmed1 = vars.base+".trimmed1"
+  vars.trimmed2 = vars.base+".trimmed2"
   vars.barcodes1 = vars.base+".barcodes1"
   vars.barcodes2 = vars.base+".barcodes2"
   vars.genomic2 = vars.base+".genomic2"
@@ -446,8 +446,8 @@ def extract_reads(vars):
 
     if vars.single_end==True:
       message("assuming single-ended reads")
-      message("creating %s" % vars.tgtta1)
-      extract_staggered(vars.reads1,vars.tgtta1,vars)
+      message("creating %s" % vars.trimmed1)
+      extract_staggered(vars.reads1,vars.trimmed1,vars)
 
       return 
 
@@ -462,23 +462,23 @@ def extract_reads(vars):
 
     message("extracting barcodes and genomic parts of reads...")
 
-    message("creating %s" % vars.tgtta1)
-    extract_staggered(vars.reads1,vars.tgtta1,vars)
+    message("creating %s" % vars.trimmed1)
+    extract_staggered(vars.reads1,vars.trimmed1,vars)
 
-    message("creating %s" % vars.tgtta2)
-    select_reads(vars.tgtta1,vars.reads2,vars.tgtta2)
+    message("creating %s" % vars.trimmed2)
+    select_reads(vars.trimmed1,vars.reads2,vars.trimmed2)
     #message("creating %s" % vars.barcodes2)
-    #select_cycles(vars.tgtta2,22,30,vars.barcodes2)
+    #select_cycles(vars.trimmed2,22,30,vars.barcodes2)
     #message("creating %s" % vars.genomic2)
-    #select_cycles(vars.tgtta2,43,-1,vars.genomic2)
+    #select_cycles(vars.trimmed2,43,-1,vars.genomic2)
 
     # instead of using select_cycles, do these both in one shot by looking for constant seqs
     message("creating %s" % vars.barcodes2)
     message("creating %s" % vars.genomic2)
-    extract_barcodes(vars.tgtta2,vars.barcodes2,vars.genomic2, vars.mm1)
+    extract_barcodes(vars.trimmed2,vars.barcodes2,vars.genomic2, vars.mm1)
 
     message("creating %s" % vars.barcodes1)
-    replace_ids(vars.tgtta1,vars.barcodes2,vars.barcodes1)
+    replace_ids(vars.trimmed1,vars.barcodes2,vars.barcodes1)
 
 #  pattern for read 2...
 #    TAGTGGATGATGGCCGGTGGATTTGTG GTAATTACCA TGGTCGTGGTAT CCCAGCGCGACTTCTTCGGCGCACACACC TAACAGGTTGGCTGATAAGTCCCCG?AGAT AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGT
@@ -561,13 +561,13 @@ def run_bwa(vars):
       bwa_subprocess(cmd, sys.stdout)
        
 
-    cmd = [vars.bwa, "aln",  vars.ref, vars.tgtta1]
+    cmd = [vars.bwa, "aln",  vars.ref, vars.trimmed1]
     outfile = open(vars.sai1, "w")
     bwa_subprocess(cmd, outfile)
 
 
     if vars.single_end==True:
-      cmd = [vars.bwa, "samse", vars.ref, vars.sai1, vars.tgtta1]
+      cmd = [vars.bwa, "samse", vars.ref, vars.sai1, vars.trimmed1]
       outfile = open(vars.sam, "w")
       bwa_subprocess(cmd, outfile)
 
@@ -576,7 +576,7 @@ def run_bwa(vars):
       outfile = open(vars.sai2, "w")
       bwa_subprocess(cmd, outfile)
 
-      cmd = [vars.bwa, "sampe", vars.ref, vars.sai1, vars.sai2, vars.tgtta1, vars.genomic2]
+      cmd = [vars.bwa, "sampe", vars.ref, vars.sai1, vars.sai2, vars.trimmed1, vars.genomic2]
       outfile = open(vars.sam, "w")
       bwa_subprocess(cmd, outfile)
 
@@ -687,7 +687,7 @@ def generate_output(vars):
  
 
   read_length = get_read_length(vars.base + ".reads1")
-  mean_r1_genomic = get_genomic_portion(vars.base + ".tgtta1")
+  mean_r1_genomic = get_genomic_portion(vars.base + ".trimmed1")
   if vars.single_end==False: mean_r2_genomic = get_genomic_portion(vars.base + ".genomic2")
 
   output = open(vars.stats,"w")
@@ -703,7 +703,7 @@ def generate_output(vars):
   output.write('# ref_genome: %s\n' % vars.ref)
   output.write("# total_reads %s (or read pairs)\n" % tot_reads)
   #output.write("# truncated_reads %s (fragments shorter than the read length; ADAP2 appears in read1)\n" % vars.truncated_reads)
-  output.write("# TGTTA_reads %s (reads with valid Tn prefix, and insert size>20bp)\n" % vars.tot_tgtta)
+  output.write("# trimmed_reads %s (reads with valid Tn prefix, and insert size>20bp)\n" % vars.tot_tgtta)
   output.write("# reads1_mapped %s\n" % vars.r1)
   output.write("# reads2_mapped %s\n" % vars.r2)
   output.write("# mapped_reads %s (both R1 and R2 map into genome)\n" % vars.mapped)
@@ -802,7 +802,7 @@ def save_config(vars):
   f.close()
 
 def show_help():
-  print 'usage: python PATH/src/tpp.pyc -bwa <PATH_TO_EXECUTABLE> -ref <REF_SEQ> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-tn5|-himar1] [-primer <seq>]'
+  print 'usage: python PATH/src/tpp.py -bwa <PATH_TO_EXECUTABLE> -ref <REF_SEQ> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-tn5|-himar1] [-primer <seq>]'
     
 class Globals:
   pass
