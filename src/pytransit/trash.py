@@ -99,6 +99,7 @@ class TrashFrame(view_trash.MainFrame):
         #Data to facilitate search
         self.name2id = {}
         for orf,(name, desc, start, end, strand) in self.orf2data.items():
+            name = name.lower()
             if name not in self.name2id: self.name2id[name] = []
             self.name2id[name].append(orf)
 
@@ -268,6 +269,7 @@ class TrashFrame(view_trash.MainFrame):
 
         #start, end, strand, name = self.orf2data.get(orf_match, [0, 2000, "+", "-"])
         (name, desc, start, end, strand) = self.orf2data.get(orf_match, ["-", "-", 0, 2000, "+"])
+
         print track_prefix, "Matched data:", start, end, strand, name
        
         try:
@@ -281,9 +283,9 @@ class TrashFrame(view_trash.MainFrame):
             max_read = int(self.maxText.GetValue())
 
             if self.normCheck.GetValue():
-                image_pil = draw_trash.draw_canvas(self.fulldata_norm, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
+                image_pil = draw_trash.draw_canvas(self.fulldata_norm, self.position, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
             else:
-                image_pil = draw_trash.draw_canvas(self.fulldata, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
+                image_pil = draw_trash.draw_canvas(self.fulldata, self.position, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
 
 
             #image_pil = draw_trash.draw_canvas(start, end, min_read, max_read, self.data, self.hash, self.orf2data)
@@ -330,5 +332,4 @@ if __name__ == "__main__":
     frame.Show(True)
     #start the applications
     app.MainLoop()
-
 
