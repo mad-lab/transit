@@ -615,7 +615,7 @@ class MainFrame ( wx.Frame ):
 #inherit from the MainFrame created in wxFowmBuilder and create CalcFrame
 class TnSeekFrame(MainFrame):
     #constructor
-    def __init__(self,parent):
+    def __init__(self,parent,DEBUG=False):
         #initialize parent class
         MainFrame.__init__(self,parent)
 
@@ -717,7 +717,33 @@ class TnSeekFrame(MainFrame):
         self.HideProgressSection()
         self.HideGlobalOptions()
 
-    
+        self.DEBUG = DEBUG
+        if self.DEBUG:
+            ctrlData = ["glycerol_H37Rv_rep1.wig", "glycerol_H37Rv_rep2.wig"]
+            for dataset in ctrlData:
+                try:
+                    path = os.path.join(os.path.dirname('/pacific/home/mdejesus/transit/src/transit.py'), "pytransit/data", dataset)
+                    transit_tools.transit_message("Adding Ctrl File: " + path)
+                    self.loadCtrlFile(path)
+                except Exception as e:
+                    print "Error:", str(e)
+               
+            expData = ["cholesterol_H37Rv_rep1.wig", "cholesterol_H37Rv_rep2.wig", "cholesterol_H37Rv_rep3.wig"]
+            for dataset in expData:
+                try:
+                    path = os.path.join(os.path.dirname('/pacific/home/mdejesus/transit/src/transit.py'), "pytransit/data", dataset)
+                    transit_tools.transit_message("Adding Exp File: " + path)
+                    self.loadExpFile(path)
+                except Exception as e:
+                    print "Error:", str(e)
+
+            try:
+                self.annotation = os.path.join(os.path.dirname('/pacific/home/mdejesus/transit/src/transit.py'), "pytransit/genomes/H37Rv.prot_table")
+                self.annotationFilePicker.SetLabel(transit_tools.basename(self.annotation))
+                transit_tools.transit_message("Annotation File Selected: %s" % self.annotation)
+            except Exception as e:
+                print "Error:", str(e)
+ 
 
 
     def Exit(self, event):
@@ -959,6 +985,31 @@ class TnSeekFrame(MainFrame):
         return all_exp
 
 
+    def loadCtrlFile(self, fullpath):
+        name = transit_tools.basename(fullpath)
+        (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
+        self.list_ctrl.InsertStringItem(self.index_ctrl, name)
+        self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+        self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+        self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+        self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
+        self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+        self.index_ctrl+=1
+
+
+    def loadExpFile(self, fullpath):
+        name = transit_tools.basename(fullpath)
+        (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
+        self.list_exp.InsertStringItem(self.index_exp, name)
+        self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
+        self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
+        self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
+        self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
+        self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+        self.index_exp+=1
+
+
+
     def loadCtrlFileFunc(self, event):
         self.statusBar.SetStatusText("Loading Control Dataset(s)...")
         try:
@@ -975,15 +1026,7 @@ class TnSeekFrame(MainFrame):
                 print "You chose the following Control file(s):"
                 for fullpath in paths:
                     print "\t%s" % fullpath
-                    name = transit_tools.basename(fullpath)
-                    (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-                    self.list_ctrl.InsertStringItem(self.index_ctrl, name)
-                    self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
-                    self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
-                    self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
-                    self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
-                    self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
-                    self.index_ctrl+=1
+                    self.loadCtrlFile(fullpath)
             dlg.Destroy()
         except Exception as e:
             transit_tools.transit_message("Error: %s" % e)
@@ -1010,15 +1053,7 @@ class TnSeekFrame(MainFrame):
                 print "You chose the following Experimental file(s):"
                 for fullpath in paths:
                     print "\t%s" % fullpath
-                    name = transit_tools.basename(fullpath)
-                    (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-                    self.list_exp.InsertStringItem(self.index_exp, name)
-                    self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
-                    self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
-                    self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
-                    self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
-                    self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
-                    self.index_exp+=1
+                    self.loadExpFile(fullpath)
             dlg.Destroy()
         except Exception as e:
             transit_tools.transit_message("Error: %s" % e)
@@ -1234,7 +1269,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 transit_tools.transit_message("Annotation File Selected: %s" % self.annotation)
         else:
-            self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table)]")
+            self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table or .gff3)]")
         
     def MethodSelectFunc(self, selected_name, test=""):
         #X = self.methodChoice.GetCurrentSelection()
