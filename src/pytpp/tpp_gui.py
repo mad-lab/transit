@@ -296,6 +296,7 @@ if hasWx:
           self.vars.ref = ref
           self.vars.base = base  
           self.vars.mm1 = mm1
+          self.vars.prefix = prefix
           if maxreads == '': self.vars.maxreads = -1
           else: self.vars.maxreads = int(maxreads)
 
