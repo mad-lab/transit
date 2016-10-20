@@ -56,6 +56,7 @@ import pytransit.images as images
 
 method_wrap_width = 250
 methods = pytransit.analysis.methods
+normmethods = norm_tools.methods
 
 
 wildcard = "Python source (*.py)|*.py|" \
@@ -1703,9 +1704,10 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
     def chooseNormalization(self):
 
+        norm_methods_choices = sorted(normmethods.keys())
         dlg = wx.SingleChoiceDialog(
                 self, "Choose how to normalize read-counts accross datasets.", 'Normalization Choice',
-                ["nonorm", "nzmean", "totreads", "TTR", "zinfnb", "quantile", "betageom", "aBGC", "emphist"], 
+                norm_methods_choices, 
                 wx.CHOICEDLG_STYLE
                 )
  
