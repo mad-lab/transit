@@ -855,6 +855,20 @@ def combine_replicates(data, method="Sum"):
 
 #
 
+def get_data_stats(reads):
+    density = numpy.mean(reads>0)
+    meanrd = numpy.mean(reads)
+    nzmeanrd = numpy.mean(reads[reads>0])
+    nzmedianrd = numpy.median(reads[reads>0])
+    maxrd = numpy.max(reads)
+    totalrd = numpy.sum(reads)
+
+    skew = scipy.stats.skew(reads[reads>0])
+    kurtosis = scipy.stats.kurtosis(reads[reads>0])
+    return (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis)
+
+    
+
 def get_wig_stats(path):
     """Returns statistics for the given wig file with read-counts.
 
@@ -872,15 +886,8 @@ def get_wig_stats(path):
             - skew
             - kurtosis
     """
-    reads = []
-    for line in open(path):
-        if line[0] not in "0123456789": continue
-        tmp = line.split()
-        pos = int(tmp[0])
-        rd = float(tmp[1])
-        reads.append(rd)
-    reads = numpy.array(reads)
-
+    (data,position) = get_data([path])
+    reads = data[0]
     density = numpy.mean(reads>0)
     meanrd = numpy.mean(reads)
     nzmeanrd = numpy.mean(reads[reads>0])
@@ -1056,6 +1063,23 @@ def get_pos_hash_gff(path):
 
 #
 
+def get_pos_hash(path):
+    """Returns a dictionary that maps coordinates to a list of genes that occur at that coordinate.
+
+    Arguments:
+        path (str): Path to annotation in .prot_table or GFF3 format.
+
+    Returns:
+        dict: Dictionary of position to list of genes that share that position.
+    """
+    filename, file_extension = os.path.splitext(path)
+    if file_extension.lower() in [".gff", ".gff3"]:
+        return get_pos_hash_gff(path)
+    else:
+        return get_pos_hash_pt(path)
+
+#
+
 def get_gene_info_pt(path):
     """Returns a dictionary that maps gene id to gene information.
     
@@ -1124,6 +1148,29 @@ def get_gene_info_gff(path):
 
         orf2info[orf] = (name, desc, start, end, strand)
     return orf2info
+
+#
+
+def get_gene_info(path):
+    """Returns a dictionary that maps gene id to gene information.
+
+    Arguments:
+        path (str): Path to annotation in .prot_table or GFF3 format.
+
+    Returns:
+        dict: Dictionary of gene id to tuple of information:
+            - name
+            - description
+            - start coordinate
+            - end coordinate
+            - strand
+
+    """
+    filename, file_extension = os.path.splitext(path)
+    if file_extension.lower() in [".gff", ".gff3"]:
+        return get_gene_info_gff(path)
+    else:
+        return get_gene_info_pt(path)
 
 #
 
