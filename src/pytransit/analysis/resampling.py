@@ -383,7 +383,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 if testlist:
                     n, bins, patches = plt.hist(testlist, normed=1, facecolor='c', alpha=0.75, bins=100)
                 else:
-                    n, bins, patches = plt.hist([0], normed=1, facecolor='c', alpha=0.75, bins=100)
+                    n, bins, patches = plt.hist([0,0], normed=1, facecolor='c', alpha=0.75, bins=100)
                 plt.xlabel('Delta Sum')
                 plt.ylabel('Probability')
                 plt.title('%s - Histogram of Delta Sum' % gene.orf)
