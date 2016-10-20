@@ -29,7 +29,12 @@ transit_prefix = "[TRANSIT]"
 
 def main(args=None):
     #If no arguments, show GUI:
+    DEBUG = "--debug" in sys.argv
+    if DEBUG:
+        sys.argv.remove("--debug")
     if len(sys.argv) == 1 and hasWx:
+
+        
         import pytransit.transit_gui as transit_gui
 
 
@@ -38,7 +43,7 @@ def main(args=None):
         app = wx.App(False)
 
         #create an object of CalcFrame
-        frame = transit_gui.TnSeekFrame(None)
+        frame = transit_gui.TnSeekFrame(None, DEBUG)
         #show the frame
         frame.Show(True)
         #start the applications
