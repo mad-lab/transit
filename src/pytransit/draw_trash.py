@@ -23,6 +23,8 @@ from math import *
 import os
 import platform
 
+import numpy
+
 try:
     import Image
     import ImageDraw
@@ -196,7 +198,7 @@ def get_dynamic_height(N):
     return (canvas_h)
 
 
-def draw_canvas(fulldata, position, hash, orf2data, labels=[], min_read=0, max_read=2000, start=1, end=500, canvas_h=-1, canvas_w=1000):
+def draw_canvas(fulldata, position, hash, orf2data, feature_hashes, feature_data, labels=[], min_read=0, max_read=2000, autoScale=False, start=1, end=500, canvas_h=-1, canvas_w=1000):
     
 
     temp_image = Image.new("RGB",(200, 200),"white")
@@ -204,10 +206,39 @@ def draw_canvas(fulldata, position, hash, orf2data, labels=[], min_read=0, max_r
     #Set main draw object
 
     N = len(fulldata)
+    Nfeat = len(feature_hashes)
     #Set Labels
     if not labels:
         labels= ["Read Counts"]*N
-    
+   
+
+    GENES = []
+    FEATURES = [[] for j in range(len(feature_hashes))]
+    TA_SITES = []
+    READS = []
+    nc_count = 1
+    for j,data in enumerate(fulldata):
+        #print j
+        temp = []
+        for i,read in enumerate(data):
+            pos = position[i]
+            if start <= pos <= end:
+                gene = hash.get(pos,["non-coding"])[0]
+                if gene == "non-coding" and len(GENES) > 0 and not GENES[-1].startswith("non-coding"):
+                    gene+="_%d" % nc_count
+                    nc_count +=1
+                if j ==0:
+                    if gene not in GENES: GENES.append(gene)
+                    TA_SITES.append(pos)
+                    for f,f_hash in enumerate(feature_hashes):
+                        feat = f_hash.get(pos,["non-coding"])[0]
+                        if feat not in FEATURES[f]: FEATURES[f].append(feat)
+                temp.append(read)
+        READS.append(temp)
+
+    if autoScale:
+        max_read=int(numpy.max(READS))
+ 
 
 
     #Get dynamic text widths
@@ -231,7 +262,7 @@ def draw_canvas(fulldata, position, hash, orf2data, labels=[], min_read=0, max_r
     read_w = canvas_w - (max_label_w + scale_text_w + padding_w + padding_w + 30)
 
     if canvas_h == -1:
-        canvas_h = read_h*N + ta_h + gene_h + padding_h + padding_h + 80
+        canvas_h = read_h*N + ta_h + gene_h + padding_h + padding_h + 80 + (gene_h+padding_h+50)*(Nfeat)
     
 
 
@@ -239,27 +270,6 @@ def draw_canvas(fulldata, position, hash, orf2data, labels=[], min_read=0, max_r
     draw = ImageDraw.Draw(image)
 
     lwd = 2
-
-    GENES = []
-    TA_SITES = []
-    READS = []
-    nc_count = 1
-    for j,data in enumerate(fulldata):
-        #print j
-        temp = []
-        for i,read in enumerate(data):
-            pos = position[i]
-            if start <= pos <= end:
-                gene = hash.get(pos,["non-coding"])[0]
-                if gene == "non-coding" and len(GENES) > 0 and not GENES[-1].startswith("non-coding"):
-                    gene+="_%d" % nc_count
-                    nc_count +=1
-                if j ==0:
-                    if gene not in GENES: GENES.append(gene)
-                    TA_SITES.append(pos)
-                temp.append(read)
-        READS.append(temp)
-
 
 
     #print READS
@@ -297,6 +307,16 @@ def draw_canvas(fulldata, position, hash, orf2data, labels=[], min_read=0, max_r
     draw.text((30, start_y+10),'Genes', font=font, fill="black")
     width = read_w
     draw_genes(draw, GENES, orf2data, start, end, start_x, start_y, width, gene_h)
+
+    start_y += gene_h -20#+ padding_h 
+    #Features:
+    for f in range(len(FEATURES)):
+        start_y += gene_h + padding_h + 25 
+        draw.text((30, start_y+10),'Feature', font=font, fill="black")
+        width = read_w
+        print FEATURES[f]
+        draw_genes(draw, FEATURES[f], feature_data[f], start, end, start_x, start_y, width, gene_h)
+        start_y +=10
 
     return(image)
 

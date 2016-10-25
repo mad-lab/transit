@@ -83,7 +83,7 @@ class TrashFrame(view_trash.MainFrame):
     def __init__(self,parent, dataset_list=["H37Rv_Sassetti_glycerol.wig"], annotation="H37Rv.prot_table", gene=""):
 
 
-
+        self.parent = parent
         self.size = wx.Size( 1500,800 )
         self.start = 1
         self.end = 10000
@@ -113,6 +113,11 @@ class TrashFrame(view_trash.MainFrame):
 
         #initialize parent class
         view_trash.MainFrame.__init__(self,parent)
+    
+        self.feature_hashes = []
+        self.feature_data = []
+
+        self.autoScale = True
 
         if gene:
             self.searchText.SetValue(gene)
@@ -129,20 +134,22 @@ class TrashFrame(view_trash.MainFrame):
             start = int(self.startText.GetValue())
             end = int(self.endText.GetValue())
 
-            min_read = 0
+            self.min_read = 0
             if self.minText.GetValue():
-                min_read = int(self.minText.GetValue())
+                self.min_read = int(self.minText.GetValue())
 
-            max_read = 0
+            self.max_read = 0
             if self.maxText.GetValue():
-                max_read = int(self.maxText.GetValue())
+                self.max_read = int(self.maxText.GetValue())
 
 
-    
+   
+            self.DrawCanvas()
+            """ 
             if self.normCheck.GetValue():
-                image_pil = draw_trash.draw_canvas(self.fulldata_norm, self.position, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
+                image_pil = draw_trash.draw_canvas(self.fulldata_norm, self.position, self.hash, self.orf2data, self.feature_hashes, self.feature_data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
             else:
-                image_pil = draw_trash.draw_canvas(self.fulldata, self.position, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
+                image_pil = draw_trash.draw_canvas(self.fulldata, self.position, self.hash, self.orf2data, self.feature_hashes, self.feature_data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
 
             #image_pil = draw_trash.draw_canvas(start, end, min_read, max_read, self.data, self.hash, self.orf2data)
             #image_wxBit = PilImageToWxBitmap( image_pil )
@@ -152,6 +159,7 @@ class TrashFrame(view_trash.MainFrame):
             #self.m_bitmap1 = image_wxBit
             self.Refresh()
             image_pil = ""
+            """
 
         except Exception, e:
             print track_prefix + '[ERROR]:', e
@@ -173,6 +181,8 @@ class TrashFrame(view_trash.MainFrame):
         
         self.startText.SetValue(str(new_start))
         self.endText.SetValue(str(new_end))
+        self.end = new_end
+        self.start = new_start
         self.updateFunc(event) 
 
 
@@ -182,6 +192,9 @@ class TrashFrame(view_trash.MainFrame):
         delta = end-start
         new_start = int(start + delta*0.10)
         new_end = int(end + delta*0.10)
+        self.end = new_end
+        self.start = new_start
+
 
         #new_start = start + 500
         #new_end = end + 500
@@ -203,6 +216,8 @@ class TrashFrame(view_trash.MainFrame):
 
         self.startText.SetValue(str(new_start))
         self.endText.SetValue(str(new_end))
+        self.end = new_end
+        self.start = new_start        
         self.updateFunc(event)
 
 
@@ -218,6 +233,8 @@ class TrashFrame(view_trash.MainFrame):
 
         self.startText.SetValue(str(new_start))
         self.endText.SetValue(str(new_end))
+        self.end = new_end
+        self.start = new_start
         self.updateFunc(event)    
 
 
@@ -238,9 +255,36 @@ class TrashFrame(view_trash.MainFrame):
     
 
     def addFeatureFunc(self, event):
-        pass
-
-
+        wc = u"Known Annotation Formats (*.prot_table,*.gff3,*.gff)|*.prot_table;*.gff3;*.gff;|\nProt Table (*.prot_table)|*.prot_table;|\nGFF3 (*.gff,*.gff3)|*.gff;*.gff3;|\nAll files (*.*)|*.*"
+        path = self.OpenFile(DIR=self.parent.workdir, FILE="", WC=wc)
+        try:
+            if path:
+                self.feature_hashes.append(transit_tools.get_pos_hash(path))
+                self.feature_data.append(transit_tools.get_gene_info(path))
+                self.updateFunc(self.parent)
+                self.Fit()
+            else:
+                print track_prefix, "No feature added"
+        except Exception, e:
+            print track_prefix + '[ERROR]:', e
+            traceback.print_exc()
+    
+        
+    def OpenFile(self, DIR=".", FILE="", WC=""):
+        """
+        Create and show the Open FileDialog
+        """
+        path = ""
+        dlg = wx.FileDialog(
+            self, message="Save file as ...",
+            defaultDir=DIR,
+            defaultFile=FILE, wildcard=WC, style=wx.OPEN
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            transit_tools.transit_message("You added the following file: %s" % path, track_prefix)
+        dlg.Destroy()
+        return path
 
 
     def searchFunc(self, event):
@@ -279,28 +323,34 @@ class TrashFrame(view_trash.MainFrame):
             self.endText.SetValue(str(end))
 
             #Get min/max read info from text controls
-            min_read = int(self.minText.GetValue())
-            max_read = int(self.maxText.GetValue())
+            self.min_read = int(self.minText.GetValue())
+            self.max_read = int(self.maxText.GetValue())
 
-            if self.normCheck.GetValue():
-                image_pil = draw_trash.draw_canvas(self.fulldata_norm, self.position, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
-            else:
-                image_pil = draw_trash.draw_canvas(self.fulldata, self.position, self.hash, self.orf2data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
-
-
-            #image_pil = draw_trash.draw_canvas(start, end, min_read, max_read, self.data, self.hash, self.orf2data)
-            #image_wxBit = PilImageToWxBitmap( image_pil )
-            image_wxImg = PilImageToWxImage( image_pil )
-            #self.m_bitmap1 = wx.StaticBitmap(self, -1, image_wxBit, (0, 0))
-            self.m_bitmap1.SetBitmap(wx.BitmapFromImage(image_wxImg))
-            #self.m_bitmap1 = image_wxBit
-            self.Refresh()
-            image_pil = ""
+            self.DrawCanvas()
 
         except Exception, e:
             print track_prefix + '[ERROR]:', e
             traceback.print_exc() 
         
+
+
+    def DrawCanvas(self):
+
+        self.autoScale = self.autoScaleCheck.GetValue()
+        if self.normCheck.GetValue():
+            image_pil = draw_trash.draw_canvas(self.fulldata_norm, self.position, self.hash, self.orf2data, self.feature_hashes, self.feature_data, labels=self.labels, min_read=self.min_read, max_read=self.max_read, autoScale=self.autoScale,start=self.start, end=self.end)
+        else:
+            image_pil = draw_trash.draw_canvas(self.fulldata, self.position, self.hash, self.orf2data, self.feature_hashes, self.feature_data, labels=self.labels, min_read=self.min_read, max_read=self.max_read, autoScale=self.autoScale, start=self.start, end=self.end)
+
+        #image_pil = draw_trash.draw_canvas(start, end, min_read, max_read, self.data, self.hash, self.orf2data)
+        #image_wxBit = PilImageToWxBitmap( image_pil )
+        image_wxImg = PilImageToWxImage( image_pil )
+        #self.m_bitmap1 = wx.StaticBitmap(self, -1, image_wxBit, (0, 0))
+        self.m_bitmap1.SetBitmap(wx.BitmapFromImage(image_wxImg))
+        #self.m_bitmap1 = image_wxBit
+        self.Refresh()
+        image_pil = ""
+
 
 
     def SaveFile(self, DIR=".", FILE="", WC=""):
