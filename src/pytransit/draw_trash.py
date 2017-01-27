@@ -198,7 +198,7 @@ def get_dynamic_height(N):
     return (canvas_h)
 
 
-def draw_canvas(fulldata, position, hash, orf2data, feature_hashes, feature_data, labels=[], min_read=0, max_read=2000, autoScale=False, start=1, end=500, canvas_h=-1, canvas_w=1000):
+def draw_canvas(fulldata, position, hash, orf2data, feature_hashes, feature_data, labels=[], min_read=0, scale=[500], globalScale = False, start=1, end=500, canvas_h=-1, canvas_w=1000):
     
 
     temp_image = Image.new("RGB",(200, 200),"white")
@@ -236,10 +236,17 @@ def draw_canvas(fulldata, position, hash, orf2data, feature_hashes, feature_data
                 temp.append(read)
         READS.append(temp)
 
-    if autoScale:
-        max_read=int(numpy.max(READS))
- 
+    max_reads = []
+    if globalScale:
+        max_reads = [int(numpy.max(READS))] * len(READS)
 
+    else:
+        for j,s in enumerate(scale):
+            #print j,s
+            if s < 0:
+                max_reads.append(int(numpy.max(READS[j])))
+            else:
+                max_reads.append(s)
 
     #Get dynamic text widths
     #print "Labels:"
@@ -249,7 +256,7 @@ def draw_canvas(fulldata, position, hash, orf2data, feature_hashes, feature_data
         max_label_w = max(label_text_w, max_label_w)
         #print L
 
-    scale_text_w, scale_text_h = temp_draw.textsize(str(max_read), font=font)
+    scale_text_w, scale_text_h = temp_draw.textsize(str(max(max_reads)), font=font)
     
 
 
@@ -289,8 +296,8 @@ def draw_canvas(fulldata, position, hash, orf2data, feature_hashes, feature_data
     for j in range(len(fulldata)):
         start_y+=read_h+padding_h
         draw.text((10, start_y - half), labels[j], font=font, fill="black")
-        draw_reads(draw, READS[j], TA_SITES, start_x, start_y, read_w, read_h, start, end, min_read, max_read)
-        draw_scale(draw, start_x+read_w+padding_w+2, start_y-100+10, 70, max_read)
+        draw_reads(draw, READS[j], TA_SITES, start_x, start_y, read_w, read_h, start, end, min_read, max_reads[j])
+        draw_scale(draw, start_x+read_w+padding_w+2, start_y-100+10, 70, max_reads[j])
             
 
 

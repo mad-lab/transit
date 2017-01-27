@@ -80,7 +80,7 @@ track_prefix = "[TrackView]"
 #inherit from the MainFrame created in wxFowmBuilder and create CalcFrame
 class TrashFrame(view_trash.MainFrame):
     #constructor
-    def __init__(self,parent, dataset_list=["H37Rv_Sassetti_glycerol.wig"], annotation="H37Rv.prot_table", gene=""):
+    def __init__(self, parent, dataset_list=["H37Rv_Sassetti_glycerol.wig"], annotation="H37Rv.prot_table", gene="", scale = None, feature_hashes=[], feature_data=[]):
 
 
         self.parent = parent
@@ -112,13 +112,21 @@ class TrashFrame(view_trash.MainFrame):
         print track_prefix, "Normalization factors", factors.flatten()
 
         #initialize parent class
+
+        self.feature_hashes = feature_hashes
+        self.feature_data = feature_data
+
+        if not scale:
+            scale = [150] * len(dataset_list)
+        self.scale = scale
+        self.globalScale = False
+
         view_trash.MainFrame.__init__(self,parent)
-    
-        self.feature_hashes = []
-        self.feature_data = []
+   
 
-        self.autoScale = True
-
+        self.datasetChoice.SetItems(self.labels)
+        self.datasetChoice.SetSelection(0)
+ 
         if gene:
             self.searchText.SetValue(gene)
             self.searchFunc(gene)
@@ -131,35 +139,19 @@ class TrashFrame(view_trash.MainFrame):
  
     def updateFunc(self,event):
         try:
-            start = int(self.startText.GetValue())
-            end = int(self.endText.GetValue())
-
-            self.min_read = 0
-            if self.minText.GetValue():
-                self.min_read = int(self.minText.GetValue())
-
-            self.max_read = 0
-            if self.maxText.GetValue():
-                self.max_read = int(self.maxText.GetValue())
-
-
-   
+            #self.start = int(self.startText.GetValue())
+            #self.end = int(self.endText.GetValue())
+            #if self.maxText.GetValue():
+            #    dataset_ii = self.datasetChoice.GetCurrentSelection()
+            #    self.scale[dataset_ii] = int(self.maxText.GetValue())
+            
+            #self.start = int(self.startText.GetValue())
+            #self.end = int(self.endText.GetValue())
+            #if self.maxText.GetValue():
+            #    dataset_ii = self.datasetChoice.GetCurrentSelection()
+            #    self.scale[dataset_ii] = int(self.maxText.GetValue())
+            
             self.DrawCanvas()
-            """ 
-            if self.normCheck.GetValue():
-                image_pil = draw_trash.draw_canvas(self.fulldata_norm, self.position, self.hash, self.orf2data, self.feature_hashes, self.feature_data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
-            else:
-                image_pil = draw_trash.draw_canvas(self.fulldata, self.position, self.hash, self.orf2data, self.feature_hashes, self.feature_data, labels=self.labels, min_read=min_read, max_read=max_read, start=start, end=end)
-
-            #image_pil = draw_trash.draw_canvas(start, end, min_read, max_read, self.data, self.hash, self.orf2data)
-            #image_wxBit = PilImageToWxBitmap( image_pil )
-            image_wxImg = PilImageToWxImage( image_pil )
-            #self.m_bitmap1 = wx.StaticBitmap(self, -1, image_wxBit, (0, 0))
-            self.m_bitmap1.SetBitmap(wx.BitmapFromImage(image_wxImg))
-            #self.m_bitmap1 = image_wxBit
-            self.Refresh()
-            image_pil = ""
-            """
 
         except Exception, e:
             print track_prefix + '[ERROR]:', e
@@ -237,12 +229,38 @@ class TrashFrame(view_trash.MainFrame):
         self.start = new_start
         self.updateFunc(event)    
 
+    def changedMaxFunc(self, event):
+        start = int(self.startText.GetValue())
+        if self.maxText.GetValue() and self.maxText.GetValue() != "-":
+            dataset_ii = self.datasetChoice.GetCurrentSelection()
+            self.scale[dataset_ii] = int(self.maxText.GetValue())
+        self.updateFunc(event)
+
+
+    def scaleFunc(self, event):
+        if self.autoScaleCheck.GetValue():
+            self.maxText.Enable(False)
+            self.datasetChoice.Enable(False)
+            self.globalScale = True
+        else:
+            self.maxText.Enable(True)
+            self.datasetChoice.Enable(True)
+            self.globalScale = False
+        self.updateFunc(event) 
+
+
+    def datasetSelectFunc(self, event):
+        dataset_ii = self.datasetChoice.GetCurrentSelection()
+        self.maxText.SetValue(str(self.scale[dataset_ii]))
+
 
     def resetFunc(self, event):
         self.startText.SetValue("1")
         self.endText.SetValue("10000")
-        self.minText.SetValue("0")
-        self.maxText.SetValue("150")
+        self.scale = [150]*len(self.labels)
+        self.datasetChoice.SetSelection(0)
+        self.maxText.SetValue(str(self.scale[0]))
+
         self.updateFunc(event)
 
 
@@ -318,14 +336,13 @@ class TrashFrame(view_trash.MainFrame):
        
         try:
 
-            #Set the start and end coords with the new info
+            #Get min/max read info from text controls
             self.startText.SetValue(str(start))
             self.endText.SetValue(str(end))
 
-            #Get min/max read info from text controls
-            self.min_read = int(self.minText.GetValue())
-            self.max_read = int(self.maxText.GetValue())
-
+            #Set the start and end coords with the new info
+            self.start = start
+            self.end = end
             self.DrawCanvas()
 
         except Exception, e:
@@ -336,11 +353,11 @@ class TrashFrame(view_trash.MainFrame):
 
     def DrawCanvas(self):
 
-        self.autoScale = self.autoScaleCheck.GetValue()
+        #self.autoScale = self.autoScaleCheck.GetValue()
         if self.normCheck.GetValue():
-            image_pil = draw_trash.draw_canvas(self.fulldata_norm, self.position, self.hash, self.orf2data, self.feature_hashes, self.feature_data, labels=self.labels, min_read=self.min_read, max_read=self.max_read, autoScale=self.autoScale,start=self.start, end=self.end)
+            image_pil = draw_trash.draw_canvas(self.fulldata_norm, self.position, self.hash, self.orf2data, self.feature_hashes, self.feature_data, labels=self.labels, scale=self.scale, globalScale=self.globalScale, start=self.start, end=self.end)
         else:
-            image_pil = draw_trash.draw_canvas(self.fulldata, self.position, self.hash, self.orf2data, self.feature_hashes, self.feature_data, labels=self.labels, min_read=self.min_read, max_read=self.max_read, autoScale=self.autoScale, start=self.start, end=self.end)
+            image_pil = draw_trash.draw_canvas(self.fulldata, self.position, self.hash, self.orf2data, self.feature_hashes, self.feature_data, labels=self.labels, scale=self.scale, globalScale=self.globalScale, start=self.start, end=self.end)
 
         #image_pil = draw_trash.draw_canvas(start, end, min_read, max_read, self.data, self.hash, self.orf2data)
         #image_wxBit = PilImageToWxBitmap( image_pil )

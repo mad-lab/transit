@@ -103,9 +103,9 @@ class MainFrame ( wx.Frame ):
         self.normCheck.SetValue(True) 
         bSizer11.Add( self.normCheck, 0, wx.ALL, 5 )
         
-        self.autoScaleCheck = wx.CheckBox( self, wx.ID_ANY, u"Scale to Local Max", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.autoScaleCheck.SetValue(True)
-        bSizer11.Add( self.autoScaleCheck, 0, wx.ALL, 5 )
+        #self.autoScaleCheck = wx.CheckBox( self, wx.ID_ANY, u"Scale to Local Max", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #self.autoScaleCheck.SetValue(True)
+        #bSizer11.Add( self.autoScaleCheck, 0, wx.ALL, 5 )
         
 
         sbSizer4.Add( bSizer11, 0, wx.EXPAND, 5 )
@@ -115,25 +115,30 @@ class MainFrame ( wx.Frame ):
         
         sbSizer3 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Scale" ), wx.VERTICAL )
         
-        bSizer12 = wx.BoxSizer( wx.HORIZONTAL )
+       # bSizer12 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.minLabel = wx.StaticText( self, wx.ID_ANY, u"Min Read", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.minLabel.Wrap( -1 )
-        bSizer12.Add( self.minLabel, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        #self.minLabel = wx.StaticText( self, wx.ID_ANY, u"Min Read", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #self.minLabel.Wrap( -1 )
+        #bSizer12.Add( self.minLabel, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
         
-        self.minText = wx.TextCtrl( self, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.minText.Enable( False )
-        
-        bSizer12.Add( self.minText, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-        
-        
-        sbSizer3.Add( bSizer12, 1, wx.EXPAND, 5 )
+        #self.minText = wx.TextCtrl( self, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #self.minText.Enable( False )
+        #bSizer12.Add( self.minText, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+                
+
+        #sbSizer3.Add( bSizer12, 1, wx.EXPAND, 5 )
         
         bSizer13 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.maxLabel = wx.StaticText( self, wx.ID_ANY, u"Max Read", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.maxLabel.Wrap( -1 )
-        bSizer13.Add( self.maxLabel, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        #self.maxLabel = wx.StaticText( self, wx.ID_ANY, u"Max Read", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #self.maxLabel.Wrap( -1 )
+        #bSizer13.Add( self.maxLabel, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        datasetChoiceChoices = [ u""]
+        self.datasetChoice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, datasetChoiceChoices, 0 )
+        self.datasetChoice.SetSelection( 0 )
+
+        bSizer13.Add( self.datasetChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
         
         self.maxText = wx.TextCtrl( self, wx.ID_ANY, u"150", wx.DefaultPosition, wx.DefaultSize, 0 )
         bSizer13.Add( self.maxText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
@@ -141,6 +146,13 @@ class MainFrame ( wx.Frame ):
         
         sbSizer3.Add( bSizer13, 1, wx.EXPAND, 5 )
         
+
+        bSizer12 = wx.BoxSizer( wx.HORIZONTAL )
+        self.autoScaleCheck = wx.CheckBox( self, wx.ID_ANY, u"Scale to Local Max", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.autoScaleCheck.SetValue(False)
+        bSizer12.Add( self.autoScaleCheck, 0, wx.ALL, 5 )
+
+        sbSizer3.Add( bSizer12, 1, wx.EXPAND, 5 )
         
         bSizer5.Add( sbSizer3, 0, wx.EXPAND, 5 )
         
@@ -167,7 +179,9 @@ class MainFrame ( wx.Frame ):
         self.zoomInButton.Bind( wx.EVT_BUTTON, self.zoomInFunc )
         self.endText.Bind( wx.EVT_TEXT_ENTER, self.updateFunc )
         self.normCheck.Bind( wx.EVT_CHECKBOX, self.updateFunc )
-        self.maxText.Bind( wx.EVT_TEXT, self.updateFunc )
+        self.autoScaleCheck.Bind( wx.EVT_CHECKBOX, self.scaleFunc )
+        self.maxText.Bind( wx.EVT_TEXT, self.changedMaxFunc )
+        self.datasetChoice.Bind( wx.EVT_CHOICE, self.datasetSelectFunc )
     
     def __del__( self ):
         pass
@@ -202,7 +216,10 @@ class MainFrame ( wx.Frame ):
     
     def zoomInFunc( self, event ):
         event.Skip()
-    
+   
+    def changedMaxFunc( self, event ):
+        event.Skip()
+ 
     
     
     
