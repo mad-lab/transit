@@ -167,7 +167,7 @@ class ExampleMethod(base.SingleConditionMethod):
         
         #Get orf data
         self.transit_message("Getting Data")
-        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
+        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, norm="TTR", ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
 
         data = []
         N = len(G)
@@ -175,7 +175,11 @@ class ExampleMethod(base.SingleConditionMethod):
         self.progress_range(N)
         for gene in G:
             count+=1
-            mean = numpy.mean(gene.reads)
+            if gene.n == 0:
+                mean = 0.0
+            else:
+                mean = numpy.mean(gene.reads)
+
             if gene.k == 0:
                 nzmean = 0.0
             else:

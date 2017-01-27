@@ -532,7 +532,7 @@ class HMMMethod(base.SingleConditionMethod):
         output = open(output_path, "w")
         pos2state = dict([(position[t],states[t]) for t in range(len(states))])
         theta = numpy.mean(data > 0)
-        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, data=data, position=position)
+        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, data=data, position=position, ignoreCodon=False)
 
         num2label = {0:"ES", 1:"GD", 2:"NE", 3:"GA"}
         output.write("#HMM - Genes\n")        

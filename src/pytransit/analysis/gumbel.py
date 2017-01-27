@@ -398,7 +398,7 @@ class GumbelMethod(base.SingleConditionMethod):
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
 
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
-        self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
+        self.output.write("#Annotation path: %s\n" % self.annotation_path) 
         self.output.write("#FDR Corrected thresholds: %f, %f\n" % (ess_t, non_t))
         self.output.write("#MH Acceptance-Rate:\t%2.2f%%\n" % (100.0*acctot/count))
         self.output.write("#Total Iterations Performed:\t%d\n" % count)
