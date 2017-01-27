@@ -1095,7 +1095,7 @@ class TnSeekFrame(MainFrame):
         if datasets and annotationpath:
             if self.verbose:
                 transit_tools.transit_message("Visualizing counts for: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
+            viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene=gene)
             viewWindow.Show()
         elif not datasets:
             transit_tools.ShowError("Error: No datasets selected.")

@@ -843,8 +843,9 @@ def combine_replicates(data, method="Sum"):
     elif method == "Mean":
         combined = numpy.round(numpy.mean(data,0))
     elif method == "TTRMean":
-        factors = norm_tools.TTR_factors(data)
-        data = factors * data
+        #factors = norm_tools.TTR_factors(data)
+        #data = factors * data
+        (data, factors) = norm_tools.normalize_data(data, "TTR")
         target_factors = norm_tools.norm_to_target(data, 100)
         data = target_factors * data
         combined = numpy.round(numpy.mean(data,0))

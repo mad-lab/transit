@@ -76,15 +76,14 @@ def cleanargs(rawargs):
     count = 0
     while count < len(rawargs):
         if rawargs[count].startswith("-"):
-            try:
+            if count + 1 < len(rawargs) and not rawargs[count+1].startswith("-"):
                 kwargs[rawargs[count][1:]] = rawargs[count+1]
                 count += 1
-            except IndexError as IE:
+            else:
                 kwargs[rawargs[count][1:]] = True
         else:
             args.append(rawargs[count])
         count += 1
-
     return (args, kwargs)
 
 
@@ -120,10 +119,12 @@ def ShowError(MSG=""):
         wx.OK | wx.ICON_ERROR)
     dial.ShowModal()
 
-def transit_message(msg=""):
+def transit_message(msg="", prefix=""):
     #TODO: Write docstring
-    print pytransit.prefix, msg
-
+    if prefix:
+        print prefix, msg
+    else:
+        print pytransit.prefix, msg
 
 def transit_error(text):
     #TODO: Write docstring
