@@ -149,8 +149,11 @@ def extract_staggered(infile,outfile,vars):
   vars.truncated_reads = 0
   output = open(outfile,"w")
   tot = 0
+  #print infile
   for line in open(infile):
+    #print line
     line = line.rstrip()
+    if not line: continue
     if line[0]=='>': header = line; continue
     tot += 1
     if tot%1000000==0: message("%s reads processed" % tot)
@@ -775,7 +778,7 @@ def initialize_globals(vars):
       vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
       vars.mm1 = 1 # mismatches allowed in Tn prefix
       vars.transposon = 'Himar1'
-      vars.prefix = None
+      vars.prefix = ""
       read_config(vars)
 
 def read_config(vars):
@@ -789,6 +792,8 @@ def read_config(vars):
     if len(w)>=2 and w[0]=='prefix': vars.base = w[1]
     if len(w)>=2 and w[0]=='mismatches1': vars.mm1 = int(w[1])
     if len(w)>=2 and w[0]=='transposon': vars.transposon = w[1]
+    if len(w)>=2 and w[0]=='primer': vars.prefix = w[1]
+
 
 def save_config(vars):
   f = open("tpp.cfg","w")
@@ -798,7 +803,8 @@ def save_config(vars):
   f.write("bwa %s\n" % vars.bwa)
   f.write("prefix %s\n" % vars.base)
   f.write("mismatches1 %s\n" % vars.mm1) 
-  f.write("transposon %s\n" % vars.transposon) 
+  f.write("transposon %s\n" % vars.transposon)
+  f.write("primer %s\n" % vars.prefix)
   f.close()
 
 def show_help():

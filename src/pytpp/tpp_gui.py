@@ -137,7 +137,7 @@ if hasWx:
             sizer8 = wx.BoxSizer(wx.HORIZONTAL)
             label8 = wx.StaticText(panel, label='Transposon used:',size=(350,-1))
             sizer8.Add(label8,0,0,0)
-            self.transposon = wx.ComboBox(panel,choices=['Himar1','Tn5'],size=(400,30))
+            self.transposon = wx.ComboBox(panel,choices=['Himar1','Tn5', '[Custom]'],size=(400,30))
             self.transposon.SetStringSelection(vars.transposon)
             sizer8.Add(self.transposon, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer8,0,wx.ALL,0)
@@ -145,11 +145,12 @@ if hasWx:
             sizer4 = wx.BoxSizer(wx.HORIZONTAL)
             label4 = wx.StaticText(panel, label='Primer sequence:',size=(350,-1))
             sizer4.Add(label4,0,0,0)
-            self.prefix = wx.TextCtrl(panel,value="TAAGAGACAG" if self.transposon.GetValue()=="Tn5" else "ACTTATCAGCCAACCTGTTA",size=(400,30))
+            self.prefix = wx.TextCtrl(panel,value=str(vars.prefix), size=(400,30))
             sizer4.Add(self.prefix, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer4,0,wx.ALL,0)
             
             self.Bind(wx.EVT_COMBOBOX, self.OnTransposonSelection, id=self.transposon.GetId())
+            self.prefix.Bind(wx.EVT_TEXT, self.OnChangePrimerPrefix)
 
             sizer6 = wx.BoxSizer(wx.HORIZONTAL)
             label6 = wx.StaticText(panel, label='Max reads (leave blank to use all):',size=(350,-1))
@@ -168,9 +169,20 @@ if hasWx:
             #self.picker1.OnChanged = self.OnChanged(self.picker1.GetValue())
         
         def OnTransposonSelection(self, event):
-            if self.transposon.GetValue()=="Tn5": self.prefix.SetValue("TAAGAGACAG")
-            elif self.transposon.GetValue()=="Himar1": self.prefix.SetValue("ACTTATCAGCCAACCTGTTA")
-            else: self.prefix.SetValue("")
+            if self.transposon.GetValue()=="Tn5":
+                self.prefix.SetValue("TAAGAGACAG")
+                self.transposon.SetStringSelection("Tn5")
+                self.vars.transposon = "Tn5"
+            elif self.transposon.GetValue()=="Himar1":
+                self.prefix.SetValue("ACTTATCAGCCAACCTGTTA")
+                self.transposon.SetStringSelection("Himar1")
+                self.vars.transposon = "Himar1"
+            else:
+                self.transposon.SetValue("[Custom]")
+                self.transposon.SetStringSelection("[Custom]")
+                self.vars.transposon = "[Custom]"
+
+
 
         def OnChanged(self, str_path):
             print "changed"
@@ -185,6 +197,11 @@ if hasWx:
             value = os.path.commonprefix([value1, value2])
             self.base.SetValue(value)
             self.base.Refresh()
+
+
+        def OnChangePrimerPrefix(self, event):
+            self.transposon.SetValue("[Custom]")
+
 
         def InitList(self,panel,sizer):
             self.list_ctrl = wx.ListCtrl(panel, size=(500,500), style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.BORDER_SUNKEN)
