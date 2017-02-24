@@ -71,8 +71,8 @@ class ResamplingFile(base.TransitFile):
 
         text = """Results:
     Conditionally - Essentials: %s
-        More Essential in Experimental datasets: %s
         Less Essential in Experimental datasets: %s
+        More Essential in Experimental datasets: %s
             """ % (DE, poslogfc, neglogfc)
         return text
 
