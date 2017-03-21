@@ -667,7 +667,7 @@ def generate_output(vars):
   rcounts = [x[5] for x in counts]
   tcounts = [x[6] for x in counts]
   rc,tc = sum(rcounts),sum(tcounts)
-  ratio = rc/float(tc)
+  ratio = rc/float(tc) if (rc != 0 and tc !=0) else 0
   ta_sites = len(rcounts)
   tas_hit = len(filter(lambda x: x>0,rcounts))
   density = tas_hit/float(ta_sites)
