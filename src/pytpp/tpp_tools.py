@@ -76,8 +76,8 @@ def fastq2reads(infile,outfile,maxreads):
 def fix_paired_headers_for_bwa(reads1,reads2):
   a = open(reads1)
   b = open(reads2)
-  temp1 = "temp."+reads1
-  temp2 = "temp."+reads2
+  temp1 = reads1+".temp"
+  temp2 = reads2+".temp"
   c = open(temp1,"w")
   d = open(temp2,"w")
   tot = 0
