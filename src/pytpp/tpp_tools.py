@@ -27,7 +27,6 @@ import gzip
 import subprocess
 
 
-
 def analyze_dataset(wigfile):
   data = []
   TAs,ins,reads = 0,0,0
@@ -76,8 +75,8 @@ def fastq2reads(infile,outfile,maxreads):
 def fix_paired_headers_for_bwa(reads1,reads2):
   a = open(reads1)
   b = open(reads2)
-  temp1 = "temp."+reads1
-  temp2 = "temp."+reads2
+  temp1 = reads1+".temp"
+  temp2 = reads2+".temp"
   c = open(temp1,"w")
   d = open(temp2,"w")
   tot = 0
@@ -314,7 +313,7 @@ def template_counts(ref,sam,bcfile,vars):
 
   sites = []
   for i in range(len(genome)-1):
-    if genome[i:i+2]=="TA":
+    if genome[i:i+2].upper()=="TA":
       pos = i+1
       h = hits.get(pos,[])
       f = filter(lambda x: x[0]=='F',h)
@@ -667,7 +666,7 @@ def generate_output(vars):
   rcounts = [x[5] for x in counts]
   tcounts = [x[6] for x in counts]
   rc,tc = sum(rcounts),sum(tcounts)
-  ratio = rc/float(tc)
+  ratio = rc/float(tc) if (rc != 0 and tc !=0) else 0
   ta_sites = len(rcounts)
   tas_hit = len(filter(lambda x: x>0,rcounts))
   density = tas_hit/float(ta_sites)
