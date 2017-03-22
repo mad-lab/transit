@@ -27,7 +27,6 @@ import gzip
 import subprocess
 
 
-
 def analyze_dataset(wigfile):
   data = []
   TAs,ins,reads = 0,0,0
@@ -314,7 +313,7 @@ def template_counts(ref,sam,bcfile,vars):
 
   sites = []
   for i in range(len(genome)-1):
-    if genome[i:i+2]=="TA":
+    if genome[i:i+2].upper()=="TA":
       pos = i+1
       h = hits.get(pos,[])
       f = filter(lambda x: x[0]=='F',h)
