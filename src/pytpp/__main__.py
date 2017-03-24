@@ -57,6 +57,7 @@ def main():
                 else: msg = 'running pre-processing on %s and %s' % (vars.fq1,vars.fq2)
                 message(msg)
                 message("transposon type: %s" % vars.transposon)
+                message("protocol: %s" % vars.protocol)
                 save_config(vars)
                 driver(vars)
 
@@ -117,6 +118,7 @@ def main():
         else: msg = 'running pre-processing on %s and %s' % (vars.fq1,vars.fq2)
         message(msg)
         message("transposon type: %s" % vars.transposon)
+        message("protocol: %s" % vars.protocol)
         verify_inputs(vars)
         save_config(vars)
         driver(vars)

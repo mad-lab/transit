@@ -47,7 +47,12 @@ if hasWx:
     
             wx.Frame.__init__(self, None, wx.ID_ANY, "Tn-Seq PreProcessor") # v%s" % vars.version)
             # Add a panel so it looks the correct on all platforms
-            panel = wx.Panel(self, wx.ID_ANY)
+            
+            #panel = wx.Panel(self, wx.ID_ANY)
+            panel = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL )
+            panel.SetScrollRate( 5, 5 )
+            panel.SetMaxSize( wx.Size( -1, 670 ) )
+            
             #panel.SetFont(wx.Font(14,wx.DECORATIVE,wx.NORMAL,wx.NORMAL,False,u'times'))
             # panel.SetFont(wx.Font(14,wx.DECORATIVE,wx.NORMAL,wx.NORMAL,False,u'fixed'))
             #panel.SetFont(wx.Font(14,wx.DECORATIVE,wx.NORMAL,wx.BOLD,False,u'courier'))
@@ -91,7 +96,7 @@ if hasWx:
             vars = self.vars
             sizer0 = wx.BoxSizer(wx.HORIZONTAL)
             label0 = wx.StaticText(panel, label='BWA executable:',size=(340,-1))
-            sizer0.Add(label0,0,0,0)
+            sizer0.Add(label0,0,wx.ALIGN_CENTER_VERTICAL,0)
             print os.path.dirname(vars.bwa)
             #self.picker0 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="path to BWA",size=(400,30))#,path=os.path.abspath(vars.bwa))
             #self.picker0.SetDirName('/pacific/home/cambadipudi/chaitra/tpp/')
@@ -101,7 +106,7 @@ if hasWx:
 
             sizer3 = wx.BoxSizer(wx.HORIZONTAL)
             label3 = wx.StaticText(panel, label='Choose a reference genome (FASTA):',size=(340,-1))
-            sizer3.Add(label3,0,0,0)
+            sizer3.Add(label3,0,wx.ALIGN_CENTER_VERTICAL,0)
             #self.picker3 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the reference genome", wildcard='*.fna;*.fasta;*.fa', size=(400,30),path=vars.ref)
             self.picker3 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the reference genome', fileMode=wx.OPEN, fileMask='*.fna;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.ref), initialValue=vars.ref, labelText='')
             sizer3.Add(self.picker3, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
@@ -110,7 +115,7 @@ if hasWx:
         
             sizer1 = wx.BoxSizer(wx.HORIZONTAL)
             label1 = wx.StaticText(panel, label='Choose the Fastq file for read 1:',size=(340,-1))
-            sizer1.Add(label1,0,0,0)
+            sizer1.Add(label1,0,wx.ALIGN_CENTER_VERTICAL,0)
             # self.picker1 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 1", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq1)
             self.picker1 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 1', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa;*.fastq.gz', size=(400,30), startDirectory=os.path.dirname(vars.fq1), initialValue=vars.fq1, labelText='',changeCallback=self.OnChanged2)
             #self.picker1.OnChanged = self.OnChanged(self.picker1.GetValue(), self.base)
@@ -121,30 +126,41 @@ if hasWx:
        
             sizer2 = wx.BoxSizer(wx.HORIZONTAL)
             label2 = wx.StaticText(panel, label='Choose the Fastq file for read 2:',size=(340,-1))
-            sizer2.Add(label2,0,0,0)
+            sizer2.Add(label2,0,wx.ALIGN_CENTER_VERTICAL,0)
             #self.picker2 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 2", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq2)
             self.picker2 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 2', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa;*.fastq.gz', size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue=vars.fq2, labelText='', changeCallback=self.OnChanged2)
             sizer2.Add(self.picker2, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer.Add(sizer2,0,wx.EXPAND,0)
+            sizer.Add(sizer2,0,wx.ALL,0)
             
             sizer5 = wx.BoxSizer(wx.HORIZONTAL)
             label5 = wx.StaticText(panel, label='Prefix to use for output filenames:',size=(350,-1))
-            sizer5.Add(label5,0,0,0)
+            sizer5.Add(label5,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.base = wx.TextCtrl(panel,value=vars.base,size=(400,30))
             sizer5.Add(self.base, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer5,0,wx.ALL,0)
 
+            sizer_protocol = wx.BoxSizer(wx.HORIZONTAL)
+            label_protocol = wx.StaticText(panel, label='Protocol used:',size=(350,-1))
+            sizer_protocol.Add(label_protocol,0,wx.ALIGN_CENTER_VERTICAL,0)
+            self.protocol = wx.ComboBox(panel,choices=['Sassetti Lab','Rudner Lab'],size=(400,30))
+            self.protocol.SetStringSelection(vars.protocol)
+            sizer_protocol.Add(self.protocol, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer.Add(sizer_protocol,0,wx.ALL,0)
+
+            self.Bind(wx.EVT_COMBOBOX, self.OnProtocolSelection, id=self.protocol.GetId())
+
             sizer8 = wx.BoxSizer(wx.HORIZONTAL)
             label8 = wx.StaticText(panel, label='Transposon used:',size=(350,-1))
-            sizer8.Add(label8,0,0,0)
+            sizer8.Add(label8,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.transposon = wx.ComboBox(panel,choices=['Himar1','Tn5', '[Custom]'],size=(400,30))
             self.transposon.SetStringSelection(vars.transposon)
             sizer8.Add(self.transposon, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer8,0,wx.ALL,0)
-            
+
+ 
             sizer4 = wx.BoxSizer(wx.HORIZONTAL)
             label4 = wx.StaticText(panel, label='Primer sequence:',size=(350,-1))
-            sizer4.Add(label4,0,0,0)
+            sizer4.Add(label4,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.prefix = wx.TextCtrl(panel,value=str(vars.prefix), size=(400,30))
             sizer4.Add(self.prefix, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer4,0,wx.ALL,0)
@@ -154,14 +170,14 @@ if hasWx:
 
             sizer6 = wx.BoxSizer(wx.HORIZONTAL)
             label6 = wx.StaticText(panel, label='Max reads (leave blank to use all):',size=(350,-1))
-            sizer6.Add(label6,0,0,0)
+            sizer6.Add(label6,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.maxreads = wx.TextCtrl(panel,size=(400,30))
             sizer6.Add(self.maxreads, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer6,0,wx.ALL,0)
 
             sizer7 = wx.BoxSizer(wx.HORIZONTAL)
             label7 = wx.StaticText(panel, label='Mismatches allowed in Tn prefix:',size=(350,-1))
-            sizer7.Add(label7,0,0,0)
+            sizer7.Add(label7,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.mismatches = wx.TextCtrl(panel,value=str(vars.mm1),size=(400,30))
             sizer7.Add(self.mismatches, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer7,0,wx.ALL,0)    
@@ -182,6 +198,8 @@ if hasWx:
                 self.transposon.SetStringSelection("[Custom]")
                 self.vars.transposon = "[Custom]"
 
+        def OnProtocolSelection(self, event):
+            self.vars.transposon = self.protocol.GetValue()
 
 
         def OnChanged(self, str_path):
@@ -204,7 +222,8 @@ if hasWx:
 
 
         def InitList(self,panel,sizer):
-            self.list_ctrl = wx.ListCtrl(panel, size=(500,500), style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.BORDER_SUNKEN)
+            #self.list_ctrl = wx.ListCtrl(panel, size=(500,500), style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.BORDER_SUNKEN)
+            self.list_ctrl = wx.ListCtrl(panel, size=(500,210), style=wx.LC_REPORT|wx.BORDER_SUNKEN)
             self.list_ctrl.InsertColumn(0, 'Dataset (*.tn_stats)',width=300)
             self.list_ctrl.InsertColumn(1, 'total reads',wx.LIST_FORMAT_RIGHT,width=125)
             self.list_ctrl.InsertColumn(2, 'Tn prefix', wx.LIST_FORMAT_RIGHT,width=125)
@@ -306,6 +325,7 @@ if hasWx:
           except Exception: mm1 = 1
 
           self.vars.transposon = self.transposon.GetStringSelection()
+          self.vars.protocol = self.protocol.GetValue()
 
           self.vars.bwa = bwapath
           self.vars.fq1 = fq1
