@@ -162,6 +162,11 @@ class MainFrame ( wx.Frame ):
         
         self.SetSizer( bSizer2 )
         self.Layout()
+
+
+        self.statusBar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
+        self.statusBar.SetStatusText("")
+
         
         self.Centre( wx.BOTH )
         
