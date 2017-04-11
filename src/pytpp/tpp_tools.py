@@ -27,6 +27,22 @@ import gzip
 import subprocess
 
 
+def strip_comment(text):
+    loc = text.find("#")
+    if loc > -1:
+        return text[:loc].strip()
+    return text.strip("\n")
+
+def read_protocol_file(path):
+    var2val = {}
+    for line in open(path):
+        clean_line = strip_comment(line)
+        if clean_line:
+            print clean_line
+            var,val = clean_line.split("\t")
+            var2val[var] = val.strip()
+    return var2val
+
 
 def analyze_dataset(wigfile):
   data = []
@@ -340,37 +356,35 @@ def template_counts(ref,sam,bcfile,vars):
 # pretend that all reads count as unique templates
 
 def read_counts_original(ref,sam,vars):
-  genome = read_genome(ref)
-  hits = {}
-  vars.tot_tgtta,vars.mapped = 0,0
-  vars.r1 = vars.r2 = 0
-  for line in open(sam):
-    if line[0]=='@': continue
-    else:
-      w = line.split('\t')
-      code,icode = samcode(w[1]),int(w[1])
-      vars.tot_tgtta += 1 
-      if icode==0 or icode==16: 
-        vars.r1 += 1
-        vars.mapped += 1
-        readlen = len(w[9])
-        pos = int(w[3])
-        strand,delta = 'F',-2
-        if code[4]=="1": strand,delta = 'R',readlen
-        pos += delta
-        if pos not in hits: hits[pos] = []
-        hits[pos].append(strand)
+    genome = read_genome(ref)
+    hits = {}
+    vars.tot_tgtta,vars.mapped = 0,0
+    vars.r1 = vars.r2 = 0
+    for line in open(sam):
+        if line[0]=='@': continue
+        w = line.split('\t')
+        code,icode = samcode(w[1]),int(w[1])
+        vars.tot_tgtta += 1 
+        if icode==0 or icode==16: 
+            vars.r1 += 1
+            vars.mapped += 1
+            readlen = len(w[9])
+            pos = int(w[3])
+            strand,delta = 'F',-2
+            if code[4]=="1": strand,delta = 'R',readlen
+            pos += delta
+            if pos not in hits: hits[pos] = []
+            hits[pos].append(strand)
 
-  sites = []
-  for i in range(len(genome)-1):
-    if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
-      pos = i+1
-      h = hits.get(pos,[])
-      lenf,lenr = h.count('F'),h.count('R')
-      data = [pos,lenf,lenf,lenr,lenr,lenf+lenr,lenf+lenr]
-      sites.append(data)
-
-  return sites # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
+    sites = []
+    for i in range(len(genome)-1):
+        if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
+        pos = i+1
+        h = hits.get(pos,[])
+        lenf,lenr = h.count('F'),h.count('R')
+        data = [pos,lenf,lenf,lenr,lenr,lenf+lenr,lenf+lenr]
+        sites.append(data)
+    return sites # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
 
 
 
@@ -470,7 +484,7 @@ def read_counts(ref,sam,vars):
         if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
           pos = i+1
           sites[pos] = [pos,0,0,0,0,0,0]
-
+     
     hits = {}
     vars.tot_tgtta,vars.mapped = 0,0
     vars.r1 = vars.r2 = 0
@@ -500,7 +514,7 @@ def read_counts(ref,sam,vars):
                     site1 = pos + delta #if on + strand, take column 3 position and add 1bp)
                     if site1 in sites:
                         increase_counts(site1, sites, strand)
-
+    
     results = []
     for key in sorted(sites.keys()):
         results.append(sites[key])
