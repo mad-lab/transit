@@ -15,9 +15,9 @@ import griffin
 import resampling
 import hmm
 import rankproduct
-import mcce
-import mcce2
-import motifhmm
+#import mcce
+#import mcce2
+#import motifhmm
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -28,9 +28,9 @@ methods["hmm"] = hmm.HMMAnalysis()
 methods["resampling"] = resampling.ResamplingAnalysis()
 methods["tn5gaps"] = tn5gaps.Tn5GapsAnalysis()
 methods["rankproduct"] = rankproduct.RankProductAnalysis()
-methods["mcce"] = mcce.MCCEAnalysis()
-methods["mcce2"] = mcce2.MCCE2Analysis()
-methods["motifhmm"] = motifhmm.MotifHMMAnalysis()
+#methods["mcce"] = mcce.MCCEAnalysis()
+#methods["mcce2"] = mcce2.MCCE2Analysis()
+#methods["motifhmm"] = motifhmm.MotifHMMAnalysis()
 
 
 
