@@ -486,7 +486,7 @@ class HMMMethod(base.SingleConditionMethod):
         b_o = [B[i](O[0]) for i in range(N)]
         delta[:,0] = numpy.log(PI) + numpy.log(b_o)
 
-        Q = numpy.zeros((N, T))
+        Q = numpy.zeros((N, T),dtype=int)
 
         for t in xrange(1, T):
             b_o = [B[i](O[t]) for i in range(N)]
@@ -498,7 +498,7 @@ class HMMMethod(base.SingleConditionMethod):
             self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
             self.count+=1
 
-        Q_opt = [numpy.argmax(delta[:,T-1])]
+        Q_opt = [int(numpy.argmax(delta[:,T-1]))]
         for t in xrange(T-2, -1, -1):
             Q_opt.insert(0, Q[Q_opt[0],t+1])
             self.progress_update("hmm", self.count)
