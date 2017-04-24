@@ -294,8 +294,11 @@ def draw_canvas(fulldata, position, hash, orf2data, feature_hashes, feature_data
     half = 100*0.5
     start_x += 5
     for j in range(len(fulldata)):
+        temp_label_text_w, temp_label_text_h = temp_draw.textsize(labels[j], font=font)
+        label_text_x = (start_x/2.0) - (temp_label_text_w/2.0)
         start_y+=read_h+padding_h
-        draw.text((10, start_y - half), labels[j], font=font, fill="black")
+        #draw.text((10, start_y - half), labels[j], font=font, fill="black")
+        draw.text((label_text_x, start_y - half), labels[j], font=font, fill="black")
         draw_reads(draw, READS[j], TA_SITES, start_x, start_y, read_w, read_h, start, end, min_read, max_reads[j])
         draw_scale(draw, start_x+read_w+padding_w+2, start_y-100+10, 70, max_reads[j])
             
@@ -306,22 +309,30 @@ def draw_canvas(fulldata, position, hash, orf2data, feature_hashes, feature_data
     #start_x+=5
 
     #TA sites
-    draw.text((30, start_y),'TA Sites', font=font, fill="black")
+    temp_label_text_w, temp_label_text_h = temp_draw.textsize('TA Sites', font=font)
+    label_text_x = (start_x/2.0) - (temp_label_text_w/2.0)
+    #draw.text((30, start_y),'TA Sites', font=font, fill="black")
+    draw.text((label_text_x, start_y),'TA Sites', font=font, fill="black")
     draw_ta_sites(draw, TA_SITES, start_x, start_y, read_w, ta_h, start, end)
 
     #Genes
+    temp_label_text_w, temp_label_text_h = temp_draw.textsize('Genes', font=font)
+    label_text_x = (start_x/2.0) - (temp_label_text_w/2.0)
     start_y += 50
-    draw.text((30, start_y+10),'Genes', font=font, fill="black")
+    #draw.text((30, start_y+10),'Genes', font=font, fill="black")
+    draw.text((label_text_x, start_y+10),'Genes', font=font, fill="black")
     width = read_w
     draw_genes(draw, GENES, orf2data, start, end, start_x, start_y, width, gene_h)
 
     start_y += gene_h -20#+ padding_h 
     #Features:
     for f in range(len(FEATURES)):
-        start_y += gene_h + padding_h + 25 
-        draw.text((30, start_y+10),'Feature', font=font, fill="black")
+        start_y += gene_h + padding_h + 25
+        temp_label_text_w, temp_label_text_h = temp_draw.textsize('Feature-%d' % (f+1), font=font)
+        label_text_x = (start_x/2.0) - (temp_label_text_w/2.0)
+        draw.text((label_text_x, start_y+10),'Feature-%d' % (f+1), font=font, fill="black")
         width = read_w
-        print FEATURES[f]
+        #print FEATURES[f]
         draw_genes(draw, FEATURES[f], feature_data[f], start, end, start_x, start_y, width, gene_h)
         start_y +=10
 

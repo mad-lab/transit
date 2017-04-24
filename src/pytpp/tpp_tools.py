@@ -27,6 +27,22 @@ import gzip
 import subprocess
 
 
+def strip_comment(text):
+    loc = text.find("#")
+    if loc > -1:
+        return text[:loc].strip()
+    return text.strip("\n")
+
+def read_protocol_file(path):
+    var2val = {}
+    for line in open(path):
+        clean_line = strip_comment(line)
+        if clean_line:
+            print clean_line
+            var,val = clean_line.split("\t")
+            var2val[var] = val.strip()
+    return var2val
+
 
 def analyze_dataset(wigfile):
   data = []
@@ -149,8 +165,11 @@ def extract_staggered(infile,outfile,vars):
   vars.truncated_reads = 0
   output = open(outfile,"w")
   tot = 0
+  #print infile
   for line in open(infile):
+    #print line
     line = line.rstrip()
+    if not line: continue
     if line[0]=='>': header = line; continue
     tot += 1
     if tot%1000000==0: message("%s reads processed" % tot)
@@ -160,7 +179,8 @@ def extract_staggered(infile,outfile,vars):
     if a>=P and a<=Q:
       gstart,gend = a+lenTn,readlen
       if b!=-1: gend = b; vars.truncated_reads += 1
-      if gend-gstart<20: continue # too short
+      #if gend-gstart<20: continue # too short
+      if gend-gstart<5: continue # too short
       output.write(header+"\n")
       output.write(line[gstart:gend]+"\n")
       vars.tot_tgtta += 1
@@ -335,38 +355,175 @@ def template_counts(ref,sam,bcfile,vars):
 
 # pretend that all reads count as unique templates
 
+def read_counts_original(ref,sam,vars):
+    genome = read_genome(ref)
+    hits = {}
+    vars.tot_tgtta,vars.mapped = 0,0
+    vars.r1 = vars.r2 = 0
+    for line in open(sam):
+        if line[0]=='@': continue
+        w = line.split('\t')
+        code,icode = samcode(w[1]),int(w[1])
+        vars.tot_tgtta += 1 
+        if icode==0 or icode==16: 
+            vars.r1 += 1
+            vars.mapped += 1
+            readlen = len(w[9])
+            pos = int(w[3])
+            strand,delta = 'F',-2
+            if code[4]=="1": strand,delta = 'R',readlen
+            pos += delta
+            if pos not in hits: hits[pos] = []
+            hits[pos].append(strand)
+
+    sites = []
+    for i in range(len(genome)-1):
+        if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
+        pos = i+1
+        h = hits.get(pos,[])
+        lenf,lenr = h.count('F'),h.count('R')
+        data = [pos,lenf,lenf,lenr,lenr,lenf+lenr,lenf+lenr]
+        sites.append(data)
+    return sites # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
+
+
+
+def read_counts_Rudner(ref,sam,vars):
+    genome = read_genome(ref)
+    sites = {}
+    for i in range(len(genome)-1):
+        if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
+          pos = i+1
+          #h = hits.get(pos,[])
+          #lenf,lenr = h.count('F'),h.count('R')
+          #data = [pos,lenf,lenf,lenr,lenr,lenf+lenr,lenf+lenr]
+          sites[pos] = [pos,0,0,0,0,0,0]
+
+    hits = {}
+    vars.tot_tgtta,vars.mapped = 0,0
+    vars.r1 = vars.r2 = 0
+    for line in open(sam):
+        if line[0]=='@': continue
+        else:
+            w = line.split('\t')
+            code,icode = samcode(w[1]),int(w[1])
+            vars.tot_tgtta += 1
+            if icode==0 or icode==16:
+                vars.r1 += 1
+                vars.mapped += 1
+                readlen = len(w[9])
+                pos = int(w[3])
+                strand,delta = 'F',-2
+                if code[4]=="1": strand,delta = 'R',readlen
+                if strand == 'F':
+                    site1 = pos + 14  #if on + strand, take column 3 position and add 1bp)
+                    site2 = pos + 15
+                    true_site = None
+                    #if site1 in sites: true_site = site1
+                    #if site2 in sites: true_site = site2
+                    #if true_site:
+                    if site1 in sites:
+                        true_site = site1
+                        sites[true_site][1] += 1  #if read has been found before, tally 1 more in F reads
+                        sites[true_site][2] += 1  #if read has been found before, tally 1 more in F reads
+                        sites[true_site][5] += 1  #if read has been found before, tally 1 more in F reads
+                        sites[true_site][6] += 1  #if read has been found before, tally 1 more in F reads
+
+                    if site2 in sites:
+                        true_site = site2
+                        sites[true_site][1] += 1  #if read has been found before, tally 1 more in F reads
+                        sites[true_site][2] += 1  #if read has been found before, tally 1 more in F reads
+                        sites[true_site][5] += 1  #if read has been found before, tally 1 more in F reads
+                        sites[true_site][6] += 1  #if read has been found before, tally 1 more in F read                
+
+
+                if strand == 'R':
+                    site1 = pos + 0 #if on - strand, add col 3 position to length of read in position 4 and add 1
+                    site2 = pos + -1
+                    #if site1 in sites: true_site = site1
+                    #if site2 in sites: true_site = site2
+                    #true_site = None
+                    #if true_site:
+                    if site1 in sites:
+                        true_site = site1
+                        sites[true_site][3] += 1  #if read has been found before, tally 1 more in R reads
+                        sites[true_site][4] += 1  #if read has been found before, tally 1 more in R reads
+                        sites[true_site][5] += 1  #if read has been found before, tally 1 more in R reads
+                        sites[true_site][6] += 1  #if read has been found before, tally 1 more in R reads
+
+                    if site2 in sites:
+                        true_site = site2
+                        sites[true_site][3] += 1  #if read has been found before, tally 1 more in R reads
+                        sites[true_site][4] += 1  #if read has been found before, tally 1 more in R reads
+                        sites[true_site][5] += 1  #if read has been found before, tally 1 more in R reads
+                        sites[true_site][6] += 1  #if read has been found before, tally 1 more in R reads
+
+    results = []
+    for key in sorted(sites.keys()):
+        results.append(sites[key])
+    return results # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
+
+
+
+
+def increase_counts(pos,sites, strand):
+        if strand == "F":
+            sites[pos][1] += 1  #if read has been found before, tally 1 more in R reads
+            sites[pos][2] += 1  #if read has been found before, tally 1 more in R reads
+        if strand == "R":
+            sites[pos][3] += 1  #if read has been found before, tally 1 more in R reads
+            sites[pos][4] += 1  #if read has been found before, tally 1 more in R reads
+        sites[pos][5] += 1  #if read has been found before, tally 1 more in R reads
+        sites[pos][6] += 1  #if read has been found before, tally 1 more in R reads
+    
+
 def read_counts(ref,sam,vars):
-  genome = read_genome(ref)
-  hits = {}
-  vars.tot_tgtta,vars.mapped = 0,0
-  vars.r1 = vars.r2 = 0
-  for line in open(sam):
-    if line[0]=='@': continue
-    else:
-      w = line.split('\t')
-      code,icode = samcode(w[1]),int(w[1])
-      vars.tot_tgtta += 1 
-      if icode==0 or icode==16: 
-        vars.r1 += 1
-        vars.mapped += 1
-        readlen = len(w[9])
-        pos = int(w[3])
-        strand,delta = 'F',-2
-        if code[4]=="1": strand,delta = 'R',readlen
-        pos += delta
-        if pos not in hits: hits[pos] = []
-        hits[pos].append(strand)
+    genome = read_genome(ref)
+    sites = {}
+    for i in range(len(genome)-1):
+        if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
+          pos = i+1
+          sites[pos] = [pos,0,0,0,0,0,0]
+     
+    hits = {}
+    vars.tot_tgtta,vars.mapped = 0,0
+    vars.r1 = vars.r2 = 0
+    for line in open(sam):
+        if line[0]=='@': continue
+        else:
+            w = line.split('\t')
+            code,icode = samcode(w[1]),int(w[1])
+            vars.tot_tgtta += 1
+            if icode==0 or icode==16:
+                vars.r1 += 1
+                vars.mapped += 1
+                readlen = len(w[9])
+                pos = int(w[3])
+                if vars.protocol == "Rudner Lab":
+                    strand,delta = 'F',readlen
+                    if code[4]=="1": strand,delta = 'R',1
+                    site1 = pos + delta - 2 #if on + strand, take column 3 position and add 1bp)
+                    site2 = pos + delta - 1 #if on + strand, take column 3 position and add 1bp)
+                    if site1 in sites:
+                        increase_counts(site1, sites, strand)
+                    if site2 in sites:
+                        increase_counts(site2, sites, strand)
+                else:
+                    strand,delta = 'F',-2
+                    if code[4]=="1": strand,delta = 'R',readlen
+                    site1 = pos + delta #if on + strand, take column 3 position and add 1bp)
+                    if site1 in sites:
+                        increase_counts(site1, sites, strand)
+    
+    results = []
+    for key in sorted(sites.keys()):
+        results.append(sites[key])
+    return results # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
 
-  sites = []
-  for i in range(len(genome)-1):
-    if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
-      pos = i+1
-      h = hits.get(pos,[])
-      lenf,lenr = h.count('F'),h.count('R')
-      data = [pos,lenf,lenf,lenr,lenr,lenf+lenr,lenf+lenr]
-      sites.append(data)
 
-  return sites # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
+
+
+
 
 def driver(vars):
   vars.reads1 = vars.base+".reads1"
@@ -698,6 +855,7 @@ def generate_output(vars):
   output.write("# command: python ")
   output.write(' '.join(sys.argv)+"\n")
   output.write('# transposon type: %s\n' % vars.transposon)
+  output.write('# protocol type: %s\n' % vars.protocol)
   output.write('# read1: %s\n' % vars.fq1)
   output.write('# read2: %s\n' % vars.fq2)
   output.write('# ref_genome: %s\n' % vars.ref)
@@ -775,7 +933,8 @@ def initialize_globals(vars):
       vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
       vars.mm1 = 1 # mismatches allowed in Tn prefix
       vars.transposon = 'Himar1'
-      vars.prefix = None
+      vars.protocol = "Sassetti Lab"
+      vars.prefix = ""
       read_config(vars)
 
 def read_config(vars):
@@ -789,6 +948,9 @@ def read_config(vars):
     if len(w)>=2 and w[0]=='prefix': vars.base = w[1]
     if len(w)>=2 and w[0]=='mismatches1': vars.mm1 = int(w[1])
     if len(w)>=2 and w[0]=='transposon': vars.transposon = w[1]
+    if len(w)>=2 and w[0]=='protocol': vars.protocol = " ".join(w[1:])
+    if len(w)>=2 and w[0]=='primer': vars.prefix = w[1]
+
 
 def save_config(vars):
   f = open("tpp.cfg","w")
@@ -798,7 +960,9 @@ def save_config(vars):
   f.write("bwa %s\n" % vars.bwa)
   f.write("prefix %s\n" % vars.base)
   f.write("mismatches1 %s\n" % vars.mm1) 
-  f.write("transposon %s\n" % vars.transposon) 
+  f.write("transposon %s\n" % vars.transposon)
+  f.write("protocol %s\n" % vars.protocol)
+  f.write("primer %s\n" % vars.prefix)
   f.close()
 
 def show_help():

@@ -69,6 +69,10 @@ def basename(filepath):
     return ntpath.basename(filepath)
 
 
+def dirname(filepath):
+    return os.path.dirname(os.path.abspath(filepath))
+
+
 def cleanargs(rawargs):
     #TODO: Write docstring
     args = []

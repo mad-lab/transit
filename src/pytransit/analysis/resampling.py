@@ -71,8 +71,8 @@ class ResamplingFile(base.TransitFile):
 
         text = """Results:
     Conditionally - Essentials: %s
-        More Essential in Experimental datasets: %s
         Less Essential in Experimental datasets: %s
+        More Essential in Experimental datasets: %s
             """ % (DE, poslogfc, neglogfc)
         return text
 
@@ -390,6 +390,8 @@ class ResamplingMethod(base.DualConditionMethod):
                 plt.axvline(test_obs, color='r', linestyle='dashed', linewidth=3)
                 plt.grid(True)
                 genePath = os.path.join(histPath, gene.orf +".png")
+                if not os.path.exists(histPath):
+                    os.makedirs(histPath)
                 plt.savefig(genePath)
                 plt.clf()
 

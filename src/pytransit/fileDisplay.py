@@ -220,6 +220,9 @@ class TransitGridFrame(wx.Frame):
 
         wx.Frame.__init__(self, parent, size=size)
 
+
+        self.SetTitle(path)
+
         bSizer1 = wx.BoxSizer( wx.VERTICAL )
 
         sbSizer1 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Information" ), wx.HORIZONTAL )
