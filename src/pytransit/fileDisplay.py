@@ -40,15 +40,6 @@ import wx.grid
 import pytransit
 import pytransit.analysis
 
-def fetch_name(filepath):
-    return os.path.splitext(ntpath.basename(filepath))[0]
-
-
-def ShowError(MSG=""):
-        dial = wx.MessageDialog(None, MSG, 'Error',
-            wx.OK | wx.ICON_ERROR)
-        dial.ShowModal()
-
 
 ########################################################################
 class SortableListCtrl(wx.ListCtrl):
