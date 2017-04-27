@@ -378,7 +378,7 @@ def read_counts_original(ref,sam,vars):
 
     sites = []
     for i in range(len(genome)-1):
-        if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
+      if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
         pos = i+1
         h = hits.get(pos,[])
         lenf,lenr = h.count('F'),h.count('R')
