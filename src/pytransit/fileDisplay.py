@@ -49,15 +49,6 @@ def ShowError(MSG=""):
             wx.OK | wx.ICON_ERROR)
         dial.ShowModal()
 
-def sortColumn(item1, item2):
-    try: 
-        i1 = float(item1)
-        i2 = float(item2)
-    except ValueError:
-        return cmp(item1, item2)
-    else:
-        return cmp(i1, i2)
-
 
 ########################################################################
 class SortableListCtrl(wx.ListCtrl):
@@ -206,7 +197,6 @@ class TransitTable(wx.grid.PyGridTableBase):
                 tempval = float(entry.get(name, None))
             except:
                 tempval = entry.get(name, None)
-            
             tempdata.append((tempval, row))
 
         tempdata.sort(reverse=self.sorted_dir)
