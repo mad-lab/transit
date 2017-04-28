@@ -540,9 +540,10 @@ def driver(vars):
   vars.wig = vars.base+".wig"
   vars.stats = vars.base+".tn_stats"
 
-  if vars.prefix==None:
+  if not vars.prefix:
     if vars.transposon=="Tn5": vars.prefix = "TAAGAGACAG"
     elif vars.transposon=="Himar1": vars.prefix = "ACTTATCAGCCAACCTGTTA"
+    else: vars.prefix = ""
 
   try:
      extract_reads(vars)

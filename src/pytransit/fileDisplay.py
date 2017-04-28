@@ -40,24 +40,6 @@ import wx.grid
 import pytransit
 import pytransit.analysis
 
-def fetch_name(filepath):
-    return os.path.splitext(ntpath.basename(filepath))[0]
-
-
-def ShowError(MSG=""):
-        dial = wx.MessageDialog(None, MSG, 'Error',
-            wx.OK | wx.ICON_ERROR)
-        dial.ShowModal()
-
-def sortColumn(item1, item2):
-    try: 
-        i1 = float(item1)
-        i2 = float(item2)
-    except ValueError:
-        return cmp(item1, item2)
-    else:
-        return cmp(i1, i2)
-
 
 ########################################################################
 class SortableListCtrl(wx.ListCtrl):
@@ -178,7 +160,7 @@ class TransitTable(wx.grid.PyGridTableBase):
         return self.colnames[col]
 
     def GetRowLabelValue(self, row):
-        return "R%d" % int(self.data[row][0])
+        return "%d" % int(self.data[row][0])
 
     def GetValue(self, row, col):
         return str(self.data[row][1].get(self.GetColLabelValue(col), ""))
@@ -202,7 +184,11 @@ class TransitTable(wx.grid.PyGridTableBase):
 
         for row in self.data:
             rowname, entry = row
-            tempdata.append((entry.get(name, None), row))
+            try:
+                tempval = float(entry.get(name, None))
+            except:
+                tempval = entry.get(name, None)
+            tempdata.append((tempval, row))
 
         tempdata.sort(reverse=self.sorted_dir)
         self.data = []
@@ -236,10 +222,6 @@ class TransitGridFrame(wx.Frame):
         self.expdata = self.parent.expSelected()
         self.annotation = self.parent.annotation
 
-        #print "Parent:", self.parent
-        #print "Ctrl:", self.ctrldata
-        #print "Exp:", self.expdata
-        #print "Annotation:", self.annotation 
 
         line = open(self.path).readline().strip()
         (method, FT) = getInfoFromFileType(line)
@@ -264,10 +246,9 @@ class TransitGridFrame(wx.Frame):
         self.grid = wx.grid.Grid(self, -1)
 
         bSizer1.Add( sbSizer1, 0, wx.EXPAND, 5 )
-        bSizer1.Add( self.grid, 0, wx.EXPAND, 5 )
+        bSizer1.Add( self.grid, 1, wx.EXPAND, 5 )
         self.SetSizer( bSizer1 )
         self.Centre( wx.BOTH )
-        #self.Layout()
 
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_DCLICK, self.OnLabelDoubleClicked)
         self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnCellRightClicked)
@@ -275,12 +256,11 @@ class TransitGridFrame(wx.Frame):
         mytable = TransitTable(data, self.columnlabels)
         self.grid.SetTable(mytable)
 
-
         self.grid.EnableEditing(False)
         self.grid.AdjustScrollbars()
         self.grid.SetColLabelSize(wx.grid.GRID_AUTOSIZE)
 
-        #self.grid.AutoSizeColumns()
+        self.grid.AutoSizeColumns()
         self.AutoResizeCols()
         self.grid.ForceRefresh()
 
@@ -294,7 +274,7 @@ class TransitGridFrame(wx.Frame):
         
 
         self.Layout()
-        self.Show()
+        #self.Show()
 
 
     def AutoResizeCols(self):
@@ -327,13 +307,9 @@ class TransitGridFrame(wx.Frame):
         self.col = 0
         val = self.grid.GetCellValue(self.row, 0)
 
-        #print "Row:", self.row
-        #print "Col:", self.col
-        #print "Val:", val
         self.Refresh()
         for (menuname, menufunc) in self.filetype.getMenus():
             newid = wx.NewId()
-            #print newid, menufunc
             menu.Append(newid, menuname)
             newmenufunc = partial(menufunc,  self)
             self.Bind(wx.EVT_MENU, newmenufunc, id=newid)
