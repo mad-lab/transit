@@ -935,7 +935,7 @@ def initialize_globals(vars):
       vars.mm1 = 1 # mismatches allowed in Tn prefix
       vars.transposon = 'Himar1'
       vars.protocol = "Sassetti Lab"
-      vars.prefix = ""
+      vars.prefix = "ACTTATCAGCCAACCTGTTA"
       read_config(vars)
 
 def read_config(vars):

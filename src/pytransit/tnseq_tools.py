@@ -351,6 +351,8 @@ class Genes:
         orf2info = transit_tools.get_gene_info(self.annotation)
         if not numpy.any(data):
             (data, position) = get_data(self.wigList)
+            ii_min = data < self.minread
+            data[ii_min] = 0
         hash = transit_tools.get_pos_hash(self.annotation)
 
         if not noNorm:
