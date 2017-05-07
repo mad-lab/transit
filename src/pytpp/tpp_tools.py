@@ -142,7 +142,11 @@ def fix_paired_headers_for_bwa(reads1,reads2):
 	  os.system("mv %s %s" % (temp2, reads2))
   '''
 
+# find index of H[1..m] in G[1..n] with up to max mismatches
+
 def mmfind(G,n,H,m,max): # lengths; assume n>m
+  a = G[:n].find(H[:m])
+  if a!=-1: return a # shortcut for perfect matches
   for i in range(0,n-m):
     cnt = 0
     for k in range(m):
