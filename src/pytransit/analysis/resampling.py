@@ -134,8 +134,9 @@ class ResamplingGUI(base.AnalysisGUI):
         resamplingNormLabel.Wrap( -1 )
         resamplingLabelSizer.Add( resamplingNormLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
-
         resamplingTopSizer2.Add( resamplingLabelSizer, 1, wx.EXPAND, 5 )
+
+
 
         resamplingControlSizer = wx.BoxSizer( wx.VERTICAL )
 
@@ -156,6 +157,15 @@ class ResamplingGUI(base.AnalysisGUI):
         resamplingControlSizer.Add( self.wxobj.resamplingNormChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 
 
+
+        # LOESS
+        self.wxobj.resamplingLoessCheck = wx.CheckBox( resamplingPanel, wx.ID_ANY, u"Correction for Genome Positional Bias", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #resamplingSection.Add( self.resamplingLoessCheck, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        self.wxobj.resamplingLoessPrev = wx.Button( resamplingPanel, wx.ID_ANY, u"Plot LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #resamplingSection.Add( self.resamplingLoessPrev, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+
         # Adaptive Check
         self.wxobj.resamplingAdaptiveCheckBox = wx.CheckBox(resamplingPanel, label = 'Adaptive Resampling (Faster)')
 
@@ -173,6 +183,11 @@ class ResamplingGUI(base.AnalysisGUI):
         
 
         resamplingSizer.Add( resamplingTopSizer, 1, wx.EXPAND, 5 )
+
+        resamplingSizer.Add( self.wxobj.resamplingLoessCheck, 0, wx.EXPAND, 5 )
+        resamplingSizer.Add( self.wxobj.resamplingLoessPrev, 0, wx.ALL|wx.CENTER, 5 )
+
+
         resamplingSizer.Add( self.wxobj.resamplingAdaptiveCheckBox, 0, wx.EXPAND, 5 )
         resamplingSizer.Add( self.wxobj.resamplingHistogramCheckBox, 0, wx.EXPAND, 5 )
         resamplingSizer.Add( self.wxobj.resamplingZeroCheckBox, 0, wx.EXPAND, 5 )
