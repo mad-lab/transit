@@ -159,10 +159,10 @@ class ResamplingGUI(base.AnalysisGUI):
 
 
         # LOESS
-        self.wxobj.resamplingLoessCheck = wx.CheckBox( resamplingPanel, wx.ID_ANY, u"Correction for Genome Positional Bias", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.wxobj.resamplingLoessCheck = wx.CheckBox( resamplingPanel, wx.ID_ANY, u"Correct for Genome Positional Bias", wx.DefaultPosition, wx.DefaultSize, 0 )
         #resamplingSection.Add( self.resamplingLoessCheck, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-        self.wxobj.resamplingLoessPrev = wx.Button( resamplingPanel, wx.ID_ANY, u"Plot LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.wxobj.resamplingLoessPrev = wx.Button( resamplingPanel, wx.ID_ANY, u"Preview LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
         #resamplingSection.Add( self.resamplingLoessPrev, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
 
@@ -239,7 +239,7 @@ class ResamplingMethod(base.DualConditionMethod):
         self.doHistogram = doHistogram
         self.includeZeros = includeZeros
         self.pseudocount = pseudocount
-
+        
 
 
     @classmethod
@@ -274,7 +274,7 @@ class ResamplingMethod(base.DualConditionMethod):
 
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
         CTerminus = float(wxobj.globalCTerminusText.GetValue())
-        LOESS = False
+        LOESS = wxobj.resamplingLoessCheck.GetValue()
 
         #Get output path
         defaultFileName = "resampling_output_s%d_pc%1.2f" % (samples, pseudocount)
@@ -367,9 +367,24 @@ class ResamplingMethod(base.DualConditionMethod):
         Kexp = len(self.expdata)
         #Get orf data
         self.transit_message("Getting Data")
+        (data, position) = tnseq_tools.get_data(self.ctrldata+self.expdata)
+
+        (K,N) = data.shape
+
+
         if self.normalization != "nonorm":
             self.transit_message("Normalizing using: %s" % self.normalization)
-        G = tnseq_tools.Genes(self.ctrldata+self.expdata, self.annotation_path, norm=self.normalization, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
+            (data, factors) = norm_tools.normalize_data(data, self.normalization, self.ctrldata+self.expdata, self.annotation_path)
+
+        if self.LOESS:
+            self.transit_message("Performing LOESS Correction")
+            for j in range(K):
+                data[j] = stat_tools.loess_correction(position, data[j])
+
+
+        G = tnseq_tools.Genes(self.ctrldata + self.expdata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data, position=position)
+
+        #G = tnseq_tools.Genes(self.ctrldata+self.expdata, self.annotation_path, norm=self.normalization, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
 
 
         #Resampling
