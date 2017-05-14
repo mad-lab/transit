@@ -130,12 +130,24 @@ class HMMGUI(base.AnalysisGUI):
         hmmLabelSizer = wx.BoxSizer( wx.VERTICAL )
         hmmControlSizer = wx.BoxSizer( wx.VERTICAL )
 
+        # NORMALIZATION
+        hmmNormLabel = wx.StaticText( hmmPanel, wx.ID_ANY, u"Normalization", wx.DefaultPosition, wx.DefaultSize, 0 )
+        hmmNormLabel.Wrap(-1)
+        hmmLabelSizer.Add(hmmNormLabel, 1, wx.ALL, 5)
 
+        hmmNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
+        self.wxobj.hmmNormChoice = wx.Choice( hmmPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, hmmNormChoiceChoices, 0 )
+        self.wxobj.hmmNormChoice.SetSelection( 0 )
+        hmmControlSizer.Add( self.wxobj.hmmNormChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+
+
+
+        # REPLICATE
         hmmRepLabel = wx.StaticText( hmmPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
         hmmRepLabel.Wrap(-1)
         hmmLabelSizer.Add(hmmRepLabel, 1, wx.ALL, 5)
 
-
+        
         hmmRepChoiceChoices = [ u"Sum", u"Mean", "TTRMean" ]
         self.wxobj.hmmRepChoice = wx.Choice( hmmPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, hmmRepChoiceChoices, 0 )
         self.wxobj.hmmRepChoice.SetSelection( 2 )
