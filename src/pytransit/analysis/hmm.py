@@ -250,7 +250,9 @@ class HMMMethod(base.SingleConditionMethod):
         ignoreCodon = True
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
         CTerminus = float(wxobj.globalCTerminusText.GetValue())
-        normalization = None
+        
+        normalization = wxobj.hmmNormChoice.GetString(wxobj.hmmNormChoice.GetCurrentSelection())
+
         LOESS = False
 
         #Get output path
@@ -283,7 +285,7 @@ class HMMMethod(base.SingleConditionMethod):
         output_file = open(outpath, "w")
 
         replicates = kwargs.get("r", "TTRMean")
-        normalization = None
+        normalization = kwargs.get("r", "TTR")
         LOESS = kwargs.get("l", False)
         ignoreCodon = True
         NTerminus = float(kwargs.get("iN", 0.0))
@@ -304,13 +306,21 @@ class HMMMethod(base.SingleConditionMethod):
         self.transit_message("Starting HMM Method")
         start_time = time.time()
         
-        #Get orf data
+        #Get data
         self.transit_message("Getting Data")
         (data, position) = tnseq_tools.get_data(self.ctrldata)
+
+        # Normalize data
+        if self.normalization != "nonorm":
+            self.transit_message("Normalizing using: %s" % self.normalization)
+            (data, factors) = norm_tools.normalize_data(data, self.normalization, self.ctrldata, self.annotation_path)
+        
+
         hash = transit_tools.get_pos_hash(self.annotation_path)
         rv2info = transit_tools.get_gene_info(self.annotation_path)
-        self.transit_message("Combining Replicates as '%s'" % self.replicates)
 
+        if len(self.ctrldata) > 1:
+            self.transit_message("Combining Replicates as '%s'" % self.replicates)
         O = tnseq_tools.combine_replicates(data, method=self.replicates) + 1 # Adding 1 to because of shifted geometric in scipy
 
         #Parameters
