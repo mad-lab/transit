@@ -143,10 +143,9 @@ class HMMGUI(base.AnalysisGUI):
 
         # LOESS
 
-        self.wxobj.hmmLoessCheck = wx.CheckBox( hmmPanel, wx.ID_ANY, u"Correction for Genome Positional Bias", wx.DefaultPosition, wx.DefaultSize, 0 )
-        #hmmSection.Add( self.hmmLoessCheck, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        self.wxobj.hmmLoessCheck = wx.CheckBox( hmmPanel, wx.ID_ANY, u"Correct for Genome Positional Bias", wx.DefaultPosition, wx.DefaultSize, 0 )
 
-        self.wxobj.hmmLoessPrev = wx.Button( hmmPanel, wx.ID_ANY, u"Plot LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.wxobj.hmmLoessPrev = wx.Button( hmmPanel, wx.ID_ANY, u"Preview LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
 
         
 
@@ -157,7 +156,7 @@ class HMMGUI(base.AnalysisGUI):
         hmmLabelSizer.Add(hmmRepLabel, 1, wx.ALL, 5)
 
         
-        hmmRepChoiceChoices = [ u"Sum", u"Mean", "TTRMean" ]
+        hmmRepChoiceChoices = [ u"Sum", u"Mean"]
         self.wxobj.hmmRepChoice = wx.Choice( hmmPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, hmmRepChoiceChoices, 0 )
         self.wxobj.hmmRepChoice.SetSelection( 2 )
 
@@ -209,7 +208,7 @@ class HMMMethod(base.SingleConditionMethod):
                 ctrldata,
                 annotation_path,
                 output_file,
-                replicates="TTRMean",
+                replicates="Mean",
                 normalization=None,
                 LOESS=False,
                 ignoreCodon=True,
@@ -284,7 +283,7 @@ class HMMMethod(base.SingleConditionMethod):
         outpath = args[2]
         output_file = open(outpath, "w")
 
-        replicates = kwargs.get("r", "TTRMean")
+        replicates = kwargs.get("r", "Mean")
         normalization = kwargs.get("r", "TTR")
         LOESS = kwargs.get("l", False)
         ignoreCodon = True
@@ -309,12 +308,19 @@ class HMMMethod(base.SingleConditionMethod):
         #Get data
         self.transit_message("Getting Data")
         (data, position) = tnseq_tools.get_data(self.ctrldata)
+        (K,N) = data.shape
 
         # Normalize data
         if self.normalization != "nonorm":
             self.transit_message("Normalizing using: %s" % self.normalization)
             (data, factors) = norm_tools.normalize_data(data, self.normalization, self.ctrldata, self.annotation_path)
         
+        # Do LOESS
+        if self.LOESS: 
+            self.transit_message("Performing LOESS Correction")
+            for j in range(K):
+                data[j] = stat_tools.loess_correction(position, data[j])
+
 
         hash = transit_tools.get_pos_hash(self.annotation_path)
         rv2info = transit_tools.get_gene_info(self.annotation_path)
@@ -450,7 +456,7 @@ class HMMMethod(base.SingleConditionMethod):
         return """python %s hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output file>
 
         Optional Arguments:
-            -r <string>     :=  How to handle replicates. Sum, Mean, TTRMean. Default: -r TTRMean
+            -r <string>     :=  How to handle replicates. Sum, Mean. Default: -r Mean
             -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Off.
             -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
             -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
