@@ -158,7 +158,7 @@ class HMMGUI(base.AnalysisGUI):
         
         hmmRepChoiceChoices = [ u"Sum", u"Mean"]
         self.wxobj.hmmRepChoice = wx.Choice( hmmPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, hmmRepChoiceChoices, 0 )
-        self.wxobj.hmmRepChoice.SetSelection( 2 )
+        self.wxobj.hmmRepChoice.SetSelection( 1 )
 
         hmmControlSizer.Add(self.wxobj.hmmRepChoice, 0, wx.ALL|wx.EXPAND, 5)
 
