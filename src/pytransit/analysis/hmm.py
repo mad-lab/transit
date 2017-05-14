@@ -141,6 +141,15 @@ class HMMGUI(base.AnalysisGUI):
         hmmControlSizer.Add( self.wxobj.hmmNormChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 
 
+        # LOESS
+
+        self.wxobj.hmmLoessCheck = wx.CheckBox( hmmPanel, wx.ID_ANY, u"Correction for Genome Positional Bias", wx.DefaultPosition, wx.DefaultSize, 0 )
+        #hmmSection.Add( self.hmmLoessCheck, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+
+        self.wxobj.hmmLoessPrev = wx.Button( hmmPanel, wx.ID_ANY, u"Plot LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
+
+        
+
 
         # REPLICATE
         hmmRepLabel = wx.StaticText( hmmPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -155,13 +164,23 @@ class HMMGUI(base.AnalysisGUI):
         hmmControlSizer.Add(self.wxobj.hmmRepChoice, 0, wx.ALL|wx.EXPAND, 5)
 
 
+
+
+
+
         hmmSizer2.Add(hmmLabelSizer, 1, wx.EXPAND, 5)
         hmmSizer2.Add(hmmControlSizer, 1, wx.EXPAND, 5)
-            
+        
+    
         hmmSizer1.Add(hmmSizer2, 1, wx.EXPAND, 5 )
+        #hmmSizer1.Add(self.wxobj.hmmLoessCheck, 0, wx.EXPAND, 5 )
+        #hmmSizer1.Add(self.wxobj.hmmLoessPrev, 0, wx.ALL|wx.CENTER, 5 )
 
 
         hmmSection.Add( hmmSizer1, 1, wx.EXPAND, 5 )
+
+        hmmSection.Add(self.wxobj.hmmLoessCheck, 0, wx.EXPAND, 5 )
+        hmmSection.Add(self.wxobj.hmmLoessPrev, 0, wx.ALL|wx.CENTER, 5 )
 
         hmmButton = wx.Button( hmmPanel, wx.ID_ANY, u"Run HMM", wx.DefaultPosition, wx.DefaultSize, 0 )
         hmmSection.Add( hmmButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
