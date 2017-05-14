@@ -202,6 +202,7 @@ class ResamplingGUI(base.AnalysisGUI):
 
         #Connect events
         resamplingButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
+        self.wxobj.resamplingLoessPrev.Bind(wx.EVT_BUTTON, self.wxobj.LoessPrevFunc)        
 
         self.panel = resamplingPanel
 

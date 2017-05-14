@@ -48,6 +48,7 @@ import pytransit.trash as trash
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
 import pytransit.norm_tools as norm_tools
+import pytransit.stat_tools as stat_tools
 import pytransit.fileDisplay as fileDisplay
 import pytransit.qcDisplay as qcDisplay
 import pytransit.images as images
@@ -1537,7 +1538,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
             plt.title("LOESS Fit - %s" % transit_tools.basename(datasets_selected[j]) )
             plt.show()
-            plt.close()
+            #plt.close()
     
 
     def addFileFunc(self, event):

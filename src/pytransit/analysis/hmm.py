@@ -192,6 +192,7 @@ class HMMGUI(base.AnalysisGUI):
 
         #Connect events
         hmmButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
+        self.wxobj.hmmLoessPrev.Bind(wx.EVT_BUTTON, self.wxobj.LoessPrevFunc)        
 
         self.panel =  hmmPanel
 
