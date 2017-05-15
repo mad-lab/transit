@@ -1654,7 +1654,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 return
             if self.verbose:
                 transit_tools.transit_message("Converting the following datasets to Combined Wig format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            self.convertToCombinedWig(datasets, annotationPath, outputPath, normchoice)
+            transit_tools.convertToCombinedWig(datasets, annotationPath, outputPath, normchoice)
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
         elif not datasets:
@@ -1663,44 +1663,6 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             transit_tools.ShowError("Error: No annotation file selected.")
         else:
             pass
-
-    
-
-    def convertToCombinedWig(self, dataset_list, annotationPath, path, normchoice):
-        if not normchoice:
-            normchoice = "nonorm"
-
-        (fulldata, position) = tnseq_tools.get_data(dataset_list)
-        (fulldata, factors) = norm_tools.normalize_data(fulldata, normchoice, dataset_list, annotationPath)
-        position = position.astype(int)
-
-
-        hash = transit_tools.get_pos_hash(annotationPath)
-        rv2info = transit_tools.get_gene_info(annotationPath)
-
-        output = open(path, "w")
-        output.write("#Converted to CombinedWig with TRANSIT.\n")
-        if normchoice != "nonorm":
-            output.write("#Reads normalized using '%s'\n" % normchoice)
-            if type(factors[0]) == type(0.0):
-                output.write("#Normalization Factors: %s\n" % "\t".join(["%s" % f for f in factors.flatten()]))
-            else:
-                output.write("#Normalization Factors: %s\n" % " ".join([",".join(["%s" % bx for bx in b]) for b in factors]))
-
-
-        (K,N) = fulldata.shape
-        output.write("#Files:\n")
-        for f in dataset_list:
-            output.write("#%s\n" % f)
-
-        for i,pos in enumerate(position):
-            #output.write("%s\t%s\t%s\n" % (position[i], "\t".join(["%1.1f" % fulldata[j][i] for j in range(K)]), ",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])]) )  )
-
-            output.write("%-10d %s  %s\n" % (position[i], "".join(["%7.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
-
-
-        output.close()
-    
 
 
     def chooseNormalization(self):
