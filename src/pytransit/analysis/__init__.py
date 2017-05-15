@@ -15,9 +15,7 @@ import griffin
 import resampling
 import hmm
 import rankproduct
-#import mcce
-#import mcce2
-#import motifhmm
+
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -31,6 +29,12 @@ methods["rankproduct"] = rankproduct.RankProductAnalysis()
 #methods["mcce"] = mcce.MCCEAnalysis()
 #methods["mcce2"] = mcce2.MCCE2Analysis()
 #methods["motifhmm"] = motifhmm.MotifHMMAnalysis()
+
+
+# EXPORT METHODS
+import norm
+export_methods = {}
+export_methods["norm"] = norm.NormAnalysis()
 
 
 
