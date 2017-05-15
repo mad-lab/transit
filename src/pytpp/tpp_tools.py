@@ -27,6 +27,24 @@ import gzip
 import subprocess
 
 
+def cleanargs(rawargs):
+    #TODO: Write docstring
+    args = []
+    kwargs = {}
+    count = 0
+    while count < len(rawargs):
+        if rawargs[count].startswith("-"):
+            if count + 1 < len(rawargs) and not rawargs[count+1].startswith("-"):
+                kwargs[rawargs[count][1:]] = rawargs[count+1]
+                count += 1
+            else:
+                kwargs[rawargs[count][1:]] = True
+        else:
+            args.append(rawargs[count])
+        count += 1
+    return (args, kwargs)
+
+
 def strip_comment(text):
     loc = text.find("#")
     if loc > -1:
@@ -912,35 +930,126 @@ def error(s):
 def warning(s):
   print "warning:",s
 
-def verify_inputs(vars):
-  if not os.path.exists(vars.fq1): error("file not found: "+vars.fq1)
-  vars.single_end = False
-  if vars.fq2=="": vars.single_end = True   
-  elif not os.path.exists(vars.fq2): error("file not found: "+vars.fq2)
-  if not os.path.exists(vars.ref): error("file not found: "+vars.ref)
-  if vars.base == '': error("prefix cannot be empty")
-  if vars.fq1 == vars.fq2: error('fastq files cannot be identical')
 
-  if os.path.isdir(vars.bwa):
-    bwaexec_unix = os.path.join(vars.bwa, "bwa")
-    bwaexec_win = os.path.join(vars.bwa, "bwa.exe")
-    if os.path.exists(bwaexec_unix) and not os.path.isdir(bwaexec_unix):
-      warning("did not include BWA executable name. Assuming BWA executable is named 'bwa'")
-      vars.bwa = bwaexec_unix
-    elif os.path.exists(bwaexec_win) and not os.path.isdir(bwaexec_win):
-      warning("did not include BWA executable name. Assuming BWA executable is named 'bwa.exe'")
-      vars.bwa = bwaexec_win
+
+
+
+def set_defaults(vars, protocol):
+    #protocol = kwargs.get("protocol", "sassetti")
+    if protocol == "sassetti":
+        set_sassetti_defaults(vars)
+    elif protocol == "mmel":
+        set_mmel_defaults(vars)
+    elif protocol == "tn5":
+        set_tn5_defaults(vars)
     else:
-      error('cannot find BWA executable. Please include the full executable name as well as its directory.')
+        set_sassetti_defaults(vars)
+
+def set_attributes(vars, attributes_list, override=False):
+    for (attr, value) in attributes_list:
+        if override:
+            setattr(vars, attr, value)
+        else:
+            if not hasattr(vars, attr):
+                setattr(vars, attr, value)
+            
+
+def set_sassetti_defaults(vars):
+    attributes_list = []
+    attributes_list.append(("transposon", "Himar1"))
+    attributes_list.append(("protocol", "Sassetti"))
+    attributes_list.append(("prefix", "ACTTATCAGCCAACCTGTTA"))
+    attributes_list.append(("maxreads", -1))
+    attributes_list.append(("mm1", 100))
+    set_attributes(vars, attributes_list)
 
 
-def initialize_globals(vars):
-      vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
-      vars.mm1 = 1 # mismatches allowed in Tn prefix
-      vars.transposon = 'Himar1'
-      vars.protocol = "Sassetti Lab"
-      vars.prefix = "ACTTATCAGCCAACCTGTTA"
-      read_config(vars)
+def set_mmel_defaults(vars):
+    attributes_list = []
+    attributes_list.append(("transposon", "Himar1"))
+    attributes_list.append(("protocol", "Mmel"))
+    attributes_list.append(("prefix", ""))
+    attributes_list.append(("maxreads", -1))
+    attributes_list.append(("mm1", 2))
+    set_attributes(vars, attributes_list)
+
+
+def set_tn5_defaults(vars):
+    attributes_list = []
+    attributes_list.append(("transposon", "Tn5"))
+    attributes_list.append(("protocol", "Tn5"))
+    attributes_list.append(("prefix", ""))
+    attributes_list.append(("maxreads", -1))
+    attributes_list.append(("mm1", 2))
+    set_attributes(vars, attributes_list)
+
+
+
+
+def verify_inputs(vars):
+  
+    if not os.path.exists(vars.fq1): error("reads1 file not found: "+vars.fq1)
+    vars.single_end = False
+    if vars.fq2=="": vars.single_end = True   
+    elif not os.path.exists(vars.fq2): error("reads2 file not found: "+vars.fq2)
+    if not os.path.exists(vars.ref): error("reference file not found: "+vars.ref)
+    if vars.base == '': error("prefix cannot be empty")
+    if vars.fq1 == vars.fq2: error('fastq files cannot be identical')
+
+    if os.path.isdir(vars.bwa):
+        bwaexec_unix = os.path.join(vars.bwa, "bwa")
+        bwaexec_win = os.path.join(vars.bwa, "bwa.exe")
+        if os.path.exists(bwaexec_unix) and not os.path.isdir(bwaexec_unix):
+            warning("did not include BWA executable name. Assuming BWA executable is named 'bwa'")
+            vars.bwa = bwaexec_unix
+        elif os.path.exists(bwaexec_win) and not os.path.isdir(bwaexec_win):
+            warning("did not include BWA executable name. Assuming BWA executable is named 'bwa.exe'")
+            vars.bwa = bwaexec_win
+        else:
+            error('cannot find BWA executable. Please include the full executable name as well as its directory.')
+    elif not os.path.exists(vars.bwa):
+        error('cannot find BWA executable. Please include the full executable name as well as its directory.')
+
+def initialize_globals(vars, args=[], kwargs={}):
+    vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
+    vars.mm1 = 1 # mismatches allowed in Tn prefix
+    vars.transposon = 'Himar1'
+    vars.protocol = "Sassetti"
+    vars.prefix = "ACTTATCAGCCAACCTGTTA"
+   
+    # Update defaults
+    protocol = kwargs.get("protocol", "").lower()
+    if protocol:
+        set_protocol_defaults(vars, protocol)
+    else:
+        read_config(vars)
+
+    if "protocol" in kwargs:
+        vars.protocol = kwargs["protocol"]
+    if "himar1" in kwargs:
+        vars.transposon = "Himar1"
+    if "tn5" in kwargs:
+        vars.transposon = "Tn5"
+    if "protocol" in kwargs:
+        vars.protocol = kwargs["protocol"]
+    if "primer" in kwargs:
+        vars.prefix = kwargs["primer"]
+    if "reads1" in kwargs:
+        vars.fq1 = kwargs["reads1"]
+    if "reads2" in kwargs:
+        vars.fq2 = kwargs["reads2"]
+    if "bwa" in kwargs:
+        vars.bwa = kwargs["bwa"]
+    if "ref" in kwargs:
+        vars.ref = kwargs["ref"]
+    if "maxreads" in kwargs:
+        vars.maxreads = int(kwargs["maxreads"])
+    if "output" in kwargs:
+        vars.base = kwargs["output"]
+    if "mismatches" in kwargs:
+        vars.mm1 = int(kwargs["mismatches"])
+
+
 
 def read_config(vars):
   if not os.path.exists("tpp.cfg"): return
