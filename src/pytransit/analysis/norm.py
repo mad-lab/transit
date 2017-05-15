@@ -67,16 +67,6 @@ class NormGUI(base.AnalysisGUI):
 ########## METHOD #######################
 
 
-class InvalidArgumentException(Exception):
-    def __init__(self, message, errors):
-
-        # Call the base class constructor with the parameters it needs
-        super(InvalidArgumentException, self).__init__(message)
-
-        # Now for your custom code...
-        self.errors = errors
-
-
 class NormMethod(base.SingleConditionMethod):
     """   
     Norm
@@ -100,8 +90,9 @@ class NormMethod(base.SingleConditionMethod):
     def fromargs(self, rawargs): 
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
-        if not args:
-            raise InvalidArgumentException("Invalid Arguments",{"message":""})
+        if len(args) < 3:
+            raise base.InvalidArgumentException("Must provide all necessary arguments")
+            
 
         ctrldata = args[0].split(",")
         annotationPath = args[1]

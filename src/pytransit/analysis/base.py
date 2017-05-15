@@ -22,6 +22,13 @@ import pytransit.transit_tools as transit_tools
 
 file_prefix = "[FileDisplay]"
 
+class InvalidArgumentException(Exception):
+    def __init__(self, message):
+
+        # Call the base class constructor with the parameters it needs
+        super(InvalidArgumentException, self).__init__(message)
+
+
 class TransitFile:
     #TODO write docstring
 
@@ -140,8 +147,11 @@ class AnalysisMethod:
         #TODO: write docstring
         try:
             return self.fromargs(sys.argv[2:])
+        except InvalidArgumentException as e:
+            print "Error: %s" % str(e)
+            print self.usage_string()
         except IndexError as e:
-            traceback.print_exc()
+            print "Error: %s" % str(e)
             print self.usage_string()
         except TypeError as e:
             print "Error: %s" % str(e)
