@@ -97,7 +97,7 @@ if hasWx:
             sizer0 = wx.BoxSizer(wx.HORIZONTAL)
             label0 = wx.StaticText(panel, label='BWA executable:',size=(340,-1))
             sizer0.Add(label0,0,wx.ALIGN_CENTER_VERTICAL,0)
-            print os.path.dirname(vars.bwa)
+
             #self.picker0 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="path to BWA",size=(400,30))#,path=os.path.abspath(vars.bwa))
             #self.picker0.SetDirName('/pacific/home/cambadipudi/chaitra/tpp/')
             self.picker0 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id = wx.ID_ANY, size=(400,30), dialogTitle='Path to BWA', fileMode=wx.OPEN, fileMask='bwa*', startDirectory=os.path.dirname(vars.bwa), initialValue=vars.bwa, labelText='')
@@ -142,7 +142,7 @@ if hasWx:
             sizer_protocol = wx.BoxSizer(wx.HORIZONTAL)
             label_protocol = wx.StaticText(panel, label='Protocol used:',size=(350,-1))
             sizer_protocol.Add(label_protocol,0,wx.ALIGN_CENTER_VERTICAL,0)
-            self.protocol = wx.ComboBox(panel,choices=['Sassetti Lab','Rudner Lab'],size=(400,30))
+            self.protocol = wx.ComboBox(panel,choices=['Sassetti','Mmel', 'Tn5'],size=(400,30))
             self.protocol.SetStringSelection(vars.protocol)
             sizer_protocol.Add(self.protocol, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer_protocol,0,wx.ALL,0)
@@ -200,6 +200,19 @@ if hasWx:
 
         def OnProtocolSelection(self, event):
             self.vars.transposon = self.protocol.GetValue()
+            if self.protocol.GetValue()=="Tn5":
+                self.prefix.SetValue("TAAGAGACAG")
+                self.transposon.SetStringSelection("Tn5")
+                self.vars.transposon = "Tn5"
+            elif self.protocol.GetValue()=="Sassetti":
+                self.prefix.SetValue("ACTTATCAGCCAACCTGTTA")
+                self.transposon.SetStringSelection("Himar1")
+                self.vars.transposon = "Himar1"
+            elif self.protocol.GetValue()=="Mmel":
+                self.prefix.SetValue("")
+                self.transposon.SetStringSelection("Himar1")
+                self.vars.transposon = "Himar1"
+
 
 
         def OnChanged(self, str_path):
