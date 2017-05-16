@@ -39,6 +39,13 @@ except Exception as e:
 from tpp_tools import *
 
 if hasWx:
+
+    class TPPIcon(wx.StaticBitmap):
+        def __init__(self, panel, flag, bmp, tooltip="Florf"):
+            wx.StaticBitmap.__init__(self, panel, flag, bmp)
+            tp = wx.ToolTip(tooltip)
+            self.SetToolTip(tp)
+
     class MyForm(wx.Frame):
     
         def __init__(self,vars):
@@ -101,67 +108,87 @@ if hasWx:
             #self.picker0 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="path to BWA",size=(400,30))#,path=os.path.abspath(vars.bwa))
             #self.picker0.SetDirName('/pacific/home/cambadipudi/chaitra/tpp/')
             self.picker0 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id = wx.ID_ANY, size=(400,30), dialogTitle='Path to BWA', fileMode=wx.OPEN, fileMask='bwa*', startDirectory=os.path.dirname(vars.bwa), initialValue=vars.bwa, labelText='')
+
+            bmp = wx.ArtProvider.GetBitmap(wx.ART_INFORMATION, wx.ART_OTHER, (16, 16))
+            #picker0_icon = wx.StaticBitmap(panel, wx.ID_ANY, bmp)            
+            #picker0_icon.SetToolTip(wx.ToolTip("Choose a path to the BWA executable."))
+
+             
+            sizer0.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Choose a path to the BWA executable."), flag=wx.CENTER, border=0)
             sizer0.Add(self.picker0, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer0,0,wx.EXPAND,0)
 
+            # REFERENCE
             sizer3 = wx.BoxSizer(wx.HORIZONTAL)
             label3 = wx.StaticText(panel, label='Choose a reference genome (FASTA):',size=(340,-1))
             sizer3.Add(label3,0,wx.ALIGN_CENTER_VERTICAL,0)
-            #self.picker3 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the reference genome", wildcard='*.fna;*.fasta;*.fa', size=(400,30),path=vars.ref)
             self.picker3 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the reference genome', fileMode=wx.OPEN, fileMask='*.fna;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.ref), initialValue=vars.ref, labelText='')
+            sizer3.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a reference genome in FASTA format."), flag=wx.CENTER, border=0)
             sizer3.Add(self.picker3, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer3,0,wx.EXPAND,0)
        
-        
+            # READS 1  
             sizer1 = wx.BoxSizer(wx.HORIZONTAL)
             label1 = wx.StaticText(panel, label='Choose the Fastq file for read 1:',size=(340,-1))
             sizer1.Add(label1,0,wx.ALIGN_CENTER_VERTICAL,0)
-            # self.picker1 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 1", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq1)
             self.picker1 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 1', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa;*.fastq.gz', size=(400,30), startDirectory=os.path.dirname(vars.fq1), initialValue=vars.fq1, labelText='',changeCallback=self.OnChanged2)
-            #self.picker1.OnChanged = self.OnChanged(self.picker1.GetValue(), self.base)
-            #self.Bind(wx.EVT_TEXT, self.OnChanged, id=self.picker1.GetId())
-            #self.picker1.Bind(wx.EVT_TEXT, self.OnChanged)
+            sizer1.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a file containing the reads in .FASTQ (or compressed FASTQ) format."), flag=wx.CENTER, border=0)
             sizer1.Add(self.picker1, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer1,0,wx.EXPAND,0)
        
+            
+            # READS 2
             sizer2 = wx.BoxSizer(wx.HORIZONTAL)
             label2 = wx.StaticText(panel, label='Choose the Fastq file for read 2:',size=(340,-1))
             sizer2.Add(label2,0,wx.ALIGN_CENTER_VERTICAL,0)
-            #self.picker2 = wx.FilePickerCtrl(panel, wx.ID_ANY,message="Please select the .fastq file for read 2", wildcard='*.fastq;*.fq;*.reads;*.fasta;*.fa', size=(400,30),path=vars.fq2)
             self.picker2 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 2', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa;*.fastq.gz', size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue=vars.fq2, labelText='', changeCallback=self.OnChanged2)
+            sizer2.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a file containing the pair-end reads in .FASTQ (or compressed FASTQ) format. Optional."), flag=wx.CENTER, border=0)
             sizer2.Add(self.picker2, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer.Add(sizer2,0,wx.ALL,0)
-            
+            sizer.Add(sizer2,0,wx.EXPAND,0)
+           
+
+            # OUTPUT PREFIX 
             sizer5 = wx.BoxSizer(wx.HORIZONTAL)
-            label5 = wx.StaticText(panel, label='Prefix to use for output filenames:',size=(350,-1))
+            label5 = wx.StaticText(panel, label='Prefix to use for output filenames:',size=(340,-1))
             sizer5.Add(label5,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.base = wx.TextCtrl(panel,value=vars.base,size=(400,30))
-            sizer5.Add(self.base, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer5.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a a label prefix that will be used when writing output files e.g. 'wt_run1'"), flag=wx.CENTER, border=0)
+            sizer5.Add(self.base, proportion=1.0, flag=wx.EXPAND|wx.ALL, border=5)
+            #sizer5.AddSpacer(1,1000)
+            #sizer5.Add((118, 1), 0, wx.EXPAND) 
             sizer.Add(sizer5,0,wx.ALL,0)
 
+
+            # PROTOCOL
             sizer_protocol = wx.BoxSizer(wx.HORIZONTAL)
-            label_protocol = wx.StaticText(panel, label='Protocol used:',size=(350,-1))
+            label_protocol = wx.StaticText(panel, label='Protocol used:',size=(340,-1))
             sizer_protocol.Add(label_protocol,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.protocol = wx.ComboBox(panel,choices=['Sassetti','Mme1', 'Tn5'],size=(400,30))
             self.protocol.SetStringSelection(vars.protocol)
+            sizer_protocol.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select which protocol best represents the reads. Default values will populate the fields."), flag=wx.CENTER, border=0)
             sizer_protocol.Add(self.protocol, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer_protocol,0,wx.ALL,0)
 
             self.Bind(wx.EVT_COMBOBOX, self.OnProtocolSelection, id=self.protocol.GetId())
 
+
+            # TRANSPOSON
             sizer8 = wx.BoxSizer(wx.HORIZONTAL)
-            label8 = wx.StaticText(panel, label='Transposon used:',size=(350,-1))
+            label8 = wx.StaticText(panel, label='Transposon used:',size=(340,-1))
             sizer8.Add(label8,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.transposon = wx.ComboBox(panel,choices=['Himar1','Tn5', '[Custom]'],size=(400,30))
             self.transposon.SetStringSelection(vars.transposon)
+            sizer8.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select the transposon used to construct the TnSeq libraries."), flag=wx.CENTER, border=0)
             sizer8.Add(self.transposon, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer8,0,wx.ALL,0)
 
- 
+
+            # PRIMER SEQUENCE 
             sizer4 = wx.BoxSizer(wx.HORIZONTAL)
-            label4 = wx.StaticText(panel, label='Primer sequence:',size=(350,-1))
+            label4 = wx.StaticText(panel, label='Primer sequence:',size=(340,-1))
             sizer4.Add(label4,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.prefix = wx.TextCtrl(panel,value=str(vars.prefix), size=(400,30))
+            sizer4.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select the transposon used to construct the TnSeq libraries."), flag=wx.CENTER, border=0)
             sizer4.Add(self.prefix, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer4,0,wx.ALL,0)
             
@@ -169,16 +196,18 @@ if hasWx:
             self.prefix.Bind(wx.EVT_TEXT, self.OnChangePrimerPrefix)
 
             sizer6 = wx.BoxSizer(wx.HORIZONTAL)
-            label6 = wx.StaticText(panel, label='Max reads (leave blank to use all):',size=(350,-1))
+            label6 = wx.StaticText(panel, label='Max reads (leave blank to use all):',size=(340,-1))
             sizer6.Add(label6,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.maxreads = wx.TextCtrl(panel,size=(400,30))
+            sizer6.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select the transposon used to construct the TnSeq libraries."), flag=wx.CENTER, border=0)
             sizer6.Add(self.maxreads, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer6,0,wx.ALL,0)
 
             sizer7 = wx.BoxSizer(wx.HORIZONTAL)
-            label7 = wx.StaticText(panel, label='Mismatches allowed in Tn prefix:',size=(350,-1))
+            label7 = wx.StaticText(panel, label='Mismatches allowed in Tn prefix:',size=(340,-1))
             sizer7.Add(label7,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.mismatches = wx.TextCtrl(panel,value=str(vars.mm1),size=(400,30))
+            sizer7.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select the transposon used to construct the TnSeq libraries."), flag=wx.CENTER, border=0)
             sizer7.Add(self.mismatches, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer7,0,wx.ALL,0)    
 
