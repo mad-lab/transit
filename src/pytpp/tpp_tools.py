@@ -45,22 +45,6 @@ def cleanargs(rawargs):
     return (args, kwargs)
 
 
-def strip_comment(text):
-    loc = text.find("#")
-    if loc > -1:
-        return text[:loc].strip()
-    return text.strip("\n")
-
-def read_protocol_file(path):
-    var2val = {}
-    for line in open(path):
-        clean_line = strip_comment(line)
-        if clean_line:
-            print clean_line
-            var,val = clean_line.split("\t")
-            var2val[var] = val.strip()
-    return var2val
-
 
 def analyze_dataset(wigfile):
   data = []
@@ -376,117 +360,6 @@ def template_counts(ref,sam,bcfile,vars):
   return sites # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
 
 # pretend that all reads count as unique templates
-
-def read_counts_original(ref,sam,vars):
-    genome = read_genome(ref)
-    hits = {}
-    vars.tot_tgtta,vars.mapped = 0,0
-    vars.r1 = vars.r2 = 0
-    for line in open(sam):
-        if line[0]=='@': continue
-        w = line.split('\t')
-        code,icode = samcode(w[1]),int(w[1])
-        vars.tot_tgtta += 1 
-        if icode==0 or icode==16: 
-            vars.r1 += 1
-            vars.mapped += 1
-            readlen = len(w[9])
-            pos = int(w[3])
-            strand,delta = 'F',-2
-            if code[4]=="1": strand,delta = 'R',readlen
-            pos += delta
-            if pos not in hits: hits[pos] = []
-            hits[pos].append(strand)
-
-    sites = []
-    for i in range(len(genome)-1):
-      if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
-        pos = i+1
-        h = hits.get(pos,[])
-        lenf,lenr = h.count('F'),h.count('R')
-        data = [pos,lenf,lenf,lenr,lenr,lenf+lenr,lenf+lenr]
-        sites.append(data)
-    return sites # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
-
-
-
-def read_counts_Rudner(ref,sam,vars):
-    genome = read_genome(ref)
-    sites = {}
-    for i in range(len(genome)-1):
-        if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
-          pos = i+1
-          #h = hits.get(pos,[])
-          #lenf,lenr = h.count('F'),h.count('R')
-          #data = [pos,lenf,lenf,lenr,lenr,lenf+lenr,lenf+lenr]
-          sites[pos] = [pos,0,0,0,0,0,0]
-
-    hits = {}
-    vars.tot_tgtta,vars.mapped = 0,0
-    vars.r1 = vars.r2 = 0
-    for line in open(sam):
-        if line[0]=='@': continue
-        else:
-            w = line.split('\t')
-            code,icode = samcode(w[1]),int(w[1])
-            vars.tot_tgtta += 1
-            if icode==0 or icode==16:
-                vars.r1 += 1
-                vars.mapped += 1
-                readlen = len(w[9])
-                pos = int(w[3])
-                strand,delta = 'F',-2
-                if code[4]=="1": strand,delta = 'R',readlen
-                if strand == 'F':
-                    site1 = pos + 14  #if on + strand, take column 3 position and add 1bp)
-                    site2 = pos + 15
-                    true_site = None
-                    #if site1 in sites: true_site = site1
-                    #if site2 in sites: true_site = site2
-                    #if true_site:
-                    if site1 in sites:
-                        true_site = site1
-                        sites[true_site][1] += 1  #if read has been found before, tally 1 more in F reads
-                        sites[true_site][2] += 1  #if read has been found before, tally 1 more in F reads
-                        sites[true_site][5] += 1  #if read has been found before, tally 1 more in F reads
-                        sites[true_site][6] += 1  #if read has been found before, tally 1 more in F reads
-
-                    if site2 in sites:
-                        true_site = site2
-                        sites[true_site][1] += 1  #if read has been found before, tally 1 more in F reads
-                        sites[true_site][2] += 1  #if read has been found before, tally 1 more in F reads
-                        sites[true_site][5] += 1  #if read has been found before, tally 1 more in F reads
-                        sites[true_site][6] += 1  #if read has been found before, tally 1 more in F read                
-
-
-                if strand == 'R':
-                    site1 = pos + 0 #if on - strand, add col 3 position to length of read in position 4 and add 1
-                    site2 = pos + -1
-                    #if site1 in sites: true_site = site1
-                    #if site2 in sites: true_site = site2
-                    #true_site = None
-                    #if true_site:
-                    if site1 in sites:
-                        true_site = site1
-                        sites[true_site][3] += 1  #if read has been found before, tally 1 more in R reads
-                        sites[true_site][4] += 1  #if read has been found before, tally 1 more in R reads
-                        sites[true_site][5] += 1  #if read has been found before, tally 1 more in R reads
-                        sites[true_site][6] += 1  #if read has been found before, tally 1 more in R reads
-
-                    if site2 in sites:
-                        true_site = site2
-                        sites[true_site][3] += 1  #if read has been found before, tally 1 more in R reads
-                        sites[true_site][4] += 1  #if read has been found before, tally 1 more in R reads
-                        sites[true_site][5] += 1  #if read has been found before, tally 1 more in R reads
-                        sites[true_site][6] += 1  #if read has been found before, tally 1 more in R reads
-
-    results = []
-    for key in sorted(sites.keys()):
-        results.append(sites[key])
-    return results # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
-
-
-
 
 def increase_counts(pos,sites, strand):
         if strand == "F":
@@ -990,11 +863,17 @@ def verify_inputs(vars):
   
     if not os.path.exists(vars.fq1): error("reads1 file not found: "+vars.fq1)
     vars.single_end = False
-    if vars.fq2=="": vars.single_end = True   
+    if vars.fq2=="": vars.single_end = True
     elif not os.path.exists(vars.fq2): error("reads2 file not found: "+vars.fq2)
     if not os.path.exists(vars.ref): error("reference file not found: "+vars.ref)
     if vars.base == '': error("prefix cannot be empty")
     if vars.fq1 == vars.fq2: error('fastq files cannot be identical')
+
+    # If Mme1 protocol, warn that we don't use read2 file
+    if vars.protocol.lower() == "mme1" and not vars.single_end:
+        warning("Ignoring Read 2 file. TPP assumes Mme1 protocol runs in single-end mode.")
+        vars.single_end = True
+        vars.fq2 = ""
 
     if os.path.isdir(vars.bwa):
         bwaexec_unix = os.path.join(vars.bwa, "bwa")
