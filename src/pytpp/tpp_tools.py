@@ -521,11 +521,11 @@ def read_counts(ref,sam,vars):
                 vars.mapped += 1
                 readlen = len(w[9])
                 pos = int(w[3])
-                if vars.protocol == "Rudner Lab":
+                if vars.protocol.lower() == "mme1":
                     strand,delta = 'F',readlen
                     if code[4]=="1": strand,delta = 'R',1
-                    site1 = pos + delta - 2 #if on + strand, take column 3 position and add 1bp)
-                    site2 = pos + delta - 1 #if on + strand, take column 3 position and add 1bp)
+                    site1 = pos + delta - 2 #if on + strand, take column 3 position and add 1bp,
+                    site2 = pos + delta - 1 #check one off just in case it enzyme chewed too much
                     if site1 in sites:
                         increase_counts(site1, sites, strand)
                     if site2 in sites:
@@ -938,8 +938,8 @@ def set_defaults(vars, protocol):
     #protocol = kwargs.get("protocol", "sassetti")
     if protocol == "sassetti":
         set_sassetti_defaults(vars)
-    elif protocol == "mmel":
-        set_mmel_defaults(vars)
+    elif protocol == "mme1":
+        set_mme1_defaults(vars)
     elif protocol == "tn5":
         set_tn5_defaults(vars)
     else:
@@ -964,10 +964,10 @@ def set_sassetti_defaults(vars):
     set_attributes(vars, attributes_list)
 
 
-def set_mmel_defaults(vars):
+def set_mme1_defaults(vars):
     attributes_list = []
     attributes_list.append(("transposon", "Himar1"))
-    attributes_list.append(("protocol", "Mmel"))
+    attributes_list.append(("protocol", "Mme1"))
     attributes_list.append(("prefix", ""))
     attributes_list.append(("maxreads", -1))
     attributes_list.append(("mm1", 2))
