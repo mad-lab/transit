@@ -142,7 +142,7 @@ if hasWx:
             sizer_protocol = wx.BoxSizer(wx.HORIZONTAL)
             label_protocol = wx.StaticText(panel, label='Protocol used:',size=(350,-1))
             sizer_protocol.Add(label_protocol,0,wx.ALIGN_CENTER_VERTICAL,0)
-            self.protocol = wx.ComboBox(panel,choices=['Sassetti','Mmel', 'Tn5'],size=(400,30))
+            self.protocol = wx.ComboBox(panel,choices=['Sassetti','Mme1', 'Tn5'],size=(400,30))
             self.protocol.SetStringSelection(vars.protocol)
             sizer_protocol.Add(self.protocol, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer.Add(sizer_protocol,0,wx.ALL,0)
@@ -208,7 +208,7 @@ if hasWx:
                 self.prefix.SetValue("ACTTATCAGCCAACCTGTTA")
                 self.transposon.SetStringSelection("Himar1")
                 self.vars.transposon = "Himar1"
-            elif self.protocol.GetValue()=="Mmel":
+            elif self.protocol.GetValue()=="Mme1":
                 self.prefix.SetValue("")
                 self.transposon.SetStringSelection("Himar1")
                 self.vars.transposon = "Himar1"
