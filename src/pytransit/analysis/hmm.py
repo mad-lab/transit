@@ -486,7 +486,7 @@ class HMMMethod(base.SingleConditionMethod):
         b_o = [B[i](O[0]) for i in range(N)]
         delta[:,0] = numpy.log(PI) + numpy.log(b_o)
 
-        Q = numpy.zeros((N, T))
+        Q = numpy.zeros((N, T), dtype=int)
 
         for t in xrange(1, T):
             b_o = [B[i](O[t]) for i in range(N)]
