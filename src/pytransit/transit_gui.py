@@ -338,6 +338,7 @@ class MainFrame ( wx.Frame ):
         self.globalNTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
         nTermSizer.Add( self.globalNTerminusLabel,0, wx.ALIGN_CENTER, 5 )
         nTermSizer.Add( self.globalNTerminusText, 0, wx.ALIGN_CENTER, 5 )
+        nTermSizer.Add( pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the N-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function."), 0, wx.ALIGN_CENTER, 5 )
 
 
         # C TERMINUS - GLOBAL 
@@ -347,6 +348,7 @@ class MainFrame ( wx.Frame ):
        
         cTermSizer.Add( self.globalCTerminusLabel,0, wx.ALIGN_CENTER_VERTICAL, 5 )
         cTermSizer.Add( self.globalCTerminusText, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        cTermSizer.Add( pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the C-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function."), 0, wx.ALIGN_CENTER, 5 )
  
         
 
