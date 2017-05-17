@@ -116,81 +116,50 @@ class ResamplingGUI(base.AnalysisGUI):
         resamplingTopSizer2 = wx.BoxSizer( wx.HORIZONTAL )
 
         resamplingLabelSizer = wx.BoxSizer( wx.VERTICAL )
-
-        # Samples Label
-        resamplingSampleLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
-        resamplingSampleLabel.Wrap( -1 )
-        resamplingLabelSizer.Add( resamplingSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-
-        # Pseudocount Label
-        resamplingPseudocountLabel = wx.StaticText(resamplingPanel, wx.ID_ANY, u"Pseudocount", wx.DefaultPosition, wx.DefaultSize, 0)
-        resamplingPseudocountLabel.Wrap( -1 )
-        resamplingLabelSizer.Add( resamplingPseudocountLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-
-        # Norm Label
-        resamplingNormLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Normalization", wx.DefaultPosition, wx.DefaultSize, 0 )
-        resamplingNormLabel.Wrap( -1 )
-        resamplingLabelSizer.Add( resamplingNormLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-        resamplingTopSizer2.Add( resamplingLabelSizer, 1, wx.EXPAND, 5 )
-
-
-
-        resamplingControlSizer = wx.BoxSizer( wx.VERTICAL )
-
-        # Samples Text
-        self.wxobj.resamplingSampleText = wx.TextCtrl( resamplingPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
-        resamplingControlSizer.Add( self.wxobj.resamplingSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-
-        # Pseudocounts
-        self.wxobj.resamplingPseudocountText = wx.TextCtrl(resamplingPanel, wx.ID_ANY, u"0.0", wx.DefaultPosition, wx.DefaultSize, 0)
-        resamplingControlSizer.Add( self.wxobj.resamplingPseudocountText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-
-        # Norm Choices
-        resamplingNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
-        self.wxobj.resamplingNormChoice = wx.Choice( resamplingPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, resamplingNormChoiceChoices, 0 )
-        self.wxobj.resamplingNormChoice.SetSelection( 0 )
-        resamplingControlSizer.Add( self.wxobj.resamplingNormChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-
-
-        # LOESS
-        self.wxobj.resamplingLoessCheck = wx.CheckBox( resamplingPanel, wx.ID_ANY, u"Correct for Genome Positional Bias", wx.DefaultPosition, wx.DefaultSize, 0 )
-        #resamplingSection.Add( self.resamplingLoessCheck, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-        self.wxobj.resamplingLoessPrev = wx.Button( resamplingPanel, wx.ID_ANY, u"Preview LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
-        #resamplingSection.Add( self.resamplingLoessPrev, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-
-        # Adaptive Check
-        self.wxobj.resamplingAdaptiveCheckBox = wx.CheckBox(resamplingPanel, label = 'Adaptive Resampling (Faster)')
-
-        # Histogram Check
-        self.wxobj.resamplingHistogramCheckBox = wx.CheckBox(resamplingPanel, label = 'Generate Resampling Histograms')
-
-        # Zeros Check
-        self.wxobj.resamplingZeroCheckBox = wx.CheckBox(resamplingPanel, label = 'Include sites with all zeros')
-
-
-        resamplingTopSizer2.Add( resamplingControlSizer, 1, wx.EXPAND, 5 )
-
-        resamplingTopSizer.Add( resamplingTopSizer2, 1, wx.EXPAND, 5 )
-
         
+        mainSizer1 = wx.BoxSizer( wx.VERTICAL )
 
-        resamplingSizer.Add( resamplingTopSizer, 1, wx.EXPAND, 5 )
+        #(, , Sizer) = self.defineChoiceBox(resamplingPanel, u"", u"", "")
+        #mainSizer1.Add(Sizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
-        resamplingSizer.Add( self.wxobj.resamplingLoessCheck, 0, wx.EXPAND, 5 )
+        # Samples 
+        (resamplingSampleLabel, self.wxobj.resamplingSampleText, sampleSizer) = self.defineTextBox(resamplingPanel, u"Samples:", u"10000", "Number of samples to take when estimating the resampling histogram. More samples give more accurate estimates of the p-values at the cost of computation time.")
+        mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+
+        # Pseudocount
+        (resamplingPseudocountLabel, self.wxobj.resamplingPseudocountText, pseudoSizer) = self.defineTextBox(resamplingPanel, u"Pseudocount:", u"0.0", "Adds pseudo-counts to the each data-point. Useful to dampen the effects of small counts which may lead to deceptively high log-FC.")
+        mainSizer1.Add(pseudoSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+
+        # Norm 
+        resamplingNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
+        (resamplingNormLabel, self.wxobj.resamplingNormChoice, normSizer) = self.defineChoiceBox(resamplingPanel, u"Normalization:", resamplingNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods. ")
+        mainSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 ) 
+
+
+        resamplingSizer.Add( mainSizer1, 1, wx.EXPAND, 5 )
+
+
+        # LOESS Check
+        (self.wxobj.resamplingLoessCheck, loessCheckSizer) = self.defineCheckBox(resamplingPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(230,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
+        resamplingSizer.Add( loessCheckSizer, 0, wx.EXPAND, 5 )
+
+        # LOESS Button
+        self.wxobj.resamplingLoessPrev = wx.Button( resamplingPanel, wx.ID_ANY, u"Preview LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
         resamplingSizer.Add( self.wxobj.resamplingLoessPrev, 0, wx.ALL|wx.CENTER, 5 )
 
+        # Adaptive Check
+        (self.wxobj.resamplingAdaptiveCheckBox, adaptiveSizer) = self.defineCheckBox(resamplingPanel, labelText="Adaptive Resampling (Faster)", widgetCheck=False, widgetSize=(200,-1), tooltipText="Dynamically stops permutations early if it is unlikely the ORF will be significant given the results so far. Improves performance, though p-value calculations for genes that are not differentially essential will be less accurate.")
+        resamplingSizer.Add( adaptiveSizer, 0, wx.EXPAND, 5 )
 
-        resamplingSizer.Add( self.wxobj.resamplingAdaptiveCheckBox, 0, wx.EXPAND, 5 )
-        resamplingSizer.Add( self.wxobj.resamplingHistogramCheckBox, 0, wx.EXPAND, 5 )
-        resamplingSizer.Add( self.wxobj.resamplingZeroCheckBox, 0, wx.EXPAND, 5 )
+        # Histogram Check
+        (self.wxobj.resamplingHistogramCheckBox, histSizer) = self.defineCheckBox(resamplingPanel, labelText="Generate Resampling Histograms", widgetCheck=False, widgetSize=(225,-1), tooltipText="Creates .png images with the resampling histogram for each of the ORFs. Histogram images are created in a folder with the same name as the output file.")
+        resamplingSizer.Add(histSizer, 0, wx.EXPAND, 5 )
+        
+
+        # Zeros Check
+        (self.wxobj.resamplingZeroCheckBox, zeroSizer) = self.defineCheckBox(resamplingPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(180,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
+        resamplingSizer.Add(zeroSizer, 0, wx.EXPAND, 5 )
+
 
         resamplingButton = wx.Button( resamplingPanel, wx.ID_ANY, u"Run resampling", wx.DefaultPosition, wx.DefaultSize, 0 )
         resamplingSizer.Add( resamplingButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
