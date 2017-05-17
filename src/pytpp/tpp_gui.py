@@ -41,7 +41,7 @@ from tpp_tools import *
 if hasWx:
 
     class TPPIcon(wx.StaticBitmap):
-        def __init__(self, panel, flag, bmp, tooltip="Florf"):
+        def __init__(self, panel, flag, bmp, tooltip=""):
             wx.StaticBitmap.__init__(self, panel, flag, bmp)
             tp = wx.ToolTip(tooltip)
             self.SetToolTip(tp)
