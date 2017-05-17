@@ -336,19 +336,21 @@ class MainFrame ( wx.Frame ):
         self.globalNTerminusLabel.Wrap( -1 )
        
         self.globalNTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.globalNTerminusIcon = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the N-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function.")
         nTermSizer.Add( self.globalNTerminusLabel,0, wx.ALIGN_CENTER, 5 )
         nTermSizer.Add( self.globalNTerminusText, 0, wx.ALIGN_CENTER, 5 )
-        nTermSizer.Add( pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the N-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function."), 0, wx.ALIGN_CENTER, 5 )
+        nTermSizer.Add( self.globalNTerminusIcon, 0, wx.ALIGN_CENTER, 5 )
 
 
         # C TERMINUS - GLOBAL 
         self.globalCTerminusLabel = wx.StaticText( self.globalPanel, wx.ID_ANY, u"Ignore C-Terminus %:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalCTerminusLabel.Wrap( -1 )
         self.globalCTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
-       
+        self.globalCTerminusIcon = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the C-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function.")      
+ 
         cTermSizer.Add( self.globalCTerminusLabel,0, wx.ALIGN_CENTER_VERTICAL, 5 )
         cTermSizer.Add( self.globalCTerminusText, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        cTermSizer.Add( pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the C-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function."), 0, wx.ALIGN_CENTER, 5 )
+        cTermSizer.Add( self.globalCTerminusIcon, 0, wx.ALIGN_CENTER, 5 )
  
         
 
@@ -849,6 +851,8 @@ class TnSeekFrame(MainFrame):
         self.globalCTerminusLabel.Hide()
         self.globalNTerminusText.Hide()
         self.globalCTerminusText.Hide()
+        self.globalNTerminusIcon.Hide()
+        self.globalCTerminusIcon.Hide()
 
 
     def ShowGlobalOptions(self):
@@ -857,6 +861,8 @@ class TnSeekFrame(MainFrame):
         self.globalCTerminusLabel.Show()
         self.globalNTerminusText.Show()
         self.globalCTerminusText.Show()
+        self.globalNTerminusIcon.Show()
+        self.globalCTerminusIcon.Show()
 
     def HideProgressSection(self):
         self.progressLabel.Hide()
