@@ -29,6 +29,15 @@ class InvalidArgumentException(Exception):
         super(InvalidArgumentException, self).__init__(message)
 
 
+class InfoIcon(wx.StaticBitmap):
+    def __init__(self, panel, flag, bmp=None, tooltip=""):
+        if not bmp:
+            bmp = wx.ArtProvider.GetBitmap(wx.ART_INFORMATION, wx.ART_OTHER, (16, 16))
+        wx.StaticBitmap.__init__(self, panel, flag, bmp)
+        tp = wx.ToolTip(tooltip)
+        self.SetToolTip(tp)
+
+
 class TransitFile:
     #TODO write docstring
 
@@ -76,6 +85,8 @@ class AnalysisGUI:
     def __init__(self):
         self.wxobj = None
         self.panel = None
+        self.LABELSIZE = (100,-1)
+        self.WIDGETSIZE = (100,-1)
 
     def Hide(self):
         self.panel.Hide()
