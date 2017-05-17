@@ -95,55 +95,25 @@ class GumbelGUI(base.AnalysisGUI):
 
 
         # Samples
-        sampleSizer = wx.BoxSizer( wx.HORIZONTAL )
-        gumbelSampleLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Samples:", wx.DefaultPosition, self.LABELSIZE, 0 )
-        gumbelSampleLabel.Wrap( -1 )
-        self.wxobj.gumbelSampleText = wx.TextCtrl( gumbelPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, self.WIDGETSIZE, 0 )
-        sampleSizer.Add(gumbelSampleLabel, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        sampleSizer.Add(self.wxobj.gumbelSampleText, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        sampleSizer.Add(base.InfoIcon(gumbelPanel, wx.ID_ANY, tooltip="These are the number of samples to take when estimating the parameters. More samples give more accurate estimates of the parameters at the cost of computation time."), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )        
+        (gumbelSampleLabel, self.wxobj.gumbelSampleText, sampleSizer) = self.defineTextBox(gumbelPanel, u"Samples:", u"10000", "These are the number of samples to take when estimating the parameters. More samples give more accurate estimates of the parameters at the cost of computation time.")
+        mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
         # Burn-In 
-        burninSizer = wx.BoxSizer( wx.HORIZONTAL )
-        gumbelBurninLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Burn-In:", wx.DefaultPosition, self.LABELSIZE, 0 )
-        gumbelBurninLabel.Wrap( -1 )
-        self.wxobj.gumbelBurninText = wx.TextCtrl( gumbelPanel, wx.ID_ANY, u"500", wx.DefaultPosition, self.WIDGETSIZE, 0 )
-        burninSizer.Add(gumbelBurninLabel,0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        burninSizer.Add(self.wxobj.gumbelBurninText,0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        burninSizer.Add(base.InfoIcon(gumbelPanel, wx.ID_ANY, tooltip="These are the number of samples to take before  beginning to estimate the parameters. Allows the MCMC sampler to 'converge' to the true parameter space. More samples give more accurate estimates of the parameters at the cost of computation time."), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        (gumbelBurninLabel, self.wxobj.gumbelBurninText, burninSizer) = self.defineTextBox(gumbelPanel, u"Burn-In:", u"500", "These are the number of samples to take before  beginning to estimate the parameters. Allows the MCMC sampler to 'converge' to the true parameter space. More samples give more accurate estimates of the parameters at the cost of computation time.")
         mainSizer1.Add(burninSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )        
 
         # Trim
-        trimSizer = wx.BoxSizer( wx.HORIZONTAL )
-        gumbelTrimLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Trim:", wx.DefaultPosition, self.LABELSIZE, 0 )
-        gumbelTrimLabel.Wrap( -1 )
-        self.wxobj.gumbelTrimText = wx.TextCtrl( gumbelPanel, wx.ID_ANY, u"1", wx.DefaultPosition, self.WIDGETSIZE, 0 )
-        trimSizer.Add(gumbelTrimLabel, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        trimSizer.Add(self.wxobj.gumbelTrimText, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        trimSizer.Add(base.InfoIcon(gumbelPanel, wx.ID_ANY, tooltip="The MCMC sample will keep every i-th sample. A value of '1' will take all samples. Larger values will reduces autocorrelation at the cost of a substantial cost in computation time."), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        (gumbelTrimLabel, self.wxobj.gumbelTrimText, trimSizer) = self.defineTextBox(gumbelPanel, u"Trim:", u"1", "The MCMC sample will keep every i-th sample. A value of '1' will take all samples. Larger values will reduces autocorrelation at the cost of a substantial cost in computation time.")
         mainSizer1.Add(trimSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )        
 
         # Min Read
-        readSizer = wx.BoxSizer( wx.HORIZONTAL )
-        gumbelReadLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Minimum Read:", wx.DefaultPosition, self.LABELSIZE, 0 )
-        gumbelReadLabel.Wrap( -1 )
         gumbelReadChoiceChoices = [ u"1", u"2", u"3", u"4", u"5" ]
-        self.wxobj.gumbelReadChoice = wx.Choice( gumbelPanel, wx.ID_ANY, wx.DefaultPosition, self.WIDGETSIZE, gumbelReadChoiceChoices, 0 )
-        readSizer.Add(gumbelReadLabel, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        readSizer.Add(self.wxobj.gumbelReadChoice, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        readSizer.Add(base.InfoIcon(gumbelPanel, wx.ID_ANY, tooltip="This is the minimum number of reads to consider a 'true' insertion. Value of 1 will consider all insertions. Larger values allow the method to ignore spurious insertions which might interrupt a run of non-insertions. Noisy datasets or those with many replicates can beneffit from increasing this."), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        (gumbelReadLabel, self.wxobj.gumbelReadChoice, readSizer) = self.defineChoiceBox(gumbelPanel, u"Minimum Read:", gumbelReadChoiceChoices, "This is the minimum number of reads to consider a 'true' insertion. Value of 1 will consider all insertions. Larger values allow the method to ignore spurious insertions which might interrupt a run of non-insertions. Noisy datasets or those with many replicates can beneffit from increasing this.")
         mainSizer1.Add(readSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )        
 
         # Replicates
-        repSizer = wx.BoxSizer( wx.HORIZONTAL )
-        gumbelRepLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Replicates:", wx.DefaultPosition, self.LABELSIZE, 0 )
-        gumbelRepLabel.Wrap( -1 )
         gumbelRepChoiceChoices = [ u"Sum", u"Mean" ]
-        self.wxobj.gumbelRepChoice = wx.Choice( gumbelPanel, wx.ID_ANY, wx.DefaultPosition, self.WIDGETSIZE, gumbelRepChoiceChoices, 0 )
-        repSizer.Add(gumbelRepLabel, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        repSizer.Add(self.wxobj.gumbelRepChoice, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        repSizer.Add(base.InfoIcon(gumbelPanel, wx.ID_ANY, tooltip="Determines how to handle replicates, and their read-counts. When using many replicates, summing read-counts may make spurious counts appear to be significantly large and interrupt a run of non-insertions."), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        (gumbelRepLabel, self.wxobj.gumbelRepChoice, repSizer) = self.defineChoiceBox(gumbelPanel, u"Replicates:", gumbelRepChoiceChoices, "Determines how to handle replicates, and their read-counts. When using many replicates, summing read-counts may make spurious counts appear to be significantly large and interrupt a run of non-insertions.")
         mainSizer1.Add(repSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )        
 
        
