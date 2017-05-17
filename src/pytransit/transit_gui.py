@@ -322,46 +322,42 @@ class MainFrame ( wx.Frame ):
         self.methodSizer.Add( self.globalLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
         self.globalPanel = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.globalPanel.SetMinSize( wx.Size( 50,90 ) )
+        self.globalPanel.SetMinSize( wx.Size( 230,90 ) )
         self.globalPanel.SetMaxSize( wx.Size( 250,-1) )
-       
-        #self.globalPanel.BackgroundColour = (200, 230, 250) 
-        bSizer1431 = wx.BoxSizer( wx.VERTICAL )
+      
+ 
+        globalSizerVT = wx.BoxSizer( wx.VERTICAL )
+        nTermSizer = wx.BoxSizer( wx.HORIZONTAL )
+        cTermSizer = wx.BoxSizer( wx.HORIZONTAL )
         
-        bSizer1521 = wx.BoxSizer( wx.HORIZONTAL )
-        
-        bSizer1621 = wx.BoxSizer( wx.VERTICAL )
-        
+
+        # N TERMINUS - GLOBAL 
         self.globalNTerminusLabel = wx.StaticText( self.globalPanel, wx.ID_ANY, u"Ignore N-Terminus %:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalNTerminusLabel.Wrap( -1 )
-        bSizer1621.Add( self.globalNTerminusLabel, 0, wx.ALL, 5 )
-        
+       
+        self.globalNTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
+        nTermSizer.Add( self.globalNTerminusLabel,0, wx.ALIGN_CENTER, 5 )
+        nTermSizer.Add( self.globalNTerminusText, 0, wx.ALIGN_CENTER, 5 )
+
+
+        # C TERMINUS - GLOBAL 
         self.globalCTerminusLabel = wx.StaticText( self.globalPanel, wx.ID_ANY, u"Ignore C-Terminus %:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalCTerminusLabel.Wrap( -1 )
-        bSizer1621.Add( self.globalCTerminusLabel, 0, wx.ALL, 5 )
-        
-        
-        bSizer1521.Add( bSizer1621, 1, wx.EXPAND, 5 )
-        
-        bSizer1721 = wx.BoxSizer( wx.VERTICAL )
-        
-        self.globalNTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer1721.Add( self.globalNTerminusText, 0, wx.ALL, 5 )
-        
         self.globalCTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer1721.Add( self.globalCTerminusText, 0, wx.ALL, 5 )
+       
+        cTermSizer.Add( self.globalCTerminusLabel,0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        cTermSizer.Add( self.globalCTerminusText, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+ 
+        
+
+        globalSizerVT.Add( nTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        globalSizerVT.Add( cTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
         
         
-        bSizer1521.Add( bSizer1721, 1, wx.EXPAND, 5 )
-        
-        
-        bSizer1431.Add( bSizer1521, 1, wx.EXPAND, 5 )
-        
-        
-        self.globalPanel.SetSizer( bSizer1431 )
+        self.globalPanel.SetSizer( globalSizerVT )
         self.globalPanel.Layout()
-        bSizer1431.Fit( self.globalPanel )
-        self.methodSizer.Add( self.globalPanel, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        globalSizerVT.Fit( self.globalPanel )
+        self.methodSizer.Add( self.globalPanel, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
 
         #--------------------#
