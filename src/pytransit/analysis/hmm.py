@@ -125,61 +125,33 @@ class HMMGUI(base.AnalysisGUI):
         hmmLabel.Wrap( -1 )
         hmmSection.Add( hmmLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-        hmmSizer1 = wx.BoxSizer( wx.HORIZONTAL )
-        hmmSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-        hmmLabelSizer = wx.BoxSizer( wx.VERTICAL )
-        hmmControlSizer = wx.BoxSizer( wx.VERTICAL )
+        hmmSizer1 = wx.BoxSizer( wx.VERTICAL )
+
+        #(, , Sizer) = self.defineChoiceBox(hmmPanel, u"", hmmNormChoiceChoices, "")
+        #hmmSizer1.Add(Sizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
         # NORMALIZATION
-        hmmNormLabel = wx.StaticText( hmmPanel, wx.ID_ANY, u"Normalization", wx.DefaultPosition, wx.DefaultSize, 0 )
-        hmmNormLabel.Wrap(-1)
-        hmmLabelSizer.Add(hmmNormLabel, 1, wx.ALL, 5)
-
         hmmNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
-        self.wxobj.hmmNormChoice = wx.Choice( hmmPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, hmmNormChoiceChoices, 0 )
-        self.wxobj.hmmNormChoice.SetSelection( 0 )
-        hmmControlSizer.Add( self.wxobj.hmmNormChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-
-        # LOESS
-
-        self.wxobj.hmmLoessCheck = wx.CheckBox( hmmPanel, wx.ID_ANY, u"Correct for Genome Positional Bias", wx.DefaultPosition, wx.DefaultSize, 0 )
-
-        self.wxobj.hmmLoessPrev = wx.Button( hmmPanel, wx.ID_ANY, u"Preview LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
-
-        
+        (hmmNormLabel, self.wxobj.hmmNormChoice, normSizer) = self.defineChoiceBox(hmmPanel, u"Normalization:", hmmNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods.")
+        hmmSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
 
         # REPLICATE
-        hmmRepLabel = wx.StaticText( hmmPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
-        hmmRepLabel.Wrap(-1)
-        hmmLabelSizer.Add(hmmRepLabel, 1, wx.ALL, 5)
-
-        
-        hmmRepChoiceChoices = [ u"Sum", u"Mean"]
-        self.wxobj.hmmRepChoice = wx.Choice( hmmPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, hmmRepChoiceChoices, 0 )
-        self.wxobj.hmmRepChoice.SetSelection( 1 )
-
-        hmmControlSizer.Add(self.wxobj.hmmRepChoice, 0, wx.ALL|wx.EXPAND, 5)
+        hmmRepChoiceChoices = [ u"Sum", u"Mean" ]
+        (hmmRepLabel, self.wxobj.hmmRepChoice, repSizer) = self.defineChoiceBox(hmmPanel, u"Replicates:", hmmRepChoiceChoices, "Determines how to handle replicates, and their read-counts. When using many replicates, using 'Mean' may be recommended over 'Sum'")
+        hmmSizer1.Add(repSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
 
+        # LOESS
+        (self.wxobj.hmmLoessCheck, loessCheckSizer) = self.defineCheckBox(hmmPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(230,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
+        hmmSizer1.Add( loessCheckSizer, 0, wx.EXPAND, 5 )
 
-
-
-
-        hmmSizer2.Add(hmmLabelSizer, 1, wx.EXPAND, 5)
-        hmmSizer2.Add(hmmControlSizer, 1, wx.EXPAND, 5)
-        
-    
-        hmmSizer1.Add(hmmSizer2, 1, wx.EXPAND, 5 )
-        #hmmSizer1.Add(self.wxobj.hmmLoessCheck, 0, wx.EXPAND, 5 )
-        #hmmSizer1.Add(self.wxobj.hmmLoessPrev, 0, wx.ALL|wx.CENTER, 5 )
-
+        # LOESS Button
+        self.wxobj.hmmLoessPrev = wx.Button( hmmPanel, wx.ID_ANY, u"Preview LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
+        hmmSizer1.Add( self.wxobj.hmmLoessPrev, 0, wx.ALL|wx.CENTER, 5 )
+ 
 
         hmmSection.Add( hmmSizer1, 1, wx.EXPAND, 5 )
-
-        hmmSection.Add(self.wxobj.hmmLoessCheck, 0, wx.EXPAND, 5 )
-        hmmSection.Add(self.wxobj.hmmLoessPrev, 0, wx.ALL|wx.CENTER, 5 )
 
         hmmButton = wx.Button( hmmPanel, wx.ID_ANY, u"Run HMM", wx.DefaultPosition, wx.DefaultSize, 0 )
         hmmSection.Add( hmmButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
