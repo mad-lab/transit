@@ -1600,8 +1600,10 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
 
     def convertToIGVGUI(self, datasets):
+        
         annotationPath = self.annotation
         if datasets and annotationPath:
+            normchoice = self.chooseNormalization()
             defaultFile = "read_counts.igv"
             defaultDir = os.getcwd()
             outputPath = self.SaveFile(defaultDir, defaultFile)
@@ -1610,7 +1612,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
         
                 transit_tools.transit_message("Converting the following datasets to IGV format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            self.convertToIGV(datasets, annotationPath, outputPath)
+            self.convertToIGV(datasets, annotationPath, outputPath, normchoice)
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
         elif not datasets:
@@ -1621,9 +1623,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             pass
 
 
-    def convertToIGV(self, dataset_list, annotationPath, path):
-
-        normchoice = self.chooseNormalization()
+    def convertToIGV(self, dataset_list, annotationPath, path, normchoice=None):
 
         if not normchoice:
             normchoice = "nonorm"
