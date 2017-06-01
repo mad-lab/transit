@@ -1492,12 +1492,17 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                     ii+=1
                 count = 0
                 threshold = 0.00001
+                backup_thresh = 0.00001
                 qval_list.sort()
                 for (q, p) in qval_list:
+                    backup_thresh = p
                     if q > 0.05:
                         break
                     threshold = p
                     count+=1
+
+                if threshold == 0:
+                    threshold = backup_thresh
                 for ii in bad:
                     Y[ii]  = max(Y)
                 plt.plot(X,Y, "bo")
