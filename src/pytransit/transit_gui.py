@@ -724,6 +724,8 @@ class TnSeekFrame(MainFrame):
             ctrlData = ["glycerol_H37Rv_rep1.wig", "glycerol_H37Rv_rep2.wig"]
             for dataset in ctrlData:
                 try:
+                    path = os.path.dirname(os.path.realpath(__file__))
+                    print path
                     path = os.path.join(os.path.dirname('/pacific/home/mdejesus/transit/src/transit.py'), "pytransit/data", dataset)
                     transit_tools.transit_message("Adding Ctrl File: " + path)
                     self.loadCtrlFile(path)
@@ -1458,26 +1460,52 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
     def graphVolcanoPlot(self, dataset_name, dataset_type, dataset_path):
         try:
             if dataset_type == "Resampling":
-                X = []; Y = [];
+                X = []; Y = []; header=[]; qval_list = []; bad = [];
+                col_logFC = -6
+                col_pval = -2
+                col_qval = -1
+                ii = 0
                 for line in open(dataset_path):
-                    if line.startswith("#"): continue
+                    if line.startswith("#"):
+                        tmp = line.split("\t")
+                        temp_col_logfc = [i for (i,x) in enumerate(tmp) if "logfc" in x.lower() or "log-fc" in x.lower() or "log2fc" in x.lower()] 
+                        temp_col_pval = [i for (i,x) in enumerate(tmp) if ("pval" in x.lower() or "p-val" in x.lower()) and "adj" not in x.lower()] 
+                        if temp_col_logfc:
+                            col_logFC = temp_col_logfc[-1]
+                        if temp_col_pval:
+                            col_pval = temp_col_pval[-1]
+                        continue
+
+                    
                     tmp = line.strip().split("\t")
                     try:
-                        #log2FC = math.log(float(tmp[6])/float(tmp[5]),2)
-                        log2FC = float(tmp[-6])
-                        log10qval = -math.log(float(tmp[-1].strip()), 10)
-                    except:
-                        log2FC = 0
+                        log10qval = -math.log(float(tmp[col_pval].strip()), 10)
+                    except ValueError as e:
+                        bad.append(ii)
                         log10qval = 0
-                        #log2FC = 1
-                        #log10qval = 1
+
+                    log2FC = float(tmp[col_logFC])
+                
+                    qval_list.append((float(tmp[col_qval]), float(tmp[col_pval].strip())))
                     X.append(log2FC)
                     Y.append(log10qval)
-
+                    ii+=1
+                count = 0
+                threshold = 0.00001
+                qval_list.sort()
+                for (q, p) in qval_list:
+                    if q > 0.05:
+                        break
+                    threshold = p
+                    count+=1
+                for ii in bad:
+                    Y[ii]  = max(Y)
                 plt.plot(X,Y, "bo")
+                plt.axhline(-math.log(threshold, 10), color='r', linestyle='dashed', linewidth=3)
                 plt.xlabel("Log Fold Change (base 2)")
-                plt.ylabel("-Log q-value (base 10)")
-                plt.title("Resampling - Volcano plot")
+                plt.ylabel("-Log p-value (base 10)")
+                plt.suptitle("Resampling - Volcano plot")
+                plt.title("Adjusted threshold (red line): %1.8f" % threshold)
                 plt.show()
                 plt.close()
             else:
