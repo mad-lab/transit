@@ -30,7 +30,6 @@ import pytransit.norm_tools as norm_tools
 import pytransit.stat_tools as stat_tools
 
 
-
 ############# GUI ELEMENTS ##################
 
 short_name = "gumbel"
@@ -85,8 +84,6 @@ class GumbelGUI(base.AnalysisGUI):
     def definePanel(self, wxobj):
         self.wxobj = wxobj
         gumbelPanel = wx.Panel( self.wxobj.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        #wxobj.gumbelPanel.SetMinSize( wx.Size( 50,1 ) )
-        #wxobj.gumbelPanel.SetMaxSize( wx.Size( 250,-1 ) )
 
         gumbelSection = wx.BoxSizer( wx.VERTICAL )
 
@@ -94,59 +91,32 @@ class GumbelGUI(base.AnalysisGUI):
         gumbelLabel.Wrap( -1 )
         gumbelSection.Add( gumbelLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-        mainSizer1 = wx.BoxSizer( wx.HORIZONTAL )
+        mainSizer1 = wx.BoxSizer( wx.VERTICAL )
 
-        mainSizer2 = wx.BoxSizer( wx.HORIZONTAL )
 
-        labelSizer = wx.BoxSizer( wx.VERTICAL )
+        # Samples
+        (gumbelSampleLabel, self.wxobj.gumbelSampleText, sampleSizer) = self.defineTextBox(gumbelPanel, u"Samples:", u"10000", "These are the number of samples to take when estimating the parameters. More samples give more accurate estimates of the parameters at the cost of computation time.")
+        mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
-        gumbelSampleLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
-        gumbelSampleLabel.Wrap( -1 )
-        labelSizer.Add( gumbelSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
- 
-        gumbelBurninLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Burn-In", wx.DefaultPosition, wx.DefaultSize, 0 )
-        gumbelBurninLabel.Wrap( -1 )
-        labelSizer.Add( gumbelBurninLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        # Burn-In 
+        (gumbelBurninLabel, self.wxobj.gumbelBurninText, burninSizer) = self.defineTextBox(gumbelPanel, u"Burn-In:", u"500", "These are the number of samples to take before  beginning to estimate the parameters. Allows the MCMC sampler to 'converge' to the true parameter space. More samples give more accurate estimates of the parameters at the cost of computation time.")
+        mainSizer1.Add(burninSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )        
 
-        gumbelTrimLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Trim", wx.DefaultPosition, wx.DefaultSize, 0 )
-        gumbelTrimLabel.Wrap( -1 )
-        labelSizer.Add( gumbelTrimLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        # Trim
+        (gumbelTrimLabel, self.wxobj.gumbelTrimText, trimSizer) = self.defineTextBox(gumbelPanel, u"Trim:", u"1", "The MCMC sample will keep every i-th sample. A value of '1' will take all samples. Larger values will reduces autocorrelation at the cost of a substantial cost in computation time.")
+        mainSizer1.Add(trimSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )        
 
-        gumbelReadLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Minimum Read", wx.DefaultPosition, wx.DefaultSize, 0 )
-        gumbelReadLabel.Wrap( -1 )
-        labelSizer.Add( gumbelReadLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-        gumbelRepLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
-        gumbelRepLabel.Wrap( -1 )
-        labelSizer.Add( gumbelRepLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-        mainSizer2.Add( labelSizer, 1, wx.EXPAND, 5 )
-
-        widgetSizer = wx.BoxSizer( wx.VERTICAL )
-
-        self.wxobj.gumbelSampleText = wx.TextCtrl( gumbelPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
-        widgetSizer.Add( self.wxobj.gumbelSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-        self.wxobj.gumbelBurninText = wx.TextCtrl( gumbelPanel, wx.ID_ANY, u"500", wx.DefaultPosition, wx.DefaultSize, 0 )
-        widgetSizer.Add( self.wxobj.gumbelBurninText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-        self.wxobj.gumbelTrimText = wx.TextCtrl( gumbelPanel, wx.ID_ANY, u"1", wx.DefaultPosition, wx.DefaultSize, 0 )
-        widgetSizer.Add( self.wxobj.gumbelTrimText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
+        # Min Read
         gumbelReadChoiceChoices = [ u"1", u"2", u"3", u"4", u"5" ]
-        self.wxobj.gumbelReadChoice = wx.Choice( gumbelPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, gumbelReadChoiceChoices, 0 )
-        self.wxobj.gumbelReadChoice.SetSelection( 0 )
-        widgetSizer.Add( self.wxobj.gumbelReadChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+        (gumbelReadLabel, self.wxobj.gumbelReadChoice, readSizer) = self.defineChoiceBox(gumbelPanel, u"Minimum Read:", gumbelReadChoiceChoices, "This is the minimum number of reads to consider a 'true' insertion. Value of 1 will consider all insertions. Larger values allow the method to ignore spurious insertions which might interrupt a run of non-insertions. Noisy datasets or those with many replicates can beneffit from increasing this.")
+        mainSizer1.Add(readSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )        
 
+        # Replicates
         gumbelRepChoiceChoices = [ u"Sum", u"Mean" ]
-        self.wxobj.gumbelRepChoice = wx.Choice( gumbelPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, gumbelRepChoiceChoices, 0 )
-        self.wxobj.gumbelRepChoice.SetSelection( 0 )
-        widgetSizer.Add( self.wxobj.gumbelRepChoice, 0, wx.ALL|wx.EXPAND, 5 )
+        (gumbelRepLabel, self.wxobj.gumbelRepChoice, repSizer) = self.defineChoiceBox(gumbelPanel, u"Replicates:", gumbelRepChoiceChoices, "Determines how to handle replicates, and their read-counts. When using many replicates, summing read-counts may make spurious counts appear to be significantly large and interrupt a run of non-insertions.")
+        mainSizer1.Add(repSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )        
 
-        mainSizer2.Add( widgetSizer, 1, wx.EXPAND, 5 )
-
-        mainSizer1.Add( mainSizer2, 1, wx.EXPAND, 5 )
-
+       
         gumbelSection.Add( mainSizer1, 1, wx.EXPAND, 5 )
 
         gumbelButton = wx.Button( gumbelPanel, wx.ID_ANY, u"Run Gumbel", wx.DefaultPosition, wx.DefaultSize, 0 )

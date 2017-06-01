@@ -29,6 +29,15 @@ class InvalidArgumentException(Exception):
         super(InvalidArgumentException, self).__init__(message)
 
 
+class InfoIcon(wx.StaticBitmap):
+    def __init__(self, panel, flag, bmp=None, tooltip=""):
+        if not bmp:
+            bmp = wx.ArtProvider.GetBitmap(wx.ART_INFORMATION, wx.ART_OTHER, (16, 16))
+        wx.StaticBitmap.__init__(self, panel, flag, bmp)
+        tp = wx.ToolTip(tooltip)
+        self.SetToolTip(tp)
+
+
 class TransitFile:
     #TODO write docstring
 
@@ -76,6 +85,8 @@ class AnalysisGUI:
     def __init__(self):
         self.wxobj = None
         self.panel = None
+        self.LABELSIZE = (100,-1)
+        self.WIDGETSIZE = (100,-1)
 
     def Hide(self):
         self.panel.Hide()
@@ -114,6 +125,40 @@ class AnalysisGUI:
         Button.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
         self.panel = wPanel
 
+    def defineTextBox(self, panel, labelText="", widgetText="", tooltipText="", labSize=None, widgetSize=None):
+        if not labSize: labSize = self.LABELSIZE
+        if not widgetSize: widgetSize = self.WIDGETSIZE
+
+        sizer = wx.BoxSizer( wx.HORIZONTAL )
+        label = wx.StaticText(panel, wx.ID_ANY, labelText, wx.DefaultPosition, labSize, 0)
+        label.Wrap( -1 )
+        textBox = wx.TextCtrl( panel, wx.ID_ANY, widgetText, wx.DefaultPosition, widgetSize, 0 )
+        sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        sizer.Add(textBox, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        sizer.Add(InfoIcon(panel, wx.ID_ANY, tooltip=tooltipText), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        return (label, textBox, sizer)
+
+    def defineChoiceBox(self, panel, labelText="", widgetChoice=[""], tooltipText="", labSize=None, widgetSize=None):
+        if not labSize: labSize = self.LABELSIZE
+        if not widgetSize: widgetSize = self.WIDGETSIZE
+
+        sizer = wx.BoxSizer( wx.HORIZONTAL )
+        label = wx.StaticText(panel, wx.ID_ANY, labelText, wx.DefaultPosition, labSize, 0)
+        label.Wrap( -1 )
+        choiceBox = wx.Choice( panel, wx.ID_ANY, wx.DefaultPosition, widgetSize, widgetChoice, 0 )
+        sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        sizer.Add(choiceBox, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        sizer.Add(InfoIcon(panel, wx.ID_ANY, tooltip=tooltipText), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        return (label, choiceBox, sizer)
+
+    def defineCheckBox(self, panel, labelText="", widgetCheck=False, tooltipText="", widgetSize=None):
+        if not widgetSize: widgetSize = self.WIDGETSIZE
+        sizer = wx.BoxSizer( wx.HORIZONTAL )
+        checkBox = wx.CheckBox(panel, label = labelText, size=widgetSize)
+        checkBox.SetValue(widgetCheck)
+        sizer.Add(checkBox, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        sizer.Add(InfoIcon(panel, wx.ID_ANY, tooltip=tooltipText), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        return (checkBox, sizer)
 
 
 class AnalysisMethod:

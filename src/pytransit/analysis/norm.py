@@ -129,7 +129,8 @@ class NormMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s resampling <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        return """
+python %s norm <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
     
         Optional Arguments:
         -n <string>     :=  Normalization method. Default: -n TTR

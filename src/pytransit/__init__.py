@@ -7,5 +7,5 @@ import tnseq_tools
 import norm_tools
 import stat_tools
 
-__version__ = "v2.0.2"
+__version__ = "v2.1.0"
 prefix = "[TRANSIT]"

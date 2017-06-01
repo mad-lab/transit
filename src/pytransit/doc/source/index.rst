@@ -34,7 +34,7 @@ You can join our mailing list to get announcements of new versions, discuss any 
    transit_running
    transit_features
    transit_methods
-
+   transit_console_cheatsheet
 
 
 .. toctree::
@@ -44,6 +44,7 @@ You can join our mailing list to get announcements of new versions, discuss any 
    transit_essentiality_tutorial
    transit_genome_tutorial
    transit_comparative_tutorial
+   transit_normalization_tutorial
    transit_export_tutorial
 
 
