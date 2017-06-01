@@ -71,57 +71,44 @@ def main():
         show_help()
 
     else:
-        flag = False
-        initialize_globals(vars)
-        i,n = 1,len(sys.argv)
-        while i<n:
-            if sys.argv[i] == '-help':
-                show_help()
-                sys.exit()
-            elif sys.argv[i] == '-tn5':
-                vars.transposon = 'Tn5'
-                i += 1
-            elif sys.argv[i] == '-himar1': 
-                vars.transposon = 'Himar1'
-                i += 1
-            elif sys.argv[i] == '-primer': 
-                vars.prefix = sys.argv[i+1]
-                i += 2
-            elif sys.argv[i] == '-reads1':
-                vars.fq1 = sys.argv[i+1]
-                i += 2
-            elif sys.argv[i] == '-reads2':
-                flag = True
-                vars.fq2 = sys.argv[i+1]
-                i += 2
-            elif sys.argv[i] == '-bwa':
-                vars.bwa = sys.argv[i+1]
-                i += 2
-            elif sys.argv[i] == '-ref':
-                vars.ref = sys.argv[i+1]
-                i += 2
-            elif sys.argv[i] == '-maxreads':
-                vars.maxreads = int(sys.argv[i+1])
-                i += 2
-            elif sys.argv[i] == '-output':
-                vars.base = sys.argv[i+1]
-                i += 2
-            elif sys.argv[i] == '-mismatches':
-                vars.mm1 = int(sys.argv[i+1])
-                i += 2
-            else:
-                print "error: unrecognized flag:",sys.argv[i]
-                show_help()
-                sys.exit()
-        if flag==False: vars.fq2 = ""
-        if vars.fq2=="": msg = 'running pre-processing on %s' % (vars.fq1)
-        else: msg = 'running pre-processing on %s and %s' % (vars.fq1,vars.fq2)
-        message(msg)
-        message("transposon type: %s" % vars.transposon)
-        message("protocol: %s" % vars.protocol)
+        (args, kwargs) = cleanargs(sys.argv[1:])
+
+        # Show help if needed
+        if "help" in kwargs or "-help" in kwargs:
+            show_help()
+            sys.exit()
+
+        # Check now strange flags
+        known_flags = set(["tn5", "help", "himar1", "protocol", "primer", "reads1",
+                           "reads2", "bwa", "ref", "maxreads", "output", "mismatches"])
+        unknown_flags = set(kwargs.keys()) - known_flags
+        if unknown_flags:
+            print "error: unrecognized flags:", ", ".join(unknown_flags)
+            show_help()
+            sys.exit()
+
+        # Initialize variables
+        initialize_globals(vars, args, kwargs)
+
+        # Check inputs make sense
         verify_inputs(vars)
+        
+        # Print some messages
+        if vars.fq2:
+            msg = 'running pre-processing on %s' % (vars.fq1)
+        else:
+            msg = 'running pre-processing on %s and %s' % (vars.fq1, vars.fq2)
+
+        message(msg)
+        message("protocol: %s" % vars.protocol)
+        message("transposon type: %s" % vars.transposon)
+
+        # Save configuration file
         save_config(vars)
+        
+        # Run TPP
         driver(vars)
+
 
 if __name__ == "__main__":
     main()

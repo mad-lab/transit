@@ -40,7 +40,7 @@ short_name = "rankproduct"
 long_name = "Rank Product test for determining conditional essentiality."
 description = "Differential Comparison based on ranks"
 transposons = ["himar1", "tn5"]
-columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC","Obs RP","pvalue","adj. pvalue"]
+columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC","Obs RP","Expected RP","q-value"]
 
 
 
@@ -273,25 +273,7 @@ class RankProductMethod(base.DualConditionMethod):
 
         Ngenes = len(Gctrl)
 
-
-        #print numpy.log2(30/10)
-
-
-        """
-
-        types_list = set([])
-        for x in [numpy.mean(g.reads+1.0,1) for g in Gctrl]:
-            types_list.add(type(x[0]))
-
-        print [numpy.mean(g.reads+1.0,1) for g in Gctrl]
-        print "FLORF", types_list
-        """
-            
-        #print Gctrl[0].reads.shape
-        #print numpy.ones((Kctrl,1)).shape
-
-        T = numpy.ones((Kctrl,1))
-
+        # Get the average counts for all the genes, in each replicate
         meanCtrl = numpy.zeros((Kctrl, Ngenes))
         meanExp = numpy.zeros((Kexp, Ngenes))
 
@@ -300,71 +282,28 @@ class RankProductMethod(base.DualConditionMethod):
                 meanCtrl[:,i] = numpy.mean(Gctrl[i].reads,1)
             else:
                 meanCtrl[:,i] = numpy.zeros(Kctrl)
-            
+            #            
             if numpy.any(Gexp[i].reads):
                 meanExp[:,i] = numpy.mean(Gexp[i].reads,1)
             else:
                 meanExp[:,i] = numpy.zeros(Kexp)
 
             
-        #meanCtrl = numpy.array([numpy.mean(numpy.concatenate((g.reads, numpy.ones((Kctrl,1))),1),1) for g in Gctrl])
-        #meanExp = numpy.array([numpy.mean(numpy.concatenate((g.reads, numpy.ones((Kexp,1))),1),1) for g in Gexp])
 
-        #meanExp = numpy.nan_to_num(numpy.array([numpy.mean(g.reads+1.0,1) for g in Gexp]))
-
-        #meanCtrl[numpy.isnan(meanCtrl)]
-
-        #print type(meanCtrl[0][0])
-        #print type(meanExp[0][0])
-        #print type(meanExp[0][0]/meanCtrl[0][0])
-
-        #print numpy.log2(meanExp[0][0]/meanCtrl[0][0])
-
-        """
-        logFC2 = numpy.zeros((Ngenes, len(meanCtrl[0])))
-        for i,ratio in enumerate(meanExp/meanCtrl):
-            #print i, ratio, numpy.log2(ratio)
-            logFC2[i] = numpy.log2(ratio)
-        """
-    
-        #print "meanCtrl"
-        #print meanCtrl
-
-    
-        #print "meanExp"
-        #print meanExp
-
-
+        # Calculate a logFC2 between Experimental and Control
+        # Then calculates it's rank, and observed rankProduct
         logFC2 = numpy.log2((meanExp+0.0001)/(meanCtrl+0.0001))
-        rank = numpy.array([scipy.stats.rankdata(Lvec)/float(Ngenes) for Lvec in logFC2])
-        obsRP = numpy.prod(rank,0)
-
-
-        #print "logFC2"
-        #print logFC2
-
-        #print "rank"
-        #print numpy.array([scipy.stats.rankdata(Lvec) for Lvec in logFC2])
-        
-
-        #print "obsRP"
-        #print obsRP
+        rank = numpy.array([scipy.stats.rankdata(Lvec) for Lvec in logFC2])
+        obsRP = numpy.power(numpy.prod(rank,0), 1.0/Kctrl)
 
 
         permutations = numpy.zeros((self.samples, Ngenes))
         tempranks = scipy.array([numpy.arange(1,Ngenes+1) for rep in range(Kctrl)])
         for s in range(self.samples):
-            rankperm = numpy.array([numpy.random.permutation(tr)/float(Ngenes) for tr in tempranks])
-            #print numpy.prod(rankperm,0)
-            permutations[s] = numpy.prod(rankperm,0)
-            
+            rankperm = numpy.array([numpy.random.permutation(tr) for tr in tempranks])
+            permutations[s] = numpy.power(numpy.prod(rankperm,0), 1.0/Kctrl)
 
-        #print "permutations"
-        #print permutations
-
-
-        rankRP = scipy.stats.rankdata(obsRP)
-
+        rankRP = numpy.argsort(obsRP) + 1
 
 
 
@@ -374,18 +313,17 @@ class RankProductMethod(base.DualConditionMethod):
         self.progress_range(Ngenes)
         for i,gene in enumerate(Gctrl):
             count+=1
-            #print gene, obsRP[i]
 
             meanctrl = numpy.mean(Gctrl[i].reads)
             meanexp = numpy.mean(Gexp[i].reads)
             log2fc = numpy.log2((meanexp+0.0001)/(meanctrl+0.0001))
-            #countbetter = numpy.sum(permutations < obsRP[i])
-            countbetter = numpy.sum(permutations < obsRP[i])
+            countbetter = numpy.sum(permutations <= obsRP[i])
             
             pval = countbetter/float(self.samples*Ngenes)
-            q_paper = pval/rankRP[i]
+            e_val = countbetter/float(self.samples)
+            q_paper = e_val/float(rankRP[i])
  
-            data.append([gene.orf, gene.name, gene.desc, gene.n, meanctrl, meanexp, log2fc, obsRP[i], q_paper, pval])
+            data.append([gene.orf, gene.name, gene.desc, gene.n, meanctrl, meanexp, log2fc, obsRP[i], e_val, q_paper, pval])
             self.progress_update("rankproduct", count)
             self.transit_message_inplace("Running rankproduct Method... %1.1f%%" % (100.0*count/Ngenes))
 
@@ -394,7 +332,7 @@ class RankProductMethod(base.DualConditionMethod):
         self.transit_message("") # Printing empty line to flush stdout 
         self.transit_message("Performing Benjamini-Hochberg Correction")
         data.sort() 
-        qval = stat_tools.BH_fdr_correction([row[-1] for row in data])
+        q_bh = stat_tools.BH_fdr_correction([row[-1] for row in data])
        
  
         self.output.write("#RankProduct\n")
@@ -413,8 +351,8 @@ class RankProductMethod(base.DualConditionMethod):
         self.output.write("#%s\n" % (columns))
 
         for i,row in enumerate(data):
-            (orf, name, desc, n, mean1, mean2, log2FCgene, obsRPgene, q_paper, pval_2tail) = row
-            self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.2f\t%1.7f\t%1.7f\t%1.7f\n" % (orf, name, desc, n, mean1, mean2,log2FCgene, obsRPgene, pval_2tail, qval[i]))
+            (orf, name, desc, n, mean1, mean2, log2FCgene, obsRPgene, e_val, q_paper, pval) = row
+            self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.2f\t%1.8f\t%1.1f\t%1.8f\n" % (orf, name, desc, n, mean1, mean2,log2FCgene, obsRPgene, e_val, q_paper))
         self.output.close()
 
         self.transit_message("Adding File: %s" % (self.output.name))

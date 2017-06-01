@@ -44,6 +44,7 @@ import scipy.stats
 import pytransit
 
 import pytransit.tnseq_tools as tnseq_tools
+import pytransit.norm_tools as norm_tools
 
 def aton(aa):
     #TODO: Write docstring
@@ -237,4 +238,44 @@ def get_gene_info(path):
         return tnseq_tools.get_gene_info_gff(path)
     else:
         return tnseq_tools.get_gene_info_pt(path)
+
+
+
+def convertToCombinedWig(dataset_list, annotationPath, outputPath, normchoice="nonorm"):
+    """Normalizes the input datasets and outputs the result in CombinedWig format.
+    
+    Arguments:
+        dataset_list (list): List of paths to datasets in .wig format
+        annotationPath (str): Path to annotation in .prot_table or GFF3 format.
+        outputPath (str): Desired output path.
+        normchoice (str): Choice for normalization method.
+            
+    """
+
+
+    (fulldata, position) = tnseq_tools.get_data(dataset_list)
+    (fulldata, factors) = norm_tools.normalize_data(fulldata, normchoice, dataset_list, annotationPath)
+    position = position.astype(int)
+
+    hash = get_pos_hash(annotationPath)
+    rv2info = get_gene_info(annotationPath)
+
+    output = open(outputPath, "w")
+    output.write("#Converted to CombinedWig with TRANSIT.\n")
+    if normchoice != "nonorm":
+        output.write("#Reads normalized using '%s'\n" % normchoice)
+        if type(factors[0]) == type(0.0):
+            output.write("#Normalization Factors: %s\n" % "\t".join(["%s" % f for f in factors.flatten()]))
+        else:
+            output.write("#Normalization Factors: %s\n" % " ".join([",".join(["%s" % bx for bx in b]) for b in factors]))
+
+    (K,N) = fulldata.shape
+    output.write("#Files:\n")
+    for f in dataset_list:
+        output.write("#%s\n" % f)
+
+    for i,pos in enumerate(position):
+        output.write("%-10d %s  %s\n" % (position[i], "".join(["%7.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
+    output.close()
+
 

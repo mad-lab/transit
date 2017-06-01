@@ -27,21 +27,23 @@ import gzip
 import subprocess
 
 
-def strip_comment(text):
-    loc = text.find("#")
-    if loc > -1:
-        return text[:loc].strip()
-    return text.strip("\n")
+def cleanargs(rawargs):
+    #TODO: Write docstring
+    args = []
+    kwargs = {}
+    count = 0
+    while count < len(rawargs):
+        if rawargs[count].startswith("-"):
+            if count + 1 < len(rawargs) and not rawargs[count+1].startswith("-"):
+                kwargs[rawargs[count][1:]] = rawargs[count+1]
+                count += 1
+            else:
+                kwargs[rawargs[count][1:]] = True
+        else:
+            args.append(rawargs[count])
+        count += 1
+    return (args, kwargs)
 
-def read_protocol_file(path):
-    var2val = {}
-    for line in open(path):
-        clean_line = strip_comment(line)
-        if clean_line:
-            print clean_line
-            var,val = clean_line.split("\t")
-            var2val[var] = val.strip()
-    return var2val
 
 
 def analyze_dataset(wigfile):
@@ -142,7 +144,11 @@ def fix_paired_headers_for_bwa(reads1,reads2):
 	  os.system("mv %s %s" % (temp2, reads2))
   '''
 
+# find index of H[1..m] in G[1..n] with up to max mismatches
+
 def mmfind(G,n,H,m,max): # lengths; assume n>m
+  a = G[:n].find(H[:m])
+  if a!=-1: return a # shortcut for perfect matches
   for i in range(0,n-m):
     cnt = 0
     for k in range(m):
@@ -355,117 +361,6 @@ def template_counts(ref,sam,bcfile,vars):
 
 # pretend that all reads count as unique templates
 
-def read_counts_original(ref,sam,vars):
-    genome = read_genome(ref)
-    hits = {}
-    vars.tot_tgtta,vars.mapped = 0,0
-    vars.r1 = vars.r2 = 0
-    for line in open(sam):
-        if line[0]=='@': continue
-        w = line.split('\t')
-        code,icode = samcode(w[1]),int(w[1])
-        vars.tot_tgtta += 1 
-        if icode==0 or icode==16: 
-            vars.r1 += 1
-            vars.mapped += 1
-            readlen = len(w[9])
-            pos = int(w[3])
-            strand,delta = 'F',-2
-            if code[4]=="1": strand,delta = 'R',readlen
-            pos += delta
-            if pos not in hits: hits[pos] = []
-            hits[pos].append(strand)
-
-    sites = []
-    for i in range(len(genome)-1):
-      if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
-        pos = i+1
-        h = hits.get(pos,[])
-        lenf,lenr = h.count('F'),h.count('R')
-        data = [pos,lenf,lenf,lenr,lenr,lenf+lenr,lenf+lenr]
-        sites.append(data)
-    return sites # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
-
-
-
-def read_counts_Rudner(ref,sam,vars):
-    genome = read_genome(ref)
-    sites = {}
-    for i in range(len(genome)-1):
-        if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
-          pos = i+1
-          #h = hits.get(pos,[])
-          #lenf,lenr = h.count('F'),h.count('R')
-          #data = [pos,lenf,lenf,lenr,lenr,lenf+lenr,lenf+lenr]
-          sites[pos] = [pos,0,0,0,0,0,0]
-
-    hits = {}
-    vars.tot_tgtta,vars.mapped = 0,0
-    vars.r1 = vars.r2 = 0
-    for line in open(sam):
-        if line[0]=='@': continue
-        else:
-            w = line.split('\t')
-            code,icode = samcode(w[1]),int(w[1])
-            vars.tot_tgtta += 1
-            if icode==0 or icode==16:
-                vars.r1 += 1
-                vars.mapped += 1
-                readlen = len(w[9])
-                pos = int(w[3])
-                strand,delta = 'F',-2
-                if code[4]=="1": strand,delta = 'R',readlen
-                if strand == 'F':
-                    site1 = pos + 14  #if on + strand, take column 3 position and add 1bp)
-                    site2 = pos + 15
-                    true_site = None
-                    #if site1 in sites: true_site = site1
-                    #if site2 in sites: true_site = site2
-                    #if true_site:
-                    if site1 in sites:
-                        true_site = site1
-                        sites[true_site][1] += 1  #if read has been found before, tally 1 more in F reads
-                        sites[true_site][2] += 1  #if read has been found before, tally 1 more in F reads
-                        sites[true_site][5] += 1  #if read has been found before, tally 1 more in F reads
-                        sites[true_site][6] += 1  #if read has been found before, tally 1 more in F reads
-
-                    if site2 in sites:
-                        true_site = site2
-                        sites[true_site][1] += 1  #if read has been found before, tally 1 more in F reads
-                        sites[true_site][2] += 1  #if read has been found before, tally 1 more in F reads
-                        sites[true_site][5] += 1  #if read has been found before, tally 1 more in F reads
-                        sites[true_site][6] += 1  #if read has been found before, tally 1 more in F read                
-
-
-                if strand == 'R':
-                    site1 = pos + 0 #if on - strand, add col 3 position to length of read in position 4 and add 1
-                    site2 = pos + -1
-                    #if site1 in sites: true_site = site1
-                    #if site2 in sites: true_site = site2
-                    #true_site = None
-                    #if true_site:
-                    if site1 in sites:
-                        true_site = site1
-                        sites[true_site][3] += 1  #if read has been found before, tally 1 more in R reads
-                        sites[true_site][4] += 1  #if read has been found before, tally 1 more in R reads
-                        sites[true_site][5] += 1  #if read has been found before, tally 1 more in R reads
-                        sites[true_site][6] += 1  #if read has been found before, tally 1 more in R reads
-
-                    if site2 in sites:
-                        true_site = site2
-                        sites[true_site][3] += 1  #if read has been found before, tally 1 more in R reads
-                        sites[true_site][4] += 1  #if read has been found before, tally 1 more in R reads
-                        sites[true_site][5] += 1  #if read has been found before, tally 1 more in R reads
-                        sites[true_site][6] += 1  #if read has been found before, tally 1 more in R reads
-
-    results = []
-    for key in sorted(sites.keys()):
-        results.append(sites[key])
-    return results # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
-
-
-
-
 def increase_counts(pos,sites, strand):
         if strand == "F":
             sites[pos][1] += 1  #if read has been found before, tally 1 more in R reads
@@ -499,11 +394,11 @@ def read_counts(ref,sam,vars):
                 vars.mapped += 1
                 readlen = len(w[9])
                 pos = int(w[3])
-                if vars.protocol == "Rudner Lab":
+                if vars.protocol.lower() == "mme1":
                     strand,delta = 'F',readlen
                     if code[4]=="1": strand,delta = 'R',1
-                    site1 = pos + delta - 2 #if on + strand, take column 3 position and add 1bp)
-                    site2 = pos + delta - 1 #if on + strand, take column 3 position and add 1bp)
+                    site1 = pos + delta - 2 #if on + strand, take column 3 position and add 1bp,
+                    site2 = pos + delta - 1 #check one off just in case it enzyme chewed too much
                     if site1 in sites:
                         increase_counts(site1, sites, strand)
                     if site2 in sites:
@@ -908,35 +803,132 @@ def error(s):
 def warning(s):
   print "warning:",s
 
-def verify_inputs(vars):
-  if not os.path.exists(vars.fq1): error("file not found: "+vars.fq1)
-  vars.single_end = False
-  if vars.fq2=="": vars.single_end = True   
-  elif not os.path.exists(vars.fq2): error("file not found: "+vars.fq2)
-  if not os.path.exists(vars.ref): error("file not found: "+vars.ref)
-  if vars.base == '': error("prefix cannot be empty")
-  if vars.fq1 == vars.fq2: error('fastq files cannot be identical')
 
-  if os.path.isdir(vars.bwa):
-    bwaexec_unix = os.path.join(vars.bwa, "bwa")
-    bwaexec_win = os.path.join(vars.bwa, "bwa.exe")
-    if os.path.exists(bwaexec_unix) and not os.path.isdir(bwaexec_unix):
-      warning("did not include BWA executable name. Assuming BWA executable is named 'bwa'")
-      vars.bwa = bwaexec_unix
-    elif os.path.exists(bwaexec_win) and not os.path.isdir(bwaexec_win):
-      warning("did not include BWA executable name. Assuming BWA executable is named 'bwa.exe'")
-      vars.bwa = bwaexec_win
+
+
+
+def set_defaults(vars, protocol):
+    #protocol = kwargs.get("protocol", "sassetti")
+    if protocol == "sassetti":
+        set_sassetti_defaults(vars)
+    elif protocol == "mme1":
+        set_mme1_defaults(vars)
+    elif protocol == "tn5":
+        set_tn5_defaults(vars)
     else:
-      error('cannot find BWA executable. Please include the full executable name as well as its directory.')
+        set_sassetti_defaults(vars)
+
+def set_attributes(vars, attributes_list, override=False):
+    for (attr, value) in attributes_list:
+        if override:
+            setattr(vars, attr, value)
+        else:
+            if not hasattr(vars, attr):
+                setattr(vars, attr, value)
+            
+
+def set_sassetti_defaults(vars):
+    attributes_list = []
+    attributes_list.append(("transposon", "Himar1"))
+    attributes_list.append(("protocol", "Sassetti"))
+    attributes_list.append(("prefix", "ACTTATCAGCCAACCTGTTA"))
+    attributes_list.append(("maxreads", -1))
+    attributes_list.append(("mm1", 100))
+    set_attributes(vars, attributes_list)
 
 
-def initialize_globals(vars):
-      vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
-      vars.mm1 = 1 # mismatches allowed in Tn prefix
-      vars.transposon = 'Himar1'
-      vars.protocol = "Sassetti Lab"
-      vars.prefix = "ACTTATCAGCCAACCTGTTA"
-      read_config(vars)
+def set_mme1_defaults(vars):
+    attributes_list = []
+    attributes_list.append(("transposon", "Himar1"))
+    attributes_list.append(("protocol", "Mme1"))
+    attributes_list.append(("prefix", ""))
+    attributes_list.append(("maxreads", -1))
+    attributes_list.append(("mm1", 2))
+    set_attributes(vars, attributes_list)
+
+
+def set_tn5_defaults(vars):
+    attributes_list = []
+    attributes_list.append(("transposon", "Tn5"))
+    attributes_list.append(("protocol", "Tn5"))
+    attributes_list.append(("prefix", ""))
+    attributes_list.append(("maxreads", -1))
+    attributes_list.append(("mm1", 2))
+    set_attributes(vars, attributes_list)
+
+
+
+
+def verify_inputs(vars):
+  
+    if not os.path.exists(vars.fq1): error("reads1 file not found: "+vars.fq1)
+    vars.single_end = False
+    if vars.fq2=="": vars.single_end = True
+    elif not os.path.exists(vars.fq2): error("reads2 file not found: "+vars.fq2)
+    if not os.path.exists(vars.ref): error("reference file not found: "+vars.ref)
+    if vars.base == '': error("prefix cannot be empty")
+    if vars.fq1 == vars.fq2: error('fastq files cannot be identical')
+
+    # If Mme1 protocol, warn that we don't use read2 file
+    if vars.protocol.lower() == "mme1" and not vars.single_end:
+        warning("Ignoring Read 2 file. TPP assumes Mme1 protocol runs in single-end mode.")
+        vars.single_end = True
+        vars.fq2 = ""
+
+    if os.path.isdir(vars.bwa):
+        bwaexec_unix = os.path.join(vars.bwa, "bwa")
+        bwaexec_win = os.path.join(vars.bwa, "bwa.exe")
+        if os.path.exists(bwaexec_unix) and not os.path.isdir(bwaexec_unix):
+            warning("did not include BWA executable name. Assuming BWA executable is named 'bwa'")
+            vars.bwa = bwaexec_unix
+        elif os.path.exists(bwaexec_win) and not os.path.isdir(bwaexec_win):
+            warning("did not include BWA executable name. Assuming BWA executable is named 'bwa.exe'")
+            vars.bwa = bwaexec_win
+        else:
+            error('cannot find BWA executable. Please include the full executable name as well as its directory.')
+    elif not os.path.exists(vars.bwa):
+        error('cannot find BWA executable. Please include the full executable name as well as its directory.')
+
+def initialize_globals(vars, args=[], kwargs={}):
+    vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
+    vars.mm1 = 1 # mismatches allowed in Tn prefix
+    vars.transposon = 'Himar1'
+    vars.protocol = "Sassetti"
+    vars.prefix = "ACTTATCAGCCAACCTGTTA"
+   
+    # Update defaults
+    protocol = kwargs.get("protocol", "").lower()
+    if protocol:
+        set_protocol_defaults(vars, protocol)
+    else:
+        read_config(vars)
+
+    if "protocol" in kwargs:
+        vars.protocol = kwargs["protocol"]
+    if "himar1" in kwargs:
+        vars.transposon = "Himar1"
+    if "tn5" in kwargs:
+        vars.transposon = "Tn5"
+    if "protocol" in kwargs:
+        vars.protocol = kwargs["protocol"]
+    if "primer" in kwargs:
+        vars.prefix = kwargs["primer"]
+    if "reads1" in kwargs:
+        vars.fq1 = kwargs["reads1"]
+    if "reads2" in kwargs:
+        vars.fq2 = kwargs["reads2"]
+    if "bwa" in kwargs:
+        vars.bwa = kwargs["bwa"]
+    if "ref" in kwargs:
+        vars.ref = kwargs["ref"]
+    if "maxreads" in kwargs:
+        vars.maxreads = int(kwargs["maxreads"])
+    if "output" in kwargs:
+        vars.base = kwargs["output"]
+    if "mismatches" in kwargs:
+        vars.mm1 = int(kwargs["mismatches"])
+
+
 
 def read_config(vars):
   if not os.path.exists("tpp.cfg"): return

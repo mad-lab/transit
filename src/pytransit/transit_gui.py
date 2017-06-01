@@ -48,6 +48,7 @@ import pytransit.trash as trash
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
 import pytransit.norm_tools as norm_tools
+import pytransit.stat_tools as stat_tools
 import pytransit.fileDisplay as fileDisplay
 import pytransit.qcDisplay as qcDisplay
 import pytransit.images as images
@@ -321,46 +322,46 @@ class MainFrame ( wx.Frame ):
         self.methodSizer.Add( self.globalLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
         self.globalPanel = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.globalPanel.SetMinSize( wx.Size( 50,90 ) )
+        self.globalPanel.SetMinSize( wx.Size( 230,90 ) )
         self.globalPanel.SetMaxSize( wx.Size( 250,-1) )
-       
-        #self.globalPanel.BackgroundColour = (200, 230, 250) 
-        bSizer1431 = wx.BoxSizer( wx.VERTICAL )
+      
+ 
+        globalSizerVT = wx.BoxSizer( wx.VERTICAL )
+        nTermSizer = wx.BoxSizer( wx.HORIZONTAL )
+        cTermSizer = wx.BoxSizer( wx.HORIZONTAL )
         
-        bSizer1521 = wx.BoxSizer( wx.HORIZONTAL )
-        
-        bSizer1621 = wx.BoxSizer( wx.VERTICAL )
-        
+
+        # N TERMINUS - GLOBAL 
         self.globalNTerminusLabel = wx.StaticText( self.globalPanel, wx.ID_ANY, u"Ignore N-Terminus %:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalNTerminusLabel.Wrap( -1 )
-        bSizer1621.Add( self.globalNTerminusLabel, 0, wx.ALL, 5 )
-        
+       
+        self.globalNTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.globalNTerminusIcon = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the N-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function.")
+        nTermSizer.Add( self.globalNTerminusLabel,0, wx.ALIGN_CENTER, 5 )
+        nTermSizer.Add( self.globalNTerminusText, 0, wx.ALIGN_CENTER, 5 )
+        nTermSizer.Add( self.globalNTerminusIcon, 0, wx.ALIGN_CENTER, 5 )
+
+
+        # C TERMINUS - GLOBAL 
         self.globalCTerminusLabel = wx.StaticText( self.globalPanel, wx.ID_ANY, u"Ignore C-Terminus %:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalCTerminusLabel.Wrap( -1 )
-        bSizer1621.Add( self.globalCTerminusLabel, 0, wx.ALL, 5 )
-        
-        
-        bSizer1521.Add( bSizer1621, 1, wx.EXPAND, 5 )
-        
-        bSizer1721 = wx.BoxSizer( wx.VERTICAL )
-        
-        self.globalNTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer1721.Add( self.globalNTerminusText, 0, wx.ALL, 5 )
-        
         self.globalCTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer1721.Add( self.globalCTerminusText, 0, wx.ALL, 5 )
+        self.globalCTerminusIcon = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the C-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function.")      
+ 
+        cTermSizer.Add( self.globalCTerminusLabel,0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        cTermSizer.Add( self.globalCTerminusText, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        cTermSizer.Add( self.globalCTerminusIcon, 0, wx.ALIGN_CENTER, 5 )
+ 
+        
+
+        globalSizerVT.Add( nTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        globalSizerVT.Add( cTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
         
         
-        bSizer1521.Add( bSizer1721, 1, wx.EXPAND, 5 )
-        
-        
-        bSizer1431.Add( bSizer1521, 1, wx.EXPAND, 5 )
-        
-        
-        self.globalPanel.SetSizer( bSizer1431 )
+        self.globalPanel.SetSizer( globalSizerVT )
         self.globalPanel.Layout()
-        bSizer1431.Fit( self.globalPanel )
-        self.methodSizer.Add( self.globalPanel, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        globalSizerVT.Fit( self.globalPanel )
+        self.methodSizer.Add( self.globalPanel, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
 
         #--------------------#
@@ -723,6 +724,8 @@ class TnSeekFrame(MainFrame):
             ctrlData = ["glycerol_H37Rv_rep1.wig", "glycerol_H37Rv_rep2.wig"]
             for dataset in ctrlData:
                 try:
+                    path = os.path.dirname(os.path.realpath(__file__))
+                    print path
                     path = os.path.join(os.path.dirname('/pacific/home/mdejesus/transit/src/transit.py'), "pytransit/data", dataset)
                     transit_tools.transit_message("Adding Ctrl File: " + path)
                     self.loadCtrlFile(path)
@@ -850,6 +853,8 @@ class TnSeekFrame(MainFrame):
         self.globalCTerminusLabel.Hide()
         self.globalNTerminusText.Hide()
         self.globalCTerminusText.Hide()
+        self.globalNTerminusIcon.Hide()
+        self.globalCTerminusIcon.Hide()
 
 
     def ShowGlobalOptions(self):
@@ -858,6 +863,8 @@ class TnSeekFrame(MainFrame):
         self.globalCTerminusLabel.Show()
         self.globalNTerminusText.Show()
         self.globalCTerminusText.Show()
+        self.globalNTerminusIcon.Show()
+        self.globalCTerminusIcon.Show()
 
     def HideProgressSection(self):
         self.progressLabel.Hide()
@@ -1453,26 +1460,57 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
     def graphVolcanoPlot(self, dataset_name, dataset_type, dataset_path):
         try:
             if dataset_type == "Resampling":
-                X = []; Y = [];
+                X = []; Y = []; header=[]; qval_list = []; bad = [];
+                col_logFC = -6
+                col_pval = -2
+                col_qval = -1
+                ii = 0
                 for line in open(dataset_path):
-                    if line.startswith("#"): continue
+                    if line.startswith("#"):
+                        tmp = line.split("\t")
+                        temp_col_logfc = [i for (i,x) in enumerate(tmp) if "logfc" in x.lower() or "log-fc" in x.lower() or "log2fc" in x.lower()] 
+                        temp_col_pval = [i for (i,x) in enumerate(tmp) if ("pval" in x.lower() or "p-val" in x.lower()) and "adj" not in x.lower()] 
+                        if temp_col_logfc:
+                            col_logFC = temp_col_logfc[-1]
+                        if temp_col_pval:
+                            col_pval = temp_col_pval[-1]
+                        continue
+
+                    
                     tmp = line.strip().split("\t")
                     try:
-                        #log2FC = math.log(float(tmp[6])/float(tmp[5]),2)
-                        log2FC = float(tmp[-6])
-                        log10qval = -math.log(float(tmp[-1].strip()), 10)
-                    except:
-                        log2FC = 0
+                        log10qval = -math.log(float(tmp[col_pval].strip()), 10)
+                    except ValueError as e:
+                        bad.append(ii)
                         log10qval = 0
-                        #log2FC = 1
-                        #log10qval = 1
+
+                    log2FC = float(tmp[col_logFC])
+                
+                    qval_list.append((float(tmp[col_qval]), float(tmp[col_pval].strip())))
                     X.append(log2FC)
                     Y.append(log10qval)
+                    ii+=1
+                count = 0
+                threshold = 0.00001
+                backup_thresh = 0.00001
+                qval_list.sort()
+                for (q, p) in qval_list:
+                    backup_thresh = p
+                    if q > 0.05:
+                        break
+                    threshold = p
+                    count+=1
 
+                if threshold == 0:
+                    threshold = backup_thresh
+                for ii in bad:
+                    Y[ii]  = max(Y)
                 plt.plot(X,Y, "bo")
+                plt.axhline(-math.log(threshold, 10), color='r', linestyle='dashed', linewidth=3)
                 plt.xlabel("Log Fold Change (base 2)")
-                plt.ylabel("-Log q-value (base 10)")
-                plt.title("Resampling - Volcano plot")
+                plt.ylabel("-Log p-value (base 10)")
+                plt.suptitle("Resampling - Volcano plot")
+                plt.title("Adjusted threshold (red line): %1.8f" % threshold)
                 plt.show()
                 plt.close()
             else:
@@ -1537,7 +1575,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
             plt.title("LOESS Fit - %s" % transit_tools.basename(datasets_selected[j]) )
             plt.show()
-            plt.close()
+            #plt.close()
     
 
     def addFileFunc(self, event):
@@ -1595,8 +1633,10 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
 
     def convertToIGVGUI(self, datasets):
+        
         annotationPath = self.annotation
         if datasets and annotationPath:
+            normchoice = self.chooseNormalization()
             defaultFile = "read_counts.igv"
             defaultDir = os.getcwd()
             outputPath = self.SaveFile(defaultDir, defaultFile)
@@ -1605,7 +1645,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
         
                 transit_tools.transit_message("Converting the following datasets to IGV format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            self.convertToIGV(datasets, annotationPath, outputPath)
+            self.convertToIGV(datasets, annotationPath, outputPath, normchoice)
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
         elif not datasets:
@@ -1616,9 +1656,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             pass
 
 
-    def convertToIGV(self, dataset_list, annotationPath, path):
-
-        normchoice = self.chooseNormalization()
+    def convertToIGV(self, dataset_list, annotationPath, path, normchoice=None):
 
         if not normchoice:
             normchoice = "nonorm"
@@ -1653,7 +1691,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 return
             if self.verbose:
                 transit_tools.transit_message("Converting the following datasets to Combined Wig format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            self.convertToCombinedWig(datasets, annotationPath, outputPath, normchoice)
+            transit_tools.convertToCombinedWig(datasets, annotationPath, outputPath, normchoice)
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
         elif not datasets:
@@ -1662,44 +1700,6 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             transit_tools.ShowError("Error: No annotation file selected.")
         else:
             pass
-
-    
-
-    def convertToCombinedWig(self, dataset_list, annotationPath, path, normchoice):
-        if not normchoice:
-            normchoice = "nonorm"
-
-        (fulldata, position) = tnseq_tools.get_data(dataset_list)
-        (fulldata, factors) = norm_tools.normalize_data(fulldata, normchoice, dataset_list, annotationPath)
-        position = position.astype(int)
-
-
-        hash = transit_tools.get_pos_hash(annotationPath)
-        rv2info = transit_tools.get_gene_info(annotationPath)
-
-        output = open(path, "w")
-        output.write("#Converted to CombinedWig with TRANSIT.\n")
-        if normchoice != "nonorm":
-            output.write("#Reads normalized using '%s'\n" % normchoice)
-            if type(factors[0]) == type(0.0):
-                output.write("#Normalization Factors: %s\n" % "\t".join(["%s" % f for f in factors.flatten()]))
-            else:
-                output.write("#Normalization Factors: %s\n" % " ".join([",".join(["%s" % bx for bx in b]) for b in factors]))
-
-
-        (K,N) = fulldata.shape
-        output.write("#Files:\n")
-        for f in dataset_list:
-            output.write("#%s\n" % f)
-
-        for i,pos in enumerate(position):
-            #output.write("%s\t%s\t%s\n" % (position[i], "\t".join(["%1.1f" % fulldata[j][i] for j in range(K)]), ",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])]) )  )
-
-            output.write("%-10d %s  %s\n" % (position[i], "".join(["%7.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
-
-
-        output.close()
-    
 
 
     def chooseNormalization(self):
