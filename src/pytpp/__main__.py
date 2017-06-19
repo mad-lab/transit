@@ -78,9 +78,9 @@ def main():
             show_help()
             sys.exit()
 
-        # Check now strange flags
+        # Check for strange flags
         known_flags = set(["tn5", "help", "himar1", "protocol", "primer", "reads1",
-                           "reads2", "bwa", "ref", "maxreads", "output", "mismatches"])
+                           "reads2", "bwa", "ref", "maxreads", "output", "mismatches", "flags"])
         unknown_flags = set(kwargs.keys()) - known_flags
         if unknown_flags:
             print "error: unrecognized flags:", ", ".join(unknown_flags)
