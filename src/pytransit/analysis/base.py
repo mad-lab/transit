@@ -383,7 +383,7 @@ class TransitAnalysis:
         elif len(self.transposons) == 1:
             return "Intended for %s only" % self.transposons[0]
         elif len(self.transposons) == 2:
-            return "Intended for %s && %s" % tuple(self.transposons)
+            return "Intended for %s or %s" % tuple(self.transposons)
         else:
             return "Intended for " + ", ".join(self.transposons[:-1]) + ", and " + self.transposons[-1]
     
