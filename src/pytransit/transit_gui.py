@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*- 
 
-###########################################################################
-## Python code generated with wxFormBuilder (version Jun  6 2014)
-## http://www.wxformbuilder.org/
-##
-## PLEASE DO "NOT" EDIT THIS FILE!
-###########################################################################
 
 import sys
 
@@ -106,7 +100,7 @@ class MainFrame ( wx.Frame ):
         
         bSizer4 = wx.BoxSizer( wx.VERTICAL )
 
-        # Organism
+        # ANNOTATION
         orgSizer = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Organism" ), wx.VERTICAL )
         
         bSizer10 = wx.BoxSizer( wx.HORIZONTAL )
@@ -116,27 +110,21 @@ class MainFrame ( wx.Frame ):
         bSizer10.Add( self.m_staticText5, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
         
 
-        self.annotationFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Annotation File (.prot_table or .gff3)]', size= wx.Size(400, 30))
+        self.annotationFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Annotation File (.prot_table or .gff3)]', size= wx.Size(500, -1))
 
-
-        bSizer10.Add( self.annotationFilePicker, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-        
-        self.m_panel2 = wx.Panel( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.m_panel2.SetMinSize( wx.Size( 100,-1 ) )
-        self.m_panel2.SetMaxSize( wx.Size( 150,-1 ) )
-        
-        bSizer10.Add( self.m_panel2, 1, wx.EXPAND |wx.ALL, 5 )
+        bSizer10.Add( self.annotationFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
         
         orgSizer.Add( bSizer10, 1, wx.EXPAND, 5 )
         
-        
         bSizer4.Add( orgSizer, 0, wx.EXPAND, 5 )
-        
+       
+
+        # CONTROL 
         ctrlSizer = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Control Samples" ), wx.VERTICAL )
         
         bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-        
-        self.ctrlRemoveButton = wx.Button( self.mainWindow, wx.ID_ANY, u"Remove", wx.DefaultPosition, wx.DefaultSize, 0 )
+       
+        self.ctrlRemoveButton = wx.Button( self.mainWindow, wx.ID_ANY, u"Remove", wx.DefaultPosition, (96,-1), 0 )
         bSizer2.Add( self.ctrlRemoveButton, 0, wx.ALL, 5 )
         
         self.ctrlView = wx.Button( self.mainWindow, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -149,15 +137,8 @@ class MainFrame ( wx.Frame ):
         
         bSizer2.Add( self.ctrlScatter, 0, wx.ALL, 5 )
         
-        self.ctrlFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Control Dataset(s)]', size= wx.Size(400, 30))
-        bSizer2.Add( self.ctrlFilePicker, 1, wx.ALL, 5 )
-        
-        self.m_panel21 = wx.Panel( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.m_panel21.SetMinSize( wx.Size( 100,-1 ) )
-        self.m_panel21.SetMaxSize( wx.Size( 150,-1 ) )
-        
-        bSizer2.Add( self.m_panel21, 1, wx.EXPAND |wx.ALL, 5 )
-        
+        self.ctrlFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Control Dataset(s)]', size= wx.Size(500, -1))
+        bSizer2.Add( self.ctrlFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
         
         ctrlSizer.Add( bSizer2, 0, wx.EXPAND, 5 )
         
@@ -165,15 +146,16 @@ class MainFrame ( wx.Frame ):
 
         self.list_ctrl.SetMaxSize(wx.Size(940,200))
         ctrlSizer.Add( self.list_ctrl, 1, wx.ALL|wx.EXPAND, 5 )
-        
-        
+                
         bSizer4.Add( ctrlSizer, 1, wx.EXPAND, 5 )
-        
+       
+    
+        # EXPERIMENTAL
         expSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Experimental Samples" ), wx.VERTICAL )
         
         bSizer3 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.expSizer = wx.Button( self.mainWindow, wx.ID_ANY, u"Remove", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.expSizer = wx.Button( self.mainWindow, wx.ID_ANY, u"Remove", wx.DefaultPosition, (96,-1), 0 )
         bSizer3.Add( self.expSizer, 0, wx.ALL, 5 )
         
         self.expView = wx.Button( self.mainWindow, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -187,14 +169,8 @@ class MainFrame ( wx.Frame ):
         bSizer3.Add( self.expScatter, 0, wx.ALL, 5 )
        
 
-        self.expFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Experimental Dataset(s)]', size= wx.Size(400, 30))
-        bSizer3.Add( self.expFilePicker, 1, wx.ALL, 5 )
-        
-        self.m_panel22 = wx.Panel( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.m_panel22.SetMinSize( wx.Size( 100,-1 ) )
-        self.m_panel22.SetMaxSize( wx.Size( 150,-1 ) )
-        
-        bSizer3.Add( self.m_panel22, 1, wx.EXPAND |wx.ALL, 5 )
+        self.expFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Experimental Dataset(s)]', size= wx.Size(500, -1))
+        bSizer3.Add( self.expFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
         
         
         expSizer1.Add( bSizer3, 0, wx.EXPAND, 5 )
@@ -206,6 +182,9 @@ class MainFrame ( wx.Frame ):
         
         bSizer4.Add( expSizer1, 1, wx.EXPAND, 5 )
         
+
+
+        # RESULTS
         filesSizer = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Results Files" ), wx.VERTICAL )
         
         bSizer141 = wx.BoxSizer( wx.HORIZONTAL )
@@ -252,8 +231,6 @@ class MainFrame ( wx.Frame ):
         self.optionsWindow = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL |wx.EXPAND)
         self.optionsWindow.SetScrollRate( 5, 5 )
         self.optionsWindow.SetMinSize( wx.Size( 310,1000 ) )
-        #self.optionsWindow.SetMaxSize( wx.Size( 310,1000 ) )
-        #self.optionsWindow.BackgroundColour = (200, 0, 20) 
         
 
         self.optionsSizer = wx.BoxSizer( wx.VERTICAL )
@@ -309,8 +286,6 @@ class MainFrame ( wx.Frame ):
         self.methodSizerText = wx.StaticBox( self.optionsWindow, wx.ID_ANY, u"Method Options" )
         self.methodSizer = wx.StaticBoxSizer( self.methodSizerText, wx.VERTICAL )
 
-        #self.methodSizerText.Hide()
-        #self.methodSizer.SetMinSize( wx.Size( 250,-1 ) ) 
         
         self.m_panel1 = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.m_panel1.SetMinSize( wx.Size( 50,1 ) )
@@ -373,7 +348,6 @@ class MainFrame ( wx.Frame ):
 
         self.optionsWindow.Fit()
         
-        #self.optionsSizer.Fit( self.optionsWindow )
         bSizer1.Add( self.optionsWindow, 0, wx.ALL, 5 )
         
         #--------------------#        
@@ -594,7 +568,7 @@ class MainFrame ( wx.Frame ):
 
 #!/usr/bin/env python
 
-# Copyright 2015.
+# Copyright 2017.
 #   Michael A. DeJesus, Chaitra Ambadipudi, and  Thomas R. Ioerger.
 #
 #
@@ -1193,7 +1167,7 @@ class TnSeekFrame(MainFrame):
 
 If you need to cite this tool, please use the following reference:
 
-DeJesus, M.A., Ambadipudi, C., Baker, R., Sassetti, C., and Ioerger, T.R. (2015). TRANSIT - a Software Tool for Himar1 TnSeq Analysis. PLOS Computational Biology, 11(10):e1004401
+DeJesus, M.A., Ambadipudi, C., Baker, R., Sassetti, C., and Ioerger, T.R. (2017). TRANSIT - a Software Tool for Himar1 TnSeq Analysis. PLOS Computational Biology, 11(10):e1004401
 
 
 """
@@ -1221,7 +1195,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         info.SetName('TRANSIT')
         info.SetVersion(pytransit.__version__)
         info.SetDescription(description)
-        info.SetCopyright('(C) 2015 - 2016\n Michael A. DeJesus\nThomas R. Ioerger')
+        info.SetCopyright('(C) 2015 - 2017\n Michael A. DeJesus\nThomas R. Ioerger')
         info.SetWebSite('http://saclab.tamu.edu/essentiality/transit/')
         info.SetLicence(licence)
         info.AddDeveloper('Michael A. DeJesus')
