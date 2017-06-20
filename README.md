@@ -9,8 +9,10 @@
 - Added ability to scale Track View based on mean-count of the window.
 - Added ability to scale individual tracks in Track View.
 - Added ability to add tracks of features to Track View.
+- Better status messages for TrackView
 - TPP can now accept empty primer prefix (in case reads have been trimmed).
 - TPP can now process reads obtained using Mme1 enzyme and protocol.
+- TPP can now pass flags to BWA.
 - Lots of bug fixes.
 
 
