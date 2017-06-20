@@ -1,5 +1,8 @@
 # TRANSIT 2.1.0
 
+[![Documentation Status](https://readthedocs.org/projects/transit/badge/?version=latest)](http://transit.readthedocs.io/en/latest/?badge=latest)
+
+
 
 **Version 2.1.0 changes (June, 20017)**
 - Added tooltips next to most parameters to explain their functionality.
