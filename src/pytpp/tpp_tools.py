@@ -601,6 +601,8 @@ def bwa_subprocess(command, outfile):
     for line in iter(process.stderr.readline, ''):
         if "Permission denied" in line:
             raise IOError("Error: BWA encountered a permissions error: \n\n%s" % line)
+        if "invalid option" in line:
+            raise ValueError("Error: Unrecognized flag for BWA: %s" % (line.split()[-1]))
         sys.stderr.write("%s\n" % line.strip())
 
 
@@ -614,24 +616,29 @@ def run_bwa(vars):
       bwa_subprocess(cmd, sys.stdout)
        
 
-    cmd = [vars.bwa, "aln",  vars.ref, vars.trimmed1]
+    cmd = [vars.bwa, "aln"]
+    cmd.extend( vars.flags.split(" "))
+    cmd.extend([vars.ref, vars.trimmed1])
     outfile = open(vars.sai1, "w")
     bwa_subprocess(cmd, outfile)
 
 
     if vars.single_end==True:
-      cmd = [vars.bwa, "samse", vars.ref, vars.sai1, vars.trimmed1]
-      outfile = open(vars.sam, "w")
-      bwa_subprocess(cmd, outfile)
+        cmd = [vars.bwa, "samse", vars.ref, vars.sai1, vars.trimmed1]
+        outfile = open(vars.sam, "w")
+        bwa_subprocess(cmd, outfile)
 
     else:
-      cmd = [vars.bwa, "aln", vars.ref, vars.genomic2]
-      outfile = open(vars.sai2, "w")
-      bwa_subprocess(cmd, outfile)
+     
+        cmd = [vars.bwa, "aln"]
+        cmd.extend(vars.flags.split(" "))
+        cmd.extend([vars.ref, vars.genomic2])
+        outfile = open(vars.sai2, "w")
+        bwa_subprocess(cmd, outfile)
 
-      cmd = [vars.bwa, "sampe", vars.ref, vars.sai1, vars.sai2, vars.trimmed1, vars.genomic2]
-      outfile = open(vars.sam, "w")
-      bwa_subprocess(cmd, outfile)
+        cmd = [vars.bwa, "sampe", vars.ref, vars.sai1, vars.sai2, vars.trimmed1, vars.genomic2]
+        outfile = open(vars.sam, "w")
+        bwa_subprocess(cmd, outfile)
 
 
 
@@ -752,6 +759,7 @@ def generate_output(vars):
   output.write(' '.join(sys.argv)+"\n")
   output.write('# transposon type: %s\n' % vars.transposon)
   output.write('# protocol type: %s\n' % vars.protocol)
+  output.write('# bwa flags: %s\n' % vars.flags)
   output.write('# read1: %s\n' % vars.fq1)
   output.write('# read2: %s\n' % vars.fq2)
   output.write('# ref_genome: %s\n' % vars.ref)
@@ -895,14 +903,16 @@ def initialize_globals(vars, args=[], kwargs={}):
     vars.transposon = 'Himar1'
     vars.protocol = "Sassetti"
     vars.prefix = "ACTTATCAGCCAACCTGTTA"
+    vars.flags = ""
    
     # Update defaults
     protocol = kwargs.get("protocol", "").lower()
     if protocol:
         set_protocol_defaults(vars, protocol)
-    else:
+    elif not kwargs:
         read_config(vars)
 
+    # If running in console mode with flags
     if "protocol" in kwargs:
         vars.protocol = kwargs["protocol"]
     if "himar1" in kwargs:
@@ -927,6 +937,8 @@ def initialize_globals(vars, args=[], kwargs={}):
         vars.base = kwargs["output"]
     if "mismatches" in kwargs:
         vars.mm1 = int(kwargs["mismatches"])
+    if "flags" in kwargs:
+        vars.flags = kwargs["flags"]
 
 
 
@@ -943,6 +955,7 @@ def read_config(vars):
     if len(w)>=2 and w[0]=='transposon': vars.transposon = w[1]
     if len(w)>=2 and w[0]=='protocol': vars.protocol = " ".join(w[1:])
     if len(w)>=2 and w[0]=='primer': vars.prefix = w[1]
+    if len(w)>=2 and w[0]=='flags': vars.flags = " ".join(w[1:])
 
 
 def save_config(vars):
@@ -956,10 +969,11 @@ def save_config(vars):
   f.write("transposon %s\n" % vars.transposon)
   f.write("protocol %s\n" % vars.protocol)
   f.write("primer %s\n" % vars.prefix)
+  f.write("flags %s\n" % vars.flags)
   f.close()
 
 def show_help():
-  print 'usage: python PATH/src/tpp.py -bwa <PATH_TO_EXECUTABLE> -ref <REF_SEQ> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-tn5|-himar1] [-primer <seq>]'
+  print 'usage: python PATH/src/tpp.py -bwa <PATH_TO_EXECUTABLE> -ref <REF_SEQ> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-flags "<STRING>"] [-tn5|-himar1] [-primer <seq>]'
     
 class Globals:
   pass

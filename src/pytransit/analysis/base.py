@@ -273,13 +273,13 @@ class AnalysisMethod:
 
         
 
-    def status_message(self, text):
+    def status_message(self, text, time=-1):
         #TODO: write docstring
         if self.wxobj:
             if newWx:
-                wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text))
+                wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
             else:
-                wx.CallAfter(pub.sendMessage, "status", (self.short_name, text))
+                wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))
             wx.Yield()
 
     def console_message(self, text):
@@ -383,7 +383,7 @@ class TransitAnalysis:
         elif len(self.transposons) == 1:
             return "Intended for %s only" % self.transposons[0]
         elif len(self.transposons) == 2:
-            return "Intended for %s && %s" % tuple(self.transposons)
+            return "Intended for %s or %s" % tuple(self.transposons)
         else:
             return "Intended for " + ", ".join(self.transposons[:-1]) + ", and " + self.transposons[-1]
     

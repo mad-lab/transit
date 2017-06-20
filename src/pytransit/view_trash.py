@@ -17,6 +17,8 @@ except Exception as e:
     hasWx = False
 
 
+import images
+
 ###########################################################################
 ## Class MainFrame
 ###########################################################################
@@ -165,8 +167,12 @@ class MainFrame ( wx.Frame ):
 
 
         self.statusBar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
-        self.statusBar.SetStatusText("")
+        #self.statusBar.SetStatusText("Track View!")
 
+        self.SetIcon(images.transit_icon.GetIcon())
+
+        self.timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.clearStatus, self.timer)
         
         self.Centre( wx.BOTH )
         
@@ -193,6 +199,9 @@ class MainFrame ( wx.Frame ):
     
     
     # Virtual event handlers, overide them in your derived class
+    def clearStatus( self, event ):
+        event.Skip()
+
     def updateFunc( self, event ):
         event.Skip()
     

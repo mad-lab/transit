@@ -85,45 +85,23 @@ class Tn5GapsGUI(base.AnalysisGUI):
         tn5GapsLabel.Wrap( -1 )
         tn5GapsSection.Add( tn5GapsLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-        tn5GapsSizer1 = wx.BoxSizer( wx.HORIZONTAL )
-    
-        # Min read option
-        tn5GapsSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-    
-        tn5GapsSizer2_1 = wx.BoxSizer( wx.VERTICAL )
-        tn5GapsReadLabel = wx.StaticText( tn5GapsPanel, wx.ID_ANY, u"Minimum Read", wx.DefaultPosition, wx.DefaultSize, 0 )
-        tn5GapsReadLabel.Wrap( -1 )
-        tn5GapsSizer2_1.Add( tn5GapsReadLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-    
-        tn5GapsSizer2_2 = wx.BoxSizer( wx.VERTICAL )
+        mainSizer1 = wx.BoxSizer( wx.VERTICAL )   
+ 
+
+        # Min Read
         tn5GapsReadChoiceChoices = [ u"1", u"2", u"3", u"4", u"5" ]
-        self.wxobj.tn5GapsReadChoice = wx.Choice( tn5GapsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, tn5GapsReadChoiceChoices, 0 )
-        self.wxobj.tn5GapsReadChoice.SetSelection( 0 )
-        tn5GapsSizer2_2.Add( self.wxobj.tn5GapsReadChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+        (tn5GapsReadLabel, self.wxobj.tn5GapsReadChoice, readSizer) = self.defineChoiceBox(tn5GapsPanel, u"Minimum Read:", tn5GapsReadChoiceChoices, "This is the minimum number of reads to consider a 'true' insertion. Value of 1 will consider all insertions. Larger values allow the method to ignore spurious insertions which might interrupt a run of non-insertions. Noisy datasets or those with many replicates can beneffit from increasing this.")
+        mainSizer1.Add(readSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+   
 
-        tn5GapsSizer2.Add(tn5GapsSizer2_1, 1, wx.EXPAND, 5)
-        tn5GapsSizer2.Add(tn5GapsSizer2_2, 1, wx.EXPAND, 5)
-    
-        # Replicates option
-        tn5GapsSizer3 = wx.BoxSizer( wx.HORIZONTAL )
-    
-        tn5GapsSizer3_1 = wx.BoxSizer( wx.VERTICAL )
-        tn5GapsRepLabel = wx.StaticText( tn5GapsPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
-        tn5GapsRepLabel.Wrap( -1 )
-        tn5GapsSizer3_1.Add( tn5GapsRepLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-    
-        tn5GapsSizer3_2 = wx.BoxSizer( wx.VERTICAL )
+        # Replicates
         tn5GapsRepChoiceChoices = [ u"Sum", u"Mean" ]
-        self.wxobj.tn5GapsRepChoice = wx.Choice( tn5GapsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, tn5GapsRepChoiceChoices, 0 )
-        self.wxobj.tn5GapsRepChoice.SetSelection( 0 )
-        tn5GapsSizer3_2.Add( self.wxobj.tn5GapsRepChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+        (tn5GapsRepLabel, self.wxobj.tn5GapsRepChoice, repSizer) = self.defineChoiceBox(tn5GapsPanel, u"Replicates:", tn5GapsRepChoiceChoices, "Determines how to handle replicates, and their read-counts. When using many replicates, summing read-counts may make spurious counts appear to be significantly large and interrupt a run of non-insertions.")
+        mainSizer1.Add(repSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
-        tn5GapsSizer3.Add(tn5GapsSizer3_1, 1, wx.EXPAND, 5)
-        tn5GapsSizer3.Add(tn5GapsSizer3_2, 1, wx.EXPAND, 5)
 
-        tn5GapsSection.Add( tn5GapsSizer1, 1, wx.EXPAND, 5 )
-        tn5GapsSection.Add( tn5GapsSizer2, 1, wx.EXPAND, 5 )
-        tn5GapsSection.Add( tn5GapsSizer3, 1, wx.EXPAND, 5 )
+        tn5GapsSection.Add( mainSizer1, 1, wx.EXPAND, 5 )
+ 
 
         tn5GapsButton = wx.Button( tn5GapsPanel, wx.ID_ANY, u"Run Tn5Gaps", wx.DefaultPosition, wx.DefaultSize, 0 )
         tn5GapsSection.Add( tn5GapsButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )

@@ -81,6 +81,108 @@ def binom_test(k,n,p, type="two-sided"):
                 y = sum([1 for j in ri if binom(j,n,p) <= d*relErr])
                 return(binom_cdf(y-1,n,p) + (1-binom_cdf(k-1,n,p)))
 
+
+##############################
+# Bernoulli Diff Distribution
+def dberndiff(d, peq, p01, p10):
+    N = numpy.size(d)
+    if N == 0:
+        return 0.0
+    if N == 1:
+        if type(d) == type(()):
+            d = d[0]
+        if d == 0:
+            return peq
+        else:
+            if d == -1:
+                return p01
+            if d == 1:
+                return p10
+            return 0.0
+#
+    else:
+        d = numpy.array(d)
+        result = numpy.zeros(N)
+        result[d == -1] = p01
+        result[d == 0] = peq
+        result[d == 1] = p10
+        return result
+
+
+def qberndiff(d, peq, p01, p10):
+    return numpy.sum([ dberndiff(x, peq, p01, p10) for x in range(-1, d + 1) ])
+
+#############################
+# Binomial Diff Distribution
+
+def dbinomdiff(d, n, P):
+    S = numpy.array(my_perm(d, n))
+    return numpy.sum(multinomial(S, P))
+
+
+def qbinomdiff(d, n, peq, p01, p10):
+    return numpy.sum([ dbinomdiff(x, n, peq, p01, p10) for x in range(-n, d + 1) ])
+
+
+def my_perm(d, n):
+    S = []
+    if d == 0:
+        for i in range(n + 1):
+            r = n - i
+            if isEven(r):
+                S.append((int(r / 2.0), i, int(r / 2.0)))
+#
+    if d > 0:
+        for i in range(d, n + 1):
+            r = n - i
+            if i == d:
+                S.append((0, n - d, d))
+            elif i > d:
+                r = n - (i + (i - d))
+                if 0 <= r <= n:
+                    S.append((i - d, r, i))
+#
+    if d < 0:
+        for i in range(abs(d), n + 1):
+            r = n - i
+            if i == abs(d):
+                S.append((-d, n + d, 0))
+            elif i > d:
+                r = n - (i + (i + d))
+                if 0 <= r <= n:
+                    S.append((i, r, i + d))
+#
+    return S
+
+
+def multinomial(K, P):
+    N = numpy.sum(K, 1)
+    if K.shape == P.shape:
+        return tricoeff(N, K) * numpy.prod([ numpy.power(P[i], K[i]) for i in range(len(K)) ], 1)
+    else:
+        return tricoeff(N, K) * numpy.prod([ numpy.power(P, K[i]) for i in range(len(K)) ], 1)
+
+
+def log_fac(n):
+    return numpy.sum(numpy.log(numpy.arange(2, n + 1)))
+
+
+def tricoeff(N, S):
+    try:
+        LOG_FAC
+    except NameError:
+        LOG_FAC = []
+        for i in range(numpy.max(N) + 1):
+            LOG_FAC.append(log_fac(i))
+#
+        LOG_FAC = numpy.array(LOG_FAC)
+#
+    return numpy.exp(LOG_FAC[N] - (LOG_FAC[S[:, 0]] + LOG_FAC[S[:, 1]] + LOG_FAC[S[:, 2]]))
+
+
+def isEven(x):
+    return x % 2 == 0
+
 def regress(X,Y):
     """Performs linear regression given two vectors, X, Y."""
     N = len(X)

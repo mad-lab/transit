@@ -68,7 +68,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'TRANSIT'
-copyright = u'2017, Michael A. DeJesus & Thomas R. Ioerger'
+copyright = u'2015, Michael A. DeJesus & Thomas R. Ioerger'
 author = u'Michael A. DeJesus & Thomas R. Ioerger'
 
 # The version info for the project you're documenting, acts as replacement for

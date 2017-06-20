@@ -57,7 +57,7 @@ if hasWx:
             
             panel = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL )
             panel.SetScrollRate( 5, 5 )
-            panel.SetMaxSize( wx.Size( -1, 670 ) )
+            panel.SetMaxSize( wx.Size( -1, 1000 ) )
     
             sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -80,7 +80,7 @@ if hasWx:
 
             panel.SetSizer(sizer)
             # self.SetSize((1305, 700))
-            self.SetSize((900, 700))
+            self.SetSize((900, 750))
             #self.SetTitle('Simple menu')
             self.Centre()
             #self.Show(True)
@@ -214,6 +214,19 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer7.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Number of mismatches allowed in the tn-prefix before discarding the read."), flag=wx.CENTER, border=0)
             sizer7.Add((130, 1), 0, wx.EXPAND)
             sizer.Add(sizer7,0,wx.EXPAND,0)    
+
+            # BWA FLAGS
+            sizer8 = wx.BoxSizer(wx.HORIZONTAL)
+            label8 = wx.StaticText(panel, label='BWA flags (Optional)',size=(340,-1))
+            sizer8.Add(label8,0,wx.ALIGN_CENTER_VERTICAL,0)
+            self.flags = wx.TextCtrl(panel,value=vars.flags,size=(400,30))
+            sizer8.Add(self.flags, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer8.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Use this textobx to enter any desired flags for the BWA alignment. For example, to limit the number of mismatches to 1, type: -k 1. See the BWA documentation for all possible flags."), flag=wx.CENTER, border=0)
+            sizer8.Add((130, 1), 0, wx.EXPAND)
+            sizer.Add(sizer8,0,wx.EXPAND,0)
+
+
+
 
 #
         
@@ -371,28 +384,31 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
 #
 
         def map_reads(self,event):
-          # add bwa path, prefix
-          bwapath = self.picker0.GetValue()
-          fq1, fq2, ref, base, prefix, maxreads = self.picker1.GetValue(), self.picker2.GetValue(), self.picker3.GetValue(), self.base.GetValue(), self.prefix.GetValue(), self.maxreads.GetValue()
+            # add bwa path, prefix
+            bwapath = self.picker0.GetValue()
+            fq1, fq2, ref, base, prefix, maxreads = self.picker1.GetValue(), self.picker2.GetValue(), self.picker3.GetValue(), self.base.GetValue(), self.prefix.GetValue(), self.maxreads.GetValue()
     
-          mm1 = self.mismatches.GetValue()
-          try: mm1 = int(mm1)
-          except Exception: mm1 = 1
+            mm1 = self.mismatches.GetValue()
+            try: mm1 = int(mm1)
+            except Exception: mm1 = 1
 
-          self.vars.transposon = self.transposon.GetStringSelection()
-          self.vars.protocol = self.protocol.GetValue()
+            self.vars.flags = self.flags.GetValue()
 
-          self.vars.bwa = bwapath
-          self.vars.fq1 = fq1
-          self.vars.fq2 = fq2
-          self.vars.ref = ref
-          self.vars.base = base  
-          self.vars.mm1 = mm1
-          self.vars.prefix = prefix
-          if maxreads == '': self.vars.maxreads = -1
-          else: self.vars.maxreads = int(maxreads)
+            self.vars.transposon = self.transposon.GetStringSelection()
+            self.vars.protocol = self.protocol.GetValue()
 
-          self.vars.action = "start"
-          self.Close()
-          return 0
+            self.vars.bwa = bwapath
+            self.vars.fq1 = fq1
+            self.vars.fq2 = fq2
+            self.vars.ref = ref
+            self.vars.base = base  
+            self.vars.mm1 = mm1
+            self.vars.prefix = prefix
+        
+            if maxreads == '': self.vars.maxreads = -1
+            else: self.vars.maxreads = int(maxreads)
+
+            self.vars.action = "start"
+            self.Close()
+            return 0
 

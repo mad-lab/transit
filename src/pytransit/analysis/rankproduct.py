@@ -73,38 +73,23 @@ class RankProductGUI(base.AnalysisGUI):
         rankproductLabel.Wrap( -1 )
         rankproductSizer.Add( rankproductLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-        rankproductTopSizer = wx.BoxSizer( wx.HORIZONTAL )
-
-        rankproductTopSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-
         rankproductLabelSizer = wx.BoxSizer( wx.VERTICAL )
 
-        rankproductSampleLabel = wx.StaticText( rankproductPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
-        rankproductSampleLabel.Wrap( -1 )
-        rankproductLabelSizer.Add( rankproductSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        mainSizer1 = wx.BoxSizer( wx.VERTICAL )
 
-        rankproductNormLabel = wx.StaticText( rankproductPanel, wx.ID_ANY, u"Normalization", wx.DefaultPosition, wx.DefaultSize, 0 )
-        rankproductNormLabel.Wrap( -1 )
-        rankproductLabelSizer.Add( rankproductNormLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        
+        # SAMPLES
+        (rankproductSampleLabel, self.wxobj.rankproductSampleText, sampleSizer) = self.defineTextBox(rankproductPanel, u"Samples:", u"10000", "Number of samples to take when estimating the theoretical rankproduct distribution. Larger samples give more accurate estimates at the cost of computation time.")
+        mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
-        rankproductTopSizer2.Add( rankproductLabelSizer, 1, wx.EXPAND, 5 )
-
-        rankproductControlSizer = wx.BoxSizer( wx.VERTICAL )
-
-        self.wxobj.rankproductSampleText = wx.TextCtrl( rankproductPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
-        rankproductControlSizer.Add( self.wxobj.rankproductSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
+    
+        # NORMALIZATION
+        # Norm 
         rankproductNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
-        self.wxobj.rankproductNormChoice = wx.Choice( rankproductPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, rankproductNormChoiceChoices, 0 )
-        self.wxobj.rankproductNormChoice.SetSelection( 0 )
-        rankproductControlSizer.Add( self.wxobj.rankproductNormChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+        (rankproductNormLabel, self.wxobj.rankproductNormChoice, normSizer) = self.defineChoiceBox(rankproductPanel, u"Normalization:", rankproductNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods. ") 
+        mainSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
-
-        rankproductTopSizer2.Add( rankproductControlSizer, 1, wx.EXPAND, 5 )
-
-        rankproductTopSizer.Add( rankproductTopSizer2, 1, wx.EXPAND, 5 )
-
-        rankproductSizer.Add( rankproductTopSizer, 1, wx.EXPAND, 5 )
+        rankproductSizer.Add( mainSizer1, 1, wx.EXPAND, 5 )
 
         rankproductButton = wx.Button( rankproductPanel, wx.ID_ANY, u"Run rankproduct", wx.DefaultPosition, wx.DefaultSize, 0 )
         rankproductSizer.Add( rankproductButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
