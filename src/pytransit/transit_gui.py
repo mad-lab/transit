@@ -574,7 +574,7 @@ class MainFrame ( wx.Frame ):
 
 #!/usr/bin/env python
 
-# Copyright 2017.
+# Copyright 2015.
 #   Michael A. DeJesus, Chaitra Ambadipudi, and  Thomas R. Ioerger.
 #
 #
@@ -1185,7 +1185,7 @@ class TnSeekFrame(MainFrame):
 
 If you need to cite this tool, please use the following reference:
 
-DeJesus, M.A., Ambadipudi, C., Baker, R., Sassetti, C., and Ioerger, T.R. (2017). TRANSIT - a Software Tool for Himar1 TnSeq Analysis. PLOS Computational Biology, 11(10):e1004401
+DeJesus, M.A., Ambadipudi, C., Baker, R., Sassetti, C., and Ioerger, T.R. (2015). TRANSIT - a Software Tool for Himar1 TnSeq Analysis. PLOS Computational Biology, 11(10):e1004401
 
 
 """
@@ -1213,7 +1213,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         info.SetName('TRANSIT')
         info.SetVersion(pytransit.__version__)
         info.SetDescription(description)
-        info.SetCopyright('(C) 2015 - 2017\n Michael A. DeJesus\nThomas R. Ioerger')
+        info.SetCopyright('(C) 2015\n Michael A. DeJesus\nThomas R. Ioerger')
         info.SetWebSite('http://saclab.tamu.edu/essentiality/transit/')
         info.SetLicence(licence)
         info.AddDeveloper('Michael A. DeJesus')
