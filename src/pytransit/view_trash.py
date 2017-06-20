@@ -17,6 +17,8 @@ except Exception as e:
     hasWx = False
 
 
+import images
+
 ###########################################################################
 ## Class MainFrame
 ###########################################################################
@@ -166,6 +168,8 @@ class MainFrame ( wx.Frame ):
 
         self.statusBar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
         #self.statusBar.SetStatusText("Track View!")
+
+        self.SetIcon(images.transit_icon.GetIcon())
 
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.clearStatus, self.timer)
