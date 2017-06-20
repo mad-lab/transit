@@ -70,8 +70,7 @@ class TotReadsNorm(NormMethod):
         Returns:
             numpy array: Array with the normalization factors for the totreads method.
 
-        :Example:factors = TTR_factors(norm_data)
-            norm_data = factors * norm_data
+        :Example:
             >>> import pytransit.norm_tools as norm_tools
             >>> import pytransit.tnseq_tools as tnseq_tools
             >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
