@@ -47,6 +47,8 @@ import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
 import pytransit.norm_tools as norm_tools
 
+track_prefix = "[TrackView]"
+
 
 def WxBitmapToPilImage( myBitmap ) :
     return WxImageToPilImage( WxBitmapToWxImage( myBitmap ) )
@@ -76,12 +78,14 @@ def fetch_name(filepath):
     return os.path.splitext(ntpath.basename(filepath))[0]
 
 
-track_prefix = "[TrackView]"
+
+
 #inherit from the MainFrame created in wxFowmBuilder and create CalcFrame
 class TrashFrame(view_trash.MainFrame):
     #constructor
     def __init__(self, parent, dataset_list=["H37Rv_Sassetti_glycerol.wig"], annotation="H37Rv.prot_table", gene="", scale = None, feature_hashes=[], feature_data=[]):
 
+        view_trash.MainFrame.__init__(self,parent)
 
         self.parent = parent
         self.size = wx.Size( 1500,800 )
@@ -109,7 +113,9 @@ class TrashFrame(view_trash.MainFrame):
 
         #Save normalized data
         (self.fulldata_norm, factors) = norm_tools.normalize_data(self.fulldata, method="nzmean")
-        print track_prefix, "Normalization factors", factors.flatten()
+        self.track_message("Normalization factors: %s" % factors.flatten())
+        #print track_prefix, "Normalization factors", factors.flatten()
+
 
         #initialize parent class
 
@@ -121,7 +127,6 @@ class TrashFrame(view_trash.MainFrame):
         self.scale = scale
         self.globalScale = False
 
-        view_trash.MainFrame.__init__(self,parent)
    
 
         self.datasetChoice.SetItems(self.labels)
@@ -135,29 +140,16 @@ class TrashFrame(view_trash.MainFrame):
         self.Fit()
 
 
-
+    def track_message(self, text):
+        transit_tools.transit_message(text, track_prefix)
+        self.statusBar.SetStatusText(text)
  
     def updateFunc(self,event):
         try:
-            #self.start = int(self.startText.GetValue())
-            #self.end = int(self.endText.GetValue())
-            #if self.maxText.GetValue():
-            #    dataset_ii = self.datasetChoice.GetCurrentSelection()
-            #    self.scale[dataset_ii] = int(self.maxText.GetValue())
-            
-            #self.start = int(self.startText.GetValue())
-            #self.end = int(self.endText.GetValue())
-            #if self.maxText.GetValue():
-            #    dataset_ii = self.datasetChoice.GetCurrentSelection()
-            #    self.scale[dataset_ii] = int(self.maxText.GetValue())
-            
             self.DrawCanvas()
-
         except Exception, e:
             print track_prefix + '[ERROR]:', e
             traceback.print_exc()
-            #put a blank string in text when 'Clear' is clicked
-
 
 
 

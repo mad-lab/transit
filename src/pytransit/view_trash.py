@@ -165,7 +165,7 @@ class MainFrame ( wx.Frame ):
 
 
         self.statusBar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
-        self.statusBar.SetStatusText("")
+        #self.statusBar.SetStatusText("Track View!")
 
         
         self.Centre( wx.BOTH )
