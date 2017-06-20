@@ -461,12 +461,18 @@ class MainFrame ( wx.Frame ):
 
         self.Bind( wx.EVT_MENU, self.aboutFunc, id = self.aboutMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.documentationFunc, id = self.documentationMenuItem.GetId() )
+        self.timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.clearStatus, self.timer)
+
+
     
     def __del__( self ):
         pass
     
     
     # Virtual event handlers, overide them in your derived class
+    def clearStatus(self, event):
+        event.Skip()
 
     def onHimar1Checked(self, event):
         event.Skip()
@@ -756,13 +762,25 @@ class TnSeekFrame(MainFrame):
 
     
 
-    def updateStatus(self, msg):
+    def updateStatus(self, msg, time=-1):
         """"""
-        if newWx:
-            method, text = msg 
+        if type(msg) == type("A"):
+            text = msg
+        elif newWx:
+            method, text, time = msg 
         else:
-            method, text = msg.data
+            method, text,time = msg.data
+        if time > 0:
+            self.timer.Start(time)        
         self.statusBar.SetStatusText(text)
+
+    
+
+
+    def clearStatus(self, event):
+        self.statusBar.SetStatusText("")
+        self.timer.Stop()
+
 
     
     def saveHistogram(self, msg):

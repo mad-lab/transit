@@ -273,13 +273,13 @@ class AnalysisMethod:
 
         
 
-    def status_message(self, text):
+    def status_message(self, text, time=-1):
         #TODO: write docstring
         if self.wxobj:
             if newWx:
-                wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text))
+                wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
             else:
-                wx.CallAfter(pub.sendMessage, "status", (self.short_name, text))
+                wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))
             wx.Yield()
 
     def console_message(self, text):
