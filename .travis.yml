@@ -11,7 +11,7 @@ notifications:
 before_install:
   - sudo add-apt-repository "deb http://old-releases.ubuntu.com/ubuntu utopic main restricted universe"
   - sudo apt-get update
-  - sudo apt-get install -qq python python-dev python-pip pkg-config python-wxgtk3.0 libpng-dev libjpeg8-dev libfreetype6-dev
+  - sudo apt-get install -y python python-dev python-pip pkg-config python-wxgtk3.0 libpng-dev libjpeg8-dev libfreetype6-dev
 # command to install dependencies
 install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib pytest"
 # command to run tests
