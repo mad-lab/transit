@@ -1,6 +1,6 @@
 import sys
 
-sys.path.insert(0, '../src/')
+sys.path.insert(0, '/home/travis/build/mad-lab/transit/src/')
 
 import shutil
 import unittest
