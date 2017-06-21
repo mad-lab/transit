@@ -1,11 +1,16 @@
 import sys
 
-sys.path.insert(0, '/home/travis/build/mad-lab/transit/src/')
+sys.path.insert(0, '../src/')
+#sys.path.insert(0, '/home/travis/build/mad-lab/transit/src/')
 
 import shutil
 import unittest
 import os
 
+print sys.path
+
+import pytransit
+print pytransit.__path__
 import pytransit.norm_tools as norm_tools
 
 from pytransit.analysis.gumbel import GumbelMethod

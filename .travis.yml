@@ -15,4 +15,5 @@ before_install:
 # command to install dependencies
 install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib pytest"
 # command to run tests
+before_script: cd /home/travis/build/mad-lab/transit/tests
 script: pytest
