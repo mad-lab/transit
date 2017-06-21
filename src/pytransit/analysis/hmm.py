@@ -448,14 +448,14 @@ class HMMMethod(base.SingleConditionMethod):
         log_Prob_Obs = - (numpy.sum(numpy.log(C)))
         return(( log_Prob_Obs, alpha, C ))
 
-    def backward_procedure(self, A, B, PI, O, C=None):
+    def backward_procedure(self, A, B, PI, O, C=numpy.array([])):
 
         N = len(B)
         T = len(O)
         beta = numpy.zeros((N,T))
 
         beta[:,T-1] = 1.0
-        if C!=None: beta[:,T-1] = beta[:,T-1] * C[T-1]
+        if C.any(): beta[:,T-1] = beta[:,T-1] * C[T-1]
 
         for t in xrange(T-2, -1, -1):
             #B[i](O[:,t])  =>  numpy.prod(B[i](O[:,t]))
@@ -467,7 +467,7 @@ class HMMMethod(base.SingleConditionMethod):
             if sum(beta[:,t]) == 0:
                 beta[:,t] = 0.0000000000001
 
-            if C!=None:
+            if C.any():
                 beta[:,t] = beta[:,t] * C[t]
 
             self.progress_update("hmm", self.count)
