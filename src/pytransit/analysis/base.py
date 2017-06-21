@@ -38,11 +38,59 @@ class InfoIcon(wx.StaticBitmap):
         self.SetToolTip(tp)
 
 
-class TransitFile:
+class TransitGUIBase:
+
+    def __init__(self):
+        self.wxobj = None
+        self.short_name = "TRANSIT"
+        self.long_name = "TRANSIT"
+
+    def status_message(self, text, time=-1):
+        #TODO: write docstring
+        if self.wxobj:
+            if newWx:
+                wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
+            else:
+                wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))
+            wx.Yield()
+
+    def console_message(self, text):
+        #TODO: write docstring
+        sys.stdout.write("[%s] %s\n" % (self.short_name, text))
+
+    def console_message_inplace(self, text):
+        #TODO: write docstring
+        sys.stdout.write("[%s] %s   \r" % (self.short_name, text) )
+        sys.stdout.flush()
+
+    def transit_message(self, text):
+        #TODO: write docstring
+        self.console_message(text)
+        self.status_message(text)
+
+    def transit_message_inplace(self, text):
+        #TODO: write docstring
+        self.console_message_inplace(text)
+        self.status_message(text)
+
+
+    def transit_error(self,text):
+        self.transit_message(text)
+        if self.wxobj:
+            transit_tools.ShowError(text)
+
+    def transit_warning(self,text):
+        self.transit_message(text)
+        if self.wxobj:
+            transit_tools.ShowWarning(text)
+
+
+class TransitFile (TransitGUIBase):
     #TODO write docstring
 
     def __init__(self, identifier="#Unknown", colnames=[]):
         #TODO write docstring
+        TransitGUIBase.__init__(self)
         self.identifier = identifier
         self.colnames = colnames
 
@@ -50,11 +98,20 @@ class TransitFile:
         #TODO write docstring
         row = 0
         data = []
+        shownError = False
         for line in open(path):
             if line.startswith("#"): continue
             tmp = line.split("\t")
             tmp[-1] = tmp[-1].strip()
-            rowdict = dict([(colnames[i], tmp[i]) for i in range(len(colnames))])
+            #print colnames
+            #print  len(colnames), len(tmp)
+            try:
+                rowdict = dict([(colnames[i], tmp[i]) for i in range(len(colnames))])
+            except Exception as e:
+                if not shownError:
+                    self.transit_warning("Error reading data! This may be caused by trying to load a old results file, when the format has changed.")
+                    shownError = True
+                rowdict = dict([(colnames[i], tmp[i]) for i in range(min(len(colnames), len(tmp)))])
             data.append((row, rowdict))
             row+=1
         return data
