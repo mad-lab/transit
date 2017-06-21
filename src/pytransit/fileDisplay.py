@@ -87,11 +87,14 @@ class ImgFrame(wx.Frame):
 
 def unknownColNames(path):
     colNames = []
+    final_line = ""
     for line in open(path):
         if line.startswith("#"):
             colNames = line.split("\t")
         else:
             final_line = line
+    if not final_line:
+        print "Error: file appears to be empty"
     tmp = final_line.split("\t")
     if len(colNames) < len(tmp):
         colNames = ["Col%d" % (i) for i in range(len(tmp))]
