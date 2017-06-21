@@ -1,6 +1,6 @@
 import sys
 
-sys.path.insert(0, '/pacific/home/mdejesus/transit/src/')
+sys.path.insert(0, '../src/')
 
 import shutil
 import unittest
