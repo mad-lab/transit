@@ -5,6 +5,6 @@ python:
 before_install:
   - sudo apt-get install -qq python python-dev python-pip pkg-config python-wxgtk2.8 libpng-dev libjpeg8-dev libfreetype6-dev
 # command to install dependencies
-install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib"
+install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib pytest"
 # command to run tests
 script: pytest
