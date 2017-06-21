@@ -1,13 +1,9 @@
 language: python
 python:
-  - "2.6"
   - "2.7"
-  - "3.2"
-  - "3.3"
-  - "3.4"
-  - "3.5"
-  - "3.6"
-  - "nightly" # currently points to 3.7-dev
+# install ubuntu dependencies
+before_install:
+  - sudo apt-get install -y python python-dev python-pip pkg-config python-wxgtk3.0 libpng-dev libjpeg8-dev libfreetype6-dev
 # command to install dependencies
 install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib"
 # command to run tests
