@@ -9,6 +9,6 @@ python:
   - "3.6"
   - "nightly" # currently points to 3.7-dev
 # command to install dependencies
-install: "pip install setuptools numpy scipy pillow matplotlib"
+install: "pip install --upgrade setuptools numpy scipy pillow matplotlib"
 # command to run tests
 script: pytest
