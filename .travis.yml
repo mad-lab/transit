@@ -1,6 +1,10 @@
 language: python
 python:
   - "2.7"
+notifications:
+  email:
+    on_success: change # default: change
+    on_failure: change # default: always
 # install ubuntu dependencies
 before_install:
   - sudo apt-get install -qq python python-dev python-pip pkg-config python-wxgtk2.8 libpng-dev libjpeg8-dev libfreetype6-dev
