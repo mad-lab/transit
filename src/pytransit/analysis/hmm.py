@@ -193,7 +193,7 @@ class HMMMethod(base.SingleConditionMethod):
             T = len([1 for line in open(ctrldata[0]).readlines() if not line.startswith("#")])
             self.maxiterations = T*4 + 1
         except:
-            self.self.maxiterations = 100
+            self.maxiterations = 100
         self.count = 1
 
 
