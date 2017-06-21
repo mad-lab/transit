@@ -17,16 +17,16 @@ from pytransit.analysis.resampling import ResamplingMethod
 from pytransit.analysis.rankproduct import RankProductMethod
 
 
-ctrl_rep1 = "../pytransit/data/glycerol_H37Rv_rep1.wig"
-ctrl_rep2 = "../pytransit/data/glycerol_H37Rv_rep2.wig"
+ctrl_rep1 = "../src/pytransit/data/glycerol_H37Rv_rep1.wig"
+ctrl_rep2 = "../src/pytransit/data/glycerol_H37Rv_rep2.wig"
 ctrl_data_txt = ",".join([ctrl_rep1, ctrl_rep2])
 
-exp_rep1 = "../pytransit/data/cholesterol_H37Rv_rep1.wig"
-exp_rep2 = "../pytransit/data/cholesterol_H37Rv_rep2.wig"
-exp_rep3 = "../pytransit/data/cholesterol_H37Rv_rep3.wig"
+exp_rep1 = "../src/pytransit/data/cholesterol_H37Rv_rep1.wig"
+exp_rep2 = "../src/pytransit/data/cholesterol_H37Rv_rep2.wig"
+exp_rep3 = "../src/pytransit/data/cholesterol_H37Rv_rep3.wig"
 exp_data_txt = ",".join([exp_rep1, exp_rep2, exp_rep3])
 
-annotation = "../pytransit/genomes/H37Rv.prot_table"
+annotation = "../src/pytransit/genomes/H37Rv.prot_table"
 
 output = "testoutput.txt"
 
