@@ -32,7 +32,7 @@ exp_rep3 = "../src/pytransit/data/cholesterol_H37Rv_rep3.wig"
 exp_data_txt = ",".join([exp_rep1, exp_rep2, exp_rep3])
 
 annotation = "../src/pytransit/genomes/H37Rv.prot_table"
-
+small_annotation = "test.prot_table"
 output = "testoutput.txt"
 
 class TestMethods(unittest.TestCase):
@@ -99,7 +99,7 @@ class TestMethods(unittest.TestCase):
     
 
     def test_resampling_histogram(self):
-        args = [ctrl_data_txt, exp_data_txt, annotation, output, "-s", "1000", "-h"]
+        args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000", "-h"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
