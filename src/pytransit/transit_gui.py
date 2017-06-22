@@ -27,6 +27,8 @@ import time
 import datetime
 import threading
 import numpy
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import math
