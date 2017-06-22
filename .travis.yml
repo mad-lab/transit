@@ -3,6 +3,7 @@ python:
   - "2.7"
 dist: trusty
 sudo: required
+DISPLAY: 0.0
 notifications:
   email:
     on_success: change # default: change
