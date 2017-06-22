@@ -23,9 +23,9 @@ import random
 import numpy
 import scipy.stats
 import datetime
-#import matplotlib
+import matplotlib
 # Force matplotlib to not use any Xwindows backend.
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import base
