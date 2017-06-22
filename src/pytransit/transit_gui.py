@@ -903,7 +903,7 @@ class TnSeekFrame(MainFrame):
 
 
 
-    def SaveFile(self, DIR=None, FILE="", WC=""):
+    def SaveFile(self, DIR=None, FILE="", WC=u'Common output extensions (*.txt,*.dat,*.out)|*.txt;*.dat;*.out;|\nAll files (*.*)|*.*"'):
         """
         Create and show the Save FileDialog
         """
