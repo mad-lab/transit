@@ -1,3 +1,8 @@
+Build Status:
+
+master: [![Build Status](https://travis-ci.org/mad-lab/transit.svg?branch=master)](https://travis-ci.org/mad-lab/transit)
+dev: [![Build Status](https://travis-ci.org/mad-lab/transit.svg?branch=dev)](https://travis-ci.org/mad-lab/transit)
+
 [![Documentation Status](https://readthedocs.org/projects/transit/badge/?version=latest)](http://transit.readthedocs.io/en/latest/?badge=latest)
 
 # TRANSIT 2.1.0
