@@ -1,13 +1,11 @@
 
-| Branch| Build | Documentation |
-| ------ | ------- | --------------- |
-| **master** | [![Build Status](https://travis-ci.org/mad-lab/transit.svg?branch=master)](https://travis-ci.org/mad-lab/transit) |  [![Documentation Status](https://readthedocs.org/projects/transit/badge/?version=latest)](http://transit.readthedocs.io/en/latest/?badge=latest) |
-| **dev** | [![Build Status](https://travis-ci.org/mad-lab/transit.svg?branch=dev)](https://travis-ci.org/mad-lab/transit) |  [![Documentation Status](https://readthedocs.org/projects/transit/badge/?version=dev)](http://transit.readthedocs.io/en/dev/?badge=dev) |
-
-
 
 
 # TRANSIT 2.1.0
+
+
+[![Build Status](https://travis-ci.org/mad-lab/transit.svg?branch=master)](https://travis-ci.org/mad-lab/transit)   [![Documentation Status](https://readthedocs.org/projects/transit/badge/?version=latest)](http://transit.readthedocs.io/en/latest/?badge=latest) 
+
 
 
 **Version 2.1.0 changes (June, 20017)**
