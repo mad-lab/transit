@@ -7,7 +7,6 @@ import scipy.stats
 from functools import total_ordering
 
 
-import transit_tools
 try:
     import norm_tools
     noNorm = False
@@ -348,12 +347,12 @@ class Genes:
         self.orf2index = {}
         self.genes = []
         
-        orf2info = transit_tools.get_gene_info(self.annotation)
+        orf2info = get_gene_info(self.annotation)
         if not numpy.any(data):
             (data, position) = get_data(self.wigList)
             ii_min = data < self.minread
             data[ii_min] = 0
-        hash = transit_tools.get_pos_hash(self.annotation)
+        hash = get_pos_hash(self.annotation)
 
         if not noNorm:
             (data, factors) = norm_tools.normalize_data(data, norm, self.wigList, self.annotation)
