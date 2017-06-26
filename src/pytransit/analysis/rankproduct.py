@@ -326,12 +326,12 @@ class RankProductMethod(base.DualConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output))
+            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
 
-        self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
-        self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
+        self.output.write("#Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
+        self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         self.output.write("#%s\n" % (columns))
 

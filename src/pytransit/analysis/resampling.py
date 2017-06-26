@@ -418,12 +418,12 @@ class ResamplingMethod(base.DualConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: norm=%s, samples=%s, pseudocounts=%1.2f, adaptive=%s, histogram=%s, includeZeros=%s, output=%s\n" % (self.normalization, self.samples, self.pseudocount, self.adaptive, self.doHistogram, self.includeZeros, self.output.name))
+            self.output.write("#GUI with: norm=%s, samples=%s, pseudocounts=%1.2f, adaptive=%s, histogram=%s, includeZeros=%s, output=%s\n" % (self.normalization, self.samples, self.pseudocount, self.adaptive, self.doHistogram, self.includeZeros, self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
-        self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata))) 
-        self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata))) 
-        self.output.write("#Annotation path: %s\n" % (self.annotation_path))
+        self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
+        self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata).encode('utf-8'))) 
+        self.output.write("#Annotation path: %s\n" % (self.annotation_path.encode('utf-8')))
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         self.output.write("#%s\n" % "\t".join(columns))
 

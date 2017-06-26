@@ -363,12 +363,12 @@ class GumbelMethod(base.SingleConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s, samples=%s, minread=%s, trim=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output.name, self.samples, self.minread, self.trim))
+            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s, samples=%s, minread=%s, trim=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8'), self.samples, self.minread, self.trim))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
 
-        self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
-        self.output.write("#Annotation path: %s\n" % self.annotation_path) 
+        self.output.write("#Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
+        self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
         self.output.write("#FDR Corrected thresholds: %f, %f\n" % (ess_t, non_t))
         self.output.write("#MH Acceptance-Rate:\t%2.2f%%\n" % (100.0*acctot/count))
         self.output.write("#Total Iterations Performed:\t%d\n" % count)

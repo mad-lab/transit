@@ -369,7 +369,7 @@ class HMMMethod(base.SingleConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output.name))
+            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
        
