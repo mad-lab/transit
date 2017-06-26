@@ -147,8 +147,8 @@ class TrashFrame(view_trash.MainFrame):
     def updateFunc(self,event):
         try:
             self.DrawCanvas()
-        except Exception, e:
-            self.track_message("ERROR: %s", e)
+        except Exception as e:
+            self.track_message("ERROR: %s" % e)
             traceback.print_exc()
 
 
@@ -263,17 +263,69 @@ class TrashFrame(view_trash.MainFrame):
         path = self.OpenFile(DIR=self.parent.workdir, FILE="", WC=wc)
         try:
             if path:
-                self.feature_hashes.append(transit_tools.get_pos_hash(path))
-                self.feature_data.append(transit_tools.get_gene_info(path))
+                if self.checkHMMFeature(path):
+                    H,S = self.getHMMHash(path)
+                    self.feature_hashes.append(H)
+                    self.feature_data.append(S)
+                else:
+                    self.feature_hashes.append(transit_tools.get_pos_hash(path))
+                    self.feature_data.append(transit_tools.get_gene_info(path))
                 self.updateFunc(self.parent)
                 self.Fit()
             else:
                 self.track_message("No feature added")
-        except Exception, e:
+        except Exception as e:
             self.track_message("ERROR: %s" % e)
             traceback.print_exc()
     
+    
+    def checkHMMFeature(self, path):
+        try:
+            if open(path).readline().startswith("#HMM - Sites"):
+                return True
+        except Exception as e:
+            self.track_message("ERROR: %s" % e)
+            return False
+        return False
         
+
+    def getHMMHash(self, path):
+        hash = {}
+        fi = open(path)
+        line = fi.readline()
+        tmp = line.split("\t")
+        #print tmp
+        last_state = ""
+        start = 0
+        end = 0
+        counts = {"ES":0, "NE":0, "GD":0, "GA":0}
+        states2info = {}
+        while line:
+            if line.startswith("#"):
+                line = fi.readline()
+                tmp = line.split("\t")
+                continue
+            
+            current_pos, current_state = tmp[0], tmp[-2]
+            if last_state != current_state:
+                if last_state:
+                    state_name = "%s-%d" % (last_state, counts[last_state])
+                    counts[last_state]+=1
+                    states2info[state_name] = (last_state, last_state, start, end, "+")
+                    for pos in range(start, end+1):
+                        if pos not in hash: hash[pos] = []
+                        hash[pos].append(state_name)
+                        start = int(current_pos)
+                last_state = current_state
+            else:
+                end = int(current_pos)
+ 
+            line = fi.readline() 
+            tmp = line.split("\t")
+        return hash,states2info
+ 
+
+ 
     def OpenFile(self, DIR=".", FILE="", WC=""):
         """
         Create and show the Open FileDialog
@@ -334,7 +386,7 @@ class TrashFrame(view_trash.MainFrame):
             self.end = end
             self.DrawCanvas()
 
-        except Exception, e:
+        except Exception as e:
             self.track_message("ERROR: %s" % e)
             traceback.print_exc() 
         
