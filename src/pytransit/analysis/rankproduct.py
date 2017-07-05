@@ -24,7 +24,6 @@ import numpy
 import scipy.stats
 import datetime
 
-import matplotlib.pyplot as plt
 
 import base
 import pytransit.transit_tools as transit_tools
