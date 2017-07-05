@@ -10,7 +10,6 @@ matrix:
       before_install: "sudo apt-get install -y -f python python-dev python-pip pkg-config python-wxgtk2.8 libpng-dev libjpeg8-dev libfreetype6-dev"
       install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib pytest"
     - os: osx
-      osx_image: xcode7.2
       before_install: "git clone https://github.com/MacPython/terryfy && source terryfy/travis_tools.sh && get_python_environment  macpython 2.7.10"
       install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib pytest"
 
