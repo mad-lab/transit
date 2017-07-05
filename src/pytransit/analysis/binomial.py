@@ -349,6 +349,7 @@ class BinomialMethod(base.SingleConditionMethod):
         kp1c_std = 1.1
 
 
+        numpy.seterr(divide='ignore')
         for i in range(1, sample_size):
 
             i0 = Z[:,i-1] == 0; n0 = numpy.sum(i0);
@@ -405,6 +406,7 @@ class BinomialMethod(base.SingleConditionMethod):
 
             if Kp1_c <= 0: Kp1[i] = Kp1[i-1]
             else:
+                
                 fc = numpy.log(scipy.stats.gamma.pdf(Kp1_c, self.a1, self.b1));
                 f1 = numpy.log(scipy.stats.gamma.pdf(Kp1[i-1], self.a1, self.b1));
                 fc += numpy.sum(numpy.log(scipy.stats.beta.pdf(theta[i1,i], Kp1_c*rho1[i], Kp1_c*(1-rho1[i]))))
@@ -440,10 +442,11 @@ class BinomialMethod(base.SingleConditionMethod):
 
 
             #Update progress
-            text = "Running Gumbel Method... %2.0f%%" % (100.0*(i+1)/(sample_size))
+            text = "Running Binomial Method... %2.0f%%" % (100.0*(i+1)/(sample_size))
             self.progress_update(text, i)
             self.transit_message_inplace(text)
 
+        numpy.seterr(divide='warn')
 
         z_bar = numpy.apply_along_axis(numpy.mean, 1, Z[:, self.burnin:])
         theta_bar = numpy.apply_along_axis(numpy.mean, 1, theta[:, self.burnin:])
