@@ -7,21 +7,18 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
+      before_install: "sudo apt-get install -y -f python python-dev python-pip pkg-config python-wxgtk2.8 libpng-dev libjpeg8-dev libfreetype6-dev"
+      install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib pytest"
     - os: osx
       osx_image: xcode7.2
+      before_install: "git clone https://github.com/MacPython/terryfy && source terryfy/travis_tools.sh && get_python_environment  macpython 2.7.10"
+      install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib pytest"
+
 
 DISPLAY: 0.0
 notifications:
   email:
     on_success: change # default: change
     on_failure: change # default: always
-# install ubuntu dependencies
-before_install:
-  #- sudo add-apt-repository "deb http://old-releases.ubuntu.com/ubuntu utopic main restricted universe"
-  #- sudo apt-get update
-  - sudo apt-get install -y -f python python-dev python-pip pkg-config python-wxgtk2.8 libpng-dev libjpeg8-dev libfreetype6-dev
-# command to install dependencies
-install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib pytest"
-# command to run tests
 before_script: cd /home/travis/build/mad-lab/transit/tests
 script: travis_wait 30 pytest
