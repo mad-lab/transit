@@ -33,8 +33,8 @@ def cleanargs(rawargs):
     kwargs = {}
     count = 0
     while count < len(rawargs):
-        if rawargs[count].startswith("-"):
-            if count + 1 < len(rawargs) and not rawargs[count+1].startswith("-"):
+        if rawargs[count].startswith("-"): #and len(rawargs[count].split(" ")) == 1:
+            if count + 1 < len(rawargs) and (not rawargs[count+1].startswith("-") or len(rawargs[count+1].split(" ")) > 1):
                 kwargs[rawargs[count][1:]] = rawargs[count+1]
                 count += 1
             else:
@@ -617,7 +617,8 @@ def run_bwa(vars):
        
 
     cmd = [vars.bwa, "aln"]
-    cmd.extend( vars.flags.split(" "))
+    if vars.flags.strip():
+        cmd.extend( vars.flags.split(" "))
     cmd.extend([vars.ref, vars.trimmed1])
     outfile = open(vars.sai1, "w")
     bwa_subprocess(cmd, outfile)
@@ -631,7 +632,8 @@ def run_bwa(vars):
     else:
      
         cmd = [vars.bwa, "aln"]
-        cmd.extend(vars.flags.split(" "))
+        if vars.flags.strip():
+            cmd.extend(vars.flags.split(" "))
         cmd.extend([vars.ref, vars.genomic2])
         outfile = open(vars.sai2, "w")
         bwa_subprocess(cmd, outfile)
