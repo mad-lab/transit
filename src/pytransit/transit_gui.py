@@ -28,7 +28,20 @@ import datetime
 import threading
 import numpy
 import matplotlib
-matplotlib.use('Agg')
+
+# Check backends and use the first interactive one
+interactive_backends = [i for i in matplotlib.rcsetup.interactive_bk]
+goodBackend = False
+for backend in interactive_backends:
+    if goodBackend: break
+    try:
+        matplotlib.use(backend,warn=False, force=True)
+        from matplotlib import pyplot as plt
+        goodBackend = True
+    except:
+        goodBackend = False
+
+
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import math

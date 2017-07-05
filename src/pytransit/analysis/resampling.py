@@ -24,9 +24,6 @@ import numpy
 import scipy.stats
 import datetime
 import matplotlib
-# Force matplotlib to not use any Xwindows backend.
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 import base
 import pytransit
@@ -319,6 +316,11 @@ class ResamplingMethod(base.DualConditionMethod):
 
 
     def Run(self):
+
+        if not self.wxobj:
+            # Force matplotlib to use good backend for png.
+            matplotlib.use('Agg')
+            import matplotlib.pyplot as plt
 
         self.transit_message("Starting resampling Method")
         start_time = time.time()
