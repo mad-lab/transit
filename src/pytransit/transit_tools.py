@@ -79,9 +79,11 @@ def cleanargs(rawargs):
     args = []
     kwargs = {}
     count = 0
+    # Loop through list of arguments
     while count < len(rawargs):
+        # If the current argument starts with "-"
         if rawargs[count].startswith("-"):
-            if count + 1 < len(rawargs) and not rawargs[count+1].startswith("-"):
+            if count + 1 < len(rawargs) and (not rawargs[count+1].startswith("-") or len(rawargs[count+1].split(" ")) > 1):
                 kwargs[rawargs[count][1:]] = rawargs[count+1]
                 count += 1
             else:
