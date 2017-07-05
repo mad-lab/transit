@@ -7,6 +7,8 @@ import unittest
 import os
 import numpy
 
+from transit_test import *
+
 import pytransit.norm_tools as norm_tools
 import pytransit.tnseq_tools as tnseq_tools
 
@@ -17,23 +19,6 @@ from pytransit.analysis.hmm import HMMMethod
 
 from pytransit.analysis.resampling import ResamplingMethod
 from pytransit.analysis.rankproduct import RankProductMethod
-
-
-ctrl_rep1 = "../src/pytransit/data/glycerol_H37Rv_rep1.wig"
-ctrl_rep2 = "../src/pytransit/data/glycerol_H37Rv_rep2.wig"
-ctrl_data_txt = ",".join([ctrl_rep1, ctrl_rep2])
-
-exp_rep1 = "../src/pytransit/data/cholesterol_H37Rv_rep1.wig"
-exp_rep2 = "../src/pytransit/data/cholesterol_H37Rv_rep2.wig"
-exp_rep3 = "../src/pytransit/data/cholesterol_H37Rv_rep3.wig"
-exp_data_txt = ",".join([exp_rep1, exp_rep2, exp_rep3])
-
-all_data_list = [ctrl_rep1, ctrl_rep2, exp_rep1, exp_rep2, exp_rep3]
-
-annotation = "../src/pytransit/genomes/H37Rv.prot_table"
-
-output = "testoutput.txt"
-
 
 
 # RAW STATISTICS:
@@ -53,34 +38,7 @@ raw_exp_rep3 = (0.35898398230681589, 60.667260907445879, 168.99712493465759, 60.
 raw_means = [53.913866362844317, 86.141009315729505, 52.944722203605657, 53.013082233094295, 60.667260907445879]
 
 
-def count_hits(path):
-    hits = 0
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.split("\t")
-        if float(tmp[-1]) < 0.05:
-            hits+=1
-    return hits
-
-class TestMethods(unittest.TestCase):
- 
-    def setUp(self):
-
-        print ""
-        print "#"*20
-        if os.path.exists(output):
-            print "Removing output file..."
-            os.remove(output) 
-
-        #hist_path = output.rsplit(".", 1)[0] + "_histograms"
-        #if os.path.exists(hist_path):
-        #    print "Removing histogram dir..."
-        #    shutil.rmtree(hist_path)
-    
-        genes_path = output.rsplit(".", 1)[0] + "_genes" + output.rsplit(".", 1)[1]
-        if os.path.exists(genes_path):
-            print "Removing genes file..."
-            os.remove(genes_path)
+class TestNormMethods(TransitTestCase):
 
 
     def test_nonorm(self):
