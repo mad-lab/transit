@@ -52,8 +52,8 @@ Use as a Python Package
 TRANSIT can be (optionally) installed as a python package. This can simplify the installation process as it will automatically install most of the requirements. In addition, it will allow users to use some of transit functions in their own scripts if they desire. Below is a brief example of importing transit functions into python. See the documentation of the package for further examples:
 
     :Example:
-        >>> import transit.norm_tools as norm_tools
-        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import pytransit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
