@@ -54,7 +54,7 @@ Note: Only selected datasets ("Control+Click") will be normalized and
 saved.
 
 
-.. image:: _images/transit_norm_options.png
+.. image:: _images/transit_tutorial_norm_options.png
    :width: 600
    :align: center
 
