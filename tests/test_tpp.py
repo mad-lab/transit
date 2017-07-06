@@ -34,6 +34,7 @@ def get_stats(path):
 
 class TestTPP(TransitTestCase):
  
+    @unittest.skipUnless(os.path.exists("/usr/bin/bwa"), "requires BWA")
     def test_tpp_noflag_primer(self):
 
         arguments = ["-bwa", "/usr/bin/bwa", "-ref", "H37Rv.fna", "-reads1", "test.fastq", "-output",
@@ -43,6 +44,7 @@ class TestTPP(TransitTestCase):
         self.assertTrue(NOFLAG_PRIMER == stats) 
 
 
+    @unittest.skipUnless(os.path.exists("/usr/bin/bwa"), "requires BWA")
     def test_tpp_flag_primer(self):
 
         arguments = ["-bwa", "/usr/bin/bwa", "-ref", "H37Rv.fna", "-reads1", "test.fastq", "-output",
@@ -52,25 +54,29 @@ class TestTPP(TransitTestCase):
         self.assertTrue(FLAG_PRIMER == stats)
 
 
-    """
+    @unittest.expectedFailure    
+    @unittest.skipUnless(os.path.exists("/usr/bin/bwa"), "requires BWA")
     def test_tpp_noflag_noprimer(self):
 
-        arguments = ["-bwa", "/usr/bin/bwa", "-ref", "H37Rv.fna", "-reads1", "test.fastq", "-output",
-                     "tpp_output_noflag_noprimer", "-primer", " "]
-        tppMain(arguments)
-        stats = get_stats("tpp_output_noflag_noprimer.tn_stats")
-        self.assertTrue(NOFLAG_NOPRIMER == stats)
+        with self.assertRaises(SystemExit):
+            arguments = ["-bwa", "/usr/bin/bwa", "-ref", "H37Rv.fna", "-reads1", "test.fastq", "-output",
+                         "tpp_output_noflag_noprimer", "-primer", " "]
+            tppMain(arguments)
+            stats = get_stats("tpp_output_noflag_noprimer.tn_stats")
+            self.assertTrue(NOFLAG_NOPRIMER == stats)
 
 
-    
+    @unittest.expectedFailure
+    @unittest.skipUnless(os.path.exists("/usr/bin/bwa"), "requires BWA")
     def test_tpp_flag_noprimer(self):
         
-        arguments = ["-bwa", "/usr/bin/bwa", "-ref", "H37Rv.fna", "-reads1", "test.fastq", "-output",
-                     "tpp_output_flag_noprimer", "-flags", "-k 1", "-primer", " "]
-        tppMain(arguments)
-        stats = get_stats("tpp_output_flag_noprimer.tn_stats")
-        self.assertTrue(FLAG_PRIMER == stats)
-    """
+        with self.assertRaises(SystemExit):
+            arguments = ["-bwa", "/usr/bin/bwa", "-ref", "H37Rv.fna", "-reads1", "test.fastq", "-output",
+                         "tpp_output_flag_noprimer", "-flags", "-k 1", "-primer", " "]
+            tppMain(arguments)
+            stats = get_stats("tpp_output_flag_noprimer.tn_stats")
+            self.assertTrue(FLAG_PRIMER == stats)
+    
 
 
  
