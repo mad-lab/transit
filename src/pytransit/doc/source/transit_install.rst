@@ -29,9 +29,9 @@ The following libraries/modules are required to run TRANSIT:
 
 
 + `Python 2.7 <http://www.python.org>`_
-+ `Numpy 1.6.1+ <http://www.numpy.org/>`_
-+ `Scipy 0.14.0+ <http://www.scipy.org/>`_
-+ `matplotlib 1.1.1+ <http://matplotlib.org/users/installing.html>`_
++ `Numpy <http://www.numpy.org/>`_ (tested on 1.13.0)
++ `Scipy <http://www.scipy.org/>`_ (tested on 0.19.1)
++ `matplotlib <http://matplotlib.org/users/installing.html>`_ (tested on 2.0.2)
 + `wxpython 2.8.0+ <http://www.wxpython.org/>`_ (for Mac OSX, use the **cocoa** version of wxPython; If using El Capitan, please see :ref:`OSX El Capitan notice <osx_el_capitan>` for special instructions)
 + `PIL (Python Imaging Library) <http://www.pythonware.com/products/pil/>`_ or Pillow.
 
@@ -490,16 +490,16 @@ from our servers <http://orca1.tamu.edu/essentiality/transit/wxPython3.0-osx-coc
 
 
 This problem is likely due to running an unsupported version of matplotlib.
-Please download and install the version 1.4.3. You can download  and manually
+Please download and install the version 2.0.2. You can download  and manually
 install the source from the following location:
 
- + `matplotlib-1.4.3 <https://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.4.3/>`_
+ + `matplotlib-1.4.3 <https://sourceforge.net/projects/matplotlib/files/matplotlib/>`_
 
 Or, if you have pip installed, you can install using pip and specify the desired version:
 
 ::
 
-    pip install 'matplotlib>=1.1.0,<1.5.0' --force-reinstall
+    pip install 'matplotlib' --force-reinstall
 
 
 |
