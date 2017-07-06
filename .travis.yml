@@ -8,19 +8,6 @@ matrix:
       python: 2.7
       before_install: "sudo apt-get install -y -f python python-dev python-pip pkg-config python-wxgtk2.8 libpng-dev libjpeg8-dev libfreetype6-dev"
       install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib pytest"
-    - os: osx
-      osx_image: xcode8.3
-      sudo: required
-      language: generic
-      before_install:
-        - brew update
-        - brew install python
-        - sudo easy_install pip
-        - virtualenv venv -p python
-        - source venv/bin/activate
-      install:
-        - pip install --upgrade pip setuptools numpy scipy pillow matplotlib pytest
-
 
 DISPLAY: 0.0
 notifications:
