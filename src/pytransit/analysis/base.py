@@ -22,11 +22,75 @@ import pytransit.transit_tools as transit_tools
 
 file_prefix = "[FileDisplay]"
 
-class TransitFile:
+class InvalidArgumentException(Exception):
+    def __init__(self, message):
+
+        # Call the base class constructor with the parameters it needs
+        super(InvalidArgumentException, self).__init__(message)
+
+if hasWx:
+    class InfoIcon(wx.StaticBitmap):
+        def __init__(self, panel, flag, bmp=None, tooltip=""):
+            if not bmp:
+                bmp = wx.ArtProvider.GetBitmap(wx.ART_INFORMATION, wx.ART_OTHER, (16, 16))
+            wx.StaticBitmap.__init__(self, panel, flag, bmp)
+            tp = wx.ToolTip(tooltip)
+            self.SetToolTip(tp)
+
+
+class TransitGUIBase:
+
+    def __init__(self):
+        self.wxobj = None
+        self.short_name = "TRANSIT"
+        self.long_name = "TRANSIT"
+
+    def status_message(self, text, time=-1):
+        #TODO: write docstring
+        if self.wxobj:
+            if newWx:
+                wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
+            else:
+                wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))
+            wx.Yield()
+
+    def console_message(self, text):
+        #TODO: write docstring
+        sys.stdout.write("[%s] %s\n" % (self.short_name, text))
+
+    def console_message_inplace(self, text):
+        #TODO: write docstring
+        sys.stdout.write("[%s] %s   \r" % (self.short_name, text) )
+        sys.stdout.flush()
+
+    def transit_message(self, text):
+        #TODO: write docstring
+        self.console_message(text)
+        self.status_message(text)
+
+    def transit_message_inplace(self, text):
+        #TODO: write docstring
+        self.console_message_inplace(text)
+        self.status_message(text)
+
+
+    def transit_error(self,text):
+        self.transit_message(text)
+        if self.wxobj:
+            transit_tools.ShowError(text)
+
+    def transit_warning(self,text):
+        self.transit_message(text)
+        if self.wxobj:
+            transit_tools.ShowWarning(text)
+
+
+class TransitFile (TransitGUIBase):
     #TODO write docstring
 
     def __init__(self, identifier="#Unknown", colnames=[]):
         #TODO write docstring
+        TransitGUIBase.__init__(self)
         self.identifier = identifier
         self.colnames = colnames
 
@@ -34,11 +98,20 @@ class TransitFile:
         #TODO write docstring
         row = 0
         data = []
+        shownError = False
         for line in open(path):
             if line.startswith("#"): continue
             tmp = line.split("\t")
             tmp[-1] = tmp[-1].strip()
-            rowdict = dict([(colnames[i], tmp[i]) for i in range(len(colnames))])
+            #print colnames
+            #print  len(colnames), len(tmp)
+            try:
+                rowdict = dict([(colnames[i], tmp[i]) for i in range(len(colnames))])
+            except Exception as e:
+                if not shownError:
+                    self.transit_warning("Error reading data! This may be caused by trying to load a old results file, when the format has changed.")
+                    shownError = True
+                rowdict = dict([(colnames[i], tmp[i]) for i in range(min(len(colnames), len(tmp)))])
             data.append((row, rowdict))
             row+=1
         return data
@@ -69,6 +142,8 @@ class AnalysisGUI:
     def __init__(self):
         self.wxobj = None
         self.panel = None
+        self.LABELSIZE = (100,-1)
+        self.WIDGETSIZE = (100,-1)
 
     def Hide(self):
         self.panel.Hide()
@@ -107,6 +182,40 @@ class AnalysisGUI:
         Button.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
         self.panel = wPanel
 
+    def defineTextBox(self, panel, labelText="", widgetText="", tooltipText="", labSize=None, widgetSize=None):
+        if not labSize: labSize = self.LABELSIZE
+        if not widgetSize: widgetSize = self.WIDGETSIZE
+
+        sizer = wx.BoxSizer( wx.HORIZONTAL )
+        label = wx.StaticText(panel, wx.ID_ANY, labelText, wx.DefaultPosition, labSize, 0)
+        label.Wrap( -1 )
+        textBox = wx.TextCtrl( panel, wx.ID_ANY, widgetText, wx.DefaultPosition, widgetSize, 0 )
+        sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        sizer.Add(textBox, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        sizer.Add(InfoIcon(panel, wx.ID_ANY, tooltip=tooltipText), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        return (label, textBox, sizer)
+
+    def defineChoiceBox(self, panel, labelText="", widgetChoice=[""], tooltipText="", labSize=None, widgetSize=None):
+        if not labSize: labSize = self.LABELSIZE
+        if not widgetSize: widgetSize = self.WIDGETSIZE
+
+        sizer = wx.BoxSizer( wx.HORIZONTAL )
+        label = wx.StaticText(panel, wx.ID_ANY, labelText, wx.DefaultPosition, labSize, 0)
+        label.Wrap( -1 )
+        choiceBox = wx.Choice( panel, wx.ID_ANY, wx.DefaultPosition, widgetSize, widgetChoice, 0 )
+        sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        sizer.Add(choiceBox, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        sizer.Add(InfoIcon(panel, wx.ID_ANY, tooltip=tooltipText), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        return (label, choiceBox, sizer)
+
+    def defineCheckBox(self, panel, labelText="", widgetCheck=False, tooltipText="", widgetSize=None):
+        if not widgetSize: widgetSize = self.WIDGETSIZE
+        sizer = wx.BoxSizer( wx.HORIZONTAL )
+        checkBox = wx.CheckBox(panel, label = labelText, size=widgetSize)
+        checkBox.SetValue(widgetCheck)
+        sizer.Add(checkBox, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        sizer.Add(InfoIcon(panel, wx.ID_ANY, tooltip=tooltipText), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        return (checkBox, sizer)
 
 
 class AnalysisMethod:
@@ -140,8 +249,11 @@ class AnalysisMethod:
         #TODO: write docstring
         try:
             return self.fromargs(sys.argv[2:])
+        except InvalidArgumentException as e:
+            print "Error: %s" % str(e)
+            print self.usage_string()
         except IndexError as e:
-            traceback.print_exc()
+            print "Error: %s" % str(e)
             print self.usage_string()
         except TypeError as e:
             print "Error: %s" % str(e)
@@ -218,13 +330,13 @@ class AnalysisMethod:
 
         
 
-    def status_message(self, text):
+    def status_message(self, text, time=-1):
         #TODO: write docstring
         if self.wxobj:
             if newWx:
-                wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text))
+                wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
             else:
-                wx.CallAfter(pub.sendMessage, "status", (self.short_name, text))
+                wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))
             wx.Yield()
 
     def console_message(self, text):
@@ -328,7 +440,7 @@ class TransitAnalysis:
         elif len(self.transposons) == 1:
             return "Intended for %s only" % self.transposons[0]
         elif len(self.transposons) == 2:
-            return "Intended for %s && %s" % tuple(self.transposons)
+            return "Intended for %s or %s" % tuple(self.transposons)
         else:
             return "Intended for " + ", ".join(self.transposons[:-1]) + ", and " + self.transposons[-1]
     

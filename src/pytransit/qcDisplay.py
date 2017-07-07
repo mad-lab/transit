@@ -29,6 +29,7 @@ from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
+import pytransit.norm_tools as norm_tools
 
 
 
@@ -71,7 +72,9 @@ class qcFrame ( wx.Frame ):
             self.index_stats = 0
             self.plots_list = []
 
-            wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = "Quality Control", pos = wx.DefaultPosition, size = wx.Size( 1560,800 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+            self.wigList = datasets
+
+            wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = "Quality Control", pos = wx.DefaultPosition, size = wx.Size( 1560, 900 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
             self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 
@@ -83,7 +86,7 @@ class qcFrame ( wx.Frame ):
 
             self.plotsScrolledWindow = wx.ScrolledWindow( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
             self.plotsScrolledWindow.SetScrollRate( 5, 5 )
-            self.plotsScrolledWindow.SetMinSize( wx.Size( -1, 550 ) )
+            self.plotsScrolledWindow.SetMinSize( wx.Size( -1, 515 ) )
 
             #plotsSizer = wx.BoxSizer( wx.VERTICAL )
             plotsSizer = wx.BoxSizer( wx.HORIZONTAL )
@@ -111,24 +114,40 @@ class qcFrame ( wx.Frame ):
             self.statsScrolledWindow = wx.ScrolledWindow( self.m_scrolledWindow1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
             self.statsScrolledWindow.SetScrollRate( 5, 5 )
             self.statsScrolledWindow.SetMaxSize( wx.Size( -1, -1 ) )
-            self.statsScrolledWindow.SetMinSize( wx.Size( -1, 200 ) )
+            self.statsScrolledWindow.SetMinSize( wx.Size( -1, 300 ) )
 
 
-            self.noticeLabel = wx.StaticText( self.statsScrolledWindow, wx.ID_ANY, u"*Note: Plot 1 and 2 truncate the top 1% of reads for readability.", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE)
+            NoteText = """*Note: Plot 1 and 2 truncate the top 1% of reads for readability.
+ Selecting a normalization method from the drop down will normalize the data and refresh the figures and table.
+ This may take a long time depending on the normalization method chosen."""
+
+            #self.noticeLabel = wx.StaticText( self.statsScrolledWindow, wx.ID_ANY, u"*Note: Plot 1 and 2 truncate the top 1% of reads for readability.", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE)
+            self.noticeLabel = wx.StaticText( self.statsScrolledWindow, wx.ID_ANY, NoteText, wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_LEFT)
+
+            normChoices = sorted(norm_tools.methods.keys()) #[ u"nonorm", "TTR", "betageom"]
+            self.normChoice = wx.Choice( self.statsScrolledWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, normChoices, 0 )
+            #self.normChoice.SetSelection( 0 )
+            self.normChoice.SetStringSelection("nonorm")
             #noteSizer = wx.BoxSizer( wx.VERTICAL )
             #noteSizer.Add(self.noticeLabel, wx.ALL|wx.EXPAND, 5 )
 
 
-
+            self.normLabel = wx.StaticText( self.statsScrolledWindow, wx.ID_ANY, u"Normalization:", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE)
             statsSizer = wx.BoxSizer( wx.VERTICAL )
+            normSizer = wx.BoxSizer( wx.HORIZONTAL )
+
             self.statsListCtrl = wx.ListCtrl( self.statsScrolledWindow, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1, 140 ), wx.LC_REPORT |wx.LC_SINGLE_SEL )
 
 
+            normSizer.Add(self.normLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+            normSizer.Add(self.normChoice, 0, wx.ALL, 5)
+
             statsSizer.Add( self.noticeLabel, 0, wx.EXPAND, 5 )
+            #statsSizer.Add( self.normChoice, 0, wx.ALL, 5 )
+            statsSizer.Add(normSizer, 0, wx.ALL, 5)
             statsSizer.Add( self.statsListCtrl, 1, wx.ALL|wx.EXPAND, 5 )
 
-
-
+            
 
             self.statsScrolledWindow.SetSizer( statsSizer )
             self.statsScrolledWindow.Layout()
@@ -150,13 +169,32 @@ class qcFrame ( wx.Frame ):
             ########################
             # Connect Events
             self.statsListCtrl.Bind( wx.EVT_LIST_ITEM_SELECTED, self.onStatsItemSelect)
+            self.normChoice.Bind( wx.EVT_CHOICE, self.onNormSelect )
+
+
+            #######
+            self.index_stats = 0
+            self.statsListCtrl.InsertColumn(0, 'File', width=250)
+            self.statsListCtrl.InsertColumn(1, 'Density', wx.LIST_FORMAT_CENTRE, width=85)
+            self.statsListCtrl.InsertColumn(2, 'Mean Read', wx.LIST_FORMAT_CENTRE, width=85)
+            self.statsListCtrl.InsertColumn(3, 'NZMean Read', wx.LIST_FORMAT_CENTRE, width=115)
+            self.statsListCtrl.InsertColumn(4, 'NZMedian Read', wx.LIST_FORMAT_CENTRE, width=125)
+            self.statsListCtrl.InsertColumn(5, 'Max Read', wx.LIST_FORMAT_CENTRE, width=85)
+            self.statsListCtrl.InsertColumn(6, 'Total Reads', wx.LIST_FORMAT_CENTRE, width=85)
+            self.statsListCtrl.InsertColumn(7, 'Skew', wx.LIST_FORMAT_CENTRE, width=85)
+            self.statsListCtrl.InsertColumn(8, 'Kurtosis', wx.LIST_FORMAT_CENTRE, width=85)
+
 
 
 
             ############################
-            self.addFiles(datasets)
-            self.addPlots(datasets)
-            self.statsListCtrl.Select(0)
+            self.norm = "nonorm"
+            (self.data, self.position) = tnseq_tools.get_data(self.wigList)
+            
+            self.refresh()
+            #self.updateFiles()
+            #self.addPlots()
+            #self.statsListCtrl.Select(0)
             #self.onStatsItemSelect(None)
             ###########################
             #self.bSizer9.Fit()
@@ -174,23 +212,31 @@ class qcFrame ( wx.Frame ):
         pass
 
 
-    def addFiles(self, datasets):
-        self.index_stats = 0
-        self.statsListCtrl.InsertColumn(0, 'File', width=250)
-        self.statsListCtrl.InsertColumn(1, 'Density', wx.LIST_FORMAT_CENTRE, width=85)
-        self.statsListCtrl.InsertColumn(2, 'Mean Read', wx.LIST_FORMAT_CENTRE, width=85)
-        self.statsListCtrl.InsertColumn(3, 'NZMean Read', wx.LIST_FORMAT_CENTRE, width=115)
-        self.statsListCtrl.InsertColumn(4, 'NZMedian Read', wx.LIST_FORMAT_CENTRE, width=125)
-        self.statsListCtrl.InsertColumn(5, 'Max Read', wx.LIST_FORMAT_CENTRE, width=85)
-        self.statsListCtrl.InsertColumn(6, 'Total Reads', wx.LIST_FORMAT_CENTRE, width=85)
-        self.statsListCtrl.InsertColumn(7, 'Skew', wx.LIST_FORMAT_CENTRE, width=85)
-        self.statsListCtrl.InsertColumn(8, 'Kurtosis', wx.LIST_FORMAT_CENTRE, width=85)
+    def refresh(self):
+        try:
+            #(self.data, self.position) = tnseq_tools.get_data(self.wigList)
+            self.plots_list = []
+            self.statsListCtrl.DeleteAllItems()
+            (self.normdata, factors) = norm_tools.normalize_data(self.data, self.norm)
+            self.updateFiles()
+            self.addPlots()
+            self.statsListCtrl.Select(0)
+            self.refreshPlots()
+        except Exception as e:
+            print self.qc_prefix, "Error:", e
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
 
+
+
+    def updateFiles(self):
+        self.index_stats = 0
 
         try:
-            for path in datasets:
-                name = transit_tools.basename(path)
-                (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(path)
+            for j,row in enumerate(self.normdata):
+                name = transit_tools.basename(self.wigList[j])
+                (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_data_stats(row)
                 self.statsListCtrl.InsertStringItem(self.index_stats, name)
                 self.statsListCtrl.SetStringItem(self.index_stats, 1, "%1.1f" % (density*100.0))
                 self.statsListCtrl.SetStringItem(self.index_stats, 2, "%1.1f" % (meanrd))
@@ -198,8 +244,8 @@ class qcFrame ( wx.Frame ):
                 self.statsListCtrl.SetStringItem(self.index_stats, 4, "%1.1f" % (nzmedianrd))
                 self.statsListCtrl.SetStringItem(self.index_stats, 5, "%d" % (maxrd))
                 self.statsListCtrl.SetStringItem(self.index_stats, 6, "%d" % (totalrd))
-                self.statsListCtrl.SetStringItem(self.index_stats, 7, "%d" % (skew))
-                self.statsListCtrl.SetStringItem(self.index_stats, 8, "%d" % (kurtosis))
+                self.statsListCtrl.SetStringItem(self.index_stats, 7, "%1.1f" % (skew))
+                self.statsListCtrl.SetStringItem(self.index_stats, 8, "%1.1f" % (kurtosis))
                 print self.qc_prefix, "Adding dataset (%d): %s" % (self.index_stats, name)
                 self.index_stats+=1
         except Exception as e:
@@ -209,14 +255,12 @@ class qcFrame ( wx.Frame ):
             print(exc_type, fname, exc_tb.tb_lineno)
 
 
-    def addPlots(self, datasets):
+    def addPlots(self):
         try:
-            for i,path in enumerate(datasets):
+            for i,reads in enumerate(self.normdata):
                 #Data
-                name = transit_tools.basename(path)
-                reads,position = tnseq_tools.get_data([path])
-                reads = reads[0]
-                reads = numpy.array(reads)
+                name = transit_tools.basename(self.wigList[i])
+                #reads,position = tnseq_tools.get_data([])
                 nzreads = reads[reads>0]
                 n_nz = len(nzreads)
                 truncnzreads = sorted(nzreads)[:int(n_nz*0.99)]
@@ -288,13 +332,24 @@ class qcFrame ( wx.Frame ):
             print(exc_type, fname, exc_tb.tb_lineno)
 
 
-    def onStatsItemSelect(self, event):
+    def onNormSelect(self, event):
+        self.norm = self.normChoice.GetString(self.normChoice.GetCurrentSelection())
+        print self.qc_prefix, "Normalizing data using '%s' method" % (self.norm)
+        self.refresh() 
+
+
+    def refreshPlots(self):
         ii = self.statsListCtrl.GetFirstSelected()
-        print self.qc_prefix, "Showing plots for ", self.statsListCtrl.GetItem(ii, 0).GetText()
         hist_wx_bitmap, qq_wx_bitmap, sorted_wx_bitmap = self.plots_list[ii]
         self.plotsBitmap1.SetBitmap(hist_wx_bitmap)
         self.plotsBitmap2.SetBitmap(qq_wx_bitmap)
         self.plotsBitmap3.SetBitmap(sorted_wx_bitmap)
+
+
+    def onStatsItemSelect(self, event):
+        ii = self.statsListCtrl.GetFirstSelected()
+        print self.qc_prefix, "Showing plots for ", self.statsListCtrl.GetItem(ii, 0).GetText()
+        self.refreshPlots()
 
 
     def statsSelected(self, col=0):

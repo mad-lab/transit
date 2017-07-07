@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*- 
 
-###########################################################################
-## Python code generated with wxFormBuilder (version Jun  6 2014)
-## http://www.wxformbuilder.org/
-##
-## PLEASE DO "NOT" EDIT THIS FILE!
-###########################################################################
 
 import sys
 
@@ -33,6 +27,21 @@ import time
 import datetime
 import threading
 import numpy
+import matplotlib
+
+# Check backends and use the first interactive one
+interactive_backends = [i for i in matplotlib.rcsetup.interactive_bk]
+goodBackend = False
+for backend in interactive_backends:
+    if goodBackend: break
+    try:
+        matplotlib.use(backend,warn=False, force=True)
+        from matplotlib import pyplot as plt
+        goodBackend = True
+    except:
+        goodBackend = False
+
+
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import math
@@ -48,6 +57,7 @@ import pytransit.trash as trash
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
 import pytransit.norm_tools as norm_tools
+import pytransit.stat_tools as stat_tools
 import pytransit.fileDisplay as fileDisplay
 import pytransit.qcDisplay as qcDisplay
 import pytransit.images as images
@@ -56,6 +66,7 @@ import pytransit.images as images
 
 method_wrap_width = 250
 methods = pytransit.analysis.methods
+normmethods = norm_tools.methods
 
 
 wildcard = "Python source (*.py)|*.py|" \
@@ -104,7 +115,7 @@ class MainFrame ( wx.Frame ):
         
         bSizer4 = wx.BoxSizer( wx.VERTICAL )
 
-        # Organism
+        # ANNOTATION
         orgSizer = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Organism" ), wx.VERTICAL )
         
         bSizer10 = wx.BoxSizer( wx.HORIZONTAL )
@@ -114,27 +125,21 @@ class MainFrame ( wx.Frame ):
         bSizer10.Add( self.m_staticText5, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
         
 
-        self.annotationFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Annotation File (.prot_table or .gff3)]', size= wx.Size(400, 30))
+        self.annotationFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Annotation File (.prot_table or .gff3)]', size= wx.Size(500, -1))
 
-
-        bSizer10.Add( self.annotationFilePicker, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-        
-        self.m_panel2 = wx.Panel( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.m_panel2.SetMinSize( wx.Size( 100,-1 ) )
-        self.m_panel2.SetMaxSize( wx.Size( 150,-1 ) )
-        
-        bSizer10.Add( self.m_panel2, 1, wx.EXPAND |wx.ALL, 5 )
+        bSizer10.Add( self.annotationFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
         
         orgSizer.Add( bSizer10, 1, wx.EXPAND, 5 )
         
-        
         bSizer4.Add( orgSizer, 0, wx.EXPAND, 5 )
-        
+       
+
+        # CONTROL 
         ctrlSizer = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Control Samples" ), wx.VERTICAL )
         
         bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-        
-        self.ctrlRemoveButton = wx.Button( self.mainWindow, wx.ID_ANY, u"Remove", wx.DefaultPosition, wx.DefaultSize, 0 )
+       
+        self.ctrlRemoveButton = wx.Button( self.mainWindow, wx.ID_ANY, u"Remove", wx.DefaultPosition, (96,-1), 0 )
         bSizer2.Add( self.ctrlRemoveButton, 0, wx.ALL, 5 )
         
         self.ctrlView = wx.Button( self.mainWindow, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -147,15 +152,8 @@ class MainFrame ( wx.Frame ):
         
         bSizer2.Add( self.ctrlScatter, 0, wx.ALL, 5 )
         
-        self.ctrlFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Control Dataset(s)]', size= wx.Size(400, 30))
-        bSizer2.Add( self.ctrlFilePicker, 1, wx.ALL, 5 )
-        
-        self.m_panel21 = wx.Panel( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.m_panel21.SetMinSize( wx.Size( 100,-1 ) )
-        self.m_panel21.SetMaxSize( wx.Size( 150,-1 ) )
-        
-        bSizer2.Add( self.m_panel21, 1, wx.EXPAND |wx.ALL, 5 )
-        
+        self.ctrlFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Control Dataset(s)]', size= wx.Size(500, -1))
+        bSizer2.Add( self.ctrlFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
         
         ctrlSizer.Add( bSizer2, 0, wx.EXPAND, 5 )
         
@@ -163,15 +161,16 @@ class MainFrame ( wx.Frame ):
 
         self.list_ctrl.SetMaxSize(wx.Size(940,200))
         ctrlSizer.Add( self.list_ctrl, 1, wx.ALL|wx.EXPAND, 5 )
-        
-        
+                
         bSizer4.Add( ctrlSizer, 1, wx.EXPAND, 5 )
-        
+       
+    
+        # EXPERIMENTAL
         expSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Experimental Samples" ), wx.VERTICAL )
         
         bSizer3 = wx.BoxSizer( wx.HORIZONTAL )
         
-        self.expSizer = wx.Button( self.mainWindow, wx.ID_ANY, u"Remove", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.expSizer = wx.Button( self.mainWindow, wx.ID_ANY, u"Remove", wx.DefaultPosition, (96,-1), 0 )
         bSizer3.Add( self.expSizer, 0, wx.ALL, 5 )
         
         self.expView = wx.Button( self.mainWindow, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -185,14 +184,8 @@ class MainFrame ( wx.Frame ):
         bSizer3.Add( self.expScatter, 0, wx.ALL, 5 )
        
 
-        self.expFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Experimental Dataset(s)]', size= wx.Size(400, 30))
-        bSizer3.Add( self.expFilePicker, 1, wx.ALL, 5 )
-        
-        self.m_panel22 = wx.Panel( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.m_panel22.SetMinSize( wx.Size( 100,-1 ) )
-        self.m_panel22.SetMaxSize( wx.Size( 150,-1 ) )
-        
-        bSizer3.Add( self.m_panel22, 1, wx.EXPAND |wx.ALL, 5 )
+        self.expFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Experimental Dataset(s)]', size= wx.Size(500, -1))
+        bSizer3.Add( self.expFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
         
         
         expSizer1.Add( bSizer3, 0, wx.EXPAND, 5 )
@@ -204,6 +197,9 @@ class MainFrame ( wx.Frame ):
         
         bSizer4.Add( expSizer1, 1, wx.EXPAND, 5 )
         
+
+
+        # RESULTS
         filesSizer = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Results Files" ), wx.VERTICAL )
         
         bSizer141 = wx.BoxSizer( wx.HORIZONTAL )
@@ -250,8 +246,6 @@ class MainFrame ( wx.Frame ):
         self.optionsWindow = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL |wx.EXPAND)
         self.optionsWindow.SetScrollRate( 5, 5 )
         self.optionsWindow.SetMinSize( wx.Size( 310,1000 ) )
-        #self.optionsWindow.SetMaxSize( wx.Size( 310,1000 ) )
-        #self.optionsWindow.BackgroundColour = (200, 0, 20) 
         
 
         self.optionsSizer = wx.BoxSizer( wx.VERTICAL )
@@ -307,8 +301,6 @@ class MainFrame ( wx.Frame ):
         self.methodSizerText = wx.StaticBox( self.optionsWindow, wx.ID_ANY, u"Method Options" )
         self.methodSizer = wx.StaticBoxSizer( self.methodSizerText, wx.VERTICAL )
 
-        #self.methodSizerText.Hide()
-        #self.methodSizer.SetMinSize( wx.Size( 250,-1 ) ) 
         
         self.m_panel1 = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.m_panel1.SetMinSize( wx.Size( 50,1 ) )
@@ -320,46 +312,46 @@ class MainFrame ( wx.Frame ):
         self.methodSizer.Add( self.globalLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
         self.globalPanel = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.globalPanel.SetMinSize( wx.Size( 50,90 ) )
+        self.globalPanel.SetMinSize( wx.Size( 230,90 ) )
         self.globalPanel.SetMaxSize( wx.Size( 250,-1) )
-       
-        #self.globalPanel.BackgroundColour = (200, 230, 250) 
-        bSizer1431 = wx.BoxSizer( wx.VERTICAL )
+      
+ 
+        globalSizerVT = wx.BoxSizer( wx.VERTICAL )
+        nTermSizer = wx.BoxSizer( wx.HORIZONTAL )
+        cTermSizer = wx.BoxSizer( wx.HORIZONTAL )
         
-        bSizer1521 = wx.BoxSizer( wx.HORIZONTAL )
-        
-        bSizer1621 = wx.BoxSizer( wx.VERTICAL )
-        
+
+        # N TERMINUS - GLOBAL 
         self.globalNTerminusLabel = wx.StaticText( self.globalPanel, wx.ID_ANY, u"Ignore N-Terminus %:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalNTerminusLabel.Wrap( -1 )
-        bSizer1621.Add( self.globalNTerminusLabel, 0, wx.ALL, 5 )
-        
+       
+        self.globalNTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.globalNTerminusIcon = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the N-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function.")
+        nTermSizer.Add( self.globalNTerminusLabel,0, wx.ALIGN_CENTER, 5 )
+        nTermSizer.Add( self.globalNTerminusText, 0, wx.ALIGN_CENTER, 5 )
+        nTermSizer.Add( self.globalNTerminusIcon, 0, wx.ALIGN_CENTER, 5 )
+
+
+        # C TERMINUS - GLOBAL 
         self.globalCTerminusLabel = wx.StaticText( self.globalPanel, wx.ID_ANY, u"Ignore C-Terminus %:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalCTerminusLabel.Wrap( -1 )
-        bSizer1621.Add( self.globalCTerminusLabel, 0, wx.ALL, 5 )
-        
-        
-        bSizer1521.Add( bSizer1621, 1, wx.EXPAND, 5 )
-        
-        bSizer1721 = wx.BoxSizer( wx.VERTICAL )
-        
-        self.globalNTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer1721.Add( self.globalNTerminusText, 0, wx.ALL, 5 )
-        
         self.globalCTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer1721.Add( self.globalCTerminusText, 0, wx.ALL, 5 )
+        self.globalCTerminusIcon = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the C-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function.")      
+ 
+        cTermSizer.Add( self.globalCTerminusLabel,0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        cTermSizer.Add( self.globalCTerminusText, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        cTermSizer.Add( self.globalCTerminusIcon, 0, wx.ALIGN_CENTER, 5 )
+ 
+        
+
+        globalSizerVT.Add( nTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        globalSizerVT.Add( cTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
         
         
-        bSizer1521.Add( bSizer1721, 1, wx.EXPAND, 5 )
-        
-        
-        bSizer1431.Add( bSizer1521, 1, wx.EXPAND, 5 )
-        
-        
-        self.globalPanel.SetSizer( bSizer1431 )
+        self.globalPanel.SetSizer( globalSizerVT )
         self.globalPanel.Layout()
-        bSizer1431.Fit( self.globalPanel )
-        self.methodSizer.Add( self.globalPanel, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        globalSizerVT.Fit( self.globalPanel )
+        self.methodSizer.Add( self.globalPanel, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
 
         #--------------------#
@@ -371,7 +363,6 @@ class MainFrame ( wx.Frame ):
 
         self.optionsWindow.Fit()
         
-        #self.optionsSizer.Fit( self.optionsWindow )
         bSizer1.Add( self.optionsWindow, 0, wx.ALL, 5 )
         
         #--------------------#        
@@ -485,12 +476,18 @@ class MainFrame ( wx.Frame ):
 
         self.Bind( wx.EVT_MENU, self.aboutFunc, id = self.aboutMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.documentationFunc, id = self.documentationMenuItem.GetId() )
+        self.timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.clearStatus, self.timer)
+
+
     
     def __del__( self ):
         pass
     
     
     # Virtual event handlers, overide them in your derived class
+    def clearStatus(self, event):
+        event.Skip()
 
     def onHimar1Checked(self, event):
         event.Skip()
@@ -615,7 +612,7 @@ class MainFrame ( wx.Frame ):
 #inherit from the MainFrame created in wxFowmBuilder and create CalcFrame
 class TnSeekFrame(MainFrame):
     #constructor
-    def __init__(self,parent):
+    def __init__(self,parent,DEBUG=False):
         #initialize parent class
         MainFrame.__init__(self,parent)
 
@@ -717,7 +714,35 @@ class TnSeekFrame(MainFrame):
         self.HideProgressSection()
         self.HideGlobalOptions()
 
-    
+        self.DEBUG = DEBUG
+        if self.DEBUG:
+            ctrlData = ["glycerol_H37Rv_rep1.wig", "glycerol_H37Rv_rep2.wig"]
+            for dataset in ctrlData:
+                try:
+                    path = os.path.dirname(os.path.realpath(__file__))
+                    print path
+                    path = os.path.join(os.path.dirname('/pacific/home/mdejesus/transit/src/transit.py'), "pytransit/data", dataset)
+                    transit_tools.transit_message("Adding Ctrl File: " + path)
+                    self.loadCtrlFile(path)
+                except Exception as e:
+                    print "Error:", str(e)
+               
+            expData = ["cholesterol_H37Rv_rep1.wig", "cholesterol_H37Rv_rep2.wig", "cholesterol_H37Rv_rep3.wig"]
+            for dataset in expData:
+                try:
+                    path = os.path.join(os.path.dirname('/pacific/home/mdejesus/transit/src/transit.py'), "pytransit/data", dataset)
+                    transit_tools.transit_message("Adding Exp File: " + path)
+                    self.loadExpFile(path)
+                except Exception as e:
+                    print "Error:", str(e)
+
+            try:
+                self.annotation = os.path.join(os.path.dirname('/pacific/home/mdejesus/transit/src/transit.py'), "pytransit/genomes/H37Rv.prot_table")
+                self.annotationFilePicker.SetLabel(transit_tools.basename(self.annotation))
+                transit_tools.transit_message("Annotation File Selected: %s" % self.annotation)
+            except Exception as e:
+                print "Error:", str(e)
+ 
 
 
     def Exit(self, event):
@@ -752,13 +777,25 @@ class TnSeekFrame(MainFrame):
 
     
 
-    def updateStatus(self, msg):
+    def updateStatus(self, msg, time=-1):
         """"""
-        if newWx:
-            method, text = msg 
+        if type(msg) == type("A"):
+            text = msg
+        elif newWx:
+            method, text, time = msg 
         else:
-            method, text = msg.data
+            method, text,time = msg.data
+        if time > 0:
+            self.timer.Start(time)        
         self.statusBar.SetStatusText(text)
+
+    
+
+
+    def clearStatus(self, event):
+        self.statusBar.SetStatusText("")
+        self.timer.Stop()
+
 
     
     def saveHistogram(self, msg):
@@ -823,6 +860,8 @@ class TnSeekFrame(MainFrame):
         self.globalCTerminusLabel.Hide()
         self.globalNTerminusText.Hide()
         self.globalCTerminusText.Hide()
+        self.globalNTerminusIcon.Hide()
+        self.globalCTerminusIcon.Hide()
 
 
     def ShowGlobalOptions(self):
@@ -831,6 +870,8 @@ class TnSeekFrame(MainFrame):
         self.globalCTerminusLabel.Show()
         self.globalNTerminusText.Show()
         self.globalCTerminusText.Show()
+        self.globalNTerminusIcon.Show()
+        self.globalCTerminusIcon.Show()
 
     def HideProgressSection(self):
         self.progressLabel.Hide()
@@ -875,7 +916,7 @@ class TnSeekFrame(MainFrame):
 
 
 
-    def SaveFile(self, DIR=None, FILE="", WC=""):
+    def SaveFile(self, DIR=None, FILE="", WC=u'Common output extensions (*.txt,*.dat,*.out)|*.txt;*.dat;*.out;|\nAll files (*.*)|*.*"'):
         """
         Create and show the Save FileDialog
         """
@@ -959,6 +1000,31 @@ class TnSeekFrame(MainFrame):
         return all_exp
 
 
+    def loadCtrlFile(self, fullpath):
+        name = transit_tools.basename(fullpath)
+        (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
+        self.list_ctrl.InsertStringItem(self.index_ctrl, name)
+        self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+        self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+        self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+        self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
+        self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+        self.index_ctrl+=1
+
+
+    def loadExpFile(self, fullpath):
+        name = transit_tools.basename(fullpath)
+        (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
+        self.list_exp.InsertStringItem(self.index_exp, name)
+        self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
+        self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
+        self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
+        self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
+        self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+        self.index_exp+=1
+
+
+
     def loadCtrlFileFunc(self, event):
         self.statusBar.SetStatusText("Loading Control Dataset(s)...")
         try:
@@ -975,15 +1041,7 @@ class TnSeekFrame(MainFrame):
                 print "You chose the following Control file(s):"
                 for fullpath in paths:
                     print "\t%s" % fullpath
-                    name = transit_tools.basename(fullpath)
-                    (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-                    self.list_ctrl.InsertStringItem(self.index_ctrl, name)
-                    self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
-                    self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
-                    self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
-                    self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
-                    self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
-                    self.index_ctrl+=1
+                    self.loadCtrlFile(fullpath)
             dlg.Destroy()
         except Exception as e:
             transit_tools.transit_message("Error: %s" % e)
@@ -1010,15 +1068,7 @@ class TnSeekFrame(MainFrame):
                 print "You chose the following Experimental file(s):"
                 for fullpath in paths:
                     print "\t%s" % fullpath
-                    name = transit_tools.basename(fullpath)
-                    (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-                    self.list_exp.InsertStringItem(self.index_exp, name)
-                    self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
-                    self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
-                    self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
-                    self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
-                    self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
-                    self.index_exp+=1
+                    self.loadExpFile(fullpath)
             dlg.Destroy()
         except Exception as e:
             transit_tools.transit_message("Error: %s" % e)
@@ -1059,7 +1109,7 @@ class TnSeekFrame(MainFrame):
         if datasets and annotationpath:
             if self.verbose:
                 transit_tools.transit_message("Visualizing counts for: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene)
+            viewWindow = trash.TrashFrame(self, datasets, annotationpath, gene=gene)
             viewWindow.Show()
         elif not datasets:
             transit_tools.ShowError("Error: No datasets selected.")
@@ -1178,7 +1228,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         info.SetName('TRANSIT')
         info.SetVersion(pytransit.__version__)
         info.SetDescription(description)
-        info.SetCopyright('(C) 2015 - 2016\n Michael A. DeJesus\nThomas R. Ioerger')
+        info.SetCopyright('(C) 2015\n Michael A. DeJesus\nThomas R. Ioerger')
         info.SetWebSite('http://saclab.tamu.edu/essentiality/transit/')
         info.SetLicence(licence)
         info.AddDeveloper('Michael A. DeJesus')
@@ -1234,7 +1284,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 transit_tools.transit_message("Annotation File Selected: %s" % self.annotation)
         else:
-            self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table)]")
+            self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table or .gff3)]")
         
     def MethodSelectFunc(self, selected_name, test=""):
         #X = self.methodChoice.GetCurrentSelection()
@@ -1417,26 +1467,57 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
     def graphVolcanoPlot(self, dataset_name, dataset_type, dataset_path):
         try:
             if dataset_type == "Resampling":
-                X = []; Y = [];
+                X = []; Y = []; header=[]; qval_list = []; bad = [];
+                col_logFC = -6
+                col_pval = -2
+                col_qval = -1
+                ii = 0
                 for line in open(dataset_path):
-                    if line.startswith("#"): continue
+                    if line.startswith("#"):
+                        tmp = line.split("\t")
+                        temp_col_logfc = [i for (i,x) in enumerate(tmp) if "logfc" in x.lower() or "log-fc" in x.lower() or "log2fc" in x.lower()] 
+                        temp_col_pval = [i for (i,x) in enumerate(tmp) if ("pval" in x.lower() or "p-val" in x.lower()) and "adj" not in x.lower()] 
+                        if temp_col_logfc:
+                            col_logFC = temp_col_logfc[-1]
+                        if temp_col_pval:
+                            col_pval = temp_col_pval[-1]
+                        continue
+
+                    
                     tmp = line.strip().split("\t")
                     try:
-                        #log2FC = math.log(float(tmp[6])/float(tmp[5]),2)
-                        log2FC = float(tmp[-3])
-                        log10qval = -math.log(float(tmp[-1].strip()), 10)
-                    except:
-                        log2FC = 0
+                        log10qval = -math.log(float(tmp[col_pval].strip()), 10)
+                    except ValueError as e:
+                        bad.append(ii)
                         log10qval = 0
-                        #log2FC = 1
-                        #log10qval = 1
+
+                    log2FC = float(tmp[col_logFC])
+                
+                    qval_list.append((float(tmp[col_qval]), float(tmp[col_pval].strip())))
                     X.append(log2FC)
                     Y.append(log10qval)
+                    ii+=1
+                count = 0
+                threshold = 0.00001
+                backup_thresh = 0.00001
+                qval_list.sort()
+                for (q, p) in qval_list:
+                    backup_thresh = p
+                    if q > 0.05:
+                        break
+                    threshold = p
+                    count+=1
 
+                if threshold == 0:
+                    threshold = backup_thresh
+                for ii in bad:
+                    Y[ii]  = max(Y)
                 plt.plot(X,Y, "bo")
+                plt.axhline(-math.log(threshold, 10), color='r', linestyle='dashed', linewidth=3)
                 plt.xlabel("Log Fold Change (base 2)")
-                plt.ylabel("-Log q-value (base 10)")
-                plt.title("Resampling - Volcano plot")
+                plt.ylabel("-Log p-value (base 10)")
+                plt.suptitle("Resampling - Volcano plot")
+                plt.title("Adjusted threshold (red line): %1.8f" % threshold)
                 plt.show()
                 plt.close()
             else:
@@ -1501,7 +1582,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
             plt.title("LOESS Fit - %s" % transit_tools.basename(datasets_selected[j]) )
             plt.show()
-            plt.close()
+            #plt.close()
     
 
     def addFileFunc(self, event):
@@ -1559,8 +1640,10 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
 
     def convertToIGVGUI(self, datasets):
+        
         annotationPath = self.annotation
         if datasets and annotationPath:
+            normchoice = self.chooseNormalization()
             defaultFile = "read_counts.igv"
             defaultDir = os.getcwd()
             outputPath = self.SaveFile(defaultDir, defaultFile)
@@ -1569,7 +1652,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
         
                 transit_tools.transit_message("Converting the following datasets to IGV format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            self.convertToIGV(datasets, annotationPath, outputPath)
+            self.convertToIGV(datasets, annotationPath, outputPath, normchoice)
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
         elif not datasets:
@@ -1580,9 +1663,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             pass
 
 
-    def convertToIGV(self, dataset_list, annotationPath, path):
-
-        normchoice = self.chooseNormalization()
+    def convertToIGV(self, dataset_list, annotationPath, path, normchoice=None):
 
         if not normchoice:
             normchoice = "nonorm"
@@ -1617,7 +1698,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 return
             if self.verbose:
                 transit_tools.transit_message("Converting the following datasets to Combined Wig format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            self.convertToCombinedWig(datasets, annotationPath, outputPath, normchoice)
+            transit_tools.convertToCombinedWig(datasets, annotationPath, outputPath, normchoice)
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
         elif not datasets:
@@ -1627,50 +1708,13 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         else:
             pass
 
-    
-
-    def convertToCombinedWig(self, dataset_list, annotationPath, path, normchoice):
-        if not normchoice:
-            normchoice = "nonorm"
-
-        (fulldata, position) = tnseq_tools.get_data(dataset_list)
-        (fulldata, factors) = norm_tools.normalize_data(fulldata, normchoice, dataset_list, annotationPath)
-        position = position.astype(int)
-
-
-        hash = transit_tools.get_pos_hash(annotationPath)
-        rv2info = transit_tools.get_gene_info(annotationPath)
-
-        output = open(path, "w")
-        output.write("#Converted to CombinedWig with TRANSIT.\n")
-        if normchoice != "nonorm":
-            output.write("#Reads normalized using '%s'\n" % normchoice)
-            if type(factors[0]) == type(0.0):
-                output.write("#Normalization Factors: %s\n" % "\t".join(["%s" % f for f in factors.flatten()]))
-            else:
-                output.write("#Normalization Factors: %s\n" % " ".join([",".join(["%s" % bx for bx in b]) for b in factors]))
-
-
-        (K,N) = fulldata.shape
-        output.write("#Files:\n")
-        for f in dataset_list:
-            output.write("#%s\n" % f)
-
-        for i,pos in enumerate(position):
-            #output.write("%s\t%s\t%s\n" % (position[i], "\t".join(["%1.1f" % fulldata[j][i] for j in range(K)]), ",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])]) )  )
-
-            output.write("%-10d %s  %s\n" % (position[i], "".join(["%7.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
-
-
-        output.close()
-    
-
 
     def chooseNormalization(self):
 
+        norm_methods_choices = sorted(normmethods.keys())
         dlg = wx.SingleChoiceDialog(
                 self, "Choose how to normalize read-counts accross datasets.", 'Normalization Choice',
-                ["nonorm", "nzmean", "totreads", "TTR", "zinfnb", "quantile", "betageom", "aBGC", "emphist"], 
+                norm_methods_choices, 
                 wx.CHOICEDLG_STYLE
                 )
  

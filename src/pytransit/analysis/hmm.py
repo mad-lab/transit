@@ -125,29 +125,31 @@ class HMMGUI(base.AnalysisGUI):
         hmmLabel.Wrap( -1 )
         hmmSection.Add( hmmLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-        hmmSizer1 = wx.BoxSizer( wx.HORIZONTAL )
-        hmmSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-        hmmLabelSizer = wx.BoxSizer( wx.VERTICAL )
-        hmmControlSizer = wx.BoxSizer( wx.VERTICAL )
+        hmmSizer1 = wx.BoxSizer( wx.VERTICAL )
+
+        #(, , Sizer) = self.defineChoiceBox(hmmPanel, u"", hmmNormChoiceChoices, "")
+        #hmmSizer1.Add(Sizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+
+        # NORMALIZATION
+        hmmNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
+        (hmmNormLabel, self.wxobj.hmmNormChoice, normSizer) = self.defineChoiceBox(hmmPanel, u"Normalization:", hmmNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods.")
+        hmmSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
 
-        hmmRepLabel = wx.StaticText( hmmPanel, wx.ID_ANY, u"Replicates", wx.DefaultPosition, wx.DefaultSize, 0 )
-        hmmRepLabel.Wrap(-1)
-        hmmLabelSizer.Add(hmmRepLabel, 1, wx.ALL, 5)
+        # REPLICATE
+        hmmRepChoiceChoices = [ u"Sum", u"Mean" ]
+        (hmmRepLabel, self.wxobj.hmmRepChoice, repSizer) = self.defineChoiceBox(hmmPanel, u"Replicates:", hmmRepChoiceChoices, "Determines how to handle replicates, and their read-counts. When using many replicates, using 'Mean' may be recommended over 'Sum'")
+        hmmSizer1.Add(repSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
 
-        hmmRepChoiceChoices = [ u"Sum", u"Mean", "TTRMean" ]
-        self.wxobj.hmmRepChoice = wx.Choice( hmmPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, hmmRepChoiceChoices, 0 )
-        self.wxobj.hmmRepChoice.SetSelection( 2 )
+        # LOESS
+        (self.wxobj.hmmLoessCheck, loessCheckSizer) = self.defineCheckBox(hmmPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(230,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
+        hmmSizer1.Add( loessCheckSizer, 0, wx.EXPAND, 5 )
 
-        hmmControlSizer.Add(self.wxobj.hmmRepChoice, 0, wx.ALL|wx.EXPAND, 5)
-
-
-        hmmSizer2.Add(hmmLabelSizer, 1, wx.EXPAND, 5)
-        hmmSizer2.Add(hmmControlSizer, 1, wx.EXPAND, 5)
-            
-        hmmSizer1.Add(hmmSizer2, 1, wx.EXPAND, 5 )
-
+        # LOESS Button
+        self.wxobj.hmmLoessPrev = wx.Button( hmmPanel, wx.ID_ANY, u"Preview LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
+        hmmSizer1.Add( self.wxobj.hmmLoessPrev, 0, wx.ALL|wx.CENTER, 5 )
+ 
 
         hmmSection.Add( hmmSizer1, 1, wx.EXPAND, 5 )
 
@@ -161,6 +163,7 @@ class HMMGUI(base.AnalysisGUI):
 
         #Connect events
         hmmButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
+        self.wxobj.hmmLoessPrev.Bind(wx.EVT_BUTTON, self.wxobj.LoessPrevFunc)        
 
         self.panel =  hmmPanel
 
@@ -177,7 +180,7 @@ class HMMMethod(base.SingleConditionMethod):
                 ctrldata,
                 annotation_path,
                 output_file,
-                replicates="TTRMean",
+                replicates="Mean",
                 normalization=None,
                 LOESS=False,
                 ignoreCodon=True,
@@ -190,7 +193,7 @@ class HMMMethod(base.SingleConditionMethod):
             T = len([1 for line in open(ctrldata[0]).readlines() if not line.startswith("#")])
             self.maxiterations = T*4 + 1
         except:
-            self.self.maxiterations = 100
+            self.maxiterations = 100
         self.count = 1
 
 
@@ -218,7 +221,9 @@ class HMMMethod(base.SingleConditionMethod):
         ignoreCodon = True
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
         CTerminus = float(wxobj.globalCTerminusText.GetValue())
-        normalization = None
+        
+        normalization = wxobj.hmmNormChoice.GetString(wxobj.hmmNormChoice.GetCurrentSelection())
+
         LOESS = False
 
         #Get output path
@@ -250,8 +255,8 @@ class HMMMethod(base.SingleConditionMethod):
         outpath = args[2]
         output_file = open(outpath, "w")
 
-        replicates = kwargs.get("r", "TTRMean")
-        normalization = None
+        replicates = kwargs.get("r", "Mean")
+        normalization = kwargs.get("r", "TTR")
         LOESS = kwargs.get("l", False)
         ignoreCodon = True
         NTerminus = float(kwargs.get("iN", 0.0))
@@ -272,13 +277,28 @@ class HMMMethod(base.SingleConditionMethod):
         self.transit_message("Starting HMM Method")
         start_time = time.time()
         
-        #Get orf data
+        #Get data
         self.transit_message("Getting Data")
         (data, position) = tnseq_tools.get_data(self.ctrldata)
+        (K,N) = data.shape
+
+        # Normalize data
+        if self.normalization != "nonorm":
+            self.transit_message("Normalizing using: %s" % self.normalization)
+            (data, factors) = norm_tools.normalize_data(data, self.normalization, self.ctrldata, self.annotation_path)
+        
+        # Do LOESS
+        if self.LOESS: 
+            self.transit_message("Performing LOESS Correction")
+            for j in range(K):
+                data[j] = stat_tools.loess_correction(position, data[j])
+
+
         hash = transit_tools.get_pos_hash(self.annotation_path)
         rv2info = transit_tools.get_gene_info(self.annotation_path)
-        self.transit_message("Combining Replicates as '%s'" % self.replicates)
 
+        if len(self.ctrldata) > 1:
+            self.transit_message("Combining Replicates as '%s'" % self.replicates)
         O = tnseq_tools.combine_replicates(data, method=self.replicates) + 1 # Adding 1 to because of shifted geometric in scipy
 
         #Parameters
@@ -349,7 +369,7 @@ class HMMMethod(base.SingleConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output.name))
+            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
        
@@ -408,7 +428,7 @@ class HMMMethod(base.SingleConditionMethod):
         return """python %s hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output file>
 
         Optional Arguments:
-            -r <string>     :=  How to handle replicates. Sum, Mean, TTRMean. Default: -r TTRMean
+            -r <string>     :=  How to handle replicates. Sum, Mean. Default: -r Mean
             -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Off.
             -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
             -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
@@ -488,6 +508,7 @@ class HMMMethod(base.SingleConditionMethod):
 
         Q = numpy.zeros((N, T), dtype=int)
 
+        numpy.seterr(divide='ignore')
         for t in xrange(1, T):
             b_o = [B[i](O[t]) for i in range(N)]
             #nus = delta[:, t-1] + numpy.log(A)
@@ -498,13 +519,14 @@ class HMMMethod(base.SingleConditionMethod):
             self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
             self.count+=1
 
-        Q_opt = [numpy.argmax(delta[:,T-1])]
+        Q_opt = [int(numpy.argmax(delta[:,T-1]))]
         for t in xrange(T-2, -1, -1):
             Q_opt.insert(0, Q[Q_opt[0],t+1])
             self.progress_update("hmm", self.count)
             self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
             self.count+=1
 
+        numpy.seterr(divide='warn')
         self.progress_update("hmm", self.count)
         self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
 
@@ -532,7 +554,7 @@ class HMMMethod(base.SingleConditionMethod):
         output = open(output_path, "w")
         pos2state = dict([(position[t],states[t]) for t in range(len(states))])
         theta = numpy.mean(data > 0)
-        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, data=data, position=position)
+        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, data=data, position=position, ignoreCodon=False)
 
         num2label = {0:"ES", 1:"GD", 2:"NE", 3:"GA"}
         output.write("#HMM - Genes\n")        

@@ -23,8 +23,7 @@ import random
 import numpy
 import scipy.stats
 import datetime
-
-import matplotlib.pyplot as plt
+import matplotlib
 
 import base
 import pytransit
@@ -42,7 +41,7 @@ long_name = "Resampling test of conditional essentiality between two conditions"
 description = """Method for determining conditional essentiality based on resampling (i.e. permutation test). Identifies significant changes in mean read-counts for each gene after normalization."""
 
 transposons = ["himar1", "tn5"]
-columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","Sum Ctrl", "Sum Exp", "Delta Sum","log2FC","p-value","Adj. p-value"]
+columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "Sum Ctrl", "Sum Exp", "Delta Sum","p-value","Adj. p-value"]
 
 class ResamplingAnalysis(base.TransitAnalysis):
     def __init__(self):
@@ -71,8 +70,8 @@ class ResamplingFile(base.TransitFile):
 
         text = """Results:
     Conditionally - Essentials: %s
-        More Essential in Experimental datasets: %s
         Less Essential in Experimental datasets: %s
+        More Essential in Experimental datasets: %s
             """ % (DE, poslogfc, neglogfc)
         return text
 
@@ -116,66 +115,50 @@ class ResamplingGUI(base.AnalysisGUI):
         resamplingTopSizer2 = wx.BoxSizer( wx.HORIZONTAL )
 
         resamplingLabelSizer = wx.BoxSizer( wx.VERTICAL )
+        
+        mainSizer1 = wx.BoxSizer( wx.VERTICAL )
 
-        # Samples Label
-        resamplingSampleLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Samples", wx.DefaultPosition, wx.DefaultSize, 0 )
-        resamplingSampleLabel.Wrap( -1 )
-        resamplingLabelSizer.Add( resamplingSampleLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        #(, , Sizer) = self.defineChoiceBox(resamplingPanel, u"", u"", "")
+        #mainSizer1.Add(Sizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
+        # Samples 
+        (resamplingSampleLabel, self.wxobj.resamplingSampleText, sampleSizer) = self.defineTextBox(resamplingPanel, u"Samples:", u"10000", "Number of samples to take when estimating the resampling histogram. More samples give more accurate estimates of the p-values at the cost of computation time.")
+        mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
-        # Pseudocount Label
-        resamplingPseudocountLabel = wx.StaticText(resamplingPanel, wx.ID_ANY, u"Pseudocount", wx.DefaultPosition, wx.DefaultSize, 0)
-        resamplingPseudocountLabel.Wrap( -1 )
-        resamplingLabelSizer.Add( resamplingPseudocountLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        # Pseudocount
+        (resamplingPseudocountLabel, self.wxobj.resamplingPseudocountText, pseudoSizer) = self.defineTextBox(resamplingPanel, u"Pseudocount:", u"0.0", "Adds pseudo-counts to the each data-point. Useful to dampen the effects of small counts which may lead to deceptively high log-FC.")
+        mainSizer1.Add(pseudoSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
-
-        # Norm Label
-        resamplingNormLabel = wx.StaticText( resamplingPanel, wx.ID_ANY, u"Normalization", wx.DefaultPosition, wx.DefaultSize, 0 )
-        resamplingNormLabel.Wrap( -1 )
-        resamplingLabelSizer.Add( resamplingNormLabel, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-
-        resamplingTopSizer2.Add( resamplingLabelSizer, 1, wx.EXPAND, 5 )
-
-        resamplingControlSizer = wx.BoxSizer( wx.VERTICAL )
-
-        # Samples Text
-        self.wxobj.resamplingSampleText = wx.TextCtrl( resamplingPanel, wx.ID_ANY, u"10000", wx.DefaultPosition, wx.DefaultSize, 0 )
-        resamplingControlSizer.Add( self.wxobj.resamplingSampleText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-
-        # Pseudocounts
-        self.wxobj.resamplingPseudocountText = wx.TextCtrl(resamplingPanel, wx.ID_ANY, u"0.0", wx.DefaultPosition, wx.DefaultSize, 0)
-        resamplingControlSizer.Add( self.wxobj.resamplingPseudocountText, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
-
-
-        # Norm Choices
+        # Norm 
         resamplingNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
-        self.wxobj.resamplingNormChoice = wx.Choice( resamplingPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, resamplingNormChoiceChoices, 0 )
-        self.wxobj.resamplingNormChoice.SetSelection( 0 )
-        resamplingControlSizer.Add( self.wxobj.resamplingNormChoice, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+        (resamplingNormLabel, self.wxobj.resamplingNormChoice, normSizer) = self.defineChoiceBox(resamplingPanel, u"Normalization:", resamplingNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods. ")
+        mainSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 ) 
 
+
+        resamplingSizer.Add( mainSizer1, 1, wx.EXPAND, 5 )
+
+
+        # LOESS Check
+        (self.wxobj.resamplingLoessCheck, loessCheckSizer) = self.defineCheckBox(resamplingPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(230,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
+        resamplingSizer.Add( loessCheckSizer, 0, wx.EXPAND, 5 )
+
+        # LOESS Button
+        self.wxobj.resamplingLoessPrev = wx.Button( resamplingPanel, wx.ID_ANY, u"Preview LOESS fit", wx.DefaultPosition, wx.DefaultSize, 0 )
+        resamplingSizer.Add( self.wxobj.resamplingLoessPrev, 0, wx.ALL|wx.CENTER, 5 )
 
         # Adaptive Check
-        self.wxobj.resamplingAdaptiveCheckBox = wx.CheckBox(resamplingPanel, label = 'Adaptive Resampling (Faster)')
+        (self.wxobj.resamplingAdaptiveCheckBox, adaptiveSizer) = self.defineCheckBox(resamplingPanel, labelText="Adaptive Resampling (Faster)", widgetCheck=False, widgetSize=(200,-1), tooltipText="Dynamically stops permutations early if it is unlikely the ORF will be significant given the results so far. Improves performance, though p-value calculations for genes that are not differentially essential will be less accurate.")
+        resamplingSizer.Add( adaptiveSizer, 0, wx.EXPAND, 5 )
 
         # Histogram Check
-        self.wxobj.resamplingHistogramCheckBox = wx.CheckBox(resamplingPanel, label = 'Generate Resampling Histograms')
-
-        # Zeros Check
-        self.wxobj.resamplingZeroCheckBox = wx.CheckBox(resamplingPanel, label = 'Include sites with all zeros')
-
-
-        resamplingTopSizer2.Add( resamplingControlSizer, 1, wx.EXPAND, 5 )
-
-        resamplingTopSizer.Add( resamplingTopSizer2, 1, wx.EXPAND, 5 )
-
+        (self.wxobj.resamplingHistogramCheckBox, histSizer) = self.defineCheckBox(resamplingPanel, labelText="Generate Resampling Histograms", widgetCheck=False, widgetSize=(225,-1), tooltipText="Creates .png images with the resampling histogram for each of the ORFs. Histogram images are created in a folder with the same name as the output file.")
+        resamplingSizer.Add(histSizer, 0, wx.EXPAND, 5 )
         
 
-        resamplingSizer.Add( resamplingTopSizer, 1, wx.EXPAND, 5 )
-        resamplingSizer.Add( self.wxobj.resamplingAdaptiveCheckBox, 0, wx.EXPAND, 5 )
-        resamplingSizer.Add( self.wxobj.resamplingHistogramCheckBox, 0, wx.EXPAND, 5 )
-        resamplingSizer.Add( self.wxobj.resamplingZeroCheckBox, 0, wx.EXPAND, 5 )
+        # Zeros Check
+        (self.wxobj.resamplingZeroCheckBox, zeroSizer) = self.defineCheckBox(resamplingPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(180,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
+        resamplingSizer.Add(zeroSizer, 0, wx.EXPAND, 5 )
+
 
         resamplingButton = wx.Button( resamplingPanel, wx.ID_ANY, u"Run resampling", wx.DefaultPosition, wx.DefaultSize, 0 )
         resamplingSizer.Add( resamplingButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
@@ -187,6 +170,7 @@ class ResamplingGUI(base.AnalysisGUI):
 
         #Connect events
         resamplingButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
+        self.wxobj.resamplingLoessPrev.Bind(wx.EVT_BUTTON, self.wxobj.LoessPrevFunc)        
 
         self.panel = resamplingPanel
 
@@ -223,7 +207,7 @@ class ResamplingMethod(base.DualConditionMethod):
         self.doHistogram = doHistogram
         self.includeZeros = includeZeros
         self.pseudocount = pseudocount
-
+        
 
 
     @classmethod
@@ -258,7 +242,7 @@ class ResamplingMethod(base.DualConditionMethod):
 
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
         CTerminus = float(wxobj.globalCTerminusText.GetValue())
-        LOESS = False
+        LOESS = wxobj.resamplingLoessCheck.GetValue()
 
         #Get output path
         defaultFileName = "resampling_output_s%d_pc%1.2f" % (samples, pseudocount)
@@ -333,6 +317,11 @@ class ResamplingMethod(base.DualConditionMethod):
 
     def Run(self):
 
+        if not self.wxobj:
+            # Force matplotlib to use good backend for png.
+            matplotlib.use('Agg')
+            import matplotlib.pyplot as plt
+
         self.transit_message("Starting resampling Method")
         start_time = time.time()
        
@@ -351,9 +340,24 @@ class ResamplingMethod(base.DualConditionMethod):
         Kexp = len(self.expdata)
         #Get orf data
         self.transit_message("Getting Data")
+        (data, position) = tnseq_tools.get_data(self.ctrldata+self.expdata)
+
+        (K,N) = data.shape
+
+
         if self.normalization != "nonorm":
             self.transit_message("Normalizing using: %s" % self.normalization)
-        G = tnseq_tools.Genes(self.ctrldata+self.expdata, self.annotation_path, norm=self.normalization, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
+            (data, factors) = norm_tools.normalize_data(data, self.normalization, self.ctrldata+self.expdata, self.annotation_path)
+
+        if self.LOESS:
+            self.transit_message("Performing LOESS Correction")
+            for j in range(K):
+                data[j] = stat_tools.loess_correction(position, data[j])
+
+
+        G = tnseq_tools.Genes(self.ctrldata + self.expdata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data, position=position)
+
+        #G = tnseq_tools.Genes(self.ctrldata+self.expdata, self.annotation_path, norm=self.normalization, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
 
 
         #Resampling
@@ -383,13 +387,15 @@ class ResamplingMethod(base.DualConditionMethod):
                 if testlist:
                     n, bins, patches = plt.hist(testlist, normed=1, facecolor='c', alpha=0.75, bins=100)
                 else:
-                    n, bins, patches = plt.hist([0], normed=1, facecolor='c', alpha=0.75, bins=100)
+                    n, bins, patches = plt.hist([0,0], normed=1, facecolor='c', alpha=0.75, bins=100)
                 plt.xlabel('Delta Sum')
                 plt.ylabel('Probability')
                 plt.title('%s - Histogram of Delta Sum' % gene.orf)
                 plt.axvline(test_obs, color='r', linestyle='dashed', linewidth=3)
                 plt.grid(True)
                 genePath = os.path.join(histPath, gene.orf +".png")
+                if not os.path.exists(histPath):
+                    os.makedirs(histPath)
                 plt.savefig(genePath)
                 plt.clf()
 
@@ -414,18 +420,18 @@ class ResamplingMethod(base.DualConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: norm=%s, samples=%s, pseudocounts=%1.2f, adaptive=%s, histogram=%s, includeZeros=%s, output=%s\n" % (self.normalization, self.samples, self.pseudocount, self.adaptive, self.doHistogram, self.includeZeros, self.output.name))
+            self.output.write("#GUI with: norm=%s, samples=%s, pseudocounts=%1.2f, adaptive=%s, histogram=%s, includeZeros=%s, output=%s\n" % (self.normalization, self.samples, self.pseudocount, self.adaptive, self.doHistogram, self.includeZeros, self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
-        self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata))) 
-        self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata))) 
-        self.output.write("#Annotation path: %s\n" % (self.annotation_path))
+        self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
+        self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata).encode('utf-8'))) 
+        self.output.write("#Annotation path: %s\n" % (self.annotation_path.encode('utf-8')))
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         self.output.write("#%s\n" % "\t".join(columns))
 
         for i,row in enumerate(data):
             (orf, name, desc, n, mean1, mean2, sum1, sum2, test_obs, log2FC, pval_2tail) = row
-            self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.1f\t%1.1f\t%1.2f\t%1.2f\t%1.5f\t%1.5f\n" % (orf, name, desc, n, mean1, mean2, sum1, sum2, test_obs, log2FC, pval_2tail, qval[i]))
+            self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.2f\t%1.1f\t%1.2f\t%1.1f\t%1.5f\t%1.5f\n" % (orf, name, desc, n, mean1, mean2, log2FC, sum1, sum2, test_obs, pval_2tail, qval[i]))
         self.output.close()
 
         self.transit_message("Adding File: %s" % (self.output.name))

@@ -7,7 +7,6 @@ import scipy.stats
 from functools import total_ordering
 
 
-import transit_tools
 try:
     import norm_tools
     noNorm = False
@@ -348,10 +347,12 @@ class Genes:
         self.orf2index = {}
         self.genes = []
         
-        orf2info = transit_tools.get_gene_info(self.annotation)
+        orf2info = get_gene_info(self.annotation)
         if not numpy.any(data):
             (data, position) = get_data(self.wigList)
-        hash = transit_tools.get_pos_hash(self.annotation)
+            ii_min = data < self.minread
+            data[ii_min] = 0
+        hash = get_pos_hash(self.annotation)
 
         if not noNorm:
             (data, factors) = norm_tools.normalize_data(data, norm, self.wigList, self.annotation)
@@ -362,7 +363,8 @@ class Genes:
             data = numpy.array([combine_replicates(data, method=reps)])
 
         K,N = data.shape
-        
+       
+        self.data = data 
         orf2posindex = {}
         visited_list = []
         for i in range(N):
@@ -842,8 +844,9 @@ def combine_replicates(data, method="Sum"):
     elif method == "Mean":
         combined = numpy.round(numpy.mean(data,0))
     elif method == "TTRMean":
-        factors = norm_tools.TTR_factors(data)
-        data = factors * data
+        #factors = norm_tools.TTR_factors(data)
+        #data = factors * data
+        (data, factors) = norm_tools.normalize_data(data, "TTR")
         target_factors = norm_tools.norm_to_target(data, 100)
         data = target_factors * data
         combined = numpy.round(numpy.mean(data,0))
@@ -853,6 +856,20 @@ def combine_replicates(data, method="Sum"):
     return combined
 
 #
+
+def get_data_stats(reads):
+    density = numpy.mean(reads>0)
+    meanrd = numpy.mean(reads)
+    nzmeanrd = numpy.mean(reads[reads>0])
+    nzmedianrd = numpy.median(reads[reads>0])
+    maxrd = numpy.max(reads)
+    totalrd = numpy.sum(reads)
+
+    skew = scipy.stats.skew(reads[reads>0])
+    kurtosis = scipy.stats.kurtosis(reads[reads>0])
+    return (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis)
+
+    
 
 def get_wig_stats(path):
     """Returns statistics for the given wig file with read-counts.
@@ -871,15 +888,8 @@ def get_wig_stats(path):
             - skew
             - kurtosis
     """
-    reads = []
-    for line in open(path):
-        if line[0] not in "0123456789": continue
-        tmp = line.split()
-        pos = int(tmp[0])
-        rd = float(tmp[1])
-        reads.append(rd)
-    reads = numpy.array(reads)
-
+    (data,position) = get_data([path])
+    reads = data[0]
     density = numpy.mean(reads>0)
     meanrd = numpy.mean(reads)
     nzmeanrd = numpy.mean(reads[reads>0])
@@ -892,6 +902,118 @@ def get_wig_stats(path):
     return (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis)
 
 #
+
+def get_extended_pos_hash_pt(path, N=None):
+    #TODO: Write docstring
+
+    hash = {}
+    maxcoord = float("-inf")
+    data = [] 
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.split("\t")
+        orf = tmp[8]
+        start = int(tmp[1])
+        end = int(tmp[2])
+        maxcoord = max(maxcoord, start, end)
+        data.append((orf, start, end))
+
+    genome_start = 1
+    if N:
+        genome_end = maxcoord
+    else:
+        genome_end = N
+
+    for i,(orf, start, end) in enumerate(data):
+        if genome_start > start:
+            genome_start = start
+
+        prev_orf = ""
+        if i > 0:
+            prev_orf = data[i-1][0]
+            
+        next_orf = ""
+        if i < len(data)-1:
+            next_orf = data[i+1][0]
+
+        for pos in range(genome_start, end+1):
+            if pos not in hash: hash[pos] = {"current":[], "prev":[], "next":[]}
+
+            hash[pos]["prev"].append(prev_orf)
+            
+            if pos >= start:
+                hash[pos]["next"].append(next_orf)
+                hash[pos]["current"].append(orf)
+            else:
+                hash[pos]["next"].append(orf)
+        genome_start = end+1 
+
+    if N:
+        for pos in range(maxcoord, genome_end+1):
+            if pos not in hash: hash[pos] = {"current":[], "prev":[], "next":[]}
+            hash[pos]["prev"].append(prev_orf)
+    return hash
+
+def get_extended_pos_hash_gff(path, N=None):
+    #TODO: Write docstring
+
+    hash = {}
+    maxcoord = float("-inf")
+    data = []
+    for line in open(path):
+        if line.startswith("#"): continue
+        tmp = line.strip().split("\t")
+        features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
+        if "ID" not in features: continue
+        orf = features["ID"]
+        chr = tmp[0]
+        type = tmp[2]
+        start = int(tmp[3])
+        end = int(tmp[4])
+        maxcoord = max(maxcoord, start, end)
+        data.append((orf,start,end))
+
+    genome_start = 1
+    if N:
+        genome_end = maxcoord
+    else:
+        genome_end = N
+
+    for i,(orf, start, end) in enumerate(data):
+
+        if genome_start > start:
+            genome_start = start
+
+        prev_orf = ""
+        if i > 0:
+            prev_orf = data[i-1][0]
+
+        next_orf = ""
+        if i < len(data)-1:
+            next_orf = data[i+1][0]
+
+        for pos in range(genome_start, end+1):
+            if pos not in hash: hash[pos] = {"current":[], "prev":[], "next":[]}
+
+            hash[pos]["prev"].append(prev_orf)
+
+            if pos >= start:
+                hash[pos]["next"].append(next_orf)
+                hash[pos]["current"].append(orf)
+            else:
+                hash[pos]["next"].append(orf)
+        genome_start = end+1
+
+    if N:
+        for pos in range(maxcoord, genome_end+1):
+            if pos not in hash: hash[pos] = {"current":[], "prev":[], "next":[]}
+            hash[pos]["prev"].append(prev_orf)
+    return hash
+
+
+
+
+
 
 def get_pos_hash_pt(path):
     """Returns a dictionary that maps coordinates to a list of genes that occur at that coordinate.
@@ -940,6 +1062,23 @@ def get_pos_hash_gff(path):
             if pos not in hash: hash[pos] = []
             hash[pos].append(orf)
     return hash
+
+#
+
+def get_pos_hash(path):
+    """Returns a dictionary that maps coordinates to a list of genes that occur at that coordinate.
+
+    Arguments:
+        path (str): Path to annotation in .prot_table or GFF3 format.
+
+    Returns:
+        dict: Dictionary of position to list of genes that share that position.
+    """
+    filename, file_extension = os.path.splitext(path)
+    if file_extension.lower() in [".gff", ".gff3"]:
+        return get_pos_hash_gff(path)
+    else:
+        return get_pos_hash_pt(path)
 
 #
 
@@ -1012,6 +1151,29 @@ def get_gene_info_gff(path):
 
         orf2info[orf] = (name, desc, start, end, strand)
     return orf2info
+
+#
+
+def get_gene_info(path):
+    """Returns a dictionary that maps gene id to gene information.
+
+    Arguments:
+        path (str): Path to annotation in .prot_table or GFF3 format.
+
+    Returns:
+        dict: Dictionary of gene id to tuple of information:
+            - name
+            - description
+            - start coordinate
+            - end coordinate
+            - strand
+
+    """
+    filename, file_extension = os.path.splitext(path)
+    if file_extension.lower() in [".gff", ".gff3"]:
+        return get_gene_info_gff(path)
+    else:
+        return get_gene_info_pt(path)
 
 #
 

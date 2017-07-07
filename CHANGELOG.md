@@ -2,9 +2,28 @@
 All notable changes to this project will be documented in this file.
 
 
+
+## Version 2.1.0 - 2017-06-23
+- TRANSIT:
+    - Added tooltips next to most parameters to explain their functionality.
+    - Added Quality Control window, with choice for normalization method.
+    - Added more normalization options to the HMM method.
+    - Added LOESS correction functionality back to TRANSIT
+    - Added ability to scale Track View based on mean-count of the window.
+    - Added ability to scale individual tracks in Track View.
+    - Added ability to add tracks of features to Track View.
+    - New documentation on normalization.
+
+- TPP:
+    - TPP can now accept empty primer prefix (in case reads have been trimmed).
+    - TPP can now process reads obtained using Mme1 enzyme and protocol.
+    - TPP can now pass flags to BWA.
+
+
+
 ## Version 2.0.2 - 2016-08-19
     
--TRANSIT:
+- TRANSIT:
     - Now accepts GFF3 formatted annotations.
     - Added ability to specify pseudocounts for resampling.
     - Added extra columns to resampling output.
@@ -14,7 +33,7 @@ All notable changes to this project will be documented in this file.
     - Miscellanous bug fixes.
     - Updates to Documentation
 
--TPP:
+- TPP:
     - Now accepts custom primer sequences.
     - Reporting additional diagnostic statistics for reads mapping to phiMycoMarT7, and Illumina adapters.
     - Miscellaneous bug fixes.
@@ -23,7 +42,7 @@ All notable changes to this project will be documented in this file.
 
 ## Version 2.0.1 - 2016-07-05
 
-- TRANSIT:
+-TRANSIT:
     - Fixed crash in TPP.
     - Misc changes for outputs.
 

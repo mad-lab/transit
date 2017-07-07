@@ -118,6 +118,7 @@ class GriffinMethod(base.SingleConditionMethod):
                 ctrldata,
                 annotation_path,
                 output_file,
+                minread=1,
                 replicates="Sum",
                 normalization=None,
                 LOESS=False,
@@ -125,7 +126,8 @@ class GriffinMethod(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, ignoreCodon=ignoreCodon, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        self.minread = minread
 
 
     @classmethod
@@ -146,6 +148,9 @@ class GriffinMethod(base.SingleConditionMethod):
         if not transit_tools.validate_filetypes(ctrldata, transposons):
             return None
 
+
+        #
+        minread = 1
 
         #Read the parameters from the wxPython widgets
         ignoreCodon = True
@@ -168,6 +173,7 @@ class GriffinMethod(base.SingleConditionMethod):
         return self(ctrldata,
                 annotationPath,
                 output_file,
+                minread,
                 replicates,
                 normalization,
                 LOESS,
@@ -185,16 +191,19 @@ class GriffinMethod(base.SingleConditionMethod):
         outpath = args[2]
         output_file = open(outpath, "w")
 
-        replicates = "Sum"
+        minread = int(kwargs.get("m", 1))
+        replicates = kwargs.get("r", "Sum")
         normalization = None
         LOESS = False
-        ignoreCodon = True
-        NTerminus = 0.0
-        CTerminus = 0.0
+        ignoreCodon = not kwargs.get("sC", False)
+        NTerminus = float(kwargs.get("iN", 0.0))
+        CTerminus = float(kwargs.get("iC", 0.0))
+
 
         return self(ctrldata,
                 annotationPath,
                 output_file,
+                minread,
                 replicates,
                 normalization,
                 LOESS,
@@ -207,10 +216,10 @@ class GriffinMethod(base.SingleConditionMethod):
         self.transit_message("Starting Griffin Method")
         start_time = time.time()
        
- 
+
         #Get orf data
         self.transit_message("Getting Data")
-        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
+        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=self.minread, reps=self.replicates, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
 
         N = len(G)
         self.progress_range(N)
@@ -246,12 +255,12 @@ class GriffinMethod(base.SingleConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output.name))
+            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
 
-        self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
-        self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
+        self.output.write("#Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
+        self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         self.output.write("#%s\n" % "\t".join(columns))
         
@@ -268,7 +277,15 @@ class GriffinMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s griffin <comma-separated .wig files> <annotation .prot_table> <output file>""" % (sys.argv[0])
+        return """python %s griffin <comma-separated .wig files> <annotation .prot_table> <output file> [Optional Arguments]
+
+        Optional Arguments:
+        -m <integer>    :=  Smallest read-count to consider. Default: -m 1
+        -r <string>     :=  How to handle replicates. Sum or Mean. Default: -r Sum
+        -sC             :=  Include stop-codon (default is to ignore).
+        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
+        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        """ % (sys.argv[0])
 
 
 if __name__ == "__main__":

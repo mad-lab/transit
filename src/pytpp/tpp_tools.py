@@ -26,6 +26,24 @@ import platform
 import gzip
 import subprocess
 
+def cleanargs(rawargs):
+    #TODO: Write docstring
+    args = []
+    kwargs = {}
+    count = 0
+    while count < len(rawargs):
+        if rawargs[count].startswith("-"): #and len(rawargs[count].split(" ")) == 1:
+            if count + 1 < len(rawargs) and (not rawargs[count+1].startswith("-") or len(rawargs[count+1].split(" ")) > 1):
+                kwargs[rawargs[count][1:]] = rawargs[count+1]
+                count += 1
+            else:
+                kwargs[rawargs[count][1:]] = True
+        else:
+            args.append(rawargs[count])
+        count += 1
+    return (args, kwargs)
+
+
 
 def analyze_dataset(wigfile):
   data = []
@@ -125,7 +143,11 @@ def fix_paired_headers_for_bwa(reads1,reads2):
 	  os.system("mv %s %s" % (temp2, reads2))
   '''
 
+# find index of H[1..m] in G[1..n] with up to max mismatches
+
 def mmfind(G,n,H,m,max): # lengths; assume n>m
+  a = G[:n].find(H[:m])
+  if a!=-1: return a # shortcut for perfect matches
   for i in range(0,n-m):
     cnt = 0
     for k in range(m):
@@ -148,8 +170,11 @@ def extract_staggered(infile,outfile,vars):
   vars.truncated_reads = 0
   output = open(outfile,"w")
   tot = 0
+  #print infile
   for line in open(infile):
+    #print line
     line = line.rstrip()
+    if not line: continue
     if line[0]=='>': header = line; continue
     tot += 1
     if tot%1000000==0: message("%s reads processed" % tot)
@@ -159,7 +184,8 @@ def extract_staggered(infile,outfile,vars):
     if a>=P and a<=Q:
       gstart,gend = a+lenTn,readlen
       if b!=-1: gend = b; vars.truncated_reads += 1
-      if gend-gstart<20: continue # too short
+      #if gend-gstart<20: continue # too short
+      if gend-gstart<5: continue # too short
       output.write(header+"\n")
       output.write(line[gstart:gend]+"\n")
       vars.tot_tgtta += 1
@@ -334,44 +360,67 @@ def template_counts(ref,sam,bcfile,vars):
 
 # pretend that all reads count as unique templates
 
+def increase_counts(pos,sites, strand):
+        if strand == "F":
+            sites[pos][1] += 1  #if read has been found before, tally 1 more in R reads
+            sites[pos][2] += 1  #if read has been found before, tally 1 more in R reads
+        if strand == "R":
+            sites[pos][3] += 1  #if read has been found before, tally 1 more in R reads
+            sites[pos][4] += 1  #if read has been found before, tally 1 more in R reads
+        sites[pos][5] += 1  #if read has been found before, tally 1 more in R reads
+        sites[pos][6] += 1  #if read has been found before, tally 1 more in R reads
+    
+
 def read_counts(ref,sam,vars):
-  genome = read_genome(ref)
-  hits = {}
-  vars.tot_tgtta,vars.mapped = 0,0
-  vars.r1 = vars.r2 = 0
-  for line in open(sam):
-    if line[0]=='@': continue
-    else:
-      w = line.split('\t')
-      code,icode = samcode(w[1]),int(w[1])
-      vars.tot_tgtta += 1 
-      if icode==0 or icode==16: 
-        vars.r1 += 1
-        vars.mapped += 1
-        readlen = len(w[9])
-        pos = int(w[3])
-        strand,delta = 'F',-2
-        if code[4]=="1": strand,delta = 'R',readlen
-        pos += delta
-        if pos not in hits: hits[pos] = []
-        hits[pos].append(strand)
+    genome = read_genome(ref)
+    sites = {}
+    for i in range(len(genome)-1):
+        if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
+          pos = i+1
+          sites[pos] = [pos,0,0,0,0,0,0]
+     
+    hits = {}
+    vars.tot_tgtta,vars.mapped = 0,0
+    vars.r1 = vars.r2 = 0
+    for line in open(sam):
+        if line[0]=='@': continue
+        else:
+            w = line.split('\t')
+            code,icode = samcode(w[1]),int(w[1])
+            vars.tot_tgtta += 1
+            if icode==0 or icode==16:
+                vars.r1 += 1
+                vars.mapped += 1
+                readlen = len(w[9])
+                pos = int(w[3])
+                if vars.protocol.lower() == "mme1":
+                    strand,delta = 'F',readlen
+                    if code[4]=="1": strand,delta = 'R',1
+                    site1 = pos + delta - 2 #if on + strand, take column 3 position and add 1bp,
+                    site2 = pos + delta - 1 #check one off just in case it enzyme chewed too much
+                    if site1 in sites:
+                        increase_counts(site1, sites, strand)
+                    if site2 in sites:
+                        increase_counts(site2, sites, strand)
+                else:
+                    strand,delta = 'F',-2
+                    if code[4]=="1": strand,delta = 'R',readlen
+                    site1 = pos + delta #if on + strand, take column 3 position and add 1bp)
+                    if site1 in sites:
+                        increase_counts(site1, sites, strand)
+    
+    results = []
+    for key in sorted(sites.keys()):
+        results.append(sites[key])
+    return results # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
 
-  sites = []
-  for i in range(len(genome)-1):
-    if genome[i:i+2].upper()=="TA" or vars.transposon=='Tn5':
-      pos = i+1
-      h = hits.get(pos,[])
-      lenf,lenr = h.count('F'),h.count('R')
-      data = [pos,lenf,lenf,lenr,lenr,lenf+lenr,lenf+lenr]
-      sites.append(data)
 
-  return sites # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
 
 def driver(vars):
   vars.reads1 = vars.base+".reads1"
   vars.reads2 = vars.base+".reads2"
-  vars.tgtta1 = vars.base+".tgtta1"
-  vars.tgtta2 = vars.base+".tgtta2"
+  vars.trimmed1 = vars.base+".trimmed1"
+  vars.trimmed2 = vars.base+".trimmed2"
   vars.barcodes1 = vars.base+".barcodes1"
   vars.barcodes2 = vars.base+".barcodes2"
   vars.genomic2 = vars.base+".genomic2"
@@ -382,9 +431,10 @@ def driver(vars):
   vars.wig = vars.base+".wig"
   vars.stats = vars.base+".tn_stats"
 
-  if vars.prefix==None:
+  if not vars.prefix:
     if vars.transposon=="Tn5": vars.prefix = "TAAGAGACAG"
     elif vars.transposon=="Himar1": vars.prefix = "ACTTATCAGCCAACCTGTTA"
+    else: vars.prefix = ""
 
   try:
      extract_reads(vars)
@@ -445,8 +495,8 @@ def extract_reads(vars):
 
     if vars.single_end==True:
       message("assuming single-ended reads")
-      message("creating %s" % vars.tgtta1)
-      extract_staggered(vars.reads1,vars.tgtta1,vars)
+      message("creating %s" % vars.trimmed1)
+      extract_staggered(vars.reads1,vars.trimmed1,vars)
 
       return 
 
@@ -461,23 +511,23 @@ def extract_reads(vars):
 
     message("extracting barcodes and genomic parts of reads...")
 
-    message("creating %s" % vars.tgtta1)
-    extract_staggered(vars.reads1,vars.tgtta1,vars)
+    message("creating %s" % vars.trimmed1)
+    extract_staggered(vars.reads1,vars.trimmed1,vars)
 
-    message("creating %s" % vars.tgtta2)
-    select_reads(vars.tgtta1,vars.reads2,vars.tgtta2)
+    message("creating %s" % vars.trimmed2)
+    select_reads(vars.trimmed1,vars.reads2,vars.trimmed2)
     #message("creating %s" % vars.barcodes2)
-    #select_cycles(vars.tgtta2,22,30,vars.barcodes2)
+    #select_cycles(vars.trimmed2,22,30,vars.barcodes2)
     #message("creating %s" % vars.genomic2)
-    #select_cycles(vars.tgtta2,43,-1,vars.genomic2)
+    #select_cycles(vars.trimmed2,43,-1,vars.genomic2)
 
     # instead of using select_cycles, do these both in one shot by looking for constant seqs
     message("creating %s" % vars.barcodes2)
     message("creating %s" % vars.genomic2)
-    extract_barcodes(vars.tgtta2,vars.barcodes2,vars.genomic2, vars.mm1)
+    extract_barcodes(vars.trimmed2,vars.barcodes2,vars.genomic2, vars.mm1)
 
     message("creating %s" % vars.barcodes1)
-    replace_ids(vars.tgtta1,vars.barcodes2,vars.barcodes1)
+    replace_ids(vars.trimmed1,vars.barcodes2,vars.barcodes1)
 
 #  pattern for read 2...
 #    TAGTGGATGATGGCCGGTGGATTTGTG GTAATTACCA TGGTCGTGGTAT CCCAGCGCGACTTCTTCGGCGCACACACC TAACAGGTTGGCTGATAAGTCCCCG?AGAT AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGT
@@ -547,6 +597,8 @@ def bwa_subprocess(command, outfile):
     for line in iter(process.stderr.readline, ''):
         if "Permission denied" in line:
             raise IOError("Error: BWA encountered a permissions error: \n\n%s" % line)
+        if "invalid option" in line:
+            raise ValueError("Error: Unrecognized flag for BWA: %s" % (line.split()[-1]))
         sys.stderr.write("%s\n" % line.strip())
 
 
@@ -560,24 +612,31 @@ def run_bwa(vars):
       bwa_subprocess(cmd, sys.stdout)
        
 
-    cmd = [vars.bwa, "aln",  vars.ref, vars.tgtta1]
+    cmd = [vars.bwa, "aln"]
+    if vars.flags.strip():
+        cmd.extend( vars.flags.split(" "))
+    cmd.extend([vars.ref, vars.trimmed1])
     outfile = open(vars.sai1, "w")
     bwa_subprocess(cmd, outfile)
 
 
     if vars.single_end==True:
-      cmd = [vars.bwa, "samse", vars.ref, vars.sai1, vars.tgtta1]
-      outfile = open(vars.sam, "w")
-      bwa_subprocess(cmd, outfile)
+        cmd = [vars.bwa, "samse", vars.ref, vars.sai1, vars.trimmed1]
+        outfile = open(vars.sam, "w")
+        bwa_subprocess(cmd, outfile)
 
     else:
-      cmd = [vars.bwa, "aln", vars.ref, vars.genomic2]
-      outfile = open(vars.sai2, "w")
-      bwa_subprocess(cmd, outfile)
+     
+        cmd = [vars.bwa, "aln"]
+        if vars.flags.strip():
+            cmd.extend(vars.flags.split(" "))
+        cmd.extend([vars.ref, vars.genomic2])
+        outfile = open(vars.sai2, "w")
+        bwa_subprocess(cmd, outfile)
 
-      cmd = [vars.bwa, "sampe", vars.ref, vars.sai1, vars.sai2, vars.tgtta1, vars.genomic2]
-      outfile = open(vars.sam, "w")
-      bwa_subprocess(cmd, outfile)
+        cmd = [vars.bwa, "sampe", vars.ref, vars.sai1, vars.sai2, vars.trimmed1, vars.genomic2]
+        outfile = open(vars.sam, "w")
+        bwa_subprocess(cmd, outfile)
 
 
 
@@ -686,7 +745,7 @@ def generate_output(vars):
  
 
   read_length = get_read_length(vars.base + ".reads1")
-  mean_r1_genomic = get_genomic_portion(vars.base + ".tgtta1")
+  mean_r1_genomic = get_genomic_portion(vars.base + ".trimmed1")
   if vars.single_end==False: mean_r2_genomic = get_genomic_portion(vars.base + ".genomic2")
 
   output = open(vars.stats,"w")
@@ -697,12 +756,14 @@ def generate_output(vars):
   output.write("# command: python ")
   output.write(' '.join(sys.argv)+"\n")
   output.write('# transposon type: %s\n' % vars.transposon)
+  output.write('# protocol type: %s\n' % vars.protocol)
+  output.write('# bwa flags: %s\n' % vars.flags)
   output.write('# read1: %s\n' % vars.fq1)
   output.write('# read2: %s\n' % vars.fq2)
   output.write('# ref_genome: %s\n' % vars.ref)
   output.write("# total_reads %s (or read pairs)\n" % tot_reads)
   #output.write("# truncated_reads %s (fragments shorter than the read length; ADAP2 appears in read1)\n" % vars.truncated_reads)
-  output.write("# TGTTA_reads %s (reads with valid Tn prefix, and insert size>20bp)\n" % vars.tot_tgtta)
+  output.write("# trimmed_reads %s (reads with valid Tn prefix, and insert size>20bp)\n" % vars.tot_tgtta)
   output.write("# reads1_mapped %s\n" % vars.r1)
   output.write("# reads2_mapped %s\n" % vars.r2)
   output.write("# mapped_reads %s (both R1 and R2 map into genome)\n" % vars.mapped)
@@ -748,34 +809,136 @@ def error(s):
 def warning(s):
   print "warning:",s
 
-def verify_inputs(vars):
-  if not os.path.exists(vars.fq1): error("file not found: "+vars.fq1)
-  vars.single_end = False
-  if vars.fq2=="": vars.single_end = True   
-  elif not os.path.exists(vars.fq2): error("file not found: "+vars.fq2)
-  if not os.path.exists(vars.ref): error("file not found: "+vars.ref)
-  if vars.base == '': error("prefix cannot be empty")
-  if vars.fq1 == vars.fq2: error('fastq files cannot be identical')
 
-  if os.path.isdir(vars.bwa):
-    bwaexec_unix = os.path.join(vars.bwa, "bwa")
-    bwaexec_win = os.path.join(vars.bwa, "bwa.exe")
-    if os.path.exists(bwaexec_unix) and not os.path.isdir(bwaexec_unix):
-      warning("did not include BWA executable name. Assuming BWA executable is named 'bwa'")
-      vars.bwa = bwaexec_unix
-    elif os.path.exists(bwaexec_win) and not os.path.isdir(bwaexec_win):
-      warning("did not include BWA executable name. Assuming BWA executable is named 'bwa.exe'")
-      vars.bwa = bwaexec_win
+
+
+
+def set_defaults(vars, protocol):
+    #protocol = kwargs.get("protocol", "sassetti")
+    if protocol == "sassetti":
+        set_sassetti_defaults(vars)
+    elif protocol == "mme1":
+        set_mme1_defaults(vars)
+    elif protocol == "tn5":
+        set_tn5_defaults(vars)
     else:
-      error('cannot find BWA executable. Please include the full executable name as well as its directory.')
+        set_sassetti_defaults(vars)
+
+def set_attributes(vars, attributes_list, override=False):
+    for (attr, value) in attributes_list:
+        if override:
+            setattr(vars, attr, value)
+        else:
+            if not hasattr(vars, attr):
+                setattr(vars, attr, value)
+            
+
+def set_sassetti_defaults(vars):
+    attributes_list = []
+    attributes_list.append(("transposon", "Himar1"))
+    attributes_list.append(("protocol", "Sassetti"))
+    attributes_list.append(("prefix", "ACTTATCAGCCAACCTGTTA"))
+    attributes_list.append(("maxreads", -1))
+    attributes_list.append(("mm1", 100))
+    set_attributes(vars, attributes_list)
 
 
-def initialize_globals(vars):
-      vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
-      vars.mm1 = 1 # mismatches allowed in Tn prefix
-      vars.transposon = 'Himar1'
-      vars.prefix = None
-      read_config(vars)
+def set_mme1_defaults(vars):
+    attributes_list = []
+    attributes_list.append(("transposon", "Himar1"))
+    attributes_list.append(("protocol", "Mme1"))
+    attributes_list.append(("prefix", ""))
+    attributes_list.append(("maxreads", -1))
+    attributes_list.append(("mm1", 2))
+    set_attributes(vars, attributes_list)
+
+
+def set_tn5_defaults(vars):
+    attributes_list = []
+    attributes_list.append(("transposon", "Tn5"))
+    attributes_list.append(("protocol", "Tn5"))
+    attributes_list.append(("prefix", ""))
+    attributes_list.append(("maxreads", -1))
+    attributes_list.append(("mm1", 2))
+    set_attributes(vars, attributes_list)
+
+
+
+
+def verify_inputs(vars):
+  
+    if not os.path.exists(vars.fq1): error("reads1 file not found: "+vars.fq1)
+    vars.single_end = False
+    if vars.fq2=="": vars.single_end = True
+    elif not os.path.exists(vars.fq2): error("reads2 file not found: "+vars.fq2)
+    if not os.path.exists(vars.ref): error("reference file not found: "+vars.ref)
+    if vars.base == '': error("prefix cannot be empty")
+    if vars.fq1 == vars.fq2: error('fastq files cannot be identical')
+
+    # If Mme1 protocol, warn that we don't use read2 file
+    if vars.protocol.lower() == "mme1" and not vars.single_end:
+        warning("Ignoring Read 2 file. TPP assumes Mme1 protocol runs in single-end mode.")
+        vars.single_end = True
+        vars.fq2 = ""
+
+    if os.path.isdir(vars.bwa):
+        bwaexec_unix = os.path.join(vars.bwa, "bwa")
+        bwaexec_win = os.path.join(vars.bwa, "bwa.exe")
+        if os.path.exists(bwaexec_unix) and not os.path.isdir(bwaexec_unix):
+            warning("did not include BWA executable name. Assuming BWA executable is named 'bwa'")
+            vars.bwa = bwaexec_unix
+        elif os.path.exists(bwaexec_win) and not os.path.isdir(bwaexec_win):
+            warning("did not include BWA executable name. Assuming BWA executable is named 'bwa.exe'")
+            vars.bwa = bwaexec_win
+        else:
+            error('cannot find BWA executable. Please include the full executable name as well as its directory.')
+    elif not os.path.exists(vars.bwa):
+        error('cannot find BWA executable. Please include the full executable name as well as its directory.')
+
+def initialize_globals(vars, args=[], kwargs={}):
+    vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
+    vars.mm1 = 1 # mismatches allowed in Tn prefix
+    vars.transposon = 'Himar1'
+    vars.protocol = "Sassetti"
+    vars.prefix = "ACTTATCAGCCAACCTGTTA"
+    vars.flags = ""
+   
+    # Update defaults
+    protocol = kwargs.get("protocol", "").lower()
+    if protocol:
+        set_protocol_defaults(vars, protocol)
+    elif not kwargs:
+        read_config(vars)
+
+    # If running in console mode with flags
+    if "protocol" in kwargs:
+        vars.protocol = kwargs["protocol"]
+    if "himar1" in kwargs:
+        vars.transposon = "Himar1"
+    if "tn5" in kwargs:
+        vars.transposon = "Tn5"
+    if "protocol" in kwargs:
+        vars.protocol = kwargs["protocol"]
+    if "primer" in kwargs:
+        vars.prefix = kwargs["primer"]
+    if "reads1" in kwargs:
+        vars.fq1 = kwargs["reads1"]
+    if "reads2" in kwargs:
+        vars.fq2 = kwargs["reads2"]
+    if "bwa" in kwargs:
+        vars.bwa = kwargs["bwa"]
+    if "ref" in kwargs:
+        vars.ref = kwargs["ref"]
+    if "maxreads" in kwargs:
+        vars.maxreads = int(kwargs["maxreads"])
+    if "output" in kwargs:
+        vars.base = kwargs["output"]
+    if "mismatches" in kwargs:
+        vars.mm1 = int(kwargs["mismatches"])
+    if "flags" in kwargs:
+        vars.flags = kwargs["flags"]
+
+
 
 def read_config(vars):
   if not os.path.exists("tpp.cfg"): return
@@ -788,6 +951,10 @@ def read_config(vars):
     if len(w)>=2 and w[0]=='prefix': vars.base = w[1]
     if len(w)>=2 and w[0]=='mismatches1': vars.mm1 = int(w[1])
     if len(w)>=2 and w[0]=='transposon': vars.transposon = w[1]
+    if len(w)>=2 and w[0]=='protocol': vars.protocol = " ".join(w[1:])
+    if len(w)>=2 and w[0]=='primer': vars.prefix = w[1]
+    if len(w)>=2 and w[0]=='flags': vars.flags = " ".join(w[1:])
+
 
 def save_config(vars):
   f = open("tpp.cfg","w")
@@ -797,11 +964,14 @@ def save_config(vars):
   f.write("bwa %s\n" % vars.bwa)
   f.write("prefix %s\n" % vars.base)
   f.write("mismatches1 %s\n" % vars.mm1) 
-  f.write("transposon %s\n" % vars.transposon) 
+  f.write("transposon %s\n" % vars.transposon)
+  f.write("protocol %s\n" % vars.protocol)
+  f.write("primer %s\n" % vars.prefix)
+  f.write("flags %s\n" % vars.flags)
   f.close()
 
 def show_help():
-  print 'usage: python PATH/src/tpp.pyc -bwa <PATH_TO_EXECUTABLE> -ref <REF_SEQ> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-tn5|-himar1] [-primer <seq>]'
+  print 'usage: python PATH/src/tpp.py -bwa <PATH_TO_EXECUTABLE> -ref <REF_SEQ> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-flags "<STRING>"] [-tn5|-himar1] [-primer <seq>]'
     
 class Globals:
   pass

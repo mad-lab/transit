@@ -167,7 +167,7 @@ class ExampleMethod(base.SingleConditionMethod):
         
         #Get orf data
         self.transit_message("Getting Data")
-        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
+        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, norm="TTR", ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
 
         data = []
         N = len(G)
@@ -175,7 +175,11 @@ class ExampleMethod(base.SingleConditionMethod):
         self.progress_range(N)
         for gene in G:
             count+=1
-            mean = numpy.mean(gene.reads)
+            if gene.n == 0:
+                mean = 0.0
+            else:
+                mean = numpy.mean(gene.reads)
+
             if gene.k == 0:
                 nzmean = 0.0
             else:
@@ -194,12 +198,12 @@ class ExampleMethod(base.SingleConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output))
+            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
 
-        self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
-        self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
+        self.output.write("#Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
+        self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         self.output.write("#%s\n" % "\t".join(columns))
 
