@@ -399,7 +399,7 @@ class Genes:
                 gene = tmp[8].strip()
                 name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
             else:
-                features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
+                features = dict([tuple(f.split("=",1)) for f in filter(lambda x: "=" in x, tmp[8].split(";"))])
                 gene = features["ID"]
                 name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
             posindex = orf2posindex.get(gene, [])
@@ -1051,7 +1051,7 @@ def get_pos_hash_gff(path):
     for line in open(path):
         if line.startswith("#"): continue
         tmp = line.strip().split("\t")
-        features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
+        features = dict([tuple(f.split("=",1)) for f in filter(lambda x: "=" in x, tmp[8].split(";"))])
         if "ID" not in features: continue
         orf = features["ID"]
         chr = tmp[0]
@@ -1137,7 +1137,7 @@ def get_gene_info_gff(path):
         end = int(tmp[4])
         length = ((end-start+1)/3)-1
         strand = tmp[6]
-        features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
+        features = dict([tuple(f.split("=",1)) for f in filter(lambda x: "=" in x, tmp[8].split(";"))])
         if "ID" not in features: continue
         orf = features["ID"]
         name = features.get("Name", "-")
@@ -1147,6 +1147,7 @@ def get_gene_info_gff(path):
         if desc == "-": desc = features.get("description", "-")
         if desc == "-": desc = features.get("Desc", "-")
         if desc == "-": desc = features.get("desc", "-")
+        if desc == "-": desc = features.get("product", "-")
 
         orf2info[orf] = (name, desc, start, end, strand)
     return orf2info
