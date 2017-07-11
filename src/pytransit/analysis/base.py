@@ -203,6 +203,7 @@ class AnalysisGUI:
         label = wx.StaticText(panel, wx.ID_ANY, labelText, wx.DefaultPosition, labSize, 0)
         label.Wrap( -1 )
         choiceBox = wx.Choice( panel, wx.ID_ANY, wx.DefaultPosition, widgetSize, widgetChoice, 0 )
+        choiceBox.SetSelection(0)
         sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
         sizer.Add(choiceBox, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
         sizer.Add(InfoIcon(panel, wx.ID_ANY, tooltip=tooltipText), 0, wx.ALIGN_CENTER_VERTICAL, 5 )

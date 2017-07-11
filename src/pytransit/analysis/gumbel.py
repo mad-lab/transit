@@ -22,6 +22,7 @@ import random
 import numpy
 import scipy.stats
 import datetime
+import warnings
 
 import base
 import pytransit.transit_tools as transit_tools
@@ -192,14 +193,50 @@ class GumbelMethod(base.SingleConditionMethod):
 
 
         #Read the parameters from the wxPython widgets
-        minread = int(wxobj.gumbelReadChoice.GetString(wxobj.gumbelReadChoice.GetCurrentSelection()))
-        samples = int(wxobj.gumbelSampleText.GetValue())
-        burnin = int(wxobj.gumbelBurninText.GetValue())
-        trim = int(wxobj.gumbelTrimText.GetValue())
-        replicates = wxobj.gumbelRepChoice.GetString(wxobj.gumbelRepChoice.GetCurrentSelection())
+        try:
+            minread = int(wxobj.gumbelReadChoice.GetString(wxobj.gumbelReadChoice.GetCurrentSelection()))
+        except:
+            warnings.warn("Warning: problem reading minimum read parameter. Assuming a value of '1'")
+            minread = 1 
+
+        try:
+            samples = int(wxobj.gumbelSampleText.GetValue())
+        except:
+            warnings.warn("Warning: problem reading samples parameter. Assuming a value of '10000'")
+            samples = 10000
+
+        try:
+            burnin = int(wxobj.gumbelBurninText.GetValue())
+        except:
+            warnings.warn("Warning: problem reading burnin parameter. Assuming a value of '500'")
+            burnin = 500
+
+        try:
+            trim = int(wxobj.gumbelTrimText.GetValue())
+        except:
+            warnings.warn("Warning: problem reading trim parameter. Assuming a value of '1'")
+            trim = 1
+
+        try:
+            replicates = wxobj.gumbelRepChoice.GetString(wxobj.gumbelRepChoice.GetCurrentSelection())
+        except:
+            warnings.warn("Warning: problem reading replicates parameter. Assuming a value of 'Mean'")
+            replicates = "Mean"
+
         ignoreCodon = True
-        NTerminus = float(wxobj.globalNTerminusText.GetValue())
-        CTerminus = float(wxobj.globalCTerminusText.GetValue())
+
+        try:
+            NTerminus = float(wxobj.globalNTerminusText.GetValue())
+        except:
+            warnings.warn("Warning: problem reading NTerminus parameter. Assuming a value of '0.00'")
+            NTerminus = 0.0
+
+        try:
+            CTerminus = float(wxobj.globalCTerminusText.GetValue())
+        except:
+            warnings.warn("Warning: problem reading CTerminus parameter. Assuming a value of '0.00'")
+            CTerminus = 0.0
+
         normalization = None
         LOESS = False
 
