@@ -385,12 +385,11 @@ class TrashFrame(view_trash.MainFrame):
             self.start = start
             self.end = end
             self.DrawCanvas()
-
+            
         except Exception as e:
             self.track_message("ERROR: %s" % e)
             traceback.print_exc() 
         
-
 
     def DrawCanvas(self):
 
@@ -434,5 +433,4 @@ if __name__ == "__main__":
     frame = TrashFrame(None)
     frame.Show(True)
     app.MainLoop()
-
 
