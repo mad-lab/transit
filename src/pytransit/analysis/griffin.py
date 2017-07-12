@@ -145,7 +145,7 @@ class GriffinMethod(base.SingleConditionMethod):
             return None
 
         #Validate transposon types
-        if not transit_tools.validate_filetypes(ctrldata, transposons):
+        if not transit_tools.validate_transposons_used(ctrldata, transposons):
             return None
 
 

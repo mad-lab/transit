@@ -153,7 +153,7 @@ class RankProductMethod(base.DualConditionMethod):
             return None
 
         #Validate transposon types
-        if not transit_tools.validate_filetypes(ctrldata+expdata, transposons):
+        if not transit_tools.validate_transposons_used(ctrldata+expdata, transposons):
             return None
 
 
