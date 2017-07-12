@@ -335,11 +335,6 @@ class GumbelMethod(base.SingleConditionMethod):
             self.transit_message("Normalizing using: %s" % self.normalization)
             (data, factors) = norm_tools.normalize_data(data, self.normalization, self.ctrldata, self.annotation_path)
 
-
-         
-        print "LENGTH:", len(data[0])
-        print "DENSITY:", numpy.mean(data[0] > 0)
-
         G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=self.minread, reps=self.replicates, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data, position=position)
 
         ii_good = numpy.array([self.good_orf(g) for g in G]) # Gets index of the genes that can be analyzed
