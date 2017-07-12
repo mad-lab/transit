@@ -890,16 +890,7 @@ def get_wig_stats(path):
     """
     (data,position) = get_data([path])
     reads = data[0]
-    density = numpy.mean(reads>0)
-    meanrd = numpy.mean(reads)
-    nzmeanrd = numpy.mean(reads[reads>0])
-    nzmedianrd = numpy.median(reads[reads>0])
-    maxrd = numpy.max(reads)
-    totalrd = numpy.sum(reads)
-
-    skew = scipy.stats.skew(reads[reads>0])
-    kurtosis = scipy.stats.kurtosis(reads[reads>0])
-    return (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis)
+    get_data_stats(reads)
 
 #
 
