@@ -295,8 +295,24 @@ class BinomialMethod(base.SingleConditionMethod):
         self.progress_range(self.samples+self.burnin)
 
         #Get orf data
+        #self.transit_message("Getting Data")
+        #G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
+
         self.transit_message("Getting Data")
-        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
+        (data, position) = transit_tools.get_validated_data(self.ctrldata)
+        (K,N) = data.shape
+
+        if self.normalization and self.normalization != "nonorm":
+            self.transit_message("Normalizing using: %s" % self.normalization)
+            (data, factors) = norm_tools.normalize_data(data, self.normalization, self.ctrldata, self.annotation_path)
+
+
+
+        print "LENGTH:", len(data[0])
+        print "DENSITY:", numpy.mean(data[0] > 0)
+
+        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=1, reps=self.replicates, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data, position=position)
+
 
 
         #Parameters

@@ -279,7 +279,7 @@ class HMMMethod(base.SingleConditionMethod):
         
         #Get data
         self.transit_message("Getting Data")
-        (data, position) = tnseq_tools.get_data(self.ctrldata)
+        (data, position) = transit_tools.get_validated_data(self.ctrldata)
         (K,N) = data.shape
 
         # Normalize data

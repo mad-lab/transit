@@ -236,7 +236,7 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         genes_obj = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
         
         # Combine all wigs
-        (data,position) = tnseq_tools.get_data_zero_fill(self.ctrldata)
+        (data,position) = transit_tools.get_validated_data(self.ctrldata)
         combined = tnseq_tools.combine_replicates(data, method=self.replicates)
         combined[combined < self.minread] = 0
         counts = combined

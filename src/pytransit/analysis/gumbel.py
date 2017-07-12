@@ -321,15 +321,26 @@ class GumbelMethod(base.SingleConditionMethod):
         
         #Get orf data
         self.transit_message("Reading Annotation")
-        self.transit_message("Getting Data")
-
 
         #Validate data has empty sites
-        (status, genome) = transit_tools.validate_wig_format(self.ctrldata, wxobj=self.wxobj)
-        if status <2: tn_used = "himar1"
-        else: tn_used = "tn5"
+        #(status, genome) = transit_tools.validate_wig_format(self.ctrldata, wxobj=self.wxobj)
+        #if status <2: tn_used = "himar1"
+        #else: tn_used = "tn5"
 
-        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=self.minread, reps=self.replicates, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, genome=genome, transposon=tn_used)
+        self.transit_message("Getting Data")
+        (data, position) = transit_tools.get_validated_data(self.ctrldata)
+        (K,N) = data.shape
+
+        if self.normalization and self.normalization != "nonorm":
+            self.transit_message("Normalizing using: %s" % self.normalization)
+            (data, factors) = norm_tools.normalize_data(data, self.normalization, self.ctrldata, self.annotation_path)
+
+
+         
+        print "LENGTH:", len(data[0])
+        print "DENSITY:", numpy.mean(data[0] > 0)
+
+        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=self.minread, reps=self.replicates, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data, position=position)
 
         ii_good = numpy.array([self.good_orf(g) for g in G]) # Gets index of the genes that can be analyzed
 
@@ -363,29 +374,37 @@ class GumbelMethod(base.SingleConditionMethod):
         i = 1; count = 0;
         while i < self.samples:
 
-            # PHI
-            acc = 1.0
-            phi_new  = phi_old + random.gauss(mu_c, sigma_c)
-            i0 = Z_sample[:,i-1] == 0
-            if phi_new > 1 or phi_new <= 0 or (self.F_non(phi_new, N[i0], R[i0]) - self.F_non(phi_old, N[i0], R[i0])) < math.log(random.uniform(0,1)):
-                phi_new = phi_old
-                acc = 0.0
-                flag = 0
+            try:
+                # PHI
+                acc = 1.0
+                phi_new  = phi_old + random.gauss(mu_c, sigma_c)
+                i0 = Z_sample[:,i-1] == 0
+                if phi_new > 1 or phi_new <= 0 or (self.F_non(phi_new, N[i0], R[i0]) - self.F_non(phi_old, N[i0], R[i0])) < math.log(random.uniform(0,1)):
+                    phi_new = phi_old
+                    acc = 0.0
+                    flag = 0
             
-            # Z
-            Z = self.sample_Z(phi_new, w1, N, R, S, T, mu_s, sigma_s, SIG)
+                # Z
+                Z = self.sample_Z(phi_new, w1, N, R, S, T, mu_s, sigma_s, SIG)
             
             # w1
-            N_ESS = sum(Z == 1)
-            w1 = scipy.stats.beta.rvs(N_ESS + ALPHA_w, N_GOOD - N_ESS + BETA_w)
+                N_ESS = sum(Z == 1)
+                w1 = scipy.stats.beta.rvs(N_ESS + ALPHA_w, N_GOOD - N_ESS + BETA_w)
             
-            count +=1
-            acctot+=acc
+                count +=1
+                acctot+=acc
             
-            if (count > self.burnin) and (count % self.trim == 0):
-                phi_sample[i] = phi_new
-                Z_sample[:,i] = Z
-                i+=1
+                if (count > self.burnin) and (count % self.trim == 0):
+                    phi_sample[i] = phi_new
+                    Z_sample[:,i] = Z
+                    i+=1
+            except ValueError as e:
+                self.transit_message("Error: %s" % e) 
+                self.transit_message("This is likely to have been caused by poor data (e.g. too sparse).") 
+                self.transit_message("If the density of the dataset is too low, the Gumbel method will not work.") 
+                self.transit_message("Quitting.") 
+                return
+                
             
             phi_old = phi_new
             #Update progress
