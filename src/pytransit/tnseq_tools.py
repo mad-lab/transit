@@ -712,6 +712,33 @@ def get_file_types(wig_list):
                 prev_pos = pos
     return types
 
+def check_wig_includes_zeros(wig_list):
+    """Returns boolean list showing whether the given files include empty sites
+    (zero) or not.
+
+    Arguments:
+        wig_list (list): List of paths to wig files.
+
+    Returns:
+        list: List of boolean values.
+    """
+    if not wig_list:
+        return []
+    includes = [False for i in range(len(wig_list))]
+    for i, wig_filename in enumerate(wig_list):
+        with open(wig_filename) as wig_file:
+            for line in wig_file:
+                if line[0] not in "0123456789": continue
+                tmp = line.split()
+                pos = int(tmp[0])
+                rd = float(tmp[1])
+                if rd == 0:
+                    includes[i] = True
+                    break
+    return includes
+
+
+
 #
 
 def get_unknown_file_types(wig_list, transposons):
