@@ -323,9 +323,13 @@ class GumbelMethod(base.SingleConditionMethod):
         self.transit_message("Reading Annotation")
         self.transit_message("Getting Data")
 
-        
 
-        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=self.minread, reps=self.replicates, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
+        #Validate data has empty sites
+        (status, genome) = transit_tools.validate_wig_format(self.ctrldata, wxobj=self.wxobj)
+        if status <2: tn_used = "himar1"
+        else: tn_used = "tn5"
+
+        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=self.minread, reps=self.replicates, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, genome=genome, transposon=tn_used)
 
         ii_good = numpy.array([self.good_orf(g) for g in G]) # Gets index of the genes that can be analyzed
 
