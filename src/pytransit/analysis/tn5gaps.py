@@ -233,7 +233,6 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         start_time = time.time()
         
         self.transit_message("Getting data (May take a while)")
-        genes_obj = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
         
         # Combine all wigs
         (data,position) = transit_tools.get_validated_data(self.ctrldata)
@@ -242,6 +241,8 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         counts = combined
         counts[counts > 0] = 1
         num_sites = counts.size
+        
+        genes_obj = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data, position=position)
         
         pins = numpy.mean(counts)
         pnon = 1.0 - pins

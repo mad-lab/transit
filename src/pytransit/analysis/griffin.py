@@ -219,7 +219,19 @@ class GriffinMethod(base.SingleConditionMethod):
 
         #Get orf data
         self.transit_message("Getting Data")
-        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=self.minread, reps=self.replicates, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
+
+        (data, position) = transit_tools.get_validated_data(self.ctrldata)
+        (K,N) = data.shape
+
+        if self.normalization and self.normalization != "nonorm":
+            self.transit_message("Normalizing using: %s" % self.normalization)
+            (data, factors) = norm_tools.normalize_data(data, self.normalization, self.ctrldata, self.annotation_path)
+
+        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=1, reps=self.replicates, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data, position=position)
+
+
+
+
 
         N = len(G)
         self.progress_range(N)
