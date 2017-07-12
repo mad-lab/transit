@@ -49,25 +49,26 @@ import pytransit.tnseq_tools as tnseq_tools
 import pytransit.norm_tools as norm_tools
 
 
-class AssumeZerosDialog(wx.Dialog):
+if hasWx:
+    class AssumeZerosDialog(wx.Dialog):
 
-    def __init__(self, *args, **kw):
+        def __init__(self, *args, **kw):
 
-        self.ID_HIMAR1 = wx.NewId()
-        self.ID_TN5 = wx.NewId()
+            self.ID_HIMAR1 = wx.NewId()
+            self.ID_TN5 = wx.NewId()
 
-        wx.Dialog.__init__(self, None, title="Dialog")
+            wx.Dialog.__init__(self, None, title="Dialog")
 
-        self.ID_HIMAR1 = wx.NewId()
-        self.ID_TN5 = wx.NewId()
+            self.ID_HIMAR1 = wx.NewId()
+            self.ID_TN5 = wx.NewId()
+    
+            self.SetSize((500, 300))
+            self.SetTitle("Warning:  Wig Files Do Not Include Empty Sites")
 
-        self.SetSize((500, 300))
-        self.SetTitle("Warning:  Wig Files Do Not Include Empty Sites")
-
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(mainSizer)
-
-        warningText = """
+            mainSizer = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(mainSizer)
+    
+            warningText = """
 
 One or more of your .wig files does not include any empty sites (i.e. sites with zero read-counts). The analysis methods in TRANSIT require knowing ALL possible insertion sites, even those without reads.
     
@@ -77,35 +78,35 @@ One or more of your .wig files does not include any empty sites (i.e. sites with
 
     As Tn5: TRANSIT will assume all nucleotides are possible insertion sites. Those not included in the .wig file are assumed to be zero.
     """
-        warningStaticBox = wx.StaticText(self, wx.ID_ANY, warningText, (-1,-1), (-1, -1), wx.ALL)
-        warningStaticBox.Wrap(480)
-        mainSizer.Add(warningStaticBox, flag=wx.CENTER, border=5)
+            warningStaticBox = wx.StaticText(self, wx.ID_ANY, warningText, (-1,-1), (-1, -1), wx.ALL)
+            warningStaticBox.Wrap(480)
+            mainSizer.Add(warningStaticBox, flag=wx.CENTER, border=5)
+    
+            button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            himar1Button = wx.Button(self, self.ID_HIMAR1, label='Proceed as Himar1')
+            tn5Button = wx.Button(self, self.ID_TN5, label='Proceed as Tn5')
+            cancelButton = wx.Button(self, wx.ID_CANCEL, label='Cancel')
 
-        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        himar1Button = wx.Button(self, self.ID_HIMAR1, label='Proceed as Himar1')
-        tn5Button = wx.Button(self, self.ID_TN5, label='Proceed as Tn5')
-        cancelButton = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+    
+            button_sizer.Add(himar1Button, flag=wx.LEFT, border=5)
+            button_sizer.Add(tn5Button, flag=wx.LEFT, border=5)
+            button_sizer.Add(cancelButton, flag=wx.LEFT, border=5)
 
-
-        button_sizer.Add(himar1Button, flag=wx.LEFT, border=5)
-        button_sizer.Add(tn5Button, flag=wx.LEFT, border=5)
-        button_sizer.Add(cancelButton, flag=wx.LEFT, border=5)
-
-        mainSizer.Add(button_sizer,
-            flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
-
-
-        himar1Button.Bind(wx.EVT_BUTTON, self.OnClose)
-        tn5Button.Bind(wx.EVT_BUTTON, self.OnClose)
-        cancelButton.Bind(wx.EVT_BUTTON, self.OnClose)
+            mainSizer.Add(button_sizer,
+                flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
 
 
-    def OnClose(self, event):
+            himar1Button.Bind(wx.EVT_BUTTON, self.OnClose)
+            tn5Button.Bind(wx.EVT_BUTTON, self.OnClose)
+            cancelButton.Bind(wx.EVT_BUTTON, self.OnClose)
 
-        if self.IsModal():
-            self.EndModal(event.EventObject.Id)
-        else:
-            self.Close()
+
+        def OnClose(self, event):
+    
+            if self.IsModal():
+                self.EndModal(event.EventObject.Id)
+            else:
+                self.Close()
 
 
 
@@ -262,7 +263,7 @@ def validate_wig_format(wig_list, wxobj=None):
 
     if sum(includesZeros) < len(includesZeros):
         # If console mode, just print a warning
-        if not wxobj:
+        if not wxobj or not hasWx:
             warnings.warn("\nOne or more of your .wig files does not include any empty sites (i.e. sites with zero read-counts). Proceeding as if data was Tn5 (all other sites assumed to be zero)!\n")
             return (2, "")
 
