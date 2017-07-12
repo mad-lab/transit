@@ -169,10 +169,12 @@ def validate_both_datasets(ctrldata, expdata):
         return False
     else:
         return True
-    
 
-def validate_filetypes(datasets, transposons, justWarn=True):
+
+def validate_transposons_used(datasets, transposons, justWarn=True)   
+
     #TODO: Write docstring
+    # Check if transposon type is okay.
     unknown = tnseq_tools.get_unknown_file_types(datasets, transposons)
     if unknown:
         if justWarn:
@@ -184,7 +186,28 @@ def validate_filetypes(datasets, transposons, justWarn=True):
         else:
             transit_error("Error: Some of the selected datasets look like they were created using transposons that this method was not intended to work with: %s." % (",". join(unknown)))
             return False
+
     return True
+
+
+
+def validate_wig_format(datasets, transposons, justWarn=True)
+    # Check if the .wig files include zeros or not
+    includesZeros = tnseq_tools.get_unknown_file_types(datasets, transposons)
+    if sum(includesZeros) < len(includesZeros):
+        answer = ShowAskWarning("Warning: Some of the .wig files you have selected look like : %s. Proceeding may lead to errors. Click OK to continue." % (",". join(unknown)))
+            if answer == wx.ID_CANCEL:
+                return False
+            else:
+                return True
+        else:
+            transit_error("Error: Some of the selected datasets look like they were created using transposons that this method was not intended to work with: %s." % (",". join(unknown)))
+            return False
+    return True
+
+
+def validate_filetypes(datasets, transposons, justWarn=True):
+    validate_transposons_used(datasets, transposons, justWarn)
 
 
 def get_pos_hash(path):
