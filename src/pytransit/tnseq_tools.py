@@ -831,7 +831,7 @@ def get_data_zero_fill(wig_list):
         return (numpy.zeros((1,0)), numpy.zeros(0), [])
     
     data = numpy.zeros((K,T))
-    position = numpy.zeros(T)
+    position = numpy.array(range(T)) + 1#numpy.zeros(T)
     for j,path in enumerate(wig_list):
         reads = []
         i = 0
@@ -840,16 +840,8 @@ def get_data_zero_fill(wig_list):
             tmp = line.split()
             pos = int(tmp[0])
             rd = float(tmp[1])
-            
-            # Fill in remaining zeros
-            for fill_pos in range(i, pos - 1):
-                data[j,fill_pos] = 0
-                position[fill_pos] = i
-                i += 1
-                
             prev_pos = pos
-            data[j,i] = rd
-            position[i] = pos
+            data[j,pos-1] = rd
             i+=1
     return (data, position)
 
