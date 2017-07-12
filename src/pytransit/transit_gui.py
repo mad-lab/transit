@@ -720,7 +720,6 @@ class TnSeekFrame(MainFrame):
             for dataset in ctrlData:
                 try:
                     path = os.path.dirname(os.path.realpath(__file__))
-                    print path
                     path = os.path.join(os.path.dirname('/pacific/home/mdejesus/transit/src/transit.py'), "pytransit/data", dataset)
                     transit_tools.transit_message("Adding Ctrl File: " + path)
                     self.loadCtrlFile(path)
@@ -1039,6 +1038,7 @@ class TnSeekFrame(MainFrame):
             if dlg.ShowModal() == wx.ID_OK:
                 paths = dlg.GetPaths()
                 print "You chose the following Control file(s):"
+                print paths
                 for fullpath in paths:
                     print "\t%s" % fullpath
                     self.loadCtrlFile(fullpath)

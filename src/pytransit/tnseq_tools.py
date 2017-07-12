@@ -307,7 +307,7 @@ class Genes:
 
 #
     
-    def __init__(self, wigList, annotation, norm="nonorm", reps="All", minread=1, ignoreCodon = True, nterm=0.0, cterm=0.0, include_nc = False, data=[], position=[]):
+    def __init__(self, wigList, annotation, norm="nonorm", reps="All", minread=1, ignoreCodon = True, nterm=0.0, cterm=0.0, include_nc = False, data=[], position=[],genome="", transposon="himar1"):
         """Initializes the gene list based on the list of wig files and a prot_table.
 
         This class helps define a list of Gene objects with attributes that 
@@ -349,7 +349,12 @@ class Genes:
         
         orf2info = get_gene_info(self.annotation)
         if not numpy.any(data):
-            (data, position) = get_data(self.wigList)
+            if transposon.lower() == "himar1" and not genome:
+                (data, position) = get_data(self.wigList)
+            elif genome:
+                (data, position) = get_data_w_genome(self.wigList, genome)
+            else:
+                (data, position) = get_data_zero_fill(self.wigList)
             ii_min = data < self.minread
             data[ii_min] = 0
         hash = get_pos_hash(self.annotation)
@@ -708,7 +713,9 @@ def get_file_types(wig_list):
                 tmp = line.split()
                 pos = int(tmp[0])
                 rd = float(tmp[1])
-                if pos != prev_pos + 1: types[i] = 'himar1'
+                if pos != prev_pos + 1:
+                    types[i] = 'himar1'
+                    break
                 prev_pos = pos
     return types
 
@@ -845,6 +852,38 @@ def get_data_zero_fill(wig_list):
             i+=1
     return (data, position)
 
+
+def get_data_w_genome(wig_list, genome):
+   
+    X = read_genome(genome)
+    N = len(X)
+    positions = []
+    pos2index = {}
+    count = 0
+    for i in range(N-1):
+        if X[i:i+2].upper() == "TA":
+            pos = i+1
+            positions.append(pos)
+            pos2index[pos] = count
+            count +=1
+
+    positions = numpy.array(positions)
+    T = len(positions)
+    K = len(wig_list)
+    data = numpy.zeros((K,T))
+    for j,path in enumerate(wig_list):
+        for line in open(path):
+            if line[0] not in "0123456789": continue
+            tmp = line.split()
+            pos = int(tmp[0])
+            rd = float(tmp[1])
+            if pos in pos2index:
+                index = pos2index[pos]
+                data[j,index] = rd
+            else:
+                print "Warning: Coordinate %d did not match TA site in the genome. Ignoring counts." %(pos)
+    return (data, positions)
+ 
 #
 
 def combine_replicates(data, method="Sum"):
@@ -909,7 +948,7 @@ def get_wig_stats(path):
     """
     (data,position) = get_data([path])
     reads = data[0]
-    get_data_stats(reads)
+    return get_data_stats(reads)
 
 #
 
