@@ -881,7 +881,7 @@ def get_data_w_genome(wig_list, genome):
                 index = pos2index[pos]
                 data[j,index] = rd
             else:
-                print "Warning: Coordinate %d did not match TA site in the genome. Ignoring counts." %(pos)
+                print "Warning: Coordinate %d did not match a TA site in the genome. Ignoring counts." %(pos)
     return (data, positions)
  
 #
