@@ -280,7 +280,7 @@ def validate_wig_format(wig_list, wxobj=None):
             else:
                 genome = ""
 
-        elif res == dlg.ID_TN5:
+        elif result == dlg.ID_TN5:
             status = 2; genome = "" 
         else:
             status = 3; genome = ""
