@@ -167,7 +167,7 @@ class ExampleMethod(base.SingleConditionMethod):
         
         #Get orf data
         self.transit_message("Getting Data")
-        (data, position) = transit_tools.get_validated_data(self.ctrldata)
+        (data, position) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
         (K,N) = data.shape
 
         if self.normalization and self.normalization != "nonorm":

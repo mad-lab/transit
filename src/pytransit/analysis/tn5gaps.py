@@ -235,7 +235,7 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         self.transit_message("Getting data (May take a while)")
         
         # Combine all wigs
-        (data,position) = transit_tools.get_validated_data(self.ctrldata)
+        (data,position) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
         combined = tnseq_tools.combine_replicates(data, method=self.replicates)
         combined[combined < self.minread] = 0
         counts = combined

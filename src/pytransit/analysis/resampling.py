@@ -340,7 +340,7 @@ class ResamplingMethod(base.DualConditionMethod):
         Kexp = len(self.expdata)
         #Get orf data
         self.transit_message("Getting Data")
-        (data, position) = transit_tools.get_validated_data(self.ctrldata+self.expdata)
+        (data, position) = transit_tools.get_validated_data(self.ctrldata+self.expdata, wxobj=self.wxobj)
 
         (K,N) = data.shape
 

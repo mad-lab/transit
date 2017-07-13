@@ -299,7 +299,7 @@ class BinomialMethod(base.SingleConditionMethod):
         #G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
 
         self.transit_message("Getting Data")
-        (data, position) = transit_tools.get_validated_data(self.ctrldata)
+        (data, position) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
         (K,N) = data.shape
 
         if self.normalization and self.normalization != "nonorm":
