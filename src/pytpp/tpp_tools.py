@@ -617,7 +617,8 @@ def run_bwa(vars):
        
 
     cmd = [vars.bwa, "aln"]
-    cmd.extend( vars.flags.split(" "))
+    if vars.flags.strip():
+      cmd.extend( vars.flags.split(" "))
     cmd.extend([vars.ref, vars.trimmed1])
     outfile = open(vars.sai1, "w")
     bwa_subprocess(cmd, outfile)
@@ -631,7 +632,8 @@ def run_bwa(vars):
     else:
      
         cmd = [vars.bwa, "aln"]
-        cmd.extend(vars.flags.split(" "))
+        if vars.flags.strip():
+          cmd.extend(vars.flags.split(" "))
         cmd.extend([vars.ref, vars.genomic2])
         outfile = open(vars.sai2, "w")
         bwa_subprocess(cmd, outfile)
