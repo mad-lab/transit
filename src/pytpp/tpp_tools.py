@@ -25,7 +25,7 @@ import sys, re, shutil
 import platform
 import gzip
 import subprocess
-
+from collections import defaultdict
 
 def cleanargs(rawargs):
     #TODO: Write docstring
@@ -80,7 +80,7 @@ def fastq2reads(infile,outfile,maxreads):
     if maxreads > -1:
         if tot > maxreads:
             break
-    if cnt==0: 
+    if cnt==0:
       h = line[1:] # strip off '@'
       #h = h.replace(' ','_')
       output.write(">%s" % h)
@@ -124,17 +124,17 @@ def fix_paired_headers_for_bwa(reads1,reads2):
       e = e[:i]+e[i+1:]
       f = f[:i]+f[i+1:]
     c.write(e+"\n")
-    d.write(f+"\n")      
+    d.write(f+"\n")
   except Exception as ex:
     a.close(); b.close(); c.close(); d.close()
     error(ex.args[0])
   a.close(); b.close(); c.close(); d.close()
-  
+
   if(os.path.exists(reads1)): os.remove(reads1)
   if(os.path.exists(reads2)): os.remove(reads2)
   os.rename(temp1, reads1)
   os.rename(temp2, reads2)
-  
+
   '''
   if platform.platform == 'win32':
 	  os.system("move %s %s" % (temp1,reads1))
@@ -144,6 +144,72 @@ def fix_paired_headers_for_bwa(reads1,reads2):
 	  os.system("mv %s %s" % (temp2, reads2))
   '''
 
+
+# checks for a match allowing 1 or 2 mismatches
+# if not a match returns -1,-1. If match occurs, returns 1 and the start index of match
+def bit_parallel_with_max_2_error(text, pattern, m):
+    S_table = defaultdict(int)
+    for i, c in enumerate(pattern):
+        S_table[c] |= 1 << i
+    R0 = 0
+    R1 = 0
+    R2 = 0
+    mask = 1 << (m - 1)
+    for j, c in enumerate(text):
+        S = S_table[c]
+        shR0 = (R0 << 1) | 1
+        shR1 = (R1 << 1) | 1
+        R0 = shR0 & S
+        R1 = ((R1 << 1) | 1) & S | shR0
+        R2 = ((R2 << 1) | 1) & S | shR1
+        # first if-statement commented because we have already checked for exact match using find() in mmfind()
+        #if R0 & mask:  #exact match
+            #return 1, j - m + 1
+        if R1 & mask:   # 1 mismatch
+            return 1, j - m + 1
+        if R2 & mask:   # 2 mismatches
+            return 1, j - m + 1
+    return -1,-1
+
+
+# checks for a match allowing 1 mismatch
+# if not a match returns -1,-1. If match occurs, returns 1 and the start index of match
+def bit_parallel_with_max_1_error(text, pattern, m):
+    S_table = defaultdict(int)
+    for i, c in enumerate(pattern):
+        S_table[c] |= 1 << i
+    R0 = 0
+    R1 = 0
+    mask = 1 << (m - 1)
+    for j, c in enumerate(text):
+        S = S_table[c]
+        shR0 = (R0 << 1) | 1
+        R0 = shR0 & S
+        R1 = ((R1 << 1) | 1) & S | shR0
+        # first if-statement commented because we have already checked for exact match using find() in mmfind()
+        #if R0 & mask:  #exact match
+            #return 1, j - m + 1
+        if R1 & mask:   # 1 mismatch
+            return 1, j - m + 1
+    return -1,-1
+
+
+# this function is a replacement for below mmfind() for speedup
+# it assumes the length of H is <32
+# find index of H[1..m] in G[1..n] with up to max (1 or 2) mismatches
+def mmfind(G,n,H,m,max): # lengths; assume n>m
+    a = G.find(H)
+    if a!=-1: return a # shortcut for perfect matches
+    a,b = -1,-1
+    if max==1 :
+        a,b = bit_parallel_with_max_1_error(G, H, m)
+    elif max==2 :
+        a,b = bit_parallel_with_max_2_error(G, H, m)
+    if a==1: return b
+    return -1
+
+
+''' replaced with above mmfind()
 # find index of H[1..m] in G[1..n] with up to max mismatches
 
 def mmfind(G,n,H,m,max): # lengths; assume n>m
@@ -156,6 +222,8 @@ def mmfind(G,n,H,m,max): # lengths; assume n>m
       if cnt>max: break
     if cnt<=max: return i
   return -1
+'''
+
 
 def extract_staggered(infile,outfile,vars):
   Tn = vars.prefix
@@ -211,7 +279,7 @@ def get_id(line):
 def select_reads(goodreads,infile,outfile):
   hash = {}
   for line in open(goodreads):
-    if line[0]=='>': 
+    if line[0]=='>':
       #id = line[line.find(":")+1:line.rfind("#")]
       id = get_id(line)
       hash[id] = 1
@@ -237,7 +305,7 @@ def replace_ids(infile1,infile2,outfile):
     b = g.readline()
     if len(a)<2: break
     if a[0]=='>': header = a
-    else: 
+    else:
       h.write(header)
       h.write(b)
   f.close()
@@ -283,7 +351,7 @@ def template_counts(ref,sam,bcfile,vars):
   genome = read_genome(ref)
   barcodes = {}
 
-  
+
   fil1 = open(bcfile)
   fil2 = open(sam)
 
@@ -296,7 +364,7 @@ def template_counts(ref,sam,bcfile,vars):
   for line in fil2:
     if idx==2: break
     idx+=1
-  
+
   '''
   for line in open(bcfile):
     line = line.rstrip()
@@ -320,12 +388,12 @@ def template_counts(ref,sam,bcfile,vars):
       w = line.split('\t')
       code = samcode(w[1])
       if 'S' in w[5]: continue #elimate softclipped reads
-      if code[6]=="1": # previously checked for for reads1's via w[1]<128 
-        vars.tot_tgtta += 1 
+      if code[6]=="1": # previously checked for for reads1's via w[1]<128
+        vars.tot_tgtta += 1
         if code[2]=="0": vars.r1 += 1
       if code[7]=="1" and code[2]=="0": vars.r2 += 1
       # include "improperly mapped reads, which might just be short frags
-      #if w[1]=="99" or w[1]=="83" or w[1]=="97" or w[1]=="81": 
+      #if w[1]=="99" or w[1]=="83" or w[1]=="97" or w[1]=="81":
       if code[6]=="1" and code[2]=="0" and code[3]=="0": # both reads mapped (proper or not)
         vars.mapped += 1
         readlen = len(w[9])
@@ -370,7 +438,7 @@ def increase_counts(pos,sites, strand):
             sites[pos][4] += 1  #if read has been found before, tally 1 more in R reads
         sites[pos][5] += 1  #if read has been found before, tally 1 more in R reads
         sites[pos][6] += 1  #if read has been found before, tally 1 more in R reads
-    
+
 
 def read_counts(ref,sam,vars):
     genome = read_genome(ref)
@@ -379,7 +447,7 @@ def read_counts(ref,sam,vars):
         if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
           pos = i+1
           sites[pos] = [pos,0,0,0,0,0,0]
-     
+
     hits = {}
     vars.tot_tgtta,vars.mapped = 0,0
     vars.r1 = vars.r2 = 0
@@ -409,7 +477,7 @@ def read_counts(ref,sam,vars):
                     site1 = pos + delta #if on + strand, take column 3 position and add 1bp)
                     if site1 in sites:
                         increase_counts(site1, sites, strand)
-    
+
     results = []
     for key in sorted(sites.keys()):
         results.append(sites[key])
@@ -444,7 +512,7 @@ def driver(vars):
      extract_reads(vars)
 
      run_bwa(vars)
- 
+
      generate_output(vars)
 
   except ValueError as err:
@@ -472,7 +540,7 @@ def uncompress(filename):
 
 def extract_reads(vars):
     message("extracting reads...")
-    
+
     flag = ['','']
     for idx, name in enumerate([vars.fq1, vars.fq2]):
         if idx==1 and vars.single_end==True: continue
@@ -483,11 +551,11 @@ def extract_reads(vars):
                 break
             flag[idx] = 'FASTQ'
             break
-        fil.close() 
+        fil.close()
 
     if vars.fq1.endswith('.gz'):
        vars.fq1 = uncompress(vars.fq1)
-        
+
     if vars.fq2.endswith('.gz'):
        vars.fq2 = uncompress(vars.fq2)
 
@@ -502,9 +570,9 @@ def extract_reads(vars):
       message("creating %s" % vars.trimmed1)
       extract_staggered(vars.reads1,vars.trimmed1,vars)
 
-      return 
+      return
 
-    if(flag[1] == 'FASTQ'):  
+    if(flag[1] == 'FASTQ'):
         message("fastq2reads: %s -> %s" % (vars.fq2,vars.reads2))
         fastq2reads(vars.fq2,vars.reads2,vars.maxreads)
     else:
@@ -614,7 +682,7 @@ def run_bwa(vars):
     if not os.path.exists(vars.ref+".amb"):
       cmd = [vars.bwa, "index", vars.ref]
       bwa_subprocess(cmd, sys.stdout)
-       
+
 
     cmd = [vars.bwa, "aln"]
     if vars.flags.strip():
@@ -630,7 +698,7 @@ def run_bwa(vars):
         bwa_subprocess(cmd, outfile)
 
     else:
-     
+
         cmd = [vars.bwa, "aln"]
         if vars.flags.strip():
           cmd.extend(vars.flags.split(" "))
@@ -669,7 +737,7 @@ def get_read_length(filename):
    fil = open(filename)
    i = 0
    for line in fil:
-      if i == 1: 
+      if i == 1:
          #print "reads1 line: " + line
          return len(line.strip())
       i+=1
@@ -724,7 +792,7 @@ def generate_output(vars):
     if Himar1[:-5] in line and Himar1 not in line: misprimed += 1
 
 
-  
+
 
   rcounts = [x[5] for x in counts]
   tcounts = [x[6] for x in counts]
@@ -746,7 +814,7 @@ def generate_output(vars):
     BC_corr = corr([x for x in rcounts if x!=0],[x for x in tcounts if x!=0])
   except ValueError:
     BC_corr = float("nan")
- 
+
 
   read_length = get_read_length(vars.base + ".reads1")
   mean_r1_genomic = get_genomic_portion(vars.base + ".trimmed1")
@@ -803,7 +871,7 @@ def generate_output(vars):
       if '#' in line:
           print line.rstrip()
   infile.close()
-  
+
 #############################################################################
 
 def error(s):
@@ -835,7 +903,7 @@ def set_attributes(vars, attributes_list, override=False):
         else:
             if not hasattr(vars, attr):
                 setattr(vars, attr, value)
-            
+
 
 def set_sassetti_defaults(vars):
     attributes_list = []
@@ -870,7 +938,7 @@ def set_tn5_defaults(vars):
 
 
 def verify_inputs(vars):
-  
+
     if not os.path.exists(vars.fq1): error("reads1 file not found: "+vars.fq1)
     vars.single_end = False
     if vars.fq2=="": vars.single_end = True
@@ -906,7 +974,7 @@ def initialize_globals(vars, args=[], kwargs={}):
     vars.protocol = "Sassetti"
     vars.prefix = "ACTTATCAGCCAACCTGTTA"
     vars.flags = ""
-   
+
     # Update defaults
     protocol = kwargs.get("protocol", "").lower()
     if protocol:
@@ -967,7 +1035,7 @@ def save_config(vars):
   f.write("ref %s\n" % vars.ref)
   f.write("bwa %s\n" % vars.bwa)
   f.write("prefix %s\n" % vars.base)
-  f.write("mismatches1 %s\n" % vars.mm1) 
+  f.write("mismatches1 %s\n" % vars.mm1)
   f.write("transposon %s\n" % vars.transposon)
   f.write("protocol %s\n" % vars.protocol)
   f.write("primer %s\n" % vars.prefix)
@@ -976,8 +1044,6 @@ def save_config(vars):
 
 def show_help():
   print 'usage: python PATH/src/tpp.py -bwa <PATH_TO_EXECUTABLE> -ref <REF_SEQ> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-flags "<STRING>"] [-tn5|-himar1] [-primer <seq>]'
-    
+
 class Globals:
   pass
-
-
