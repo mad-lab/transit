@@ -101,7 +101,7 @@ class ExampleMethod(base.SingleConditionMethod):
             return None
 
         #Validate transposon types
-        if not transit_tools.validate_filetypes(ctrldata, transposons):
+        if not transit_tools.validate_transposons_used(ctrldata, transposons):
             return None
 
         #Read the parameters from the wxPython widgets
@@ -135,9 +135,6 @@ class ExampleMethod(base.SingleConditionMethod):
     def fromargs(self, rawargs): 
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
-        print "ARGS:", args
-        print "KWARGS:", kwargs
-
         ctrldata = args[0].split(",")
         annotationPath = args[1]
         outpath = args[2]
@@ -167,7 +164,16 @@ class ExampleMethod(base.SingleConditionMethod):
         
         #Get orf data
         self.transit_message("Getting Data")
-        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, norm="TTR", ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
+        (data, position) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
+        (K,N) = data.shape
+
+        if self.normalization and self.normalization != "nonorm":
+            self.transit_message("Normalizing using: %s" % self.normalization)
+            (data, factors) = norm_tools.normalize_data(data, self.normalization, self.ctrldata, self.annotation_path)
+
+        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=1, reps=self.replicates, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data, position=position)
+
+
 
         data = []
         N = len(G)
@@ -198,12 +204,12 @@ class ExampleMethod(base.SingleConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output))
+            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
 
-        self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
-        self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
+        self.output.write("#Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
+        self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         self.output.write("#%s\n" % "\t".join(columns))
 

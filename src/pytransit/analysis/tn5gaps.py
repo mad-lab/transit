@@ -233,15 +233,16 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         start_time = time.time()
         
         self.transit_message("Getting data (May take a while)")
-        genes_obj = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
         
         # Combine all wigs
-        (data,position) = tnseq_tools.get_data_zero_fill(self.ctrldata)
+        (data,position) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
         combined = tnseq_tools.combine_replicates(data, method=self.replicates)
         combined[combined < self.minread] = 0
         counts = combined
         counts[counts > 0] = 1
         num_sites = counts.size
+        
+        genes_obj = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data, position=position)
         
         pins = numpy.mean(counts)
         pnon = 1.0 - pins
@@ -310,12 +311,12 @@ class Tn5GapsMethod(base.SingleConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output.name))
+            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
 
-        self.output.write("#Data: %s\n" % (",".join(self.ctrldata))) 
-        self.output.write("#Annotation path: %s\n" % (",".join(self.ctrldata))) 
+        self.output.write("#Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
+        self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         self.output.write("#Essential gene count: %d\n" % (sig_genes_count))
         self.output.write("#Minimum reads: %d\n" % (self.minread))

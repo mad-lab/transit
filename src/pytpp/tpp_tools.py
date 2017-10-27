@@ -33,8 +33,8 @@ def cleanargs(rawargs):
     kwargs = {}
     count = 0
     while count < len(rawargs):
-        if rawargs[count].startswith("-"):
-            if count + 1 < len(rawargs) and not rawargs[count+1].startswith("-"):
+        if rawargs[count].startswith("-"): #and len(rawargs[count].split(" ")) == 1:
+            if count + 1 < len(rawargs) and (not rawargs[count+1].startswith("-") or len(rawargs[count+1].split(" ")) > 1):
                 kwargs[rawargs[count][1:]] = rawargs[count+1]
                 count += 1
             else:
@@ -94,8 +94,8 @@ def fastq2reads(infile,outfile,maxreads):
 def fix_paired_headers_for_bwa(reads1,reads2):
   a = open(reads1)
   b = open(reads2)
-  temp1 = "temp."+reads1
-  temp2 = "temp."+reads2
+  temp1 = reads1+".temp"
+  temp2 = reads2+".temp"
   c = open(temp1,"w")
   d = open(temp2,"w")
   tot = 0
@@ -408,7 +408,7 @@ def template_counts(ref,sam,bcfile,vars):
 
   sites = []
   for i in range(len(genome)-1):
-    if genome[i:i+2]=="TA":
+    if genome[i:i+2].upper()=="TA":
       pos = i+1
       h = hits.get(pos,[])
       f = filter(lambda x: x[0]=='F',h)
@@ -482,9 +482,6 @@ def read_counts(ref,sam,vars):
     for key in sorted(sites.keys()):
         results.append(sites[key])
     return results # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
-
-
-
 
 
 
@@ -686,7 +683,7 @@ def run_bwa(vars):
 
     cmd = [vars.bwa, "aln"]
     if vars.flags.strip():
-      cmd.extend( vars.flags.split(" "))
+        cmd.extend( vars.flags.split(" "))
     cmd.extend([vars.ref, vars.trimmed1])
     outfile = open(vars.sai1, "w")
     bwa_subprocess(cmd, outfile)
@@ -701,7 +698,7 @@ def run_bwa(vars):
 
         cmd = [vars.bwa, "aln"]
         if vars.flags.strip():
-          cmd.extend(vars.flags.split(" "))
+            cmd.extend(vars.flags.split(" "))
         cmd.extend([vars.ref, vars.genomic2])
         outfile = open(vars.sai2, "w")
         bwa_subprocess(cmd, outfile)
@@ -797,7 +794,7 @@ def generate_output(vars):
   rcounts = [x[5] for x in counts]
   tcounts = [x[6] for x in counts]
   rc,tc = sum(rcounts),sum(tcounts)
-  ratio = rc/float(tc)
+  ratio = rc/float(tc) if (rc != 0 and tc !=0) else 0
   ta_sites = len(rcounts)
   tas_hit = len(filter(lambda x: x>0,rcounts))
   density = tas_hit/float(ta_sites)

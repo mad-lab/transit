@@ -7,7 +7,6 @@ import scipy.stats
 from functools import total_ordering
 
 
-import transit_tools
 try:
     import norm_tools
     noNorm = False
@@ -308,7 +307,7 @@ class Genes:
 
 #
     
-    def __init__(self, wigList, annotation, norm="nonorm", reps="All", minread=1, ignoreCodon = True, nterm=0.0, cterm=0.0, include_nc = False, data=[], position=[]):
+    def __init__(self, wigList, annotation, norm="nonorm", reps="All", minread=1, ignoreCodon = True, nterm=0.0, cterm=0.0, include_nc = False, data=[], position=[],genome="", transposon="himar1"):
         """Initializes the gene list based on the list of wig files and a prot_table.
 
         This class helps define a list of Gene objects with attributes that 
@@ -348,12 +347,17 @@ class Genes:
         self.orf2index = {}
         self.genes = []
         
-        orf2info = transit_tools.get_gene_info(self.annotation)
+        orf2info = get_gene_info(self.annotation)
         if not numpy.any(data):
-            (data, position) = get_data(self.wigList)
+            if transposon.lower() == "himar1" and not genome:
+                (data, position) = get_data(self.wigList)
+            elif genome:
+                (data, position) = get_data_w_genome(self.wigList, genome)
+            else:
+                (data, position) = get_data_zero_fill(self.wigList)
             ii_min = data < self.minread
             data[ii_min] = 0
-        hash = transit_tools.get_pos_hash(self.annotation)
+        hash = get_pos_hash(self.annotation)
 
         if not noNorm:
             (data, factors) = norm_tools.normalize_data(data, norm, self.wigList, self.annotation)
@@ -400,7 +404,7 @@ class Genes:
                 gene = tmp[8].strip()
                 name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
             else:
-                features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
+                features = dict([tuple(f.split("=",1)) for f in filter(lambda x: "=" in x, tmp[8].split(";"))])
                 gene = features["ID"]
                 name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
             posindex = orf2posindex.get(gene, [])
@@ -709,9 +713,38 @@ def get_file_types(wig_list):
                 tmp = line.split()
                 pos = int(tmp[0])
                 rd = float(tmp[1])
-                if pos != prev_pos + 1: types[i] = 'himar1'
+                if pos != prev_pos + 1:
+                    types[i] = 'himar1'
+                    break
                 prev_pos = pos
     return types
+
+def check_wig_includes_zeros(wig_list):
+    """Returns boolean list showing whether the given files include empty sites
+    (zero) or not.
+
+    Arguments:
+        wig_list (list): List of paths to wig files.
+
+    Returns:
+        list: List of boolean values.
+    """
+    if not wig_list:
+        return []
+    includes = [False for i in range(len(wig_list))]
+    for i, wig_filename in enumerate(wig_list):
+        with open(wig_filename) as wig_file:
+            for line in wig_file:
+                if line[0] not in "0123456789": continue
+                tmp = line.split()
+                pos = int(tmp[0])
+                rd = float(tmp[1])
+                if rd == 0:
+                    includes[i] = True
+                    break
+    return includes
+
+
 
 #
 
@@ -805,7 +838,7 @@ def get_data_zero_fill(wig_list):
         return (numpy.zeros((1,0)), numpy.zeros(0), [])
     
     data = numpy.zeros((K,T))
-    position = numpy.zeros(T)
+    position = numpy.array(range(T)) + 1#numpy.zeros(T)
     for j,path in enumerate(wig_list):
         reads = []
         i = 0
@@ -814,19 +847,43 @@ def get_data_zero_fill(wig_list):
             tmp = line.split()
             pos = int(tmp[0])
             rd = float(tmp[1])
-            
-            # Fill in remaining zeros
-            for fill_pos in range(i, pos - 1):
-                data[j,fill_pos] = 0
-                position[fill_pos] = i
-                i += 1
-                
             prev_pos = pos
-            data[j,i] = rd
-            position[i] = pos
+            data[j,pos-1] = rd
             i+=1
     return (data, position)
 
+
+def get_data_w_genome(wig_list, genome):
+   
+    X = read_genome(genome)
+    N = len(X)
+    positions = []
+    pos2index = {}
+    count = 0
+    for i in range(N-1):
+        if X[i:i+2].upper() == "TA":
+            pos = i+1
+            positions.append(pos)
+            pos2index[pos] = count
+            count +=1
+
+    positions = numpy.array(positions)
+    T = len(positions)
+    K = len(wig_list)
+    data = numpy.zeros((K,T))
+    for j,path in enumerate(wig_list):
+        for line in open(path):
+            if line[0] not in "0123456789": continue
+            tmp = line.split()
+            pos = int(tmp[0])
+            rd = float(tmp[1])
+            if pos in pos2index:
+                index = pos2index[pos]
+                data[j,index] = rd
+            else:
+                print "Warning: Coordinate %d did not match a TA site in the genome. Ignoring counts." %(pos)
+    return (data, positions)
+ 
 #
 
 def combine_replicates(data, method="Sum"):
@@ -891,16 +948,7 @@ def get_wig_stats(path):
     """
     (data,position) = get_data([path])
     reads = data[0]
-    density = numpy.mean(reads>0)
-    meanrd = numpy.mean(reads)
-    nzmeanrd = numpy.mean(reads[reads>0])
-    nzmedianrd = numpy.median(reads[reads>0])
-    maxrd = numpy.max(reads)
-    totalrd = numpy.sum(reads)
-
-    skew = scipy.stats.skew(reads[reads>0])
-    kurtosis = scipy.stats.kurtosis(reads[reads>0])
-    return (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis)
+    return get_data_stats(reads)
 
 #
 
@@ -1052,7 +1100,7 @@ def get_pos_hash_gff(path):
     for line in open(path):
         if line.startswith("#"): continue
         tmp = line.strip().split("\t")
-        features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
+        features = dict([tuple(f.split("=",1)) for f in filter(lambda x: "=" in x, tmp[8].split(";"))])
         if "ID" not in features: continue
         orf = features["ID"]
         chr = tmp[0]
@@ -1138,7 +1186,7 @@ def get_gene_info_gff(path):
         end = int(tmp[4])
         length = ((end-start+1)/3)-1
         strand = tmp[6]
-        features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
+        features = dict([tuple(f.split("=",1)) for f in filter(lambda x: "=" in x, tmp[8].split(";"))])
         if "ID" not in features: continue
         orf = features["ID"]
         name = features.get("Name", "-")
@@ -1148,6 +1196,7 @@ def get_gene_info_gff(path):
         if desc == "-": desc = features.get("description", "-")
         if desc == "-": desc = features.get("Desc", "-")
         if desc == "-": desc = features.get("desc", "-")
+        if desc == "-": desc = features.get("product", "-")
 
         orf2info[orf] = (name, desc, start, end, strand)
     return orf2info

@@ -23,8 +23,7 @@ import random
 import numpy
 import scipy.stats
 import datetime
-
-import matplotlib.pyplot as plt
+import matplotlib
 
 import base
 import pytransit
@@ -226,7 +225,7 @@ class ResamplingMethod(base.DualConditionMethod):
             return None
 
         #Validate transposon types
-        if not transit_tools.validate_filetypes(ctrldata+expdata, transposons):
+        if not transit_tools.validate_transposons_used(ctrldata+expdata, transposons):
             return None
 
 
@@ -318,6 +317,11 @@ class ResamplingMethod(base.DualConditionMethod):
 
     def Run(self):
 
+        if not self.wxobj:
+            # Force matplotlib to use good backend for png.
+            matplotlib.use('Agg')
+            import matplotlib.pyplot as plt
+
         self.transit_message("Starting resampling Method")
         start_time = time.time()
        
@@ -336,7 +340,7 @@ class ResamplingMethod(base.DualConditionMethod):
         Kexp = len(self.expdata)
         #Get orf data
         self.transit_message("Getting Data")
-        (data, position) = tnseq_tools.get_data(self.ctrldata+self.expdata)
+        (data, position) = transit_tools.get_validated_data(self.ctrldata+self.expdata, wxobj=self.wxobj)
 
         (K,N) = data.shape
 
@@ -416,12 +420,12 @@ class ResamplingMethod(base.DualConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: norm=%s, samples=%s, pseudocounts=%1.2f, adaptive=%s, histogram=%s, includeZeros=%s, output=%s\n" % (self.normalization, self.samples, self.pseudocount, self.adaptive, self.doHistogram, self.includeZeros, self.output.name))
+            self.output.write("#GUI with: norm=%s, samples=%s, pseudocounts=%1.2f, adaptive=%s, histogram=%s, includeZeros=%s, output=%s\n" % (self.normalization, self.samples, self.pseudocount, self.adaptive, self.doHistogram, self.includeZeros, self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
-        self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata))) 
-        self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata))) 
-        self.output.write("#Annotation path: %s\n" % (self.annotation_path))
+        self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
+        self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata).encode('utf-8'))) 
+        self.output.write("#Annotation path: %s\n" % (self.annotation_path.encode('utf-8')))
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         self.output.write("#%s\n" % "\t".join(columns))
 

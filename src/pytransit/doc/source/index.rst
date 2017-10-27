@@ -7,10 +7,17 @@ Welcome to TRANSIT's documentation!
 
 The main documentation for the site is organized into the following sections:
 
-* `TRANSIT Manual`_
-* `TRANSIT Tutorials`_
-* `TPP Manual`_
-* `Code Documentation`_
+* :ref:`manual-link`
+* :ref:`tutorial-link`
+* :ref:`tpp-link`
+* :ref:`code-link`
+
+
+Quick Links
+~~~~~~~~~~~
+
+* :ref:`install-link`
+* :ref:`cheat-link`
 
 
 Mailing List
@@ -23,7 +30,7 @@ You can join our mailing list to get announcements of new versions, discuss any 
 
 
 
-
+.. _manual-link:
 
 .. toctree::
    :maxdepth: 2
@@ -36,6 +43,7 @@ You can join our mailing list to get announcements of new versions, discuss any 
    transit_methods
    transit_console_cheatsheet
 
+.. _tutorial-link:
 
 .. toctree::
    :maxdepth: 2
@@ -47,12 +55,15 @@ You can join our mailing list to get announcements of new versions, discuss any 
    transit_normalization_tutorial
    transit_export_tutorial
 
+.. _tpp-link:
 
 .. toctree::
    :maxdepth: 2
    :caption: TPP Manual
 
    tpp.rst
+
+.. _code-link:
 
 .. toctree::
    :maxdepth: 2
