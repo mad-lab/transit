@@ -193,7 +193,7 @@ class HMMMethod(base.SingleConditionMethod):
             T = len([1 for line in open(ctrldata[0]).readlines() if not line.startswith("#")])
             self.maxiterations = T*4 + 1
         except:
-            self.self.maxiterations = 100
+            self.maxiterations = 100
         self.count = 1
 
 
@@ -212,7 +212,7 @@ class HMMMethod(base.SingleConditionMethod):
             return None
 
         #Validate transposon types
-        if not transit_tools.validate_filetypes(ctrldata, transposons):
+        if not transit_tools.validate_transposons_used(ctrldata, transposons):
             return None
 
 
@@ -279,7 +279,7 @@ class HMMMethod(base.SingleConditionMethod):
         
         #Get data
         self.transit_message("Getting Data")
-        (data, position) = tnseq_tools.get_data(self.ctrldata)
+        (data, position) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
         (K,N) = data.shape
 
         # Normalize data
@@ -369,7 +369,7 @@ class HMMMethod(base.SingleConditionMethod):
             memberstr = ""
             for m in members:
                 memberstr += "%s = %s, " % (m, getattr(self, m))
-            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata), self.annotation_path, self.output.name))
+            self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
        
@@ -468,14 +468,14 @@ class HMMMethod(base.SingleConditionMethod):
         log_Prob_Obs = - (numpy.sum(numpy.log(C)))
         return(( log_Prob_Obs, alpha, C ))
 
-    def backward_procedure(self, A, B, PI, O, C=None):
+    def backward_procedure(self, A, B, PI, O, C=numpy.array([])):
 
         N = len(B)
         T = len(O)
         beta = numpy.zeros((N,T))
 
         beta[:,T-1] = 1.0
-        if C!=None: beta[:,T-1] = beta[:,T-1] * C[T-1]
+        if C.any(): beta[:,T-1] = beta[:,T-1] * C[T-1]
 
         for t in xrange(T-2, -1, -1):
             #B[i](O[:,t])  =>  numpy.prod(B[i](O[:,t]))
@@ -487,7 +487,7 @@ class HMMMethod(base.SingleConditionMethod):
             if sum(beta[:,t]) == 0:
                 beta[:,t] = 0.0000000000001
 
-            if C!=None:
+            if C.any():
                 beta[:,t] = beta[:,t] * C[t]
 
             self.progress_update("hmm", self.count)
@@ -506,8 +506,9 @@ class HMMMethod(base.SingleConditionMethod):
         b_o = [B[i](O[0]) for i in range(N)]
         delta[:,0] = numpy.log(PI) + numpy.log(b_o)
 
-        Q = numpy.zeros((N, T),dtype=int)
+        Q = numpy.zeros((N, T), dtype=int)
 
+        numpy.seterr(divide='ignore')
         for t in xrange(1, T):
             b_o = [B[i](O[t]) for i in range(N)]
             #nus = delta[:, t-1] + numpy.log(A)
@@ -525,6 +526,7 @@ class HMMMethod(base.SingleConditionMethod):
             self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
             self.count+=1
 
+        numpy.seterr(divide='warn')
         self.progress_update("hmm", self.count)
         self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
 

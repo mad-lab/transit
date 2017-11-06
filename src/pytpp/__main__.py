@@ -34,13 +34,11 @@ from tpp_tools import *
 from tpp_gui import *
 
 
-def main():
-    # if -nowin is command-line arg, skip the GUI and set filenames in vars
+def main(arguments=[]):
 
     vars = Globals()
-    #vars.version = "$Revision: 1.5 $".split()[1]
 
-    if len(sys.argv) <= 1 and hasWx:
+    if len(arguments) <= 1 and hasWx:
         app = wx.App(False)
         form = MyForm(vars)
         form.update_dataset_list()
@@ -64,14 +62,14 @@ def main():
         else:
             pass
 
-    elif len(sys.argv) <= 1 and not hasWx:
+    elif len(arguments) <= 1 and not hasWx:
         print "Please install wxPython to run in GUI Mode."
         print "To run in Console Mode please follow these instructions:"
         print ""
         show_help()
 
     else:
-        (args, kwargs) = cleanargs(sys.argv[1:])
+        (args, kwargs) = cleanargs(arguments)
 
         # Show help if needed
         if "help" in kwargs or "-help" in kwargs:
@@ -112,5 +110,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
 

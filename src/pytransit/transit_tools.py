@@ -41,10 +41,74 @@ import ntpath
 import numpy
 import scipy.optimize
 import scipy.stats
-import pytransit
 
+import warnings
+
+import pytransit
 import pytransit.tnseq_tools as tnseq_tools
 import pytransit.norm_tools as norm_tools
+
+
+if hasWx:
+    class AssumeZerosDialog(wx.Dialog):
+
+        def __init__(self, *args, **kw):
+
+            self.ID_HIMAR1 = wx.NewId()
+            self.ID_TN5 = wx.NewId()
+
+            wx.Dialog.__init__(self, None, title="Dialog")
+
+            self.ID_HIMAR1 = wx.NewId()
+            self.ID_TN5 = wx.NewId()
+    
+            self.SetSize((500, 300))
+            self.SetTitle("Warning:  Wig Files Do Not Include Empty Sites")
+
+            mainSizer = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(mainSizer)
+    
+            warningText = """
+
+One or more of your .wig files does not include any empty sites (i.e. sites with zero read-counts). The analysis methods in TRANSIT require knowing ALL possible insertion sites, even those without reads.
+    
+    Please indicate how you want to proceed:
+
+    As Himar1: You will need to provide the DNA sequence (.fasta format) and TRANSIT will automatically determine empty TA sites.
+
+    As Tn5: TRANSIT will assume all nucleotides are possible insertion sites. Those not included in the .wig file are assumed to be zero.
+    """
+            warningStaticBox = wx.StaticText(self, wx.ID_ANY, warningText, (-1,-1), (-1, -1), wx.ALL)
+            warningStaticBox.Wrap(480)
+            mainSizer.Add(warningStaticBox, flag=wx.CENTER, border=5)
+    
+            button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            himar1Button = wx.Button(self, self.ID_HIMAR1, label='Proceed as Himar1')
+            tn5Button = wx.Button(self, self.ID_TN5, label='Proceed as Tn5')
+            cancelButton = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+
+    
+            button_sizer.Add(himar1Button, flag=wx.LEFT, border=5)
+            button_sizer.Add(tn5Button, flag=wx.LEFT, border=5)
+            button_sizer.Add(cancelButton, flag=wx.LEFT, border=5)
+
+            mainSizer.Add(button_sizer,
+                flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
+
+
+            himar1Button.Bind(wx.EVT_BUTTON, self.OnClose)
+            tn5Button.Bind(wx.EVT_BUTTON, self.OnClose)
+            cancelButton.Bind(wx.EVT_BUTTON, self.OnClose)
+
+
+        def OnClose(self, event):
+    
+            if self.IsModal():
+                self.EndModal(event.EventObject.Id)
+            else:
+                self.Close()
+
+
 
 def aton(aa):
     #TODO: Write docstring
@@ -79,9 +143,11 @@ def cleanargs(rawargs):
     args = []
     kwargs = {}
     count = 0
+    # Loop through list of arguments
     while count < len(rawargs):
+        # If the current argument starts with "-"
         if rawargs[count].startswith("-"):
-            if count + 1 < len(rawargs) and not rawargs[count+1].startswith("-"):
+            if count + 1 < len(rawargs) and (not rawargs[count+1].startswith("-") or len(rawargs[count+1].split(" ")) > 1):
                 kwargs[rawargs[count][1:]] = rawargs[count+1]
                 count += 1
             else:
@@ -167,10 +233,12 @@ def validate_both_datasets(ctrldata, expdata):
         return False
     else:
         return True
-    
 
-def validate_filetypes(datasets, transposons, justWarn=True):
+
+def validate_transposons_used(datasets, transposons, justWarn=True): 
+
     #TODO: Write docstring
+    # Check if transposon type is okay.
     unknown = tnseq_tools.get_unknown_file_types(datasets, transposons)
     if unknown:
         if justWarn:
@@ -182,7 +250,45 @@ def validate_filetypes(datasets, transposons, justWarn=True):
         else:
             transit_error("Error: Some of the selected datasets look like they were created using transposons that this method was not intended to work with: %s." % (",". join(unknown)))
             return False
+
     return True
+
+
+
+def validate_wig_format(wig_list, wxobj=None):
+    # Check if the .wig files include zeros or not
+    status = 0
+    genome = ""
+    includesZeros = tnseq_tools.check_wig_includes_zeros(wig_list)
+
+    if sum(includesZeros) < len(includesZeros):
+        # If console mode, just print a warning
+        if not wxobj or not hasWx:
+            warnings.warn("\nOne or more of your .wig files does not include any empty sites (i.e. sites with zero read-counts). Proceeding as if data was Tn5 (all other sites assumed to be zero)!\n")
+            return (2, "")
+
+        # Else check their decision
+        dlg = AssumeZerosDialog()
+        result = dlg.ShowModal()
+        if result == dlg.ID_HIMAR1 and wxobj:
+            status = 1
+            # Get genome
+            wc = u"Known Sequence Extensions (*.fna,*.fasta)|*.fna;*.fasta;|\nAll files (*.*)|*.*"
+            gen_dlg = wx.FileDialog(wxobj, message="Save file as ...", defaultDir=os.getcwd(), defaultFile="", wildcard=wc, style=wx.OPEN)
+            if gen_dlg.ShowModal() == wx.ID_OK:
+                genome = gen_dlg.GetPath()
+            else:
+                genome = ""
+
+        elif result == dlg.ID_TN5:
+            status = 2; genome = "" 
+        else:
+            status = 3; genome = ""
+    return (status, genome)
+
+
+def validate_filetypes(datasets, transposons, justWarn=True):
+    validate_transposons_used(datasets, transposons, justWarn)
 
 
 def get_pos_hash(path):
@@ -275,7 +381,47 @@ def convertToCombinedWig(dataset_list, annotationPath, outputPath, normchoice="n
         output.write("#%s\n" % f)
 
     for i,pos in enumerate(position):
-        output.write("%-10d %s  %s\n" % (position[i], "".join(["%7.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
+        #output.write("%-10d %s  %s\n" % (position[i], "".join(["%7.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
+        output.write("%d\t%s\t%s\n" % (position[i], "\t".join(["%1.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
     output.close()
 
+
+
+
+def get_validated_data(wig_list, wxobj=None):
+    """ Returns a tuple of (data, position) containing a matrix of raw read-counts
+        , and list of coordinates. 
+
+    Arguments:
+        wig_list (list): List of paths to wig files.
+        wxobj (object): wxPython GUI object for warnings
+
+    Returns:
+        tuple: Two lists containing data and positions of the wig files given.
+
+    :Example:
+
+        >>> import pytransit.tnseq_tools as tnseq_tools
+        >>> (data, position) = tnseq_tools.get_validated_data(["data/glycerol_H37Rv_rep1.wig", "data/glycerol_H37Rv_rep2.wig"])
+        >>> print data
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+
+    .. seealso:: :class:`get_file_types` :class:`combine_replicates` :class:`get_data_zero_fill` :class:`pytransit.norm_tools.normalize_data`
+    """
+
+    (status, genome) = validate_wig_format(wig_list, wxobj=wxobj)
+
+    # Regular file with empty sites
+    if status == 0:
+        return tnseq_tools.get_data(wig_list)    
+    # No empty sites, decided to proceed as Himar1
+    elif status == 1:
+        return tnseq_tools.get_data_w_genome(wig_list, genome)
+    # No empty sites, decided to proceed as Tn5
+    elif status == 2:
+        return tnseq_tools.get_data_zero_fill(wig_list)
+    # Didn't choose either.... what!?
+    else:
+        return tnseq_tools.get_data([])
 

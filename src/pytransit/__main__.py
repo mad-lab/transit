@@ -66,7 +66,7 @@ def main(args=None):
         if method_name not in all_methods:
             print "Error: The '%s' method is unknown." % method_name
             print "Please use one of the known methods (or see documentation to add a new one):"
-            for m in methods:
+            for m in all_methods:
                 print "\t - %s" % m
             print "Usage: python %s <method>" % sys.argv[0]
         else:

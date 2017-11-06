@@ -28,21 +28,69 @@ class InvalidArgumentException(Exception):
         # Call the base class constructor with the parameters it needs
         super(InvalidArgumentException, self).__init__(message)
 
+if hasWx:
+    class InfoIcon(wx.StaticBitmap):
+        def __init__(self, panel, flag, bmp=None, tooltip=""):
+            if not bmp:
+                bmp = wx.ArtProvider.GetBitmap(wx.ART_INFORMATION, wx.ART_OTHER, (16, 16))
+            wx.StaticBitmap.__init__(self, panel, flag, bmp)
+            tp = wx.ToolTip(tooltip)
+            self.SetToolTip(tp)
 
-class InfoIcon(wx.StaticBitmap):
-    def __init__(self, panel, flag, bmp=None, tooltip=""):
-        if not bmp:
-            bmp = wx.ArtProvider.GetBitmap(wx.ART_INFORMATION, wx.ART_OTHER, (16, 16))
-        wx.StaticBitmap.__init__(self, panel, flag, bmp)
-        tp = wx.ToolTip(tooltip)
-        self.SetToolTip(tp)
+
+class TransitGUIBase:
+
+    def __init__(self):
+        self.wxobj = None
+        self.short_name = "TRANSIT"
+        self.long_name = "TRANSIT"
+
+    def status_message(self, text, time=-1):
+        #TODO: write docstring
+        if self.wxobj:
+            if newWx:
+                wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
+            else:
+                wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))
+            wx.Yield()
+
+    def console_message(self, text):
+        #TODO: write docstring
+        sys.stdout.write("[%s] %s\n" % (self.short_name, text))
+
+    def console_message_inplace(self, text):
+        #TODO: write docstring
+        sys.stdout.write("[%s] %s   \r" % (self.short_name, text) )
+        sys.stdout.flush()
+
+    def transit_message(self, text):
+        #TODO: write docstring
+        self.console_message(text)
+        self.status_message(text)
+
+    def transit_message_inplace(self, text):
+        #TODO: write docstring
+        self.console_message_inplace(text)
+        self.status_message(text)
 
 
-class TransitFile:
+    def transit_error(self,text):
+        self.transit_message(text)
+        if self.wxobj:
+            transit_tools.ShowError(text)
+
+    def transit_warning(self,text):
+        self.transit_message(text)
+        if self.wxobj:
+            transit_tools.ShowWarning(text)
+
+
+class TransitFile (TransitGUIBase):
     #TODO write docstring
 
     def __init__(self, identifier="#Unknown", colnames=[]):
         #TODO write docstring
+        TransitGUIBase.__init__(self)
         self.identifier = identifier
         self.colnames = colnames
 
@@ -50,11 +98,20 @@ class TransitFile:
         #TODO write docstring
         row = 0
         data = []
+        shownError = False
         for line in open(path):
             if line.startswith("#"): continue
             tmp = line.split("\t")
             tmp[-1] = tmp[-1].strip()
-            rowdict = dict([(colnames[i], tmp[i]) for i in range(len(colnames))])
+            #print colnames
+            #print  len(colnames), len(tmp)
+            try:
+                rowdict = dict([(colnames[i], tmp[i]) for i in range(len(colnames))])
+            except Exception as e:
+                if not shownError:
+                    self.transit_warning("Error reading data! This may be caused by trying to load a old results file, when the format has changed.")
+                    shownError = True
+                rowdict = dict([(colnames[i], tmp[i]) for i in range(min(len(colnames), len(tmp)))])
             data.append((row, rowdict))
             row+=1
         return data
@@ -146,6 +203,7 @@ class AnalysisGUI:
         label = wx.StaticText(panel, wx.ID_ANY, labelText, wx.DefaultPosition, labSize, 0)
         label.Wrap( -1 )
         choiceBox = wx.Choice( panel, wx.ID_ANY, wx.DefaultPosition, widgetSize, widgetChoice, 0 )
+        choiceBox.SetSelection(0)
         sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
         sizer.Add(choiceBox, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
         sizer.Add(InfoIcon(panel, wx.ID_ANY, tooltip=tooltipText), 0, wx.ALIGN_CENTER_VERTICAL, 5 )

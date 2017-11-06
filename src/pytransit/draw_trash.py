@@ -124,19 +124,12 @@ def draw_scale(draw, start_x, start_y, height, max_read):
 
 
 
-def draw_features(draw, features, start, end, start_x, start_y, width, height):
-    pass
-
-
-def draw_genes(draw, GENES, orf2data, start, end, start_x, start_y, width, height):
+ 
+def draw_features(draw, GENES, orf2data, start, end, start_x, start_y, width, height): 
 
     padding_h = 3
-    text_w, text_h = draw.textsize("RV0001", font=font)        
+    text_w, text_h = draw.textsize("RV0001", font=font)
     gene_h = height - text_h
-
-    #print "GENES height", height
-    #print "GENES text_h", text_h
-    #print "GENES gene_h", gene_h
 
     triangle_size = 10
     for gene in GENES:
@@ -153,28 +146,89 @@ def draw_genes(draw, GENES, orf2data, start, end, start_x, start_y, width, heigh
         norm_start = normalize(max(gene_start, start), start, end, new_min, new_max)
         norm_end = normalize(min(gene_end, end), start, end, new_min, new_max)
 
+        color = "gray"
+        if gene.startswith("ES-"):
+            color = "red"
+        elif gene.startswith("GD-"):
+            color = "yellow"
+        elif gene.startswith("NE-"):
+            color = "blue"
+        elif gene.startswith("GA-"):
+            color = "green"
 
-        #if True:
-        #    print gene, name, gene_start, gene_end, strand #, norm_start, norm_end
+        if strand == "-":    
+            if gene_start >= start:
+                draw.rectangle(((norm_start, start_y+5),(norm_end,start_y+gene_h-5)), fill=color)
+        
+            else:
+                draw.rectangle(((norm_start, start_y+5),(norm_end,start_y+gene_h-5)), fill=color)
+                
+        else:
+            if gene_end <= end:
+                draw.rectangle(((norm_start, start_y+5),(norm_end, start_y+gene_h-5)), fill=color)
+            else:
+                draw.rectangle(((norm_start, start_y+5),(norm_end, start_y+gene_h-5)), fill=color)
+
+
+        if name == "-": name = gene
+        if not name.startswith("non-coding"):
+            name_text_w, name_text_h = draw.textsize(name, font=font)
+            if abs(norm_start-norm_end) >= name_text_w:
+                draw.text(( norm_start + (abs(norm_start-norm_end) - name_text_w)/2.0 , start_y+gene_h+text_h), name, font=font, fill="black")
+
+
+
+
+
+
+
+
+
+
+
+
+def draw_genes(draw, GENES, orf2data, start, end, start_x, start_y, width, height, doTriangle=True):
+
+    padding_h = 3
+    text_w, text_h = draw.textsize("RV0001", font=font)        
+    gene_h = height - text_h
+
+
+    triangle_size = 10
+    if not doTriangle:
+        triangle_size = 0
+    for gene in GENES:
+
+        if gene not in orf2data: continue
+        gene_start = orf2data[gene][2]
+        gene_end = orf2data[gene][3]
+        strand = orf2data[gene][4]
+        name = orf2data[gene][0]
+
+        new_min = start_x
+        new_max = start_x + width
+
+        norm_start = normalize(max(gene_start, start), start, end, new_min, new_max)
+        norm_end = normalize(min(gene_end, end), start, end, new_min, new_max)
+
 
         if strand == "-":
     
             if gene_start >= start:
                 draw.rectangle(((norm_start+triangle_size, start_y+5),(norm_end,start_y+gene_h-5)), fill="blue")
-                #draw.polygon([(norm_start,start_y+gene_h/2.0),(norm_start, gene_h+20+5), (norm_start,ta_sites_finish_h +gene_h+10)], fill="blue" )
-                draw.polygon([(norm_start+triangle_size, start_y),(norm_start+triangle_size,start_y+gene_h), (norm_start,start_y+gene_h/2.0)], fill="blue" )
+                if doTriangle:
+                    draw.polygon([(norm_start+triangle_size, start_y),(norm_start+triangle_size,start_y+gene_h), (norm_start,start_y+gene_h/2.0)], fill="blue" )
     
             else:
                 draw.rectangle(((norm_start, start_y+5),(norm_end,start_y+gene_h-5)), fill="blue")
-                #draw.rectangle(((norm_start, start_y),(norm_end,start_y+gene_h)), fill="blue")
 
         else:
             if gene_end <= end:
                 draw.rectangle(((norm_start, start_y+5),(norm_end-triangle_size, start_y+gene_h-5)), fill="blue")
-                draw.polygon([(norm_end-triangle_size, start_y),(norm_end-triangle_size,start_y+gene_h), (norm_end,start_y+gene_h/2.0)], fill="blue" )
+                if doTriangle:
+                    draw.polygon([(norm_end-triangle_size, start_y),(norm_end-triangle_size,start_y+gene_h), (norm_end,start_y+gene_h/2.0)], fill="blue" )
             else:
                 draw.rectangle(((norm_start, start_y+5),(norm_end, start_y+gene_h-5)), fill="blue")
-                #draw.rectangle(((norm_start,start_y ),(norm_end, start_y+gene_h)), fill="blue")
 
 
         if name == "-": name = gene
@@ -333,7 +387,8 @@ def draw_canvas(fulldata, position, hash, orf2data, feature_hashes, feature_data
         draw.text((label_text_x, start_y+10),'Feature-%d' % (f+1), font=font, fill="black")
         width = read_w
         #print FEATURES[f]
-        draw_genes(draw, FEATURES[f], feature_data[f], start, end, start_x, start_y, width, gene_h)
+        #draw_genes(draw, FEATURES[f], feature_data[f], start, end, start_x, start_y, width, gene_h))
+        draw_features(draw, FEATURES[f], feature_data[f], start, end, start_x, start_y, width, gene_h)
         start_y +=10
 
     return(image)

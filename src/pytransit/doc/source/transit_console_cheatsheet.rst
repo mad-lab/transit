@@ -1,5 +1,5 @@
 
-
+.. _cheat-link:
 
 Console Mode Cheat-Sheet
 ========================

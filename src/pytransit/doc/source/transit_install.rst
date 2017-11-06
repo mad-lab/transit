@@ -1,5 +1,6 @@
 
 
+.. _install-link:
 
 Installation
 ============
@@ -28,9 +29,9 @@ The following libraries/modules are required to run TRANSIT:
 
 
 + `Python 2.7 <http://www.python.org>`_
-+ `Numpy 1.6.1+ <http://www.numpy.org/>`_
-+ `Scipy 0.14.0+ <http://www.scipy.org/>`_
-+ `matplotlib 1.1.1+ <http://matplotlib.org/users/installing.html>`_
++ `Numpy <http://www.numpy.org/>`_ (tested on 1.13.0)
++ `Scipy <http://www.scipy.org/>`_ (tested on 0.19.1)
++ `matplotlib <http://matplotlib.org/users/installing.html>`_ (tested on 2.0.2)
 + `wxpython 2.8.0+ <http://www.wxpython.org/>`_ (for Mac OSX, use the **cocoa** version of wxPython; If using El Capitan, please see :ref:`OSX El Capitan notice <osx_el_capitan>` for special instructions)
 + `PIL (Python Imaging Library) <http://www.pythonware.com/products/pil/>`_ or Pillow.
 
@@ -51,8 +52,8 @@ Use as a Python Package
 TRANSIT can be (optionally) installed as a python package. This can simplify the installation process as it will automatically install most of the requirements. In addition, it will allow users to use some of transit functions in their own scripts if they desire. Below is a brief example of importing transit functions into python. See the documentation of the package for further examples:
 
     :Example:
-        >>> import transit.norm_tools as norm_tools
-        >>> import transit.tnseq_tools as tnseq_tools
+        >>> import pytransit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
         >>> print data
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
@@ -489,16 +490,16 @@ from our servers <http://orca1.tamu.edu/essentiality/transit/wxPython3.0-osx-coc
 
 
 This problem is likely due to running an unsupported version of matplotlib.
-Please download and install the version 1.4.3. You can download  and manually
+Please download and install the version 2.0.2. You can download  and manually
 install the source from the following location:
 
- + `matplotlib-1.4.3 <https://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.4.3/>`_
+ + `matplotlib-1.4.3 <https://sourceforge.net/projects/matplotlib/files/matplotlib/>`_
 
 Or, if you have pip installed, you can install using pip and specify the desired version:
 
 ::
 
-    pip install 'matplotlib>=1.1.0,<1.5.0' --force-reinstall
+    pip install 'matplotlib' --force-reinstall
 
 
 |
