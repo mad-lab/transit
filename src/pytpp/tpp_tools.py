@@ -234,12 +234,19 @@ def extract_staggered(infile,outfile,vars):
 
   #P,Q = 5,10 # 1-based inclusive positions to look for start of Tn prefix
   P,Q = 0,15
+  if vars.barseq_catalog_out!=None: Q = 100 # relax for barseq
 
   vars.tot_tgtta = 0
   vars.truncated_reads = 0
   output = open(outfile,"w")
   tot = 0
   #print infile
+  if vars.barseq_catalog_out!=None:
+    barcodes_file = vars.base+".barseq" # I could define this in vars
+    catalog = open(barcodes_file,"w")
+    barseq1 = "TGCAGGGATGTCCACGAGGTCTCT" # const regions surrounding barcode
+    barseq2 = "CGTACGCTGCAGGTCGACGGCCGG"
+    barseq1len,barseq2len = len(barseq1),len(barseq2)
   for line in open(infile):
     #print line
     line = line.rstrip()
@@ -253,21 +260,30 @@ def extract_staggered(infile,outfile,vars):
     if a>=P and a<=Q:
       gstart,gend = a+lenTn,readlen
       if b!=-1: gend = b; vars.truncated_reads += 1
-      #if gend-gstart<20: continue # too short
-      if gend-gstart<5: continue # too short
+      if gend-gstart<20: continue # too short # I should make this a param
       output.write(header+"\n")
       output.write(line[gstart:gend]+"\n")
       vars.tot_tgtta += 1
+    if vars.barseq_catalog_out!=None:
+      n = max(a,readlen)
+      c = mmfind(line,n,barseq1,barseq1len,vars.mm1) # only have to search as far as Tn prefix
+      d = mmfind(line,n,barseq2,barseq2len,vars.mm1)
+      seq = "XXXXXXXXXXXXXXXXXXXX"
+      if c!=-1 and d!=-1:
+        size = d-c-barseq1len
+        if size>=15 and size<=25: seq = line[c+barseq1len:d]
+      catalog.write(header+"\n")
+      catalog.write(seq+"\n")
+  if vars.barseq_catalog_out!=None: catalog.close()
   output.close()
   if vars.tot_tgtta == 0:
     raise ValueError("Error: Input files did not contain any reads matching prefix sequence with %d mismatches" % vars.mm1)
 
 
-
-
 def message(s):
-  print "[tn_preprocess]",s
-  sys.stdout.flush()
+  #print "[tn_preprocess]",s
+  #sys.stdout.flush()
+  sys.stderr.write("[tn_preprocess] "+s+"\n")
 
 def get_id(line):
   a,b = line.find(":")+1,line.rfind("#")
@@ -755,7 +771,89 @@ def get_genomic_portion(filename):
    return tot_len/n
 
 
+# return list of (item,cnt) sorted by counts
+
+def popularity(lst):
+  hash = {}
+  for x in lst:
+    if x not in hash: hash[x] = 0
+    hash[x] += 1
+  data = [(hash[x],x) for x in hash.keys()]
+  data.sort(reverse=True)
+  data = [(y,x) for (x,y) in data]
+  return data
+
+
+def create_barseq_catalog(vars):
+  barcodes = {} # headers->barcodes
+  for line in open(vars.base+".barseq"):
+    if line[0]=='>': 
+      header = line.rstrip()[1:]
+      header = header.split()[0] # in case it has a space, which is dropped by bwa in sam file
+    else: barcodes[header] = line.split('\n')[0]
+
+  sites,nreads = {},0
+  for line in open(vars.sam):
+    if line[0]=='@': continue
+    w = line.split('\t')
+    samcode = int(w[1])
+    nreads += 1
+    if samcode in [0,16]: # what about PE reads?
+      header,coord = w[0],int(w[3])
+      # see how I adjust coords in read_counts()
+      strand,delta = 'F',-2
+      if samcode==16: strand,delta = 'R',len(w[9]); 
+      coord += delta
+      if strand=='R': coord *= -1
+      if coord not in sites: sites[coord] = [] # use -co for minus strand
+      sites[coord].append(barcodes[header])
+
+  mapsto = {} # barcodes->sites
+  totbc,maptoTAs = 0,0
+  genome = read_genome(vars.ref)
+  for site,bclist in sites.items():
+    for bc in bclist:
+      if bc not in mapsto: mapsto[bc] = []
+      if 'X' not in bc: 
+        mapsto[bc].append(site)
+        totbc += 1
+        if site<0: site *= -1
+        if genome[site-1:site+1]=="TA": maptoTAs += 1
+
+  # good barcodes are those that are associated with only 1 site (must be TA?)
+  # what about redundant sites like IS elements?
+  goodbc = {}
+  for bc,sites2 in mapsto.items(): 
+    pop = popularity(sites2) # make a table of locations at which the barcode appears
+    #print bc,pop
+    if len(pop)==1: goodbc[bc] = 1
+  #for x in sorted(sites.items()): print x[0],genome[x[0]-1:x[0]+1],popularity(x[1])
+
+  file = open(vars.barseq_catalog_out,"w")  
+  file.write("# Barseq (stats are at the bottom): reads = %s, ref = %s\n" % (vars.fq1,vars.ref))
+  n = len(genome)
+  a,b = 0,0
+  for i in range(n-1):
+    if genome[i:i+2]=="TA":
+      a += 1
+      co = i+1
+      barcodes_pos = [(x,'+') for x in sites.get(co,[])]
+      barcodes_neg = [(x,'-') for x in sites.get(-co,[])]
+      pop = popularity(barcodes_pos+barcodes_neg)
+      if len(pop)>0: b += 1
+      else: file.write("# %s %s\n" %(co,genome[i:i+2]))
+      for (bc,strand),cnt in pop:
+        if bc in goodbc: 
+          file.write("%s %s %s %s %s\n" % (co,genome[i:i+2],strand,bc,cnt))
+  file.write("# total_reads: %s, total_barcodes: %s, map_to_TAs: %s, distinct_bc: %s, unimapped: %s, TA_sites_hit: %s/%s\n" % (nreads,totbc,maptoTAs,len(mapsto.keys()),len(goodbc.keys()),b,a))
+  file.close()
+
+
 def generate_output(vars):
+  if vars.barseq_catalog_out!=None: 
+    message("creating Barseq catalog file: "+vars.barseq_catalog_out)
+    create_barseq_catalog(vars)
+
   message("tabulating template counts and statistics...")
   if vars.single_end==True: counts = read_counts(vars.ref,vars.sam,vars) # return read counts copied as template counts
   else: counts = template_counts(vars.ref,vars.sam,vars.barcodes1,vars)
@@ -974,7 +1072,8 @@ def initialize_globals(vars, args=[], kwargs={}):
     vars.protocol = "Sassetti"
     vars.prefix = "ACTTATCAGCCAACCTGTTA"
     vars.flags = ""
-
+    vars.barseq_catalog_in = vars.barseq_catalog_out = None
+    
     # Update defaults
     protocol = kwargs.get("protocol", "").lower()
     if protocol:
@@ -1007,9 +1106,13 @@ def initialize_globals(vars, args=[], kwargs={}):
         vars.base = kwargs["output"]
     if "mismatches" in kwargs:
         vars.mm1 = int(kwargs["mismatches"])
+    if "barseq_catalog_in" in kwargs:
+        vars.barseq_catalog_in = kwargs["barseq_catalog_in"]
+    if "barseq_catalog_out" in kwargs:
+        vars.barseq_catalog_out = kwargs["barseq_catalog_out"]
     if "flags" in kwargs:
         vars.flags = kwargs["flags"]
-
+    # note: if last flag expected an arg but was end of list, it gets value True ; check for this and report as missing # TRU, 10/28/17
 
 
 def read_config(vars):
@@ -1043,7 +1146,7 @@ def save_config(vars):
   f.close()
 
 def show_help():
-  print 'usage: python PATH/src/tpp.py -bwa <PATH_TO_EXECUTABLE> -ref <REF_SEQ> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-flags "<STRING>"] [-tn5|-himar1] [-primer <seq>]'
+  print 'usage: python PATH/src/tpp.py -bwa <EXECUTABLE_WITH_PATH> -ref <REF_SEQ> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-flags "<STRING>"] [-tn5|-himar1] [-primer <seq>] [-barseq_catalog_in|_out <file>]'
 
 class Globals:
   pass
