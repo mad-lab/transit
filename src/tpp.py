@@ -18,10 +18,10 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
-
+import sys
 import pytpp.__main__
 
 
 if __name__ == "__main__":
-    pytpp.__main__.main()
+    pytpp.__main__.main(sys.argv[1:])
 
