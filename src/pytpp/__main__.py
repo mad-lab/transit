@@ -78,7 +78,8 @@ def main(arguments=[]):
 
         # Check for strange flags
         known_flags = set(["tn5", "help", "himar1", "protocol", "primer", "reads1",
-                           "reads2", "bwa", "ref", "maxreads", "output", "mismatches", "flags"])
+                           "reads2", "bwa", "ref", "maxreads", "output", "mismatches", "flags",
+                           "barseq_catalog_in", "barseq_catalog_out"])
         unknown_flags = set(kwargs.keys()) - known_flags
         if unknown_flags:
             print "error: unrecognized flags:", ", ".join(unknown_flags)
