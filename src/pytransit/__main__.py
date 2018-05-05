@@ -39,9 +39,9 @@ def main(args=None):
     # Check if running in GUI Mode
     if len(sys.argv) == 1 and hasWx:
 
+        import matplotlib.pyplot
         import pytransit.transit_gui as transit_gui
         transit_tools.transit_message("Running in GUI Mode")
-
         app = wx.App(False)
 
         #create an object of CalcFrame
@@ -62,6 +62,8 @@ def main(args=None):
             print "\t - %s" % m
     # Running in Console mode
     else:
+        import matplotlib
+        matplotlib.use("Agg")
         method_name = sys.argv[1]
         if method_name not in all_methods:
             print "Error: The '%s' method is unknown." % method_name
@@ -70,6 +72,7 @@ def main(args=None):
                 print "\t - %s" % m
             print "Usage: python %s <method>" % sys.argv[0]
         else:
+
             methodobj = all_methods[method_name].method.fromconsole()
             methodobj.Run()
 
