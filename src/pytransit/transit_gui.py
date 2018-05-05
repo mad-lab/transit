@@ -21,6 +21,7 @@ try:
 except Exception as e:
     hasWx = False
     newWx = False
+    print "EXCEPTION:", str(e)
 
 import os
 import time
@@ -105,7 +106,7 @@ class MainFrame ( wx.Frame ):
 
 
 
-        self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+        #self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
         
         bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
         
