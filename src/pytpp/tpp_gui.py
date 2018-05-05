@@ -95,19 +95,6 @@ if hasWx:
             bmp = wx.ArtProvider.GetBitmap(wx.ART_INFORMATION, wx.ART_OTHER, (16, 16))
 
 
-            # BWA
-            sizer0 = wx.BoxSizer(wx.HORIZONTAL)
-            label0 = wx.StaticText(panel, label='BWA executable:',size=(330,-1))
-            sizer0.Add(label0,0,wx.ALIGN_CENTER_VERTICAL,0)
-
-            self.picker0 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id = wx.ID_ANY, size=(400,30), dialogTitle='Path to BWA', fileMode=wx.OPEN, fileMask='bwa*', startDirectory=os.path.dirname(vars.bwa), initialValue=vars.bwa, labelText='')
-
-             
-            sizer0.Add(self.picker0, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer0.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Specify a path to the BWA executable (including the executable)."), flag=wx.CENTER, border=0)
-            sizer0.Add((10, 1), 0, wx.EXPAND)
-            sizer.Add(sizer0,0,wx.EXPAND,0)
-
             # REFERENCE
             sizer3 = wx.BoxSizer(wx.HORIZONTAL)
             label3 = wx.StaticText(panel, label='Choose a reference genome (FASTA):',size=(330,-1))
@@ -147,7 +134,7 @@ if hasWx:
             self.base = wx.TextCtrl(panel,value=vars.base,size=(400,30))
             sizer5.Add(self.base, proportion=1.0, flag=wx.EXPAND|wx.ALL, border=5)
             sizer5.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a a label prefix that will be used when writing output files e.g. 'wt_run1'"), flag=wx.CENTER, border=0)
-            sizer5.Add((130, 1), 0, wx.EXPAND) 
+            sizer5.Add((10, 1), 0, wx.EXPAND) 
             sizer.Add(sizer5,0,wx.EXPAND,0)
 
 
@@ -164,12 +151,12 @@ The Sassetti protocol generally assumes the reads include the primer prefix and 
 
 The Mme1 protocol generally assumes reads do NOT include the primer prefix, and that the reads are sequenced in the reverse direction"""
             sizer_protocol.Add(TPPIcon(panel, wx.ID_ANY, bmp, protocol_tooltip_text), flag=wx.CENTER, border=0)
-            sizer_protocol.Add((130, 1), 0, wx.EXPAND) 
+            sizer_protocol.Add((10, 1), 0, wx.EXPAND) 
             sizer.Add(sizer_protocol,0,wx.EXPAND,0)
 
             self.Bind(wx.EVT_COMBOBOX, self.OnProtocolSelection, id=self.protocol.GetId())
 
-
+          
             # TRANSPOSON
             sizer8 = wx.BoxSizer(wx.HORIZONTAL)
             label8 = wx.StaticText(panel, label='Transposon used:',size=(340,-1))
@@ -178,7 +165,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             self.transposon.SetStringSelection(vars.transposon)
             sizer8.Add(self.transposon, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer8.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select the transposon used to construct the TnSeq libraries. This will automatically populate the primer prefix field. Select custom to specify your own sequence."), flag=wx.CENTER, border=0)
-            sizer8.Add((130, 1), 0, wx.EXPAND)
+            sizer8.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer8,0,wx.EXPAND,0)
 
 
@@ -189,7 +176,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             self.prefix = wx.TextCtrl(panel,value=str(vars.prefix), size=(400,30))
             sizer4.Add(self.prefix, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer4.Add(TPPIcon(panel, wx.ID_ANY, bmp, "If present in the reads, specify the primer sequence. If it has been stripped away already, leave this field empty."), flag=wx.CENTER, border=0)
-            sizer4.Add((130, 1), 0, wx.EXPAND)
+            sizer4.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer4,0,wx.EXPAND,0)
             
             self.Bind(wx.EVT_COMBOBOX, self.OnTransposonSelection, id=self.transposon.GetId())
@@ -199,21 +186,34 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer6 = wx.BoxSizer(wx.HORIZONTAL)
             label6 = wx.StaticText(panel, label='Max reads (leave blank to use all):',size=(340,-1))
             sizer6.Add(label6,0,wx.ALIGN_CENTER_VERTICAL,0)
-            self.maxreads = wx.TextCtrl(panel,size=(400,30))
+            self.maxreads = wx.TextCtrl(panel,size=(150,30))
             sizer6.Add(self.maxreads, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer6.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Maximum reads to use from the reads files. Useful for running only a portion of very large number of reads. Leave blank to use all the reads."), flag=wx.CENTER, border=0)
-            sizer6.Add((130, 1), 0, wx.EXPAND)
+            sizer6.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer6,0,wx.EXPAND,0)
 
             # MISMATCHES
             sizer7 = wx.BoxSizer(wx.HORIZONTAL)
             label7 = wx.StaticText(panel, label='Mismatches allowed in Tn prefix:',size=(340,-1))
             sizer7.Add(label7,0,wx.ALIGN_CENTER_VERTICAL,0)
-            self.mismatches = wx.TextCtrl(panel,value=str(vars.mm1),size=(400,30))
+            self.mismatches = wx.TextCtrl(panel,value=str(vars.mm1),size=(150,30))
             sizer7.Add(self.mismatches, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer7.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Number of mismatches allowed in the tn-prefix before discarding the read."), flag=wx.CENTER, border=0)
-            sizer7.Add((130, 1), 0, wx.EXPAND)
+            sizer7.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer7,0,wx.EXPAND,0)    
+
+            # BWA
+            sizer0 = wx.BoxSizer(wx.HORIZONTAL)
+            label0 = wx.StaticText(panel, label='BWA executable:',size=(330,-1))
+            sizer0.Add(label0,0,wx.ALIGN_CENTER_VERTICAL,0)
+
+            self.picker0 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id = wx.ID_ANY, size=(400,30), dialogTitle='Path to BWA', fileMode=wx.OPEN, fileMask='bwa*', startDirectory=os.path.dirname(vars.bwa), initialValue=vars.bwa, labelText='')
+
+             
+            sizer0.Add(self.picker0, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer0.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Specify a path to the BWA executable (including the executable)."), flag=wx.CENTER, border=0)
+            sizer0.Add((10, 1), 0, wx.EXPAND)
+            sizer.Add(sizer0,0,wx.EXPAND,0)
 
             # BWA FLAGS
             sizer8 = wx.BoxSizer(wx.HORIZONTAL)
@@ -222,8 +222,32 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             self.flags = wx.TextCtrl(panel,value=vars.flags,size=(400,30))
             sizer8.Add(self.flags, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer8.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Use this textobx to enter any desired flags for the BWA alignment. For example, to limit the number of mismatches to 1, type: -k 1. See the BWA documentation for all possible flags."), flag=wx.CENTER, border=0)
-            sizer8.Add((130, 1), 0, wx.EXPAND)
+            sizer8.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer8,0,wx.EXPAND,0)
+
+
+            # BARSEQ CATALOG
+            sizer9 = wx.BoxSizer(wx.HORIZONTAL)
+            label9 = wx.StaticText(panel, label='BarSeq Catalog file:',size=(120,-1))
+            sizer9.Add(label9,0,wx.ALIGN_CENTER_VERTICAL,0)
+
+            self.barseq_select = wx.ComboBox(panel,choices=['this is not a Barseq dataset','read catalog file','write catalog file'],size=(200,30)) ## # does a BoxSizer use wx.HORIZONTAL, not wx.EXPAND?
+            self.barseq_select.SetSelection(0)
+            sizer9.Add(self.barseq_select, proportion=0.5, flag=wx.EXPAND|wx.ALL, border=5) ## 
+
+            self.picker9 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the Barseq catalog filename', fileMode=wx.OPEN, size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue="", labelText='', ) # no need for this: changeCallback=self.OnChanged9 ; initialValue set below ; no file mask
+            sizer9.Add(self.picker9, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+
+            if vars.barseq_catalog_in!=None:
+              self.barseq_select.SetSelection(1)
+              self.picker9.SetValue(vars.barseq_catalog_in)
+            if vars.barseq_catalog_out!=None:
+              self.barseq_select.SetSelection(2)
+              self.picker9.SetValue(vars.barseq_catalog_out)
+
+            sizer9.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a filename for BarSeq catalog."), flag=wx.CENTER, border=0)
+            sizer9.Add((10, 1), 0, wx.EXPAND) 
+            sizer.Add(sizer9,0,wx.EXPAND,0)
 
 
 
@@ -384,6 +408,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
 #
 
         def map_reads(self,event):
+
             # add bwa path, prefix
             bwapath = self.picker0.GetValue()
             fq1, fq2, ref, base, prefix, maxreads = self.picker1.GetValue(), self.picker2.GetValue(), self.picker3.GetValue(), self.base.GetValue(), self.prefix.GetValue(), self.maxreads.GetValue()
@@ -407,6 +432,11 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
         
             if maxreads == '': self.vars.maxreads = -1
             else: self.vars.maxreads = int(maxreads)
+
+            barseq_select = self.barseq_select.GetSelection()
+            self.vars.barseq_catalog_in = self.vars.barseq_catalog_out = None
+            if barseq_select==1: self.vars.barseq_catalog_in = self.picker9.GetValue()
+            if barseq_select==2: self.vars.barseq_catalog_out = self.picker9.GetValue()
 
             self.vars.action = "start"
             self.Close()

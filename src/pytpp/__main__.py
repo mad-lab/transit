@@ -38,7 +38,7 @@ def main(arguments=[]):
 
     vars = Globals()
 
-    if len(arguments) <= 1 and hasWx:
+    if len(arguments)==0 and hasWx:        
         app = wx.App(False)
         form = MyForm(vars)
         form.update_dataset_list()

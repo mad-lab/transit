@@ -1041,6 +1041,7 @@ def verify_inputs(vars):
     if not os.path.exists(vars.ref): error("reference file not found: "+vars.ref)
     if vars.base == '': error("prefix cannot be empty")
     if vars.fq1 == vars.fq2: error('fastq files cannot be identical')
+    if vars.barseq_catalog_in!=None and vars.barseq_catalog_out!=None: error('barseq catalog input and output files cannot both be defined at the same time')
 
     # If Mme1 protocol, warn that we don't use read2 file
     if vars.protocol.lower() == "mme1" and not vars.single_end:
@@ -1126,6 +1127,8 @@ def read_config(vars):
     if len(w)>=2 and w[0]=='protocol': vars.protocol = " ".join(w[1:])
     if len(w)>=2 and w[0]=='primer': vars.prefix = w[1]
     if len(w)>=2 and w[0]=='flags': vars.flags = " ".join(w[1:])
+    if len(w)>=2 and w[0]=='barseq_catalog_in': vars.barseq_catalog_in = w[1]
+    if len(w)>=2 and w[0]=='barseq_catalog_out': vars.barseq_catalog_out = w[1]
 
 
 def save_config(vars):
@@ -1140,6 +1143,8 @@ def save_config(vars):
   f.write("protocol %s\n" % vars.protocol)
   f.write("primer %s\n" % vars.prefix)
   f.write("flags %s\n" % vars.flags)
+  if vars.barseq_catalog_in!=None: f.write("barseq_catalog_in %s\n" % vars.barseq_catalog_in)
+  if vars.barseq_catalog_out!=None: f.write("barseq_catalog_out %s\n" % vars.barseq_catalog_out)
   f.close()
 
 def show_help():
