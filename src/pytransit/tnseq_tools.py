@@ -1503,7 +1503,7 @@ if __name__ == "__main__":
     print "#"
 
     griffin_results = griffin_analysis(G, theta)
-    for i,gene in enumerate(sorted(G)):
+    for i,gene in enumerate(G):
         pos = gene.position
         exprun, pval = griffin_results[i][-2:]
         print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%1.1f\t%1.5f" % (gene.orf, gene.name, gene.k, gene.n, gene.r, gene.s, gene.t, exprun, pval)
