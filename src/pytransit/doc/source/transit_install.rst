@@ -305,8 +305,7 @@ install .whl (wheel) files:
 
     pip.exe install wheel
 
-Finally, install the transit package using pip:
-
+Next install the transit package using pip:
 
 ::
 
@@ -314,8 +313,32 @@ Finally, install the transit package using pip:
 
 
 
+
+To use transit in GUI mode you will need to install wxPython versions 3.0 or earlier. We have provided .whl files which you can download and install below. (Note: Make sure to
+choose the files that match your Windows version i.e. 32/64 bit)
+
+
+  + `wxPython-3.0.2.0-cp27-none-win_amd64.whl <http://saclab.tamu.edu/essentiality/transit/wxPython-3.0.2.0-cp27-none-win_amd64.whl>`_ or `[32 bit] <http://saclab.tamu.edu/essentiality/transit/wxPython-3.0.2.0-cp27-none-win32.whl>`_
+
+
+  + `wxPython_common-3.0.2.0-py2-none-any.whl <http://saclab.tamu.edu/essentiality/transit/wxPython_common-3.0.2.0-py2-none-any.whl>`_ or `[32 bit] <http://saclab.tamu.edu/essentiality/transit/wxPython_common-3.0.2.0-py2-none-any.whl>`_
+
+
+Finally, install the files using pip:
+
+::
+
+
+    pip.exe install wxPython-3.0.2.0-cp27-none-win_amd64.whl
+    pip.exe install wxPython_common-3.0.2.0-py2-none-any.whl
+
+
+making sure to replace the name with the file you downloaded (i.e. 32bit vs 64 bit)
+
+
 .. NOTE::
     If you will be using the pre-processor, TPP, you will also need to install :ref:`install BWA <bwa-win>`.
+
 
 
 
