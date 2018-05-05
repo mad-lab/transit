@@ -1,7 +1,7 @@
 
 
 
-# TRANSIT 2.1.0
+# TRANSIT 2.1.2
 
 
 [![Build Status](https://travis-ci.org/mad-lab/transit.svg?branch=master)](https://travis-ci.org/mad-lab/transit)   [![Documentation Status](https://readthedocs.org/projects/transit/badge/?version=latest)](http://transit.readthedocs.io/en/latest/?badge=latest) 
@@ -11,13 +11,15 @@
 
 **Version 2.1.2 changes (May, 2018)**
 - Improved resampling on comparisons with unbalanced number of replicates.
-- Improved speed of TPP
+- Improved speed of TPP.
+- Added Barseq functionality to TPP.
 - Fixed bug with creating resampling histograms on GUI mode.
-
+- Miscellaneous code improvements.
 
 
 **Version 2.1.1 changes (July, 2017)**
-- Miscelanous bug fixes
+- Miscellaneous bug fixes
+
 
 **Version 2.1.0 changes (June, 2017)**
 - Added tooltips next to most parameters to explain their functionality.
@@ -32,7 +34,6 @@
 - TPP can now process reads obtained using Mme1 enzyme and protocol.
 - TPP can now pass flags to BWA.
 - Lots of bug fixes.
-
 
 
 **Version 2.0.2 changes (August, 2016)**
