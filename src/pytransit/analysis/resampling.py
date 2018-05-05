@@ -41,7 +41,7 @@ long_name = "Resampling test of conditional essentiality between two conditions"
 description = """Method for determining conditional essentiality based on resampling (i.e. permutation test). Identifies significant changes in mean read-counts for each gene after normalization."""
 
 transposons = ["himar1", "tn5"]
-columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "Sum Ctrl", "Sum Exp", "Delta Sum","p-value","Adj. p-value"]
+columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "Sum Ctrl", "Sum Exp", "Delta Mean","p-value","Adj. p-value"]
 
 class ResamplingAnalysis(base.TransitAnalysis):
     def __init__(self):
@@ -395,9 +395,9 @@ class ResamplingMethod(base.DualConditionMethod):
                     n, bins, patches = plt.hist(testlist, normed=1, facecolor='c', alpha=0.75, bins=100)
                 else:
                     n, bins, patches = plt.hist([0,0], normed=1, facecolor='c', alpha=0.75, bins=100)
-                plt.xlabel('Delta Sum')
+                plt.xlabel('Delta Mean')
                 plt.ylabel('Probability')
-                plt.title('%s - Histogram of Delta Sum' % gene.orf)
+                plt.title('%s - Histogram of Delta Mean' % gene.orf)
                 plt.axvline(test_obs, color='r', linestyle='dashed', linewidth=3)
                 plt.grid(True)
                 genePath = os.path.join(histPath, gene.orf +".png")
