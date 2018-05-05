@@ -8,7 +8,18 @@
 
 
 
-**Version 2.1.0 changes (June, 20017)**
+
+**Version 2.1.2 changes (May, 2018)**
+- Improved resampling on comparisons with unbalanced number of replicates.
+- Improved speed of TPP
+- Fixed bug with creating resampling histograms on GUI mode.
+
+
+
+**Version 2.1.1 changes (July, 2017)**
+- Miscelanous bug fixes
+
+**Version 2.1.0 changes (June, 2017)**
 - Added tooltips next to most parameters to explain their functionality.
 - Added Quality Control window, with choice for normalization method.
 - Added more normalization options to the HMM method.
