@@ -779,14 +779,25 @@ def get_data(wig_list):
     .. seealso:: :class:`get_file_types` :class:`combine_replicates` :class:`get_data_zero_fill` :class:`pytransit.norm_tools.normalize_data`
     """
     K = len(wig_list)
-    T = 0
 
+    # If empty just quickly return empty lists
     if not wig_list:
         return (numpy.zeros((1,0)), numpy.zeros(0), [])
 
-    for line in open(wig_list[0]):
-        if line[0] not in "0123456789": continue
-        T+=1
+    # Check size of all wig file matches
+    size_list = []
+    for j,path in enumerate(wig_list):
+        T = 0
+        for line in open(path):
+            if line[0] not in "0123456789": continue
+            T+=1
+        size_list.append(T)
+
+    # If it doesn't match, report and error and quit
+    if sum(size_list) != (T * len(size_list)):
+        print "Error: Not all wig files have the same number of sites." 
+        print "       Make sure all .wig files come from the same strain."
+        sys.exit()
     
     data = numpy.zeros((K,T))
     position = numpy.zeros(T, dtype=int)
@@ -800,7 +811,14 @@ def get_data(wig_list):
             pos = int(tmp[0])
             rd = float(tmp[1])
             prev_pos = pos
-            data[j,i] = rd
+            
+            try:
+                data[j,i] = rd
+            except Exception as e:
+                print "Error: %s" % e
+                print ""
+                print "Make sure that all wig files have the same number of TA sites (i.e. same strain)"
+                sys.exit()
             position[i] = pos
             i+=1
     return (data, position)
