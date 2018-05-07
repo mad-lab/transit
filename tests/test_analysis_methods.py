@@ -66,13 +66,13 @@ class TestMethods(TransitTestCase):
         self.assertTrue(os.path.exists(output))
     
 
-    def test_resampling_histogram(self):
-        args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000", "-h"]
-        G = ResamplingMethod.fromargs(args)
-        G.Run()
-        self.assertTrue(os.path.exists(output))
-        hist_path = output.rsplit(".", 1)[0] + "_histograms"
-        self.assertTrue(os.path.isdir(hist_path))
+    #def test_resampling_histogram(self):
+    #    args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000", "-h"]
+    #    G = ResamplingMethod.fromargs(args)
+    #    G.Run()
+    #    self.assertTrue(os.path.exists(output))
+    #    hist_path = output.rsplit(".", 1)[0] + "_histograms"
+    #    self.assertTrue(os.path.isdir(hist_path))
 
 
  
