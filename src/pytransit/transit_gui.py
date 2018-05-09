@@ -375,11 +375,11 @@ class MainFrame ( wx.Frame ):
         self.exportMenuItem = wx.Menu()
         self.selectedExportMenuItem = wx.Menu()
         self.selectedExportIGVMenuItem = wx.MenuItem( self.selectedExportMenuItem, wx.ID_ANY, u"to IGV", wx.EmptyString, wx.ITEM_NORMAL )
-        self.selectedExportMenuItem.AppendItem( self.selectedExportIGVMenuItem )
+        self.selectedExportMenuItem.Append( self.selectedExportIGVMenuItem )
         
 
         self.selectedExportCombinedWigMenuItem = wx.MenuItem( self.selectedExportMenuItem, wx.ID_ANY, u"to Combined Wig", wx.EmptyString, wx.ITEM_NORMAL )
-        self.selectedExportMenuItem.AppendItem( self.selectedExportCombinedWigMenuItem )
+        self.selectedExportMenuItem.Append( self.selectedExportCombinedWigMenuItem )
 
 
         self.exportMenuItem.AppendSubMenu( self.selectedExportMenuItem, u"Selected Datasets" )
@@ -388,33 +388,33 @@ class MainFrame ( wx.Frame ):
         
         self.convertMenuItem = wx.Menu()
         self.annotationConvertPTToPTTMenu = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"prot_table to PTT", wx.EmptyString, wx.ITEM_NORMAL )
-        self.convertMenuItem.AppendItem( self.annotationConvertPTToPTTMenu )
+        self.convertMenuItem.Append( self.annotationConvertPTToPTTMenu )
         
         self.annotationConvertPTToGFF3Menu = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"prot_table to GFF3", wx.EmptyString, wx.ITEM_NORMAL )
-        self.convertMenuItem.AppendItem( self.annotationConvertPTToGFF3Menu )
+        self.convertMenuItem.Append( self.annotationConvertPTToGFF3Menu )
         
         self.annotationConvertPTTToPT = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"PTT to prot_table", wx.EmptyString, wx.ITEM_NORMAL )
-        self.convertMenuItem.AppendItem( self.annotationConvertPTTToPT )
+        self.convertMenuItem.Append( self.annotationConvertPTTToPT )
         
         self.annotationConvertGFF3ToPT = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"GFF3 to prot_table", wx.EmptyString, wx.ITEM_NORMAL )
-        self.convertMenuItem.AppendItem( self.annotationConvertGFF3ToPT )
+        self.convertMenuItem.Append( self.annotationConvertGFF3ToPT )
         
         self.fileMenuItem.AppendSubMenu( self.convertMenuItem, u"Convert" )
         
         self.fileExitMenuItem = wx.MenuItem( self.fileMenuItem, wx.ID_ANY, u"&Exit", wx.EmptyString, wx.ITEM_NORMAL )
-        self.fileMenuItem.AppendItem( self.fileExitMenuItem )
+        self.fileMenuItem.Append( self.fileExitMenuItem )
         
         self.m_menubar1.Append( self.fileMenuItem, u"&File" ) 
         
         self.viewMenuItem = wx.Menu()
         self.scatterMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"&Scatter Plot", wx.EmptyString, wx.ITEM_NORMAL )
-        self.viewMenuItem.AppendItem( self.scatterMenuItem )
+        self.viewMenuItem.Append( self.scatterMenuItem )
         
         self.trackMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"&Track View", wx.EmptyString, wx.ITEM_NORMAL )
-        self.viewMenuItem.AppendItem( self.trackMenuItem )
+        self.viewMenuItem.Append( self.trackMenuItem )
         
         self.qcMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"&Quality Control", wx.EmptyString, wx.ITEM_NORMAL )
-        self.viewMenuItem.AppendItem( self.qcMenuItem )
+        self.viewMenuItem.Append( self.qcMenuItem )
         
         self.m_menubar1.Append( self.viewMenuItem, u"&View" ) 
        
@@ -435,13 +435,13 @@ class MainFrame ( wx.Frame ):
         
         self.helpMenuItem = wx.Menu()
         self.documentationMenuItem = wx.MenuItem(self.helpMenuItem, wx.ID_ANY, u"&Documentation", wx.EmptyString, wx.ITEM_NORMAL)
-        self.helpMenuItem.AppendItem(self.documentationMenuItem)
+        self.helpMenuItem.Append(self.documentationMenuItem)
         self.aboutMenuItem = wx.MenuItem(self.helpMenuItem, wx.ID_ANY, u"&About", wx.EmptyString, wx.ITEM_NORMAL)
-        self.helpMenuItem.AppendItem(self.aboutMenuItem)
+        self.helpMenuItem.Append(self.aboutMenuItem)
         self.m_menubar1.Append( self.helpMenuItem, u"&Help" )
         
         
-        self.statusBar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
+        self.statusBar = self.CreateStatusBar( 1, wx.STB_SIZEGRIP, wx.ID_ANY )
         
 
 
@@ -679,11 +679,11 @@ class TnSeekFrame(MainFrame):
             if "himar1" in methods[name].transposons:
                 tempMenuItem = wx.MenuItem( self.himar1MenuItem, wx.ID_ANY, methods[name].fullname(), wx.EmptyString, wx.ITEM_NORMAL )
                 self.Bind( wx.EVT_MENU, partial(self.MethodSelectFunc,  methods[name].fullname()), tempMenuItem )
-                self.himar1MenuItem.AppendItem( tempMenuItem )
+                self.himar1MenuItem.Append( tempMenuItem )
             if "tn5" in methods[name].transposons:
                 tempMenuItem = wx.MenuItem( self.tn5MenuItem, wx.ID_ANY, methods[name].fullname(), wx.EmptyString, wx.ITEM_NORMAL )
                 self.Bind( wx.EVT_MENU, partial(self.MethodSelectFunc, methods[name].fullname()), tempMenuItem )
-                self.tn5MenuItem.AppendItem( tempMenuItem )
+                self.tn5MenuItem.Append( tempMenuItem )
 
         #progress
         self.progressPanel = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )

@@ -166,7 +166,7 @@ class MainFrame ( wx.Frame ):
         self.Layout()
 
 
-        self.statusBar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
+        self.statusBar = self.CreateStatusBar( 1, wx.STB_SIZEGRIP, wx.ID_ANY )
         #self.statusBar.SetStatusText("Track View!")
 
         self.SetIcon(images.transit_icon.GetIcon())
