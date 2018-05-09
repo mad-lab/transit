@@ -1009,6 +1009,7 @@ class TnSeekFrame(MainFrame):
         self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
         self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
         self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+        self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
 
 
@@ -1021,6 +1022,7 @@ class TnSeekFrame(MainFrame):
         self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
         self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
         self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+        self.list_exp.Select(self.index_exp)
         self.index_exp+=1
 
 
