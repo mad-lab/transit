@@ -1046,7 +1046,6 @@ class TnSeekFrame(MainFrame):
             dlg.Destroy()
         except Exception as e:
             transit_tools.transit_message("Error: %s" % e)
-            print "PATH", fullpath
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
@@ -1617,6 +1616,8 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                         type = "DE-HMM - Sites"
                     elif line.startswith("#DE-HMM - Segments"):
                         type = "DE-HMM - Segments"
+                    elif line.startswith("#GI"):
+                        type = "GI"
                     else:
                         type = "Unknown"
                     data = {"path":fullpath, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
@@ -1991,6 +1992,7 @@ One or more of your .wig files does not include any empty sites (i.e. sites with
 
         if self.IsModal():
             self.EndModal(event.EventObject.Id)
+            self.Close()
         else:
             self.Close()
 

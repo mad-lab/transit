@@ -22,11 +22,14 @@ import pytransit.transit_tools as transit_tools
 
 file_prefix = "[FileDisplay]"
 
+
 class InvalidArgumentException(Exception):
     def __init__(self, message):
 
         # Call the base class constructor with the parameters it needs
         super(InvalidArgumentException, self).__init__(message)
+
+#
 
 if hasWx:
     class InfoIcon(wx.StaticBitmap):
@@ -45,6 +48,8 @@ class TransitGUIBase:
         self.short_name = "TRANSIT"
         self.long_name = "TRANSIT"
 
+#
+
     def status_message(self, text, time=-1):
         #TODO: write docstring
         if self.wxobj:
@@ -54,45 +59,61 @@ class TransitGUIBase:
                 wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))
             wx.Yield()
 
+#
+
     def console_message(self, text):
         #TODO: write docstring
         sys.stdout.write("[%s] %s\n" % (self.short_name, text))
+
+#
 
     def console_message_inplace(self, text):
         #TODO: write docstring
         sys.stdout.write("[%s] %s   \r" % (self.short_name, text) )
         sys.stdout.flush()
 
+#
+
     def transit_message(self, text):
         #TODO: write docstring
         self.console_message(text)
         self.status_message(text)
+
+#
 
     def transit_message_inplace(self, text):
         #TODO: write docstring
         self.console_message_inplace(text)
         self.status_message(text)
 
+#
 
     def transit_error(self,text):
         self.transit_message(text)
         if self.wxobj:
             transit_tools.ShowError(text)
 
+#
+
     def transit_warning(self,text):
         self.transit_message(text)
         if self.wxobj:
             transit_tools.ShowWarning(text)
 
+#
 
 class TransitFile (TransitGUIBase):
     #TODO write docstring
+
+#
 
     def __init__(self, identifier="#Unknown", colnames=[]):
         #TODO write docstring
         TransitGUIBase.__init__(self)
         self.identifier = identifier
         self.colnames = colnames
+
+#
 
     def getData(self, path, colnames):
         #TODO write docstring
@@ -116,14 +137,19 @@ class TransitFile (TransitGUIBase):
             row+=1
         return data
 
+#
+
     def getHeader(self, path):
         #TODO write docstring
         return "Generic Transit File Type."
 
+#
 
     def getMenus(self):
         menus = [("Display in Track View", self.displayInTrackView)]
         return menus
+
+#
 
     def displayInTrackView(self, displayFrame, event):
 
@@ -137,6 +163,8 @@ class TransitFile (TransitGUIBase):
         except Exception as e:
             print file_prefix, "Error occurred: %s" % e 
 
+#
+
 class AnalysisGUI:
     
     def __init__(self):
@@ -145,16 +173,22 @@ class AnalysisGUI:
         self.LABELSIZE = (100,-1)
         self.WIDGETSIZE = (100,-1)
 
+#
+
     def Hide(self):
         self.panel.Hide()
+
+#
 
     def Show(self):
         self.panel.Show()
 
+#
+
     def Enable(self):
         self.panel.Enable()
 
-
+#
 
     def definePanel(self, wxobj):
         #TODO: write docstring
@@ -182,6 +216,8 @@ class AnalysisGUI:
         Button.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
         self.panel = wPanel
 
+#
+
     def defineTextBox(self, panel, labelText="", widgetText="", tooltipText="", labSize=None, widgetSize=None):
         if not labSize: labSize = self.LABELSIZE
         if not widgetSize: widgetSize = self.WIDGETSIZE
@@ -194,6 +230,8 @@ class AnalysisGUI:
         sizer.Add(textBox, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
         sizer.Add(InfoIcon(panel, wx.ID_ANY, tooltip=tooltipText), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
         return (label, textBox, sizer)
+
+#
 
     def defineChoiceBox(self, panel, labelText="", widgetChoice=[""], tooltipText="", labSize=None, widgetSize=None):
         if not labSize: labSize = self.LABELSIZE
@@ -209,6 +247,8 @@ class AnalysisGUI:
         sizer.Add(InfoIcon(panel, wx.ID_ANY, tooltip=tooltipText), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
         return (label, choiceBox, sizer)
 
+#
+
     def defineCheckBox(self, panel, labelText="", widgetCheck=False, tooltipText="", widgetSize=None):
         if not widgetSize: widgetSize = self.WIDGETSIZE
         sizer = wx.BoxSizer( wx.HORIZONTAL )
@@ -218,6 +258,7 @@ class AnalysisGUI:
         sizer.Add(InfoIcon(panel, wx.ID_ANY, tooltip=tooltipText), 0, wx.ALIGN_CENTER_VERTICAL, 5 )
         return (checkBox, sizer)
 
+#
 
 class AnalysisMethod:
     '''
@@ -234,16 +275,21 @@ class AnalysisMethod:
         self.newWx = newWx
         self.wxobj = wxobj
 
+#
 
     @classmethod 
     def fromGUI(self, wxobj):
         #TODO: write docstring
         raise NotImplementedError
 
+#
+
     @classmethod
     def fromargs(self, rawargs):
         #TODO: write docstring
         raise NotImplementedError
+
+#
 
     @classmethod
     def fromconsole(self):
@@ -270,15 +316,20 @@ class AnalysisMethod:
             print self.usage_string()
         sys.exit() 
 
+#
+
     @classmethod
     def usage_string(self):
         #TODO: write docstring
         raise NotImplementedError
 
+#
+
     def Run(self):
         #TODO write docstring
         raise NotImplementedError
 
+#
 
     def print_members(self):
         #TODO: write docstring
@@ -286,6 +337,7 @@ class AnalysisMethod:
         for m in members:
             print "%s = %s" % (m, getattr(self, m))
 
+#
 
     def add_file(self, path=None, filetype=None):
 
@@ -303,6 +355,8 @@ class AnalysisMethod:
             else:
                 wx.CallAfter(pub.sendMessage, "file", data)
 
+#
+
     def finish(self):
         #TODO: write docstring
         if self.wxobj:
@@ -310,6 +364,8 @@ class AnalysisMethod:
                 wx.CallAfter(pub.sendMessage,"finish", msg=self.short_name.lower())
             else:
                 wx.CallAfter(pub.sendMessage,"finish", self.short_name.lower())
+
+#
 
     def progress_update(self, text, count):
         #TODO: write docstring
@@ -320,6 +376,8 @@ class AnalysisMethod:
                 wx.CallAfter(pub.sendMessage, "progress", (self.short_name, count))
             wx.Yield()
 
+#
+
     def progress_range(self, count):
         #TODO: write docstring
         if self.wxobj:
@@ -329,7 +387,7 @@ class AnalysisMethod:
                 wx.CallAfter(pub.sendMessage, "progressrange", count)
             wx.Yield()
 
-        
+#       
 
     def status_message(self, text, time=-1):
         #TODO: write docstring
@@ -340,30 +398,41 @@ class AnalysisMethod:
                 wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))
             wx.Yield()
 
+#
+
     def console_message(self, text):
         #TODO: write docstring
         sys.stdout.write("[%s] %s\n" % (self.short_name, text))
+
+#
 
     def console_message_inplace(self, text):
         #TODO: write docstring
         sys.stdout.write("[%s] %s   \r" % (self.short_name, text) )
         sys.stdout.flush()
 
+#
+
     def transit_message(self, text):
         #TODO: write docstring
         self.console_message(text)
         self.status_message(text)
+
+#
 
     def transit_message_inplace(self, text):
         #TODO: write docstring
         self.console_message_inplace(text)
         self.status_message(text)
 
+#
 
     def transit_error(self,text):
         self.transit_message(text)
         if self.wxobj:
             transit_tools.ShowError(text)
+
+#
 
     def transit_warning(self,text):
         self.transit_message(text)
@@ -386,7 +455,7 @@ class SingleConditionMethod(AnalysisMethod):
         self.NTerminus = NTerminus
         self.CTerminus = CTerminus
 
-
+#
 
 class DualConditionMethod(AnalysisMethod):
     '''
@@ -404,7 +473,27 @@ class DualConditionMethod(AnalysisMethod):
         self.NTerminus = NTerminus
         self.CTerminus = CTerminus
 
+#
 
+class QuadConditionMethod(AnalysisMethod):
+    '''
+    Class to be inherited by analysis methods that determine changes in essentiality between four conditions (e.g. GI).
+    '''
+
+    def __init__(self, short_name, long_name, description, ctrldataA, ctrldataB, expdataA, expdataB, annotation_path, output, normalization, replicates="Sum", LOESS=False, ignoreCodon=True, NTerminus=0.0, CTerminus=0.0, wxobj=None):
+        AnalysisMethod.__init__(self, short_name, long_name, description, output, annotation_path, wxobj)
+        self.ctrldataA = ctrldataA
+        self.ctrldataB = ctrldataB
+        self.expdataA = expdataA
+        self.expdataB = expdataB
+        self.normalization = normalization
+        self.replicates = replicates
+        self.LOESS = LOESS
+        self.ignoreCodon = ignoreCodon
+        self.NTerminus = NTerminus
+        self.CTerminus = CTerminus
+
+#
 
 class TransitAnalysis:
     def __init__(self, sn, ln, desc, tn, method_class=AnalysisMethod, gui_class=AnalysisGUI, filetypes=[TransitFile]):
@@ -416,6 +505,7 @@ class TransitAnalysis:
         self.gui = gui_class()
         self.filetypes = filetypes
 
+#
 
     def __str__(self):
         return """Analysis Method:
@@ -425,15 +515,22 @@ class TransitAnalysis:
     Method:      %s
     GUI:         %s""" % (self.short_name, self.long_name, self.description, self.method, self.gui)
 
+#
 
     def fullname(self):
         return "[%s]  -  %s" % (self.short_name, self.long_name)
 
+#
+
     def getInstructionsText(self):
         return ""
 
+#
+
     def getDescriptionText(self):
         return self.description 
+
+#
 
     def getTransposonsText(self):
         if len(self.transposons) == 0:
@@ -446,6 +543,7 @@ class TransitAnalysis:
             return "Intended for " + ", ".join(self.transposons[:-1]) + ", and " + self.transposons[-1]
     
 
+#
 
 if __name__ == "__main__":
     pass
