@@ -67,6 +67,7 @@ import pytransit.images as images
 
 method_wrap_width = 250
 methods = pytransit.analysis.methods
+export_methods = pytransit.export.methods
 normmethods = norm_tools.methods
 
 
@@ -374,17 +375,6 @@ class MainFrame ( wx.Frame ):
         self.fileMenuItem = wx.Menu()
         self.exportMenuItem = wx.Menu()
         self.selectedExportMenuItem = wx.Menu()
-        # Export to IGV
-        self.selectedExportIGVMenuItem = wx.MenuItem( self.selectedExportMenuItem, wx.ID_ANY, u"to IGV", wx.EmptyString, wx.ITEM_NORMAL )
-        self.selectedExportMenuItem.AppendItem( self.selectedExportIGVMenuItem )
-        
-        # Export to CombinedWig
-        self.selectedExportCombinedWigMenuItem = wx.MenuItem( self.selectedExportMenuItem, wx.ID_ANY, u"to Combined Wig", wx.EmptyString, wx.ITEM_NORMAL )
-        self.selectedExportMenuItem.AppendItem( self.selectedExportCombinedWigMenuItem )
-
-        # Expert to Gene Summary
-        self.selectedExportGeneCountSummaryMenuItem = wx.MenuItem( self.selectedExportMenuItem, wx.ID_ANY, u"to Gene Mean Counts", wx.EmptyString, wx.ITEM_NORMAL )
-        self.selectedExportMenuItem.AppendItem( self.selectedExportGeneCountSummaryMenuItem )
 
 
         # Selected datasets
@@ -470,9 +460,7 @@ class MainFrame ( wx.Frame ):
         self.addFileButton.Bind( wx.EVT_BUTTON, self.addFileFunc )
         self.fileActionChoice.Bind( wx.EVT_CHOICE, self.fileActionFunc )
         self.list_files.Bind( wx.EVT_LIST_ITEM_SELECTED, self.fileSelected )
-        self.Bind( wx.EVT_MENU, self.selectedToIGV, id = self.selectedExportIGVMenuItem.GetId() )
-        self.Bind( wx.EVT_MENU, self.selectedToCombinedWig, id = self.selectedExportCombinedWigMenuItem.GetId() )
-        self.Bind( wx.EVT_MENU, self.selectedToGeneCountSummary, id = self.selectedExportGeneCountSummaryMenuItem.GetId() )
+        
         self.Bind( wx.EVT_MENU, self.annotationPT_to_PTT, id = self.annotationConvertPTToPTTMenu.GetId() )
         self.Bind( wx.EVT_MENU, self.annotationPT_to_GFF3, id = self.annotationConvertPTToGFF3Menu.GetId() )
         self.Bind( wx.EVT_MENU, self.annotationPTT_to_PT, id = self.annotationConvertPTTToPT.GetId() )
@@ -561,15 +549,6 @@ class MainFrame ( wx.Frame ):
         event.Skip()
     
     def expToIGV( self, event ):
-        event.Skip()
-    
-    def selectedToIGV( self, event ):
-        event.Skip()
-
-    def selectedToCombinedWig( self, event ):
-        event.Skip()
-
-    def selectedToGeneCountSummary( self, event ):
         event.Skip()
     
     def annotationPT_to_PTT( self, event ):
@@ -678,6 +657,20 @@ class TnSeekFrame(MainFrame):
         pub.subscribe(self.saveHistogram, "histogram")   
  
         #self.outputDirPicker.SetPath(os.path.dirname(os.path.realpath(__file__)))
+
+
+        # Export Menu Items
+        for name in export_methods:
+            export_methods[name].gui.defineMenuItem(self, export_methods[name].label)
+            tempMenuItem = export_methods[name].gui.menuitem
+            self.selectedExportMenuItem.AppendItem( tempMenuItem )
+            self.Bind( wx.EVT_MENU, partial(self.ExportSelectFunc,  export_methods[name].label),
+                tempMenuItem )
+
+
+
+
+        # Method Panels
 
         methodChoiceChoices = [ "[Choose Method]"]
         for name in methods:
@@ -1297,7 +1290,11 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 transit_tools.transit_message("Annotation File Selected: %s" % self.annotation)
         else:
             self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table or .gff3)]")
-        
+       
+
+
+
+ 
     def MethodSelectFunc(self, selected_name, test=""):
         #X = self.methodChoice.GetCurrentSelection()
         #selected_name = self.methodChoice.GetString(X)
@@ -1347,6 +1344,27 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         self.Layout()
         if self.verbose:
             transit_tools.transit_message("Selected Method: %s" % (selected_name))
+
+
+    def ExportSelectFunc(self, selected_name, test=""):
+        #X = self.methodChoice.GetCurrentSelection()
+        #selected_name = self.methodChoice.GetString(X)
+        
+        if self.verbose:
+            transit_tools.transit_message("Selected Export Method: %s" % (selected_name))
+
+        for name in export_methods:
+            if export_methods[name].label == selected_name:
+                methodobj = export_methods[name].method
+                try:
+                    M = methodobj.fromGUI(self)
+                    if M:
+                        thread = threading.Thread(target=M.Run())
+                        thread.setDaemon(True)
+                        thread.start()
+                except Exception as e:
+                    transit_tools.transit_message("Error: %s" % str(e))
+                    traceback.print_exc()
 
 
 
@@ -1652,100 +1670,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             transit_tools.transit_message("Selected Method: %s" % (selected_name))
         self.MethodSelectFunc(selected_name) 
 
-
-    def convertToIGVGUI(self, datasets):
-        
-        annotationPath = self.annotation
-        if datasets and annotationPath:
-            normchoice = self.chooseNormalization()
-            defaultFile = "read_counts.igv"
-            defaultDir = os.getcwd()
-            outputPath = self.SaveFile(defaultDir, defaultFile)
-            if not outputPath:
-                return
-            if self.verbose:
-        
-                transit_tools.transit_message("Converting the following datasets to IGV format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            self.convertToIGV(datasets, annotationPath, outputPath, normchoice)
-            if self.verbose:
-                transit_tools.transit_message("Finished conversion")
-        elif not datasets:
-            transit_tools.ShowError("Error: No datasets selected to convert!")
-        elif not annotationPath:
-            transit_tools.ShowError("Error: No annotation file selected.")
-        else:
-            pass
-
-
-    def convertToIGV(self, dataset_list, annotationPath, path, normchoice=None):
-
-        if not normchoice:
-            normchoice = "nonorm"
-
-        (fulldata, position) = tnseq_tools.get_data(dataset_list)
-        (fulldata, factors) = norm_tools.normalize_data(fulldata, normchoice, dataset_list, annotationPath)
-        position = position.astype(int)
-
-        output = open(path, "w")
-        output.write("#Converted to IGV with TRANSIT.\n")
-        if normchoice != "nonorm":
-            output.write("#Reads normalized using '%s'\n" % normchoice)
-    
-        output.write("#Files:\n#%s\n" % "\n#".join(dataset_list))
-        output.write("#Chromosome\tStart\tEnd\tFeature\t%s\tTAs\n" % ("\t".join([transit_tools.fetch_name(D) for D in dataset_list])))
-        chrom = transit_tools.fetch_name(annotationPath)
-
-        for i,pos in enumerate(position):
-            output.write("%s\t%s\t%s\tTA%s\t%s\t1\n" % (chrom, position[i], position[i]+1, position[i], "\t".join(["%1.1f" % fulldata[j][i] for j in range(len(fulldata))])))
-        output.close()
-
-
-
-    def convertToCombinedWigGUI(self, datasets):
-        annotationPath = self.annotation
-        if datasets and annotationPath:
-            normchoice = self.chooseNormalization()
-            defaultFile = "combined_read_counts.txt"
-            defaultDir = os.getcwd()
-            outputPath = self.SaveFile(defaultDir, defaultFile)
-            if not outputPath:
-                return
-            if self.verbose:
-                transit_tools.transit_message("Converting the following datasets to Combined Wig format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            transit_tools.convertToCombinedWig(datasets, annotationPath, outputPath, normchoice)
-            if self.verbose:
-                transit_tools.transit_message("Finished conversion")
-        elif not datasets:
-            transit_tools.ShowError("Error: No datasets selected to convert!")
-        elif not annotationPath:
-            transit_tools.ShowError("Error: No annotation file selected.")
-        else:
-            pass
-
 #
-
-    def convertToGeneCountSummary(self, datasets):
-        annotationPath = self.annotation
-        if datasets and annotationPath:
-            normchoice = self.chooseNormalization()
-            defaultFile = "gene_count_summary.txt"
-            defaultDir = os.getcwd()
-            outputPath = self.SaveFile(defaultDir, defaultFile)
-            if not outputPath:
-                return
-            if self.verbose:
-                transit_tools.transit_message("Exporting the following datasets to Gene Count Summary: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            transit_tools.convertToGeneCountSummary(datasets, annotationPath, outputPath, normchoice)
-            if self.verbose:
-                transit_tools.transit_message("Finished exporting")
-        elif not datasets:
-            transit_tools.ShowError("Error: No datasets selected to export!")
-        elif not annotationPath:
-            transit_tools.ShowError("Error: No annotation file selected.")
-        else:
-            pass
-
-
 
     def chooseNormalization(self):
 
@@ -1761,23 +1686,6 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
  
         dlg.Destroy()
         return dlg.GetStringSelection()
-
-
-    def selectedToIGV(self, event):
-        datasets = self.ctrlSelected() + self.expSelected()
-        self.convertToIGVGUI(datasets)
-
-#
-
-    def selectedToCombinedWig(self, event):
-        datasets = self.ctrlSelected() + self.expSelected()
-        self.convertToCombinedWigGUI(datasets)
-
-#
-
-    def selectedToGeneCountSummary(self, event):
-        datasets = self.ctrlSelected() + self.expSelected()
-        self.convertToGeneCountSummary(datasets)
         
 #
 
@@ -1979,6 +1887,26 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         except Exception as e:
             transit_tools.transit_message("Error: %s" % str(e))
             traceback.print_exc()
+
+#
+"""
+    def ExportMethod(self, event):
+        #X = self.methodChoice.GetCurrentSelection()
+        #selected_name = self.methodChoice.GetString(X)
+        selected_name = self.export_choice
+        for name in export_methods:
+            if  export_methods[name].label == selected_name:
+                methodobj = export_methods[name].method
+        try:
+            M = methodobj.fromGUI(self)
+            if M:
+                thread = threading.Thread(target=M.Run())
+                thread.setDaemon(True)
+                thread.start()
+        except Exception as e:
+            transit_tools.transit_message("Error: %s" % str(e))
+            traceback.print_exc()
+"""
 
 
 class AssumeZerosDialog(wx.Dialog):

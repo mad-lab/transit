@@ -346,6 +346,30 @@ def get_gene_info(path):
         return tnseq_tools.get_gene_info_pt(path)
 
 
+def convertToIGV(self, dataset_list, annotationPath, path, normchoice=None):
+
+    if not normchoice:
+        normchoice = "nonorm"
+
+    (fulldata, position) = tnseq_tools.get_data(dataset_list)
+    (fulldata, factors) = norm_tools.normalize_data(fulldata, normchoice, dataset_list, annotationPath)
+    position = position.astype(int)
+
+    output = open(path, "w")
+    output.write("#Converted to IGV with TRANSIT.\n")
+    if normchoice != "nonorm":
+        output.write("#Reads normalized using '%s'\n" % normchoice)
+
+    output.write("#Files:\n#%s\n" % "\n#".join(dataset_list))
+    output.write("#Chromosome\tStart\tEnd\tFeature\t%s\tTAs\n" % ("\t".join([transit_tools.fetch_name(D) for D in dataset_list])))
+    chrom = transit_tools.fetch_name(annotationPath)
+
+    for i,pos in enumerate(position):
+        output.write("%s\t%s\t%s\tTA%s\t%s\t1\n" % (chrom, position[i], position[i]+1, position[i], "\t".join(["%1.1f" % fulldata[j][i] for j in range(len(fulldata))])))
+    output.close()
+
+
+
 
 def convertToCombinedWig(dataset_list, annotationPath, outputPath, normchoice="nonorm"):
     """Normalizes the input datasets and outputs the result in CombinedWig format.

@@ -17,13 +17,16 @@ except Exception as e:
 import pytransit
 import pytransit.transit_tools as transit_tools
 import pytransit.analysis
+import pytransit.export
+
 
 method_wrap_width = 250
 methods = pytransit.analysis.methods
-export_methods = pytransit.analysis.export_methods
+export_methods = pytransit.export.methods
 all_methods = {}
 all_methods.update(methods)
-all_methods.update(export_methods)
+
+#all_methods.update(export_methods)
 
 wildcard = "Python source (*.py)|*.py|" \
             "All files (*.*)|*.*"
@@ -66,11 +69,27 @@ def main(args=None):
         matplotlib.use("Agg")
         method_name = sys.argv[1]
         if method_name not in all_methods:
-            print "Error: The '%s' method is unknown." % method_name
-            print "Please use one of the known methods (or see documentation to add a new one):"
-            for m in all_methods:
-                print "\t - %s" % m
-            print "Usage: python %s <method>" % sys.argv[0]
+            if method_name.lower() == "export":
+                export_method_name = ""
+                if len(sys.argv) > 2:
+                    export_method_name = sys.argv[2]
+                
+                if export_method_name not in export_methods:
+                    print "Error: Need to specify the export method."
+                    print "Please use one of the known methods (or see documentation to add a new one):"
+                    for m in export_methods:
+                        print "\t - %s" % m
+                    print "Usage: python %s export <method>" % sys.argv[0]
+                else:
+                    methodobj = export_methods[export_method_name].method.fromconsole()
+                    methodobj.Run()
+
+            else:
+                print "Error: The '%s' method is unknown." % method_name
+                print "Please use one of the known methods (or see documentation to add a new one):"
+                for m in all_methods:
+                    print "\t - %s" % m
+                print "Usage: python %s <method>" % sys.argv[0]
         else:
 
             methodobj = all_methods[method_name].method.fromconsole()
