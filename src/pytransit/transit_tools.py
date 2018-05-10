@@ -387,6 +387,48 @@ def convertToCombinedWig(dataset_list, annotationPath, outputPath, normchoice="n
 
 
 
+def convertToGeneCountSummary(dataset_list, annotationPath, outputPath, normchoice="nonorm"):
+    """Normalizes the input datasets and outputs the result in CombinedWig format.
+    
+    Arguments:
+        dataset_list (list): List of paths to datasets in .wig format
+        annotationPath (str): Path to annotation in .prot_table or GFF3 format.
+        outputPath (str): Desired output path.
+        normchoice (str): Choice for normalization method.
+            
+    """
+
+    (fulldata, position) = tnseq_tools.get_data(dataset_list) 
+    (fulldata, factors) = norm_tools.normalize_data(fulldata, normchoice, dataset_list, annotationPath)
+    output = open(outputPath, "w")
+    output.write("#Summarized to Mean Gene Counts with TRANSIT.\n")
+    if normchoice != "nonorm":
+        output.write("#Reads normalized using '%s'\n" % normchoice)
+        if type(factors[0]) == type(0.0):
+            output.write("#Normalization Factors: %s\n" % "\t".join(["%s" % f for f in factors.flatten()]))
+        else:
+            output.write("#Normalization Factors: %s\n" % " ".join([",".join(["%s" % bx for bx in b]) for b in factors]))
+
+    (K,N) = fulldata.shape
+    output.write("#Files:\n")
+    for f in dataset_list:
+        output.write("#%s\n" % f)
+
+    # Get Gene objects
+    G = tnseq_tools.Genes(dataset_list, annotationPath, norm=normchoice)
+
+    dataset_header = "\t".join([os.path.basename(D) for D in dataset_list])
+    output.write("#Orf\tName\tNumber of TA sites\t%s\n" % dataset_header)
+    for i,gene in enumerate(G):
+        if gene.n > 0:
+            data_str = "\t".join(["%1.2f" % (M) for M in numpy.mean(gene.reads, 1)])
+        else:
+            data_str = "\t".join(["%1.2f" % (Z) for Z in numpy.zeros(K)])
+        output.write("%s\t%s\t%s\t%s\n" % (gene.orf, gene.name, gene.n, data_str))
+    output.close()
+
+
+
 
 def get_validated_data(wig_list, wxobj=None):
     """ Returns a tuple of (data, position) containing a matrix of raw read-counts
