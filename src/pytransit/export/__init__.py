@@ -7,10 +7,12 @@ __all__ = [ basename(f)[:-3] for f in modules if isfile(f)]
 
 
 import combined_wig
+import igv
 
 # EXPORT METHODS
 methods = {}
 methods["combined_wig"] = combined_wig.CombinedWigExport()
+methods["igv"] = igv.IGVExport()
 
 
 
