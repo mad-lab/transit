@@ -103,7 +103,7 @@ class CombinedWigMethod(base.SingleConditionMethod):
         
 
         #Get output path
-        defaultFileName = "example_output.dat"
+        defaultFileName = "combined_wig_output.dat"
         defaultDir = os.getcwd()
         output_path = wxobj.SaveFile(defaultDir, defaultFileName)
         if not output_path: return None
