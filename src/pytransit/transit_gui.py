@@ -746,7 +746,7 @@ class TnSeekFrame(MainFrame):
             except Exception as e:
                 print "Error:", str(e)
  
-
+#
 
     def Exit(self, event):
         """Exit Menu Item"""
@@ -754,6 +754,7 @@ class TnSeekFrame(MainFrame):
             transit_tools.transit_message("Exiting Transit")
         self.Close()
 
+#
 
     def updateProgress(self, msg):
         """"""
@@ -767,6 +768,8 @@ class TnSeekFrame(MainFrame):
         except:
             pass
 
+#
+
     def setProgressRange(self, msg):
         """"""
         if newWx:
@@ -778,7 +781,7 @@ class TnSeekFrame(MainFrame):
         except:
             pass
 
-    
+#    
 
     def updateStatus(self, msg, time=-1):
         """"""
@@ -791,15 +794,14 @@ class TnSeekFrame(MainFrame):
         if time > 0:
             self.timer.Start(time)        
         self.statusBar.SetStatusText(text)
-
-    
-
+   
+#
 
     def clearStatus(self, event):
         self.statusBar.SetStatusText("")
         self.timer.Stop()
 
-
+#
     
     def saveHistogram(self, msg):
         if newWx:
@@ -817,7 +819,7 @@ class TnSeekFrame(MainFrame):
         plt.savefig(genePath)
         plt.clf()
 
-
+#
 
     def addFile(self, data):
         if not newWx:
@@ -832,23 +834,26 @@ class TnSeekFrame(MainFrame):
         self.list_files.SetStringItem(self.index_file, 3, "%s" % (fullpath))
         self.index_file+=1
         
+#
 
     def finishRun(self,msg):
         if not newWx: msg = msg.data
         try:
-            #methods[msg].gui.Enable()
-            pass
+            self.progress_count = 0
+            self.progress.SetValue(self.progress_count)
+
         except Exception as e:
             transit_tools.transit_message("Error: %s" % e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
 
+#
 
     def ResetProgress(self):
         self.progress_count = 0
 
-
+#
 
     def HideAllOptions(self):
         self.HideGlobalOptions()
@@ -856,6 +861,7 @@ class TnSeekFrame(MainFrame):
         for name in methods:
             methods[name].gui.Hide()
 
+#
 
     def HideGlobalOptions(self):
         self.globalLabel.Hide()
@@ -866,6 +872,7 @@ class TnSeekFrame(MainFrame):
         self.globalNTerminusIcon.Hide()
         self.globalCTerminusIcon.Hide()
 
+#
 
     def ShowGlobalOptions(self):
         self.globalLabel.Show()
@@ -876,14 +883,19 @@ class TnSeekFrame(MainFrame):
         self.globalNTerminusIcon.Show()
         self.globalCTerminusIcon.Show()
 
+#
+
     def HideProgressSection(self):
         self.progressLabel.Hide()
         self.progress.Hide()
 
+#
 
     def ShowProgressSection(self):
         self.progressLabel.Show()
         self.progress.Show()
+
+#
 
     def onHimar1Checked(self, event):
         if self.methodCheckBoxHimar1.GetValue():
@@ -892,12 +904,16 @@ class TnSeekFrame(MainFrame):
             self.transposons.remove("himar1")
         self.filterMethodsByTransposon()
 
+#
+
     def onTn5Checked(self, event):
         if self.methodCheckBoxTn5.GetValue():
             self.transposons.append("tn5")
         else:
             self.transposons.remove("tn5")
         self.filterMethodsByTransposon()
+
+#
 
     def filterMethodsByTransposon(self):
         newmethods = {}
@@ -917,7 +933,7 @@ class TnSeekFrame(MainFrame):
         self.methodChoice.SetItems(methodChoiceChoices)
         self.methodChoice.SetSelection( 0 )
 
-
+#
 
     def SaveFile(self, DIR=None, FILE="", WC=u'Common output extensions (*.txt,*.dat,*.out)|*.txt;*.dat;*.out;|\nAll files (*.*)|*.*"'):
         """
@@ -940,6 +956,8 @@ class TnSeekFrame(MainFrame):
         dlg.Destroy()
         return path
 
+#
+
     def OpenFile(self, DIR=".", FILE="", WC=""):
         """
         Create and show the Open FileDialog
@@ -957,6 +975,7 @@ class TnSeekFrame(MainFrame):
         dlg.Destroy()
         return path
 
+#
 
     def ctrlSelected(self, col=5):
         selected_ctrl = []
@@ -970,6 +989,7 @@ class TnSeekFrame(MainFrame):
             current = next
         return selected_ctrl
 
+#
 
     def expSelected(self, col=5):
         selected_exp = []
@@ -983,11 +1003,13 @@ class TnSeekFrame(MainFrame):
             current = next
         return selected_exp
 
+#
 
     def allSelected(self, col=5):
         selected_all = self.ctrlSelected(col) + self.expSelected(col)
         return selected_all
 
+#
 
     def ctrlAll(self, col=5):
         all_ctrl = []
@@ -995,6 +1017,7 @@ class TnSeekFrame(MainFrame):
             all_ctrl.append(self.list_ctrl.GetItem(i, col).GetText())
         return all_ctrl
 
+#
 
     def expAll(self, col=5):
         all_exp = []
@@ -1002,6 +1025,7 @@ class TnSeekFrame(MainFrame):
             all_exp.append(self.list_exp.GetItem(i, col).GetText())
         return all_exp
 
+#
 
     def loadCtrlFile(self, fullpath):
         name = transit_tools.basename(fullpath)
@@ -1015,6 +1039,7 @@ class TnSeekFrame(MainFrame):
         self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
 
+#
 
     def loadExpFile(self, fullpath):
         name = transit_tools.basename(fullpath)
@@ -1028,7 +1053,7 @@ class TnSeekFrame(MainFrame):
         self.list_exp.Select(self.index_exp)
         self.index_exp+=1
 
-
+#
 
     def loadCtrlFileFunc(self, event):
         self.statusBar.SetStatusText("Loading Control Dataset(s)...")
@@ -1056,6 +1081,7 @@ class TnSeekFrame(MainFrame):
             print(exc_type, fname, exc_tb.tb_lineno)
         self.statusBar.SetStatusText("")
 
+#
 
     def loadExpFileFunc(self, event):
         self.statusBar.SetStatusText("Loading Experimental Dataset(s)...")
@@ -1084,6 +1110,8 @@ class TnSeekFrame(MainFrame):
 
         self.statusBar.SetStatusText("")
 
+#
+
     def ctrlRemoveFunc(self, event):
         next = self.list_ctrl.GetNextSelected(-1)
         while next != -1:
@@ -1093,8 +1121,7 @@ class TnSeekFrame(MainFrame):
             next = self.list_ctrl.GetNextSelected(-1)
             self.index_ctrl-=1 
 
-     
-
+#     
 
     def expRemoveFunc(self, event):
         next = self.list_exp.GetNextSelected(-1)
@@ -1105,6 +1132,7 @@ class TnSeekFrame(MainFrame):
             next = self.list_exp.GetNextSelected(-1)
             self.index_exp-=1
 
+#
 
     def allViewFunc(self, event, gene=""):
         
@@ -1123,9 +1151,7 @@ class TnSeekFrame(MainFrame):
             transit_tools.ShowError("Error: No annotation file selected.")
             return
 
-
-
-
+#
 
     def ctrlViewFunc(self, event, gene=""):
         annotationpath = self.annotation
@@ -1142,7 +1168,7 @@ class TnSeekFrame(MainFrame):
             if self.verbose:
                 transit_tools.transit_message("No annotation file selected")
 
-
+#
 
     def expViewFunc(self, event, gene=""):
         annotationpath = self.annotation
@@ -1159,7 +1185,7 @@ class TnSeekFrame(MainFrame):
             if self.verbose:
                 transit_tools.transit_message("No annotation file selected")
 
-
+#
 
     def scatterFunc(self, event):
         """ """
@@ -1180,6 +1206,7 @@ class TnSeekFrame(MainFrame):
         else:
             transit_tools.ShowError(MSG="Please make sure only two datasets are selected (across control and experimental datasets).")
 
+#
 
     def qcFunc(self, event):
         datasets = self.allSelected()
@@ -1198,6 +1225,7 @@ class TnSeekFrame(MainFrame):
                 transit_tools.transit_message("Error occured displaying file: %s" % str(e))
                 traceback.print_exc()
 
+#
 
     def aboutFunc(self, event):
         description = """TRANSIT is a tool for analysing TnSeq data. It provides an easy to use graphical interface and access to several different analysis methods that allow the user to determine essentiality within a single condition as well as between two conditions.
@@ -1247,9 +1275,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         #info.AddTranslator('Jan Bodnar')
         wx.AboutBox(info)
 
-
-
-
+#
 
     def documentationFunc(self, event):
 
@@ -1278,7 +1304,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             transit_tools.ShowError(MSG=error_text)
             traceback.print_exc()
 
-
+#
 
     def annotationFileFunc(self, event):
 
@@ -1291,10 +1317,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         else:
             self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table or .gff3)]")
        
-
-
-
- 
+# 
     def MethodSelectFunc(self, selected_name, test=""):
         #X = self.methodChoice.GetCurrentSelection()
         #selected_name = self.methodChoice.GetString(X)
@@ -1345,6 +1368,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         if self.verbose:
             transit_tools.transit_message("Selected Method: %s" % (selected_name))
 
+#
 
     def ExportSelectFunc(self, selected_name, test=""):
         #X = self.methodChoice.GetCurrentSelection()
@@ -1366,8 +1390,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                     transit_tools.transit_message("Error: %s" % str(e))
                     traceback.print_exc()
 
-
-
+#
 
     def displayFileFunc(self, event):
         next = self.list_files.GetNextSelected(-1)
@@ -1388,6 +1411,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 transit_tools.transit_message("No results selected to display!")
         
+#
 
     def fileSelected(self,event):
         next = self.list_files.GetNextSelected(-1)
@@ -1399,7 +1423,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         else:
             pass
         
-
+#
 
     def updateGraphChoices(self, dataset_type):
 
@@ -1424,6 +1448,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         self.fileActionChoice.SetItems(choices)
         self.fileActionChoice.SetSelection(0)
 
+#
 
     def fileActionFunc(self, event):
         # 0 - nothing
@@ -1457,11 +1482,8 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         else:
             transit_tools.ShowError(MSG="Please select a results file to plot!")
     
+#
        
-
- 
-
-
     def graphGeneCounts(self, dataset_name, dataset_type, dataset_path):
         try:
             if dataset_type == "Resampling":
@@ -1490,9 +1512,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             transit_tools.transit_message("Error occurred creating plot: %s" % str(e))
             traceback.print_exc()
 
-
-
-
+#
 
     def graphVolcanoPlot(self, dataset_name, dataset_type, dataset_path):
         try:
@@ -1556,6 +1576,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         except Exception as e:
             print "Error occurred creating plot:", str(e)
         
+#
 
     def graphRankedZbar(self, dataset_name, dataset_type, dataset_path):
         try:
@@ -1583,8 +1604,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         except Exception as e:
             print "Error occurred creating plot:", str(e)
 
-
-
+#
 
     def LoessPrevFunc(self,event):
         datasets_selected = self.ctrlSelected() + self.expSelected()
@@ -1614,6 +1634,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             plt.show()
             #plt.close()
     
+#
 
     def addFileFunc(self, event):
 
@@ -1663,7 +1684,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
 
-
+#
 
     def choseMethodsMenu(self, selected_name, event):
         if self.verbose:
@@ -1724,10 +1745,9 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 
             output.close()
             if self.verbose:
-                transit_tools.transit_message("Finished conversion")
-       
+                transit_tools.transit_message("Finished conversion")      
 
-
+#
 
     def annotationPT_to_PTT(self, event):
  
@@ -1770,7 +1790,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
                 
-
+#
 
     def annotationPTT_to_PT(self, event):
 
@@ -1818,9 +1838,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
 
-        #geneID  start   end strand  TA coordinates
-        
-
+#
 
     def annotationGFF3_to_PT(self, event):
 
@@ -1868,7 +1886,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
 
-                 
+#                 
 
     def RunMethod(self, event):
         #FLORF
@@ -1959,6 +1977,7 @@ One or more of your .wig files does not include any empty sites (i.e. sites with
         tn5Button.Bind(wx.EVT_BUTTON, self.OnClose)
         cancelButton.Bind(wx.EVT_BUTTON, self.OnClose)
 
+#
 
     def OnClose(self, event):
 
