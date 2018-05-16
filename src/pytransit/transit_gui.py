@@ -6,6 +6,7 @@ import sys
 try:
     import wx
     import wx.xrc
+    import wx.adv
     from wx.lib.buttons import GenBitmapTextButton
 
     hasWx = True
@@ -1256,8 +1257,9 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-        info = wx.AboutDialogInfo()
-        #info.SetIcon(wx.Icon('hunter.png', wx.BITMAP_TYPE_PNG))
+        info = wx.adv.AboutDialogInfo()
+        info.SetIcon(images.transit_logo2.GetIcon())
+        #images.transit_logo2.GetImage().ConvertToBitmap()
         info.SetName('TRANSIT')
         info.SetVersion(pytransit.__version__)
         info.SetDescription(description)
@@ -1273,7 +1275,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         #info.AddDocWriter('Jan Bodnar')
         #info.AddArtist('The Tango crew')
         #info.AddTranslator('Jan Bodnar')
-        wx.AboutBox(info)
+        wx.adv.AboutBox(info)
 
 #
 
