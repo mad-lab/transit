@@ -662,7 +662,7 @@ class TnSeekFrame(MainFrame):
         for name in export_methods:
             export_methods[name].gui.defineMenuItem(self, export_methods[name].label)
             tempMenuItem = export_methods[name].gui.menuitem
-            self.selectedExportMenuItem.AppendItem( tempMenuItem )
+            self.selectedExportMenuItem.Append( tempMenuItem )
             self.Bind( wx.EVT_MENU, partial(self.ExportSelectFunc,  export_methods[name].label),
                 tempMenuItem )
 
