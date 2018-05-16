@@ -198,8 +198,8 @@ class AnalysisGUI:
 
         Section = wx.BoxSizer( wx.VERTICAL )
 
-        Label = wx.StaticText(wPanel, id=wx.ID_ANY, label=str("Options"), pos=wx.DefaultPosition, size=wx.DefaultSize, style=0 )
-        Label.Wrap( -1 )
+        Label = wx.StaticText(wPanel, id=wx.ID_ANY, label=str("Method Options"), pos=wx.DefaultPosition, size=(130, -1), style=0 )
+        Label.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         Section.Add( Label, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
         Sizer1 = wx.BoxSizer( wx.HORIZONTAL )

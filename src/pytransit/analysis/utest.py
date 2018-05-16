@@ -94,8 +94,8 @@ class UTestGUI(base.AnalysisGUI):
 
         utestSizer = wx.BoxSizer( wx.VERTICAL )
 
-        utestLabel = wx.StaticText( utestPanel, wx.ID_ANY, u"utest Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        utestLabel.Wrap( -1 )
+        utestLabel = wx.StaticText( utestPanel, wx.ID_ANY, u"utest Options", wx.DefaultPosition, (120,-1), 0 )
+        utestLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         utestSizer.Add( utestLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         utestTopSizer = wx.BoxSizer( wx.HORIZONTAL )

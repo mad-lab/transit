@@ -100,8 +100,8 @@ class GIGUI(base.AnalysisGUI):
 
         giSizer = wx.BoxSizer( wx.VERTICAL )
 
-        giLabel = wx.StaticText( giPanel, wx.ID_ANY, u"GI Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        giLabel.Wrap( -1 )
+        giLabel = wx.StaticText( giPanel, wx.ID_ANY, u"GI Options", wx.DefaultPosition, (100,-1), 0 )
+        giLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         giSizer.Add( giLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         giTopSizer = wx.BoxSizer( wx.HORIZONTAL )

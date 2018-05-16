@@ -301,6 +301,7 @@ class MainFrame ( wx.Frame ):
 
         # Method Options 
         self.methodSizerText = wx.StaticBox( self.optionsWindow, wx.ID_ANY, u"Method Options" )
+        self.methodSizerText.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         self.methodSizer = wx.StaticBoxSizer( self.methodSizerText, wx.VERTICAL )
 
         
@@ -309,13 +310,13 @@ class MainFrame ( wx.Frame ):
         
         self.methodSizer.Add( self.m_panel1, 0, wx.ALL, 5 )
         
-        self.globalLabel = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"Global Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.globalLabel.Wrap( -1 )
-        self.methodSizer.Add( self.globalLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        self.globalLabel = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"Global Options", wx.DefaultPosition, (130,20), 0 )
+        self.globalLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
+        self.methodSizer.Add( self.globalLabel, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
         self.globalPanel = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.globalPanel.SetMinSize( wx.Size( 230,90 ) )
-        self.globalPanel.SetMaxSize( wx.Size( 250,-1) )
+        self.globalPanel.SetMinSize( wx.Size( 250,90 ) )
+        self.globalPanel.SetMaxSize( wx.Size(-1,-1) )
       
  
         globalSizerVT = wx.BoxSizer( wx.VERTICAL )
@@ -329,9 +330,9 @@ class MainFrame ( wx.Frame ):
        
         self.globalNTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalNTerminusIcon = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the N-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function.")
-        nTermSizer.Add( self.globalNTerminusLabel,0, wx.ALIGN_CENTER, 5 )
-        nTermSizer.Add( self.globalNTerminusText, 0, wx.ALIGN_CENTER, 5 )
-        nTermSizer.Add( self.globalNTerminusIcon, 0, wx.ALIGN_CENTER, 5 )
+        nTermSizer.Add( self.globalNTerminusLabel, 1, wx.ALIGN_CENTER, 5 )
+        nTermSizer.Add( self.globalNTerminusText, 1, wx.ALIGN_CENTER, 5 )
+        nTermSizer.Add( self.globalNTerminusIcon, 1, wx.ALIGN_CENTER, 5 )
 
 
         # C TERMINUS - GLOBAL 
@@ -340,9 +341,9 @@ class MainFrame ( wx.Frame ):
         self.globalCTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalCTerminusIcon = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the C-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function.")      
  
-        cTermSizer.Add( self.globalCTerminusLabel,0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        cTermSizer.Add( self.globalCTerminusText, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
-        cTermSizer.Add( self.globalCTerminusIcon, 0, wx.ALIGN_CENTER, 5 )
+        cTermSizer.Add( self.globalCTerminusLabel, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
+        cTermSizer.Add( self.globalCTerminusText, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
+        cTermSizer.Add( self.globalCTerminusIcon, 1, wx.ALIGN_CENTER, 5 )
  
         
 
@@ -353,7 +354,7 @@ class MainFrame ( wx.Frame ):
         self.globalPanel.SetSizer( globalSizerVT )
         self.globalPanel.Layout()
         globalSizerVT.Fit( self.globalPanel )
-        self.methodSizer.Add( self.globalPanel, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        self.methodSizer.Add( self.globalPanel, 1, wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
 
         #--------------------#

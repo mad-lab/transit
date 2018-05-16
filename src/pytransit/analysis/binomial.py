@@ -83,8 +83,8 @@ class BinomialGUI(base.AnalysisGUI):
 
         binomialSection = wx.BoxSizer( wx.VERTICAL )
 
-        binomialLabel = wx.StaticText( binomialPanel, wx.ID_ANY, u"Binomial Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        binomialLabel.Wrap( -1 )
+        binomialLabel = wx.StaticText( binomialPanel, wx.ID_ANY, u"Binomial Options", wx.DefaultPosition, (130, -1), 0 )
+        binomialLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         binomialSection.Add( binomialLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         binomialSizer1 = wx.BoxSizer( wx.HORIZONTAL )

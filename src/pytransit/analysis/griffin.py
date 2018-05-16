@@ -83,8 +83,8 @@ class GriffinGUI(base.AnalysisGUI):
 
         griffinSection = wx.BoxSizer( wx.VERTICAL )
 
-        griffinLabel = wx.StaticText( griffinPanel, wx.ID_ANY, u"griffin Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        griffinLabel.Wrap( -1 )
+        griffinLabel = wx.StaticText( griffinPanel, wx.ID_ANY, u"griffin Options", wx.DefaultPosition, (120,-1), 0 )
+        griffinLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         griffinSection.Add( griffinLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         griffinSizer1 = wx.BoxSizer( wx.HORIZONTAL )

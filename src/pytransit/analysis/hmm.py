@@ -121,8 +121,8 @@ class HMMGUI(base.AnalysisGUI):
 
         hmmSection = wx.BoxSizer( wx.VERTICAL )
 
-        hmmLabel = wx.StaticText( hmmPanel, wx.ID_ANY, u"HMM Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        hmmLabel.Wrap( -1 )
+        hmmLabel = wx.StaticText( hmmPanel, wx.ID_ANY, u"HMM Options", wx.DefaultPosition, (110,-1), 0 )
+        hmmLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         hmmSection.Add( hmmLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         hmmSizer1 = wx.BoxSizer( wx.VERTICAL )

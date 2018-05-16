@@ -88,8 +88,9 @@ class GumbelGUI(base.AnalysisGUI):
 
         gumbelSection = wx.BoxSizer( wx.VERTICAL )
 
-        gumbelLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Gumbel Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        gumbelLabel.Wrap( -1 )
+        gumbelLabel = wx.StaticText( gumbelPanel, wx.ID_ANY, u"Gumbel Options", wx.DefaultPosition, (130,20))
+    
+        gumbelLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         gumbelSection.Add( gumbelLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         mainSizer1 = wx.BoxSizer( wx.VERTICAL )

@@ -81,8 +81,8 @@ class Tn5GapsGUI(base.AnalysisGUI):
 
         tn5GapsSection = wx.BoxSizer( wx.VERTICAL )
 
-        tn5GapsLabel = wx.StaticText( tn5GapsPanel, wx.ID_ANY, u"Tn5 Gaps Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        tn5GapsLabel.Wrap( -1 )
+        tn5GapsLabel = wx.StaticText( tn5GapsPanel, wx.ID_ANY, u"Tn5 Gaps Options", wx.DefaultPosition, (150,-1), 0 )
+        tn5GapsLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         tn5GapsSection.Add( tn5GapsLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         mainSizer1 = wx.BoxSizer( wx.VERTICAL )   

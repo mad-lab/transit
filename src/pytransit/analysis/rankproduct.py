@@ -68,8 +68,8 @@ class RankProductGUI(base.AnalysisGUI):
     
         rankproductSizer = wx.BoxSizer( wx.VERTICAL )
 
-        rankproductLabel = wx.StaticText( rankproductPanel, wx.ID_ANY, u"rankproduct Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        rankproductLabel.Wrap( -1 )
+        rankproductLabel = wx.StaticText( rankproductPanel, wx.ID_ANY, u"rankproduct Options", wx.DefaultPosition, (160,-1), 0 )
+        rankproductLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         rankproductSizer.Add( rankproductLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         rankproductLabelSizer = wx.BoxSizer( wx.VERTICAL )
