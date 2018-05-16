@@ -21,6 +21,7 @@ try:
 except Exception as e:
     hasWx = False
     newWx = False
+    print "EXCEPTION:", str(e)
 
 import os
 import time
@@ -66,6 +67,7 @@ import pytransit.images as images
 
 method_wrap_width = 250
 methods = pytransit.analysis.methods
+export_methods = pytransit.export.methods
 normmethods = norm_tools.methods
 
 
@@ -105,7 +107,7 @@ class MainFrame ( wx.Frame ):
 
 
 
-        self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+        #self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
         
         bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
         
@@ -373,14 +375,9 @@ class MainFrame ( wx.Frame ):
         self.fileMenuItem = wx.Menu()
         self.exportMenuItem = wx.Menu()
         self.selectedExportMenuItem = wx.Menu()
-        self.selectedExportIGVMenuItem = wx.MenuItem( self.selectedExportMenuItem, wx.ID_ANY, u"to IGV", wx.EmptyString, wx.ITEM_NORMAL )
-        self.selectedExportMenuItem.AppendItem( self.selectedExportIGVMenuItem )
-        
-
-        self.selectedExportCombinedWigMenuItem = wx.MenuItem( self.selectedExportMenuItem, wx.ID_ANY, u"to Combined Wig", wx.EmptyString, wx.ITEM_NORMAL )
-        self.selectedExportMenuItem.AppendItem( self.selectedExportCombinedWigMenuItem )
 
 
+        # Selected datasets
         self.exportMenuItem.AppendSubMenu( self.selectedExportMenuItem, u"Selected Datasets" )
         
         self.fileMenuItem.AppendSubMenu( self.exportMenuItem, u"Export" )
@@ -463,8 +460,7 @@ class MainFrame ( wx.Frame ):
         self.addFileButton.Bind( wx.EVT_BUTTON, self.addFileFunc )
         self.fileActionChoice.Bind( wx.EVT_CHOICE, self.fileActionFunc )
         self.list_files.Bind( wx.EVT_LIST_ITEM_SELECTED, self.fileSelected )
-        self.Bind( wx.EVT_MENU, self.selectedToIGV, id = self.selectedExportIGVMenuItem.GetId() )
-        self.Bind( wx.EVT_MENU, self.selectedToCombinedWig, id = self.selectedExportCombinedWigMenuItem.GetId() )
+        
         self.Bind( wx.EVT_MENU, self.annotationPT_to_PTT, id = self.annotationConvertPTToPTTMenu.GetId() )
         self.Bind( wx.EVT_MENU, self.annotationPT_to_GFF3, id = self.annotationConvertPTToGFF3Menu.GetId() )
         self.Bind( wx.EVT_MENU, self.annotationPTT_to_PT, id = self.annotationConvertPTTToPT.GetId() )
@@ -553,12 +549,6 @@ class MainFrame ( wx.Frame ):
         event.Skip()
     
     def expToIGV( self, event ):
-        event.Skip()
-    
-    def selectedToIGV( self, event ):
-        event.Skip()
-
-    def selectedToCombinedWig( self, event ):
         event.Skip()
     
     def annotationPT_to_PTT( self, event ):
@@ -667,6 +657,20 @@ class TnSeekFrame(MainFrame):
         pub.subscribe(self.saveHistogram, "histogram")   
  
         #self.outputDirPicker.SetPath(os.path.dirname(os.path.realpath(__file__)))
+
+
+        # Export Menu Items
+        for name in export_methods:
+            export_methods[name].gui.defineMenuItem(self, export_methods[name].label)
+            tempMenuItem = export_methods[name].gui.menuitem
+            self.selectedExportMenuItem.AppendItem( tempMenuItem )
+            self.Bind( wx.EVT_MENU, partial(self.ExportSelectFunc,  export_methods[name].label),
+                tempMenuItem )
+
+
+
+
+        # Method Panels
 
         methodChoiceChoices = [ "[Choose Method]"]
         for name in methods:
@@ -1008,6 +1012,7 @@ class TnSeekFrame(MainFrame):
         self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
         self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
         self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+        self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
 
 
@@ -1020,6 +1025,7 @@ class TnSeekFrame(MainFrame):
         self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
         self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
         self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+        self.list_exp.Select(self.index_exp)
         self.index_exp+=1
 
 
@@ -1045,7 +1051,6 @@ class TnSeekFrame(MainFrame):
             dlg.Destroy()
         except Exception as e:
             transit_tools.transit_message("Error: %s" % e)
-            print "PATH", fullpath
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
@@ -1285,7 +1290,11 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 transit_tools.transit_message("Annotation File Selected: %s" % self.annotation)
         else:
             self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table or .gff3)]")
-        
+       
+
+
+
+ 
     def MethodSelectFunc(self, selected_name, test=""):
         #X = self.methodChoice.GetCurrentSelection()
         #selected_name = self.methodChoice.GetString(X)
@@ -1335,6 +1344,27 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         self.Layout()
         if self.verbose:
             transit_tools.transit_message("Selected Method: %s" % (selected_name))
+
+
+    def ExportSelectFunc(self, selected_name, test=""):
+        #X = self.methodChoice.GetCurrentSelection()
+        #selected_name = self.methodChoice.GetString(X)
+        
+        if self.verbose:
+            transit_tools.transit_message("Selected Export Method: %s" % (selected_name))
+
+        for name in export_methods:
+            if export_methods[name].label == selected_name:
+                methodobj = export_methods[name].method
+                try:
+                    M = methodobj.fromGUI(self)
+                    if M:
+                        thread = threading.Thread(target=M.Run())
+                        thread.setDaemon(True)
+                        thread.start()
+                except Exception as e:
+                    transit_tools.transit_message("Error: %s" % str(e))
+                    traceback.print_exc()
 
 
 
@@ -1616,6 +1646,8 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                         type = "DE-HMM - Sites"
                     elif line.startswith("#DE-HMM - Segments"):
                         type = "DE-HMM - Segments"
+                    elif line.startswith("#GI"):
+                        type = "GI"
                     else:
                         type = "Unknown"
                     data = {"path":fullpath, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
@@ -1638,76 +1670,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             transit_tools.transit_message("Selected Method: %s" % (selected_name))
         self.MethodSelectFunc(selected_name) 
 
-
-    def convertToIGVGUI(self, datasets):
-        
-        annotationPath = self.annotation
-        if datasets and annotationPath:
-            normchoice = self.chooseNormalization()
-            defaultFile = "read_counts.igv"
-            defaultDir = os.getcwd()
-            outputPath = self.SaveFile(defaultDir, defaultFile)
-            if not outputPath:
-                return
-            if self.verbose:
-        
-                transit_tools.transit_message("Converting the following datasets to IGV format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            self.convertToIGV(datasets, annotationPath, outputPath, normchoice)
-            if self.verbose:
-                transit_tools.transit_message("Finished conversion")
-        elif not datasets:
-            transit_tools.ShowError("Error: No datasets selected to convert!")
-        elif not annotationPath:
-            transit_tools.ShowError("Error: No annotation file selected.")
-        else:
-            pass
-
-
-    def convertToIGV(self, dataset_list, annotationPath, path, normchoice=None):
-
-        if not normchoice:
-            normchoice = "nonorm"
-
-        (fulldata, position) = tnseq_tools.get_data(dataset_list)
-        (fulldata, factors) = norm_tools.normalize_data(fulldata, normchoice, dataset_list, annotationPath)
-        position = position.astype(int)
-
-        output = open(path, "w")
-        output.write("#Converted to IGV with TRANSIT.\n")
-        if normchoice != "nonorm":
-            output.write("#Reads normalized using '%s'\n" % normchoice)
-    
-        output.write("#Files:\n#%s\n" % "\n#".join(dataset_list))
-        output.write("#Chromosome\tStart\tEnd\tFeature\t%s\tTAs\n" % ("\t".join([transit_tools.fetch_name(D) for D in dataset_list])))
-        chrom = transit_tools.fetch_name(annotationPath)
-
-        for i,pos in enumerate(position):
-            output.write("%s\t%s\t%s\tTA%s\t%s\t1\n" % (chrom, position[i], position[i]+1, position[i], "\t".join(["%1.1f" % fulldata[j][i] for j in range(len(fulldata))])))
-        output.close()
-
-
-
-    def convertToCombinedWigGUI(self, datasets):
-        annotationPath = self.annotation
-        if datasets and annotationPath:
-            normchoice = self.chooseNormalization()
-            defaultFile = "combined_read_counts.txt"
-            defaultDir = os.getcwd()
-            outputPath = self.SaveFile(defaultDir, defaultFile)
-            if not outputPath:
-                return
-            if self.verbose:
-                transit_tools.transit_message("Converting the following datasets to Combined Wig format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            transit_tools.convertToCombinedWig(datasets, annotationPath, outputPath, normchoice)
-            if self.verbose:
-                transit_tools.transit_message("Finished conversion")
-        elif not datasets:
-            transit_tools.ShowError("Error: No datasets selected to convert!")
-        elif not annotationPath:
-            transit_tools.ShowError("Error: No annotation file selected.")
-        else:
-            pass
-
+#
 
     def chooseNormalization(self):
 
@@ -1723,18 +1686,9 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
  
         dlg.Destroy()
         return dlg.GetStringSelection()
-
-
-    def selectedToIGV(self, event):
-        datasets = self.ctrlSelected() + self.expSelected()
-        self.convertToIGVGUI(datasets)
-
-
-    def selectedToCombinedWig(self, event):
-        datasets = self.ctrlSelected() + self.expSelected()
-        self.convertToCombinedWigGUI(datasets)
-
         
+#
+
     def annotationPT_to_GFF3(self, event):
         annotationpath = self.annotation
         defaultFile = transit_tools.fetch_name(annotationpath) + ".gff3"
@@ -1934,6 +1888,26 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             transit_tools.transit_message("Error: %s" % str(e))
             traceback.print_exc()
 
+#
+"""
+    def ExportMethod(self, event):
+        #X = self.methodChoice.GetCurrentSelection()
+        #selected_name = self.methodChoice.GetString(X)
+        selected_name = self.export_choice
+        for name in export_methods:
+            if  export_methods[name].label == selected_name:
+                methodobj = export_methods[name].method
+        try:
+            M = methodobj.fromGUI(self)
+            if M:
+                thread = threading.Thread(target=M.Run())
+                thread.setDaemon(True)
+                thread.start()
+        except Exception as e:
+            transit_tools.transit_message("Error: %s" % str(e))
+            traceback.print_exc()
+"""
+
 
 class AssumeZerosDialog(wx.Dialog):
 
@@ -1990,6 +1964,7 @@ One or more of your .wig files does not include any empty sites (i.e. sites with
 
         if self.IsModal():
             self.EndModal(event.EventObject.Id)
+            self.Close()
         else:
             self.Close()
 

@@ -14,6 +14,7 @@ try:
 except Exception as e:
     hasWx = False
     newWx = False
+    
 
 import os
 import time
@@ -23,7 +24,6 @@ import random
 import numpy
 import scipy.stats
 import datetime
-import matplotlib
 
 import base
 import pytransit
@@ -41,7 +41,7 @@ long_name = "Resampling test of conditional essentiality between two conditions"
 description = """Method for determining conditional essentiality based on resampling (i.e. permutation test). Identifies significant changes in mean read-counts for each gene after normalization."""
 
 transposons = ["himar1", "tn5"]
-columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "Sum Ctrl", "Sum Exp", "Delta Sum","p-value","Adj. p-value"]
+columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "Sum Ctrl", "Sum Exp", "Delta Mean","p-value","Adj. p-value"]
 
 class ResamplingAnalysis(base.TransitAnalysis):
     def __init__(self):
@@ -317,10 +317,16 @@ class ResamplingMethod(base.DualConditionMethod):
 
     def Run(self):
 
-        if not self.wxobj:
-            # Force matplotlib to use good backend for png.
-            matplotlib.use('Agg')
+        #if not self.wxobj:
+        #    # Force matplotlib to use good backend for png.
+        #    import matplotlib.pyplot as plt
+        #elif "matplotlib.pyplot" not in sys.modules:
+        try:
             import matplotlib.pyplot as plt
+        except:
+            print "Error: cannot do histograms"
+            self.doHistogram = False 
+                
 
         self.transit_message("Starting resampling Method")
         start_time = time.time()
@@ -380,17 +386,18 @@ class ResamplingMethod(base.DualConditionMethod):
                 data1 = gene.reads[:Kctrl,ii].flatten()+self.pseudocount
                 data2 = gene.reads[Kctrl:,ii].flatten()+self.pseudocount
                 
-                (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_sum_diff_flat, adaptive=self.adaptive)
+                (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_flat, adaptive=self.adaptive)
 
 
             if self.doHistogram:
+                import matplotlib.pyplot as plt
                 if testlist:
                     n, bins, patches = plt.hist(testlist, normed=1, facecolor='c', alpha=0.75, bins=100)
                 else:
                     n, bins, patches = plt.hist([0,0], normed=1, facecolor='c', alpha=0.75, bins=100)
-                plt.xlabel('Delta Sum')
+                plt.xlabel('Delta Mean')
                 plt.ylabel('Probability')
-                plt.title('%s - Histogram of Delta Sum' % gene.orf)
+                plt.title('%s - Histogram of Delta Mean' % gene.orf)
                 plt.axvline(test_obs, color='r', linestyle='dashed', linewidth=3)
                 plt.grid(True)
                 genePath = os.path.join(histPath, gene.orf +".png")
