@@ -793,7 +793,7 @@ def get_data(wig_list):
             T+=1
         size_list.append(T)
 
-    # If it doesn't match, report and error and quit
+    # If it doesn't match, report an error and quit
     if sum(size_list) != (T * len(size_list)):
         print "Error: Not all wig files have the same number of sites." 
         print "       Make sure all .wig files come from the same strain."
