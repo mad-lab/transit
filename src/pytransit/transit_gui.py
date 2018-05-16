@@ -827,10 +827,10 @@ class TnSeekFrame(MainFrame):
         name = transit_tools.basename(fullpath)
         type = data["type"]
         date = data["date"]
-        self.list_files.InsertStringItem(self.index_file, name)
-        self.list_files.SetStringItem(self.index_file, 1, "%s" % type)
-        self.list_files.SetStringItem(self.index_file, 2, "%s" % (date))
-        self.list_files.SetStringItem(self.index_file, 3, "%s" % (fullpath))
+        self.list_files.InsertItem(self.index_file, name)
+        self.list_files.SetItem(self.index_file, 1, "%s" % type)
+        self.list_files.SetItem(self.index_file, 2, "%s" % (date))
+        self.list_files.SetItem(self.index_file, 3, "%s" % (fullpath))
         self.index_file+=1
         
 #
@@ -1029,12 +1029,12 @@ class TnSeekFrame(MainFrame):
     def loadCtrlFile(self, fullpath):
         name = transit_tools.basename(fullpath)
         (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-        self.list_ctrl.InsertStringItem(self.index_ctrl, name)
-        self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
-        self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
-        self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
-        self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
-        self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+        self.list_ctrl.InsertItem(self.index_ctrl, name)
+        self.list_ctrl.SetItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+        self.list_ctrl.SetItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+        self.list_ctrl.SetItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+        self.list_ctrl.SetItem(self.index_ctrl, 4, "%d" % (maxrd))
+        self.list_ctrl.SetItem(self.index_ctrl, 5, "%s" % (fullpath))
         self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
 
@@ -1043,12 +1043,12 @@ class TnSeekFrame(MainFrame):
     def loadExpFile(self, fullpath):
         name = transit_tools.basename(fullpath)
         (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-        self.list_exp.InsertStringItem(self.index_exp, name)
-        self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
-        self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
-        self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
-        self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
-        self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+        self.list_exp.InsertItem(self.index_exp, name)
+        self.list_exp.SetItem(self.index_exp, 1, "%1.1f" % (totalrd))
+        self.list_exp.SetItem(self.index_exp, 2, "%2.1f" % (density*100))
+        self.list_exp.SetItem(self.index_exp, 3, "%1.1f" % (meanrd))
+        self.list_exp.SetItem(self.index_exp, 4, "%d" % (maxrd))
+        self.list_exp.SetItem(self.index_exp, 5, "%s" % (fullpath))
         self.list_exp.Select(self.index_exp)
         self.index_exp+=1
 
