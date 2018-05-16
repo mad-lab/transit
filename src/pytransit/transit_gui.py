@@ -947,7 +947,7 @@ class TnSeekFrame(MainFrame):
         dlg = wx.FileDialog(
             self, message="Save file as ...",
             defaultDir=DIR,
-            defaultFile=FILE, wildcard=WC, style=wx.FD_SAVE|wx.OVERWRITE_PROMPT
+            defaultFile=FILE, wildcard=WC, style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT
             )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -1064,7 +1064,7 @@ class TnSeekFrame(MainFrame):
                 defaultDir=self.workdir,
                 defaultFile="",
                 wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*",
-                style=wx.FD_OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
                 )
             if dlg.ShowModal() == wx.ID_OK:
                 paths = dlg.GetPaths()
@@ -1092,7 +1092,7 @@ class TnSeekFrame(MainFrame):
                 defaultDir=self.workdir,
                 defaultFile="",
                 wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*",
-                style=wx.FD_OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
                 )
             if dlg.ShowModal() == wx.ID_OK:
                 paths = dlg.GetPaths()
@@ -1640,7 +1640,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 defaultDir=self.workdir,
                 defaultFile="",
                 wildcard=u"Results Files (*.dat)|*.dat;|\nResults Files (*.txt)|*.txt;|\nAll files (*.*)|*.*",
-                style=wx.FD_OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
                 )
             if dlg.ShowModal() == wx.ID_OK:
                 paths = dlg.GetPaths()
