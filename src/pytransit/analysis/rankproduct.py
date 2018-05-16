@@ -308,8 +308,10 @@ class RankProductMethod(base.DualConditionMethod):
             q_paper = e_val/float(rankRP[i])
  
             data.append([gene.orf, gene.name, gene.desc, gene.n, meanctrl, meanexp, log2fc, obsRP[i], e_val, q_paper, pval])
-            self.progress_update("rankproduct", count)
-            self.transit_message_inplace("Running rankproduct Method... %1.1f%%" % (100.0*count/Ngenes))
+            
+            # Update Progress
+            text = "Running rankproduct Method... %5.1f%%" % (100.0*count/Ngenes)
+            self.progress_update(text, count)
 
 
         #

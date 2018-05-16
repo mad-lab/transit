@@ -286,8 +286,10 @@ class Tn5GapsMethod(base.SingleConditionMethod):
                 curr_len = curr_val[7]
                 if inter_sz > curr_inter_sz:
                     results_per_gene[gene.orf] = [gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, inter_sz, run_len, pval]
-            self.progress_update("tn5gaps", count)
-            self.transit_message_inplace("Running Tn5Gaps method... %1.1f%%" % (100.0*count/N))
+            
+            # Update Progress
+            text = "Running Tn5Gaps method... %1.1f%%" % (100.0*count/N) 
+            self.progress_update(text, count)
                 
         data = list(results_per_gene.values())
         exp_run_len = float(accum)/N

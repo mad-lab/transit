@@ -67,6 +67,7 @@ import pytransit.images as images
 
 method_wrap_width = 250
 methods = pytransit.analysis.methods
+export_methods = pytransit.export.methods
 normmethods = norm_tools.methods
 
 
@@ -374,14 +375,8 @@ class MainFrame ( wx.Frame ):
         self.fileMenuItem = wx.Menu()
         self.exportMenuItem = wx.Menu()
         self.selectedExportMenuItem = wx.Menu()
-        self.selectedExportIGVMenuItem = wx.MenuItem( self.selectedExportMenuItem, wx.ID_ANY, u"to IGV", wx.EmptyString, wx.ITEM_NORMAL )
-        self.selectedExportMenuItem.Append( self.selectedExportIGVMenuItem )
-        
 
-        self.selectedExportCombinedWigMenuItem = wx.MenuItem( self.selectedExportMenuItem, wx.ID_ANY, u"to Combined Wig", wx.EmptyString, wx.ITEM_NORMAL )
-        self.selectedExportMenuItem.Append( self.selectedExportCombinedWigMenuItem )
-
-
+        # Selected datasets
         self.exportMenuItem.AppendSubMenu( self.selectedExportMenuItem, u"Selected Datasets" )
         
         self.fileMenuItem.AppendSubMenu( self.exportMenuItem, u"Export" )
@@ -464,8 +459,7 @@ class MainFrame ( wx.Frame ):
         self.addFileButton.Bind( wx.EVT_BUTTON, self.addFileFunc )
         self.fileActionChoice.Bind( wx.EVT_CHOICE, self.fileActionFunc )
         self.list_files.Bind( wx.EVT_LIST_ITEM_SELECTED, self.fileSelected )
-        self.Bind( wx.EVT_MENU, self.selectedToIGV, id = self.selectedExportIGVMenuItem.GetId() )
-        self.Bind( wx.EVT_MENU, self.selectedToCombinedWig, id = self.selectedExportCombinedWigMenuItem.GetId() )
+        
         self.Bind( wx.EVT_MENU, self.annotationPT_to_PTT, id = self.annotationConvertPTToPTTMenu.GetId() )
         self.Bind( wx.EVT_MENU, self.annotationPT_to_GFF3, id = self.annotationConvertPTToGFF3Menu.GetId() )
         self.Bind( wx.EVT_MENU, self.annotationPTT_to_PT, id = self.annotationConvertPTTToPT.GetId() )
@@ -554,12 +548,6 @@ class MainFrame ( wx.Frame ):
         event.Skip()
     
     def expToIGV( self, event ):
-        event.Skip()
-    
-    def selectedToIGV( self, event ):
-        event.Skip()
-
-    def selectedToCombinedWig( self, event ):
         event.Skip()
     
     def annotationPT_to_PTT( self, event ):
@@ -669,6 +657,20 @@ class TnSeekFrame(MainFrame):
  
         #self.outputDirPicker.SetPath(os.path.dirname(os.path.realpath(__file__)))
 
+
+        # Export Menu Items
+        for name in export_methods:
+            export_methods[name].gui.defineMenuItem(self, export_methods[name].label)
+            tempMenuItem = export_methods[name].gui.menuitem
+            self.selectedExportMenuItem.AppendItem( tempMenuItem )
+            self.Bind( wx.EVT_MENU, partial(self.ExportSelectFunc,  export_methods[name].label),
+                tempMenuItem )
+
+
+
+
+        # Method Panels
+
         methodChoiceChoices = [ "[Choose Method]"]
         for name in methods:
             methods[name].gui.definePanel(self)
@@ -743,7 +745,7 @@ class TnSeekFrame(MainFrame):
             except Exception as e:
                 print "Error:", str(e)
  
-
+#
 
     def Exit(self, event):
         """Exit Menu Item"""
@@ -751,6 +753,7 @@ class TnSeekFrame(MainFrame):
             transit_tools.transit_message("Exiting Transit")
         self.Close()
 
+#
 
     def updateProgress(self, msg):
         """"""
@@ -764,6 +767,8 @@ class TnSeekFrame(MainFrame):
         except:
             pass
 
+#
+
     def setProgressRange(self, msg):
         """"""
         if newWx:
@@ -775,7 +780,7 @@ class TnSeekFrame(MainFrame):
         except:
             pass
 
-    
+#    
 
     def updateStatus(self, msg, time=-1):
         """"""
@@ -788,15 +793,14 @@ class TnSeekFrame(MainFrame):
         if time > 0:
             self.timer.Start(time)        
         self.statusBar.SetStatusText(text)
-
-    
-
+   
+#
 
     def clearStatus(self, event):
         self.statusBar.SetStatusText("")
         self.timer.Stop()
 
-
+#
     
     def saveHistogram(self, msg):
         if newWx:
@@ -814,7 +818,7 @@ class TnSeekFrame(MainFrame):
         plt.savefig(genePath)
         plt.clf()
 
-
+#
 
     def addFile(self, data):
         if not newWx:
@@ -829,23 +833,26 @@ class TnSeekFrame(MainFrame):
         self.list_files.SetStringItem(self.index_file, 3, "%s" % (fullpath))
         self.index_file+=1
         
+#
 
     def finishRun(self,msg):
         if not newWx: msg = msg.data
         try:
-            #methods[msg].gui.Enable()
-            pass
+            self.progress_count = 0
+            self.progress.SetValue(self.progress_count)
+
         except Exception as e:
             transit_tools.transit_message("Error: %s" % e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
 
+#
 
     def ResetProgress(self):
         self.progress_count = 0
 
-
+#
 
     def HideAllOptions(self):
         self.HideGlobalOptions()
@@ -853,6 +860,7 @@ class TnSeekFrame(MainFrame):
         for name in methods:
             methods[name].gui.Hide()
 
+#
 
     def HideGlobalOptions(self):
         self.globalLabel.Hide()
@@ -863,6 +871,7 @@ class TnSeekFrame(MainFrame):
         self.globalNTerminusIcon.Hide()
         self.globalCTerminusIcon.Hide()
 
+#
 
     def ShowGlobalOptions(self):
         self.globalLabel.Show()
@@ -873,14 +882,19 @@ class TnSeekFrame(MainFrame):
         self.globalNTerminusIcon.Show()
         self.globalCTerminusIcon.Show()
 
+#
+
     def HideProgressSection(self):
         self.progressLabel.Hide()
         self.progress.Hide()
 
+#
 
     def ShowProgressSection(self):
         self.progressLabel.Show()
         self.progress.Show()
+
+#
 
     def onHimar1Checked(self, event):
         if self.methodCheckBoxHimar1.GetValue():
@@ -889,12 +903,16 @@ class TnSeekFrame(MainFrame):
             self.transposons.remove("himar1")
         self.filterMethodsByTransposon()
 
+#
+
     def onTn5Checked(self, event):
         if self.methodCheckBoxTn5.GetValue():
             self.transposons.append("tn5")
         else:
             self.transposons.remove("tn5")
         self.filterMethodsByTransposon()
+
+#
 
     def filterMethodsByTransposon(self):
         newmethods = {}
@@ -914,7 +932,7 @@ class TnSeekFrame(MainFrame):
         self.methodChoice.SetItems(methodChoiceChoices)
         self.methodChoice.SetSelection( 0 )
 
-
+#
 
     def SaveFile(self, DIR=None, FILE="", WC=u'Common output extensions (*.txt,*.dat,*.out)|*.txt;*.dat;*.out;|\nAll files (*.*)|*.*"'):
         """
@@ -937,6 +955,8 @@ class TnSeekFrame(MainFrame):
         dlg.Destroy()
         return path
 
+#
+
     def OpenFile(self, DIR=".", FILE="", WC=""):
         """
         Create and show the Open FileDialog
@@ -954,6 +974,7 @@ class TnSeekFrame(MainFrame):
         dlg.Destroy()
         return path
 
+#
 
     def ctrlSelected(self, col=5):
         selected_ctrl = []
@@ -967,6 +988,7 @@ class TnSeekFrame(MainFrame):
             current = next
         return selected_ctrl
 
+#
 
     def expSelected(self, col=5):
         selected_exp = []
@@ -980,11 +1002,13 @@ class TnSeekFrame(MainFrame):
             current = next
         return selected_exp
 
+#
 
     def allSelected(self, col=5):
         selected_all = self.ctrlSelected(col) + self.expSelected(col)
         return selected_all
 
+#
 
     def ctrlAll(self, col=5):
         all_ctrl = []
@@ -992,6 +1016,7 @@ class TnSeekFrame(MainFrame):
             all_ctrl.append(self.list_ctrl.GetItem(i, col).GetText())
         return all_ctrl
 
+#
 
     def expAll(self, col=5):
         all_exp = []
@@ -999,6 +1024,7 @@ class TnSeekFrame(MainFrame):
             all_exp.append(self.list_exp.GetItem(i, col).GetText())
         return all_exp
 
+#
 
     def loadCtrlFile(self, fullpath):
         name = transit_tools.basename(fullpath)
@@ -1012,6 +1038,7 @@ class TnSeekFrame(MainFrame):
         self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
 
+#
 
     def loadExpFile(self, fullpath):
         name = transit_tools.basename(fullpath)
@@ -1025,7 +1052,7 @@ class TnSeekFrame(MainFrame):
         self.list_exp.Select(self.index_exp)
         self.index_exp+=1
 
-
+#
 
     def loadCtrlFileFunc(self, event):
         self.statusBar.SetStatusText("Loading Control Dataset(s)...")
@@ -1053,6 +1080,7 @@ class TnSeekFrame(MainFrame):
             print(exc_type, fname, exc_tb.tb_lineno)
         self.statusBar.SetStatusText("")
 
+#
 
     def loadExpFileFunc(self, event):
         self.statusBar.SetStatusText("Loading Experimental Dataset(s)...")
@@ -1081,6 +1109,8 @@ class TnSeekFrame(MainFrame):
 
         self.statusBar.SetStatusText("")
 
+#
+
     def ctrlRemoveFunc(self, event):
         next = self.list_ctrl.GetNextSelected(-1)
         while next != -1:
@@ -1090,8 +1120,7 @@ class TnSeekFrame(MainFrame):
             next = self.list_ctrl.GetNextSelected(-1)
             self.index_ctrl-=1 
 
-     
-
+#     
 
     def expRemoveFunc(self, event):
         next = self.list_exp.GetNextSelected(-1)
@@ -1102,6 +1131,7 @@ class TnSeekFrame(MainFrame):
             next = self.list_exp.GetNextSelected(-1)
             self.index_exp-=1
 
+#
 
     def allViewFunc(self, event, gene=""):
         
@@ -1120,9 +1150,7 @@ class TnSeekFrame(MainFrame):
             transit_tools.ShowError("Error: No annotation file selected.")
             return
 
-
-
-
+#
 
     def ctrlViewFunc(self, event, gene=""):
         annotationpath = self.annotation
@@ -1139,7 +1167,7 @@ class TnSeekFrame(MainFrame):
             if self.verbose:
                 transit_tools.transit_message("No annotation file selected")
 
-
+#
 
     def expViewFunc(self, event, gene=""):
         annotationpath = self.annotation
@@ -1156,7 +1184,7 @@ class TnSeekFrame(MainFrame):
             if self.verbose:
                 transit_tools.transit_message("No annotation file selected")
 
-
+#
 
     def scatterFunc(self, event):
         """ """
@@ -1177,6 +1205,7 @@ class TnSeekFrame(MainFrame):
         else:
             transit_tools.ShowError(MSG="Please make sure only two datasets are selected (across control and experimental datasets).")
 
+#
 
     def qcFunc(self, event):
         datasets = self.allSelected()
@@ -1195,6 +1224,7 @@ class TnSeekFrame(MainFrame):
                 transit_tools.transit_message("Error occured displaying file: %s" % str(e))
                 traceback.print_exc()
 
+#
 
     def aboutFunc(self, event):
         description = """TRANSIT is a tool for analysing TnSeq data. It provides an easy to use graphical interface and access to several different analysis methods that allow the user to determine essentiality within a single condition as well as between two conditions.
@@ -1244,9 +1274,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         #info.AddTranslator('Jan Bodnar')
         wx.AboutBox(info)
 
-
-
-
+#
 
     def documentationFunc(self, event):
 
@@ -1275,7 +1303,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             transit_tools.ShowError(MSG=error_text)
             traceback.print_exc()
 
-
+#
 
     def annotationFileFunc(self, event):
 
@@ -1287,7 +1315,8 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 transit_tools.transit_message("Annotation File Selected: %s" % self.annotation)
         else:
             self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table or .gff3)]")
-        
+       
+# 
     def MethodSelectFunc(self, selected_name, test=""):
         #X = self.methodChoice.GetCurrentSelection()
         #selected_name = self.methodChoice.GetString(X)
@@ -1338,8 +1367,29 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         if self.verbose:
             transit_tools.transit_message("Selected Method: %s" % (selected_name))
 
+#
 
+    def ExportSelectFunc(self, selected_name, test=""):
+        #X = self.methodChoice.GetCurrentSelection()
+        #selected_name = self.methodChoice.GetString(X)
+        
+        if self.verbose:
+            transit_tools.transit_message("Selected Export Method: %s" % (selected_name))
 
+        for name in export_methods:
+            if export_methods[name].label == selected_name:
+                methodobj = export_methods[name].method
+                try:
+                    M = methodobj.fromGUI(self)
+                    if M:
+                        thread = threading.Thread(target=M.Run())
+                        thread.setDaemon(True)
+                        thread.start()
+                except Exception as e:
+                    transit_tools.transit_message("Error: %s" % str(e))
+                    traceback.print_exc()
+
+#
 
     def displayFileFunc(self, event):
         next = self.list_files.GetNextSelected(-1)
@@ -1360,6 +1410,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 transit_tools.transit_message("No results selected to display!")
         
+#
 
     def fileSelected(self,event):
         next = self.list_files.GetNextSelected(-1)
@@ -1371,7 +1422,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         else:
             pass
         
-
+#
 
     def updateGraphChoices(self, dataset_type):
 
@@ -1396,6 +1447,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         self.fileActionChoice.SetItems(choices)
         self.fileActionChoice.SetSelection(0)
 
+#
 
     def fileActionFunc(self, event):
         # 0 - nothing
@@ -1429,11 +1481,8 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         else:
             transit_tools.ShowError(MSG="Please select a results file to plot!")
     
+#
        
-
- 
-
-
     def graphGeneCounts(self, dataset_name, dataset_type, dataset_path):
         try:
             if dataset_type == "Resampling":
@@ -1462,9 +1511,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             transit_tools.transit_message("Error occurred creating plot: %s" % str(e))
             traceback.print_exc()
 
-
-
-
+#
 
     def graphVolcanoPlot(self, dataset_name, dataset_type, dataset_path):
         try:
@@ -1528,6 +1575,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         except Exception as e:
             print "Error occurred creating plot:", str(e)
         
+#
 
     def graphRankedZbar(self, dataset_name, dataset_type, dataset_path):
         try:
@@ -1555,8 +1603,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         except Exception as e:
             print "Error occurred creating plot:", str(e)
 
-
-
+#
 
     def LoessPrevFunc(self,event):
         datasets_selected = self.ctrlSelected() + self.expSelected()
@@ -1586,6 +1633,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             plt.show()
             #plt.close()
     
+#
 
     def addFileFunc(self, event):
 
@@ -1635,83 +1683,14 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
 
-
+#
 
     def choseMethodsMenu(self, selected_name, event):
         if self.verbose:
             transit_tools.transit_message("Selected Method: %s" % (selected_name))
         self.MethodSelectFunc(selected_name) 
 
-
-    def convertToIGVGUI(self, datasets):
-        
-        annotationPath = self.annotation
-        if datasets and annotationPath:
-            normchoice = self.chooseNormalization()
-            defaultFile = "read_counts.igv"
-            defaultDir = os.getcwd()
-            outputPath = self.SaveFile(defaultDir, defaultFile)
-            if not outputPath:
-                return
-            if self.verbose:
-        
-                transit_tools.transit_message("Converting the following datasets to IGV format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            self.convertToIGV(datasets, annotationPath, outputPath, normchoice)
-            if self.verbose:
-                transit_tools.transit_message("Finished conversion")
-        elif not datasets:
-            transit_tools.ShowError("Error: No datasets selected to convert!")
-        elif not annotationPath:
-            transit_tools.ShowError("Error: No annotation file selected.")
-        else:
-            pass
-
-
-    def convertToIGV(self, dataset_list, annotationPath, path, normchoice=None):
-
-        if not normchoice:
-            normchoice = "nonorm"
-
-        (fulldata, position) = tnseq_tools.get_data(dataset_list)
-        (fulldata, factors) = norm_tools.normalize_data(fulldata, normchoice, dataset_list, annotationPath)
-        position = position.astype(int)
-
-        output = open(path, "w")
-        output.write("#Converted to IGV with TRANSIT.\n")
-        if normchoice != "nonorm":
-            output.write("#Reads normalized using '%s'\n" % normchoice)
-    
-        output.write("#Files:\n#%s\n" % "\n#".join(dataset_list))
-        output.write("#Chromosome\tStart\tEnd\tFeature\t%s\tTAs\n" % ("\t".join([transit_tools.fetch_name(D) for D in dataset_list])))
-        chrom = transit_tools.fetch_name(annotationPath)
-
-        for i,pos in enumerate(position):
-            output.write("%s\t%s\t%s\tTA%s\t%s\t1\n" % (chrom, position[i], position[i]+1, position[i], "\t".join(["%1.1f" % fulldata[j][i] for j in range(len(fulldata))])))
-        output.close()
-
-
-
-    def convertToCombinedWigGUI(self, datasets):
-        annotationPath = self.annotation
-        if datasets and annotationPath:
-            normchoice = self.chooseNormalization()
-            defaultFile = "combined_read_counts.txt"
-            defaultDir = os.getcwd()
-            outputPath = self.SaveFile(defaultDir, defaultFile)
-            if not outputPath:
-                return
-            if self.verbose:
-                transit_tools.transit_message("Converting the following datasets to Combined Wig format: %s" % ", ".join([transit_tools.fetch_name(d) for d in datasets]))
-            transit_tools.convertToCombinedWig(datasets, annotationPath, outputPath, normchoice)
-            if self.verbose:
-                transit_tools.transit_message("Finished conversion")
-        elif not datasets:
-            transit_tools.ShowError("Error: No datasets selected to convert!")
-        elif not annotationPath:
-            transit_tools.ShowError("Error: No annotation file selected.")
-        else:
-            pass
-
+#
 
     def chooseNormalization(self):
 
@@ -1727,18 +1706,9 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
  
         dlg.Destroy()
         return dlg.GetStringSelection()
-
-
-    def selectedToIGV(self, event):
-        datasets = self.ctrlSelected() + self.expSelected()
-        self.convertToIGVGUI(datasets)
-
-
-    def selectedToCombinedWig(self, event):
-        datasets = self.ctrlSelected() + self.expSelected()
-        self.convertToCombinedWigGUI(datasets)
-
         
+#
+
     def annotationPT_to_GFF3(self, event):
         annotationpath = self.annotation
         defaultFile = transit_tools.fetch_name(annotationpath) + ".gff3"
@@ -1774,10 +1744,9 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 
             output.close()
             if self.verbose:
-                transit_tools.transit_message("Finished conversion")
-       
+                transit_tools.transit_message("Finished conversion")      
 
-
+#
 
     def annotationPT_to_PTT(self, event):
  
@@ -1820,7 +1789,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
                 
-
+#
 
     def annotationPTT_to_PT(self, event):
 
@@ -1868,9 +1837,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
 
-        #geneID  start   end strand  TA coordinates
-        
-
+#
 
     def annotationGFF3_to_PT(self, event):
 
@@ -1918,7 +1885,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
 
-                 
+#                 
 
     def RunMethod(self, event):
         #FLORF
@@ -1937,6 +1904,26 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         except Exception as e:
             transit_tools.transit_message("Error: %s" % str(e))
             traceback.print_exc()
+
+#
+"""
+    def ExportMethod(self, event):
+        #X = self.methodChoice.GetCurrentSelection()
+        #selected_name = self.methodChoice.GetString(X)
+        selected_name = self.export_choice
+        for name in export_methods:
+            if  export_methods[name].label == selected_name:
+                methodobj = export_methods[name].method
+        try:
+            M = methodobj.fromGUI(self)
+            if M:
+                thread = threading.Thread(target=M.Run())
+                thread.setDaemon(True)
+                thread.start()
+        except Exception as e:
+            transit_tools.transit_message("Error: %s" % str(e))
+            traceback.print_exc()
+"""
 
 
 class AssumeZerosDialog(wx.Dialog):
@@ -1989,6 +1976,7 @@ One or more of your .wig files does not include any empty sites (i.e. sites with
         tn5Button.Bind(wx.EVT_BUTTON, self.OnClose)
         cancelButton.Bind(wx.EVT_BUTTON, self.OnClose)
 
+#
 
     def OnClose(self, event):
 

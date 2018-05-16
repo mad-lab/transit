@@ -793,7 +793,7 @@ def get_data(wig_list):
             T+=1
         size_list.append(T)
 
-    # If it doesn't match, report and error and quit
+    # If it doesn't match, report an error and quit
     if sum(size_list) != (T * len(size_list)):
         print "Error: Not all wig files have the same number of sites." 
         print "       Make sure all .wig files come from the same strain."
@@ -1366,6 +1366,19 @@ def ExpectedRuns(n,pnon):
         float: Size of the expected maximum run.
 
     """   
+    if n<20: # use exact calculation for genes with less than 20 TA sites
+      # Eqn 17-20 in Boyd, https://www.math.ubc.ca/~boyd/bern.runs/bernoulli.html
+      #  recurrence relations for F(n,k) = prob that max run has length k
+      p,q = 1-pnon,pnon
+      F = numpy.ones((n+1,n+1))
+      for k in range(n): F[k+1,k] = 1-numpy.power(q,k+1)
+      for k in range(n+1):
+        for n in range(n+1):
+          if n>=k+2: F[n,k] = F[n-1,k]-p*numpy.power(q,k+1)*F[n-k-2,k]
+      ERn = 0
+      for k in range(1,n+1): ERn += k*(F[n,k]-F[n,k-1])
+      return ERn
+
     pins = 1-pnon
     gamma = getGamma()
     r1 = getR1(n)
@@ -1448,9 +1461,12 @@ def griffin_analysis(genes_obj, pins):
         if gene.n == 0:
             results.append([gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, 0.0, 1.000])
         else:
-            B = 1.0/math.log(1.0/pnon)
-            u = math.log(gene.n*pins, 1.0/pnon)
+            # do I need to estimate this better (using exact calc for variance) for small genes too?
+            B = 1.0/math.log(1.0/pnon) # beta param of Gumbel distn; like tau in our Bioinfo paper
+            #u = math.log(gene.n*pins, 1.0/pnon) # instead, calculate this based on estimate of ExpectedRun() length below
             exprun = ExpectedRuns(gene.n, pnon)
+            # u is mu of Gumbel (mean=mu+gamma*beta); matching of moments; like Eq 5 in Schilling, but subtract off unneeded terms
+            u = exprun-getGamma()/math.log(1.0/pnon)+0.5 
             pval = 1.0 - GumbelCDF(gene.r, u, B)
             results.append([gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, exprun, pval])
     return(results)

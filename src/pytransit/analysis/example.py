@@ -193,9 +193,10 @@ class ExampleMethod(base.SingleConditionMethod):
 
             data.append("%s\t%s\t%s\t%s\t%s\t%1.2f\t%1.2f\n" % (gene.orf, gene.name, gene.desc, gene.k, gene.n, mean, nzmean))
 
-            
-            self.progress_update("gumbel", count)
-            self.transit_message_inplace("Running Example Method... %1.1f%%" % (100.0*count/N))
+           
+            # Update Progress 
+            text = "Running Example Method... %5.1f%%" % (100.0*count/N)
+            self.progress_update(text, count)
             
         
         self.output.write("#Example\n")

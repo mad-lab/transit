@@ -410,8 +410,10 @@ class ResamplingMethod(base.DualConditionMethod):
             sum1 = numpy.sum(data1)
             sum2 = numpy.sum(data2)
             data.append([gene.orf, gene.name, gene.desc, gene.n, mean1, mean2, sum1, sum2, test_obs, log2FC, pval_2tail])
-            self.progress_update("resampling", count)
-            self.transit_message_inplace("Running Resampling Method... %1.1f%%" % (100.0*count/N))
+            
+            # Update progress
+            text = "Running Resampling Method... %5.1f%%" % (100.0*count/N)
+            self.progress_update(text, count)
 
 
         #

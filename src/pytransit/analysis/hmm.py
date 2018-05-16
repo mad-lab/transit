@@ -460,8 +460,8 @@ class HMMMethod(base.SingleConditionMethod):
             if numpy.sum(alpha[:,t]) == 0:
                 alpha[:,t] = 0.0000000000001
            
-            self.progress_update("hmm", self.count)
-            self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
+            text = "Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations)
+            self.progress_update(text, self.count)
             self.count+=1
             #print t, O[:,t], alpha[:,t]
 
@@ -490,8 +490,8 @@ class HMMMethod(base.SingleConditionMethod):
             if C.any():
                 beta[:,t] = beta[:,t] * C[t]
 
-            self.progress_update("hmm", self.count)
-            self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
+            text = "Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations)
+            self.progress_update(text, self.count)
             self.count+=1
 
         return(beta)
@@ -515,20 +515,21 @@ class HMMMethod(base.SingleConditionMethod):
             nus = delta[:, t-1] + A
             delta[:,t] = nus.max(1) + numpy.log(b_o)
             Q[:,t] = nus.argmax(1)
-            self.progress_update("hmm", self.count)
-            self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
+            text = "Running HMM Method... %5.1f%%" % (100.0*self.count/self.maxiterations)
+            self.progress_update(text, self.count)
             self.count+=1
 
         Q_opt = [int(numpy.argmax(delta[:,T-1]))]
         for t in xrange(T-2, -1, -1):
             Q_opt.insert(0, Q[Q_opt[0],t+1])
-            self.progress_update("hmm", self.count)
-            self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
+
+            text = "Running HMM Method... %5.1f%%" % (100.0*self.count/self.maxiterations)
+            self.progress_update(text, self.count)
             self.count+=1
 
         numpy.seterr(divide='warn')
-        self.progress_update("hmm", self.count)
-        self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
+        text = "Running HMM Method... %5.1f%%" % (100.0*self.count/self.maxiterations)
+        self.progress_update(text, self.count)
 
         return((Q_opt, delta, Q))
 

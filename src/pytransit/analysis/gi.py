@@ -407,6 +407,7 @@ class DatasetDialog(wx.Dialog):
         self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
         self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
         self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+        self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
 
 #
@@ -420,6 +421,7 @@ class DatasetDialog(wx.Dialog):
         self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
         self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
         self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+        self.list_exp.Select(self.index_exp)
         self.index_exp+=1
 
 #
@@ -509,8 +511,8 @@ class GIMethod(base.QuadConditionMethod):
             ctrldataB = dlg.ctrlSelected()
             expdataB = dlg.expSelected()
             if not transit_tools.validate_both_datasets(ctrldataB, expdataB):
-                dlg.Close()
-                dlg.Destroy()
+                #dlg.Close()
+                #dlg.Destroy()
                 return None
             if not transit_tools.validate_transposons_used(ctrldataB+expdataB, transposons):
                 dlg.Close()
@@ -688,6 +690,9 @@ class GIMethod(base.QuadConditionMethod):
         data = []
         postprob = []
 
+        count = 0
+        N = len(G_A1)
+        self.progress_range(N)
         # Perform actual analysis
         for gene in G_A1:
 
@@ -786,6 +791,10 @@ class GIMethod(base.QuadConditionMethod):
             data.append((gene.orf, gene.name, gene.n, numpy.mean(muA1_post), numpy.mean(muA2_post), numpy.mean(muB1_post), numpy.mean(muB2_post), mean_logFC_A, mean_logFC_B, mean_delta_logFC, l_delta_logFC, u_delta_logFC, probROPE, not_HDI_overlap_bit))
 
 
+            text = "Running GI Method... %2.0f%%" % (100.0*(count+1)/N)
+            self.progress_update(text, count)
+            self.transit_message_inplace("Running Export Method... %1.1f%%" % (100.0*count/(N-1)))
+            count+=1
 
         data.sort(key=lambda x: x[-2])
 
