@@ -407,6 +407,7 @@ class DatasetDialog(wx.Dialog):
         self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
         self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
         self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+        self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
 
 #
@@ -420,6 +421,7 @@ class DatasetDialog(wx.Dialog):
         self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
         self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
         self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+        self.list_exp.Select(self.index_exp)
         self.index_exp+=1
 
 #
@@ -509,8 +511,8 @@ class GIMethod(base.QuadConditionMethod):
             ctrldataB = dlg.ctrlSelected()
             expdataB = dlg.expSelected()
             if not transit_tools.validate_both_datasets(ctrldataB, expdataB):
-                dlg.Close()
-                dlg.Destroy()
+                #dlg.Close()
+                #dlg.Destroy()
                 return None
             if not transit_tools.validate_transposons_used(ctrldataB+expdataB, transposons):
                 dlg.Close()
