@@ -692,6 +692,7 @@ class GIMethod(base.QuadConditionMethod):
 
         count = 0
         N = len(G_A1)
+        self.progress_range(N)
         # Perform actual analysis
         for gene in G_A1:
 
@@ -790,7 +791,9 @@ class GIMethod(base.QuadConditionMethod):
             data.append((gene.orf, gene.name, gene.n, numpy.mean(muA1_post), numpy.mean(muA2_post), numpy.mean(muB1_post), numpy.mean(muB2_post), mean_logFC_A, mean_logFC_B, mean_delta_logFC, l_delta_logFC, u_delta_logFC, probROPE, not_HDI_overlap_bit))
 
 
-            self.transit_message_inplace("Running Export Method... %1.1f%%" % (100.0*count/N))
+            text = "Running GI Method... %2.0f%%" % (100.0*(count+1)/N)
+            self.progress_update(text, count)
+            self.transit_message_inplace("Running Export Method... %1.1f%%" % (100.0*count/(N-1)))
             count+=1
 
         data.sort(key=lambda x: x[-2])
