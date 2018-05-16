@@ -403,9 +403,8 @@ class GumbelMethod(base.SingleConditionMethod):
             
             phi_old = phi_new
             #Update progress
-            text = "Running Gumbel Method... %2.0f%%" % (100.0*(count+1)/(self.samples+self.burnin))
+            text = "Running Gumbel Method... %5.1f%%" % (100.0*(count+1)/(self.samples+self.burnin))
             self.progress_update(text, count)
-            self.transit_message_inplace(text)
 
 
         ZBAR = numpy.apply_along_axis(numpy.mean, 1, Z_sample)

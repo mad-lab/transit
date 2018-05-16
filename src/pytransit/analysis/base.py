@@ -376,6 +376,7 @@ class AnalysisMethod:
                 wx.CallAfter(pub.sendMessage, "progress", (self.short_name, count))
             wx.Yield()
 
+        self.transit_message_inplace(text)
 #
 
     def progress_range(self, count):

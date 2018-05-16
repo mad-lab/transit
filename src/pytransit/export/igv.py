@@ -177,9 +177,13 @@ class IGVMethod(base.SingleConditionMethod):
         chrom = transit_tools.fetch_name(self.annotation_path)
 
         (K,N) = fulldata.shape
+        self.progress_range(N)
         for i,pos in enumerate(position):
             self.output.write("%s\t%s\t%s\tTA%s\t%s\t1\n" % (chrom, position[i], position[i]+1, position[i], "\t".join(["%1.1f" % fulldata[j][i] for j in range(len(fulldata))])))
-            self.transit_message_inplace("Running Export Method... %1.1f%%" % (100.0*i/N))
+            
+            # Update progress
+            text = "Running Export Method... %5.1f%%" % (100.0*i/N)
+            self.progress_update(text, i)
         self.output.close()
 
 

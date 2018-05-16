@@ -174,10 +174,11 @@ class MeanCountsMethod(base.SingleConditionMethod):
             self.output.write("#%s\n" % f)
 
 
-        Nsites,K = fulldata.shape
+        K,Nsites = fulldata.shape
         # Get Gene objects
         G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, norm=self.normalization)
         N = len(G)
+        self.progress_range(N)
         dataset_header = "\t".join([transit_tools.fetch_name(D) for D in self.ctrldata])
         self.output.write("#Orf\tName\tNumber of TA sites\t%s\n" % dataset_header)
         for i,gene in enumerate(G):
@@ -186,7 +187,10 @@ class MeanCountsMethod(base.SingleConditionMethod):
             else:
                 data_str = "\t".join(["%1.2f" % (Z) for Z in numpy.zeros(K)])
             self.output.write("%s\t%s\t%s\t%s\n" % (gene.orf, gene.name, gene.n, data_str))
-            self.transit_message_inplace("Running Export Method... %1.1f%%" % (100.0*i/N))
+
+            # Update progress
+            text = "Running Export Method... %5.1f%%" % (100.0*i/N)
+            self.progress_update(text, i)
         self.output.close()
 
 

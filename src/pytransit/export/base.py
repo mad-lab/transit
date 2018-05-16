@@ -141,6 +141,29 @@ class ExportMethod:
             else:
                 wx.CallAfter(pub.sendMessage,"finish", self.short_name.lower())
 
+#
+       
+    def progress_update(self, text, count):
+        #TODO: write docstring
+        if self.wxobj:
+            if newWx:
+                wx.CallAfter(pub.sendMessage, "progress", msg=(self.short_name, count))
+            else:
+                wx.CallAfter(pub.sendMessage, "progress", (self.short_name, count))
+            wx.Yield()
+
+        self.transit_message_inplace(text)
+#
+
+    def progress_range(self, count):
+        #TODO: write docstring
+        if self.wxobj:
+            if newWx:
+                wx.CallAfter(pub.sendMessage, "progressrange", msg=count)
+            else:
+                wx.CallAfter(pub.sendMessage, "progressrange", count)
+            wx.Yield()
+
 #       
 
     def status_message(self, text, time=-1):

@@ -453,9 +453,8 @@ class BinomialMethod(base.SingleConditionMethod):
 
 
             #Update progress
-            text = "Running Binomial Method... %2.0f%%" % (100.0*(i+1)/(sample_size))
+            text = "Running Binomial Method... %5.1f%%" % (100.0*(i+1)/(sample_size))
             self.progress_update(text, i)
-            self.transit_message_inplace(text)
 
         numpy.seterr(divide='warn')
 

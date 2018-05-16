@@ -340,8 +340,10 @@ class UTestMethod(base.DualConditionMethod):
         
 
             data.append([gene.orf, gene.name, gene.desc, gene.n, mean1, mean2, log2FC, u_stat, pval_2tail])
-            self.progress_update("utest", count)
-            self.transit_message_inplace("Running Mann-Whitney U-test Method... %1.1f%%" % (100.0*count/N))
+            
+            # Update Progress
+            text = "Running Mann-Whitney U-test Method... %1.1f%%" % (100.0*count/N)
+            self.progress_update(text, count)
 
 
         #

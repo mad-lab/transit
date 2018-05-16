@@ -249,9 +249,8 @@ class GriffinMethod(base.SingleConditionMethod):
                 pval = 1.0 - tnseq_tools.GumbelCDF(gene.r, u, B)
                 results.append([gene, exprun, pval])
 
-            text = "Running Griffin Method... %2.0f%%" % (100.0*(count+1)/(N))
+            text = "Running Griffin Method... %5.1f%%" % (100.0*(count+1)/(N))
             self.progress_update(text, count)
-            self.transit_message_inplace(text)
             count+=1
 
 

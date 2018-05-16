@@ -173,11 +173,12 @@ class CombinedWigMethod(base.SingleConditionMethod):
         self.output.write("#Files:\n")
         for f in self.ctrldata:
             self.output.write("#%s\n" % f)
-        count = 0.0
+    
         for i,pos in enumerate(position):
             self.output.write("%d\t%s\t%s\n" % (position[i], "\t".join(["%1.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
-            self.transit_message_inplace("Running Export Method... %1.1f%%" % (100.0*count/N))
-            count+=1
+            # Update progress    
+            text = "Running Export Method... %5.1f%%" % (100.0*i/N)
+            self.progress_update(text, i)
         self.output.close()
 
 
