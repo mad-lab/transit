@@ -5,25 +5,31 @@ import sys
 
 try:
     import wx
-    import wx.xrc
-    import wx.adv
-    from wx.lib.buttons import GenBitmapTextButton
-
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
+    WX_VERSION = 0
     print "EXCEPTION:", str(e)
+   
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
 
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
+    
 import os
 import time
 import datetime
@@ -760,7 +766,7 @@ class TnSeekFrame(MainFrame):
 
     def updateProgress(self, msg):
         """"""
-        if newWx:
+        if WX_VERSION > 2:
             method, count = msg
         else:
             method, count = msg.data
@@ -774,7 +780,7 @@ class TnSeekFrame(MainFrame):
 
     def setProgressRange(self, msg):
         """"""
-        if newWx:
+        if WX_VERSION > 2:
             count = msg
         else:
             count = msg.data
@@ -789,7 +795,7 @@ class TnSeekFrame(MainFrame):
         """"""
         if type(msg) == type("A"):
             text = msg
-        elif newWx:
+        elif WX_VERSION > 2:
             method, text, time = msg 
         else:
             method, text,time = msg.data
@@ -806,7 +812,7 @@ class TnSeekFrame(MainFrame):
 #
     
     def saveHistogram(self, msg):
-        if newWx:
+        if WX_VERSION > 2:
             data, orf, path, delta = msg
         else:
             data, orf, path, delta = msg.data
@@ -824,7 +830,7 @@ class TnSeekFrame(MainFrame):
 #
 
     def addFile(self, data):
-        if not newWx:
+        if not WX_VERSION > 2:
             data = data.data
         fullpath = data["path"]
         name = transit_tools.basename(fullpath)
@@ -839,7 +845,7 @@ class TnSeekFrame(MainFrame):
 #
 
     def finishRun(self,msg):
-        if not newWx: msg = msg.data
+        if not WX_VERSION > 2: msg = msg.data
         try:
             self.progress_count = 0
             self.progress.SetValue(self.progress_count)
@@ -1671,7 +1677,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                     else:
                         type = "Unknown"
                     data = {"path":fullpath, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-                    if newWx:
+                    if WX_VERSION > 2:
                         wx.CallAfter(pub.sendMessage, "file", data=data)
                     else:
                         wx.CallAfter(pub.sendMessage, "file", data)
