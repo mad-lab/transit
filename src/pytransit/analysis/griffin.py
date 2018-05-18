@@ -35,8 +35,9 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "griffin"
-long_name = "Basic frequentist analysis of essentiality using gaps."
-description = "Analysis of gaps used in Griffin et al. 2011"
+long_name = "Griffin"
+short_desc = "Basic frequentist analysis of essentiality using gaps."
+long_desc = "Analysis of gaps used in Griffin et al. 2011"
 transposons = ["himar1"]
 columns = ["Orf","Name","Desc","k","n","r","s","t","Expected Run","p-value", "p-adjusted"]
 
@@ -46,7 +47,7 @@ columns = ["Orf","Name","Desc","k","n","r","s","t","Expected Run","p-value", "p-
 
 class GriffinAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, GriffinMethod, GriffinGUI, [GriffinFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, GriffinMethod, GriffinGUI, [GriffinFile])
 
 
 ################## FILE ###################
@@ -126,7 +127,7 @@ class GriffinMethod(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, ignoreCodon=ignoreCodon, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, ignoreCodon=ignoreCodon, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
         self.minread = minread
 
 

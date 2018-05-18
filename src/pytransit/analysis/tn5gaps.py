@@ -35,8 +35,9 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "tn5gaps"
-long_name = "Analysis of essentiality on gaps in entire genome (Tn5)."
-description = "A analysis method based on the extreme value (Gumbel) distribution that considers longest runs over the whole genome instead of individual genes."
+long_name = "Tn5 Gaps"
+short_desc = "Analysis of essentiality on gaps in entire genome (Tn5)."
+long_desc = "A analysis method based on the extreme value (Gumbel) distribution that considers longest runs over the whole genome instead of individual genes."
 transposons = ["tn5"]
 columns = ["Orf","Name","Desc","k","n","r","ovr","lenovr","pval","padj","call"]
 
@@ -46,7 +47,7 @@ columns = ["Orf","Name","Desc","k","n","r","ovr","lenovr","pval","padj","call"]
 
 class Tn5GapsAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, Tn5GapsMethod, Tn5GapsGUI, [Tn5GapsFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, Tn5GapsMethod, Tn5GapsGUI, [Tn5GapsFile])
 
 
 ################## FILE ###################
@@ -139,7 +140,7 @@ class Tn5GapsMethod(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
         self.minread = minread
 
 

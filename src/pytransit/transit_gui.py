@@ -266,6 +266,7 @@ class MainFrame ( wx.Frame ):
 
         # Method Information 
         self.methodInfoText = wx.StaticBox( self.optionsWindow, wx.ID_ANY, u"Instructions" )
+        self.methodInfoText.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD))
         self.methodInfoSizer = wx.StaticBoxSizer( self.methodInfoText, wx.VERTICAL )
 
         self.methodShortText = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -1345,7 +1346,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             for name in methods:
                 methods[name].gui.Hide()
                 if methods[name].fullname() == selected_name:
-                    self.methodInfoText.SetLabel("%s" % methods[name].short_name)
+                    self.methodInfoText.SetLabel("%s" % methods[name].long_name)
                     
                     self.methodTnText.Show()
                     self.methodTnText.SetLabel(methods[name].getTransposonsText())

@@ -37,8 +37,9 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "gi"
-long_name = "Genetic interactions analysis for change in enrichment"
-description = """Method for determining genetic interactions based on changes in enrichment (i.e. delta log fold-change in mean read counts).
+long_name = "Genetic Interactions"
+short_desc = "Genetic interactions analysis for change in enrichment"
+long_desc = """Method for determining genetic interactions based on changes in enrichment (i.e. delta log fold-change in mean read counts).
 
 NOTE: This method requires 4 groups of datasets. Use the main interface to add datasets for the two strain backgrounds under the first condition. A window will allow you to add the datasets under the second condition.
 """
@@ -49,7 +50,7 @@ columns = ["Orf","Name","Number of TA Sites","Mean count (Strain A Condition 1)"
 
 class GIAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, GIMethod, GIGUI, [GIFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, GIMethod, GIGUI, [GIFile])
 
 
 
@@ -474,7 +475,7 @@ class GIMethod(base.QuadConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.QuadConditionMethod.__init__(self, short_name, long_name, description, ctrldataA, ctrldataB, expdataA, expdataB, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.QuadConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldataA, ctrldataB, expdataA, expdataB, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         self.samples = samples
         self.includeZeros = includeZeros

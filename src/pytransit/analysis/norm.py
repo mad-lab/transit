@@ -32,8 +32,9 @@ import pytransit.stat_tools as stat_tools
 ############# Description ##################
 
 short_name = "norm"
-long_name = "Normalization method"
-description = "Method for normalizing datasets and outputting into CombinedWig file."
+long_name = "Normalization"
+short_desc = "Normalization method"
+long_desc = "Method for normalizing datasets and outputting into CombinedWig file."
 transposons = ["himar1", "tn5"]
 columns = ["Position","Reads","Genes"]
 
@@ -42,7 +43,7 @@ columns = ["Position","Reads","Genes"]
 
 class NormAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, NormMethod, NormGUI, [NormFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, NormMethod, NormGUI, [NormFile])
 
 
 ################## FILE ###################
@@ -83,7 +84,7 @@ class NormMethod(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
 
     @classmethod

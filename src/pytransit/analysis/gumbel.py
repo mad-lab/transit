@@ -34,8 +34,9 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "gumbel"
-long_name = "Bayesian analysis of essentiality based on long gaps."
-description = """Bayesian methods of analyzing longest runs of non-insertions in a row. Estimates the parameters using the MCMC sampling, and estimates posterior probabilities of essentiality. 
+long_name = "Gumbel"
+short_desc = "Bayesian analysis of essentiality based on long gaps."
+long_desc = """Bayesian methods of analyzing longest runs of non-insertions in a row. Estimates the parameters using the MCMC sampling, and estimates posterior probabilities of essentiality. 
 
 Reference: DeJesus et al. (2013; Bioinformatics)"""
 transposons = ["himar1"]
@@ -46,7 +47,7 @@ columns = ["Orf","Name","Desc","k","n","r","s","zbar", "Call"]
 
 class GumbelAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, GumbelMethod, GumbelGUI, [GumbelFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, GumbelMethod, GumbelGUI, [GumbelFile])
 
 
 ################## FILE ###################
@@ -163,7 +164,7 @@ class GumbelMethod(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
         self.samples = samples
         self.burnin = burnin
         self.trim = trim

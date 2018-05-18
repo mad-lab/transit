@@ -34,8 +34,9 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "binomial"
-long_name = "Hierarchical binomial model of essentiality with individual frequencies."
-description = """Hierarchical bayesian model of essentiality based on the binomial distribution. Estimates individual probabilities for insertion, leading to more conservative predictions.
+long_name = "Binomial"
+short_desc = "Hierarchical binomial model of essentiality with individual frequencies."
+long_desc = """Hierarchical bayesian model of essentiality based on the binomial distribution. Estimates individual probabilities for insertion, leading to more conservative predictions.
 
 Reference: DeJesus and Ioerger (2014; IEEE TCBB)
 """
@@ -46,7 +47,7 @@ columns = ["Orf","Name","Description","Mean Insertion","Sites per Replicate","To
 
 class BinomialAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, BinomialMethod, BinomialGUI, [BinomialFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, BinomialMethod, BinomialGUI, [BinomialFile])
 
 
 ################## FILE ###################
@@ -161,7 +162,7 @@ class BinomialMethod(base.SingleConditionMethod):
                 beta_w=0.5,
                 wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         self.samples = samples
         self.burnin = burnin

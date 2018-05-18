@@ -37,15 +37,16 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "utest"
-long_name = "Mann-Whitney U test of conditional essentiality between two conditions"
-description = """Method for determining conditional essentiality based on rank order statistics to identify significant changes in mean read-counts for each gene after normalization."""
+long_name = "Mann-Whitney U-test "
+short_desc = "Mann-Whitney U-test of conditional essentiality between two conditions"
+long_desc = """Mann-Whitney U-test for determining conditional essentiality. Based on rank order statistics to identify significant changes in mean read-counts between two conditions."""
 
 transposons = ["himar1", "tn5"]
 columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "U-Statistic","p-value","Adj. p-value"]
 
 class UTestAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, UTestMethod, UTestGUI, [UTestFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, UTestMethod, UTestGUI, [UTestFile])
 
 
 
@@ -168,7 +169,7 @@ class UTestMethod(base.DualConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.DualConditionMethod.__init__(self, short_name, long_name, description, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.DualConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         self.includeZeros = includeZeros
         
