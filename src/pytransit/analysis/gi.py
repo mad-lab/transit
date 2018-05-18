@@ -130,7 +130,7 @@ class GIGUI(base.AnalysisGUI):
 
 
         # LOESS Check
-        (self.wxobj.giLoessCheck, loessCheckSizer) = self.defineCheckBox(giPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(230,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
+        (self.wxobj.giLoessCheck, loessCheckSizer) = self.defineCheckBox(giPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(-1,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
         giSizer.Add( loessCheckSizer, 0, wx.EXPAND, 5 )
 
         # LOESS Button
@@ -139,7 +139,7 @@ class GIGUI(base.AnalysisGUI):
 
 
         # Zeros Check
-        (self.wxobj.giZeroCheckBox, zeroSizer) = self.defineCheckBox(giPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(180,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
+        (self.wxobj.giZeroCheckBox, zeroSizer) = self.defineCheckBox(giPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
         giSizer.Add(zeroSizer, 0, wx.EXPAND, 5 )
 
 

@@ -120,7 +120,7 @@ class UTestGUI(base.AnalysisGUI):
 
 
         # LOESS Check
-        (self.wxobj.utestLoessCheck, loessCheckSizer) = self.defineCheckBox(utestPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(230,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
+        (self.wxobj.utestLoessCheck, loessCheckSizer) = self.defineCheckBox(utestPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(-1,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
         utestSizer.Add( loessCheckSizer, 0, wx.EXPAND, 5 )
 
         # LOESS Button
@@ -129,7 +129,7 @@ class UTestGUI(base.AnalysisGUI):
 
 
         # Zeros Check
-        (self.wxobj.utestZeroCheckBox, zeroSizer) = self.defineCheckBox(utestPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(180,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
+        (self.wxobj.utestZeroCheckBox, zeroSizer) = self.defineCheckBox(utestPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
         utestSizer.Add(zeroSizer, 0, wx.EXPAND, 5 )
 
 
