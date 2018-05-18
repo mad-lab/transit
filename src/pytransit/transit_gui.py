@@ -1335,7 +1335,10 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-        info = wx.adv.AboutDialogInfo()
+        if WX_VERSION > 3:
+            info = wx.adv.AboutDialogInfo()
+        else:
+            info = wx.AboutDialogInfo()
         info.SetIcon(images.transit_logo2.GetIcon())
         #images.transit_logo2.GetImage().ConvertToBitmap()
         info.SetName('TRANSIT')
@@ -1350,10 +1353,10 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         info.AddDeveloper('Richard Baker')
         info.AddDeveloper('Christopher Sassetti')
         info.AddDeveloper('Eric Nelson')
-        #info.AddDocWriter('Jan Bodnar')
-        #info.AddArtist('The Tango crew')
-        #info.AddTranslator('Jan Bodnar')
-        wx.adv.AboutBox(info)
+        if WX_VERSION > 3: 
+            wx.adv.AboutBox(info)
+        else:
+            wx.AboutBox(info)
 
 #
 
