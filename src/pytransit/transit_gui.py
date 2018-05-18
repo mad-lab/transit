@@ -392,33 +392,61 @@ class MainFrame ( wx.Frame ):
         
         self.convertMenuItem = wx.Menu()
         self.annotationConvertPTToPTTMenu = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"prot_table to PTT", wx.EmptyString, wx.ITEM_NORMAL )
-        self.convertMenuItem.Append( self.annotationConvertPTToPTTMenu )
+        if WX_VERSION > 3:
+            self.convertMenuItem.Append( self.annotationConvertPTToPTTMenu )
+        else:
+            self.convertMenuItem.AppendItem( self.annotationConvertPTToPTTMenu )
         
         self.annotationConvertPTToGFF3Menu = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"prot_table to GFF3", wx.EmptyString, wx.ITEM_NORMAL )
-        self.convertMenuItem.Append( self.annotationConvertPTToGFF3Menu )
+        if WX_VERSION > 3:
+            self.convertMenuItem.Append( self.annotationConvertPTToGFF3Menu )
+        else:
+            self.convertMenuItem.AppendItem( self.annotationConvertPTToGFF3Menu )
         
         self.annotationConvertPTTToPT = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"PTT to prot_table", wx.EmptyString, wx.ITEM_NORMAL )
-        self.convertMenuItem.Append( self.annotationConvertPTTToPT )
+
+        if WX_VERSION > 3:
+            self.convertMenuItem.Append( self.annotationConvertPTTToPT )
+        else:
+            self.convertMenuItem.AppendItem( self.annotationConvertPTTToPT )
         
         self.annotationConvertGFF3ToPT = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"GFF3 to prot_table", wx.EmptyString, wx.ITEM_NORMAL )
-        self.convertMenuItem.Append( self.annotationConvertGFF3ToPT )
+        if WX_VERSION > 3:
+            self.convertMenuItem.Append( self.annotationConvertGFF3ToPT )
+        else:
+            self.convertMenuItem.AppendItem( self.annotationConvertGFF3ToPT )
         
         self.fileMenuItem.AppendSubMenu( self.convertMenuItem, u"Convert" )
         
         self.fileExitMenuItem = wx.MenuItem( self.fileMenuItem, wx.ID_ANY, u"&Exit", wx.EmptyString, wx.ITEM_NORMAL )
-        self.fileMenuItem.Append( self.fileExitMenuItem )
+        if WX_VERSION > 3:
+            self.fileMenuItem.Append( self.fileExitMenuItem )
+        else:
+            self.fileMenuItem.AppendItem( self.fileExitMenuItem )
         
         self.m_menubar1.Append( self.fileMenuItem, u"&File" ) 
         
         self.viewMenuItem = wx.Menu()
         self.scatterMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"&Scatter Plot", wx.EmptyString, wx.ITEM_NORMAL )
-        self.viewMenuItem.Append( self.scatterMenuItem )
+
+        if WX_VERSION > 3:
+            self.viewMenuItem.Append( self.scatterMenuItem )
+        else:
+            self.viewMenuItem.AppendItem( self.scatterMenuItem )
         
         self.trackMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"&Track View", wx.EmptyString, wx.ITEM_NORMAL )
-        self.viewMenuItem.Append( self.trackMenuItem )
+
+        if WX_VERSION > 3:
+            self.viewMenuItem.Append( self.trackMenuItem )
+        else:
+            self.viewMenuItem.AppendItem( self.trackMenuItem )
         
         self.qcMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"&Quality Control", wx.EmptyString, wx.ITEM_NORMAL )
-        self.viewMenuItem.Append( self.qcMenuItem )
+
+        if WX_VERSION > 3:
+            self.viewMenuItem.Append( self.qcMenuItem )
+        else:
+            self.viewMenuItem.AppendItem( self.qcMenuItem )
         
         self.m_menubar1.Append( self.viewMenuItem, u"&View" ) 
        
@@ -439,9 +467,17 @@ class MainFrame ( wx.Frame ):
         
         self.helpMenuItem = wx.Menu()
         self.documentationMenuItem = wx.MenuItem(self.helpMenuItem, wx.ID_ANY, u"&Documentation", wx.EmptyString, wx.ITEM_NORMAL)
-        self.helpMenuItem.Append(self.documentationMenuItem)
+        if WX_VERSION > 3:
+            self.helpMenuItem.Append(self.documentationMenuItem)
+        else:
+            self.helpMenuItem.AppendItem(self.documentationMenuItem)
+
         self.aboutMenuItem = wx.MenuItem(self.helpMenuItem, wx.ID_ANY, u"&About", wx.EmptyString, wx.ITEM_NORMAL)
-        self.helpMenuItem.Append(self.aboutMenuItem)
+        if WX_VERSION > 3:
+            self.helpMenuItem.Append(self.aboutMenuItem)
+        else:
+            self.helpMenuItem.AppendItem(self.aboutMenuItem)
+
         self.m_menubar1.Append( self.helpMenuItem, u"&Help" )
         
         
@@ -671,7 +707,11 @@ class TnSeekFrame(MainFrame):
         for name in export_methods:
             export_methods[name].gui.defineMenuItem(self, export_methods[name].label)
             tempMenuItem = export_methods[name].gui.menuitem
-            self.selectedExportMenuItem.Append( tempMenuItem )
+            if WX_VERSION > 3:
+                self.selectedExportMenuItem.Append( tempMenuItem )
+            else:
+                self.selectedExportMenuItem.AppendItem( tempMenuItem )
+
             self.Bind( wx.EVT_MENU, partial(self.ExportSelectFunc,  export_methods[name].label),
                 tempMenuItem )
 
@@ -690,11 +730,19 @@ class TnSeekFrame(MainFrame):
             if "himar1" in methods[name].transposons:
                 tempMenuItem = wx.MenuItem( self.himar1MenuItem, wx.ID_ANY, methods[name].fullname(), wx.EmptyString, wx.ITEM_NORMAL )
                 self.Bind( wx.EVT_MENU, partial(self.MethodSelectFunc,  methods[name].fullname()), tempMenuItem )
-                self.himar1MenuItem.Append( tempMenuItem )
+
+                if WX_VERSION > 3:
+                    self.himar1MenuItem.Append( tempMenuItem )
+                else:
+                    self.himar1MenuItem.AppendItem( tempMenuItem )
+
             if "tn5" in methods[name].transposons:
                 tempMenuItem = wx.MenuItem( self.tn5MenuItem, wx.ID_ANY, methods[name].fullname(), wx.EmptyString, wx.ITEM_NORMAL )
                 self.Bind( wx.EVT_MENU, partial(self.MethodSelectFunc, methods[name].fullname()), tempMenuItem )
-                self.tn5MenuItem.Append( tempMenuItem )
+                if WX_VERSION > 3:
+                    self.tn5MenuItem.Append( tempMenuItem )
+                else:
+                    self.tn5MenuItem.AppendItem( tempMenuItem )
 
         #progress
         self.progressPanel = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
@@ -836,10 +884,16 @@ class TnSeekFrame(MainFrame):
         name = transit_tools.basename(fullpath)
         type = data["type"]
         date = data["date"]
-        self.list_files.InsertItem(self.index_file, name)
-        self.list_files.SetItem(self.index_file, 1, "%s" % type)
-        self.list_files.SetItem(self.index_file, 2, "%s" % (date))
-        self.list_files.SetItem(self.index_file, 3, "%s" % (fullpath))
+        if WX_VERSION > 3:
+            self.list_files.InsertItem(self.index_file, name)
+            self.list_files.SetItem(self.index_file, 1, "%s" % type)
+            self.list_files.SetItem(self.index_file, 2, "%s" % (date))
+            self.list_files.SetItem(self.index_file, 3, "%s" % (fullpath))
+        else:
+            self.list_files.InsertStringItem(self.index_file, name)
+            self.list_files.SetStringItem(self.index_file, 1, "%s" % type)
+            self.list_files.SetStringItem(self.index_file, 2, "%s" % (date))
+            self.list_files.SetStringItem(self.index_file, 3, "%s" % (fullpath))
         self.index_file+=1
         
 #
@@ -1038,12 +1092,21 @@ class TnSeekFrame(MainFrame):
     def loadCtrlFile(self, fullpath):
         name = transit_tools.basename(fullpath)
         (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-        self.list_ctrl.InsertItem(self.index_ctrl, name)
-        self.list_ctrl.SetItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
-        self.list_ctrl.SetItem(self.index_ctrl, 2, "%2.1f" % (density*100))
-        self.list_ctrl.SetItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
-        self.list_ctrl.SetItem(self.index_ctrl, 4, "%d" % (maxrd))
-        self.list_ctrl.SetItem(self.index_ctrl, 5, "%s" % (fullpath))
+        if WX_VERSION > 3:
+            self.list_ctrl.InsertItem(self.index_ctrl, name)
+            self.list_ctrl.SetItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+            self.list_ctrl.SetItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+            self.list_ctrl.SetItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+            self.list_ctrl.SetItem(self.index_ctrl, 4, "%d" % (maxrd))
+            self.list_ctrl.SetItem(self.index_ctrl, 5, "%s" % (fullpath))
+        else:
+            self.list_ctrl.InsertStringItem(self.index_ctrl, name)
+            self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+
         self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
 
@@ -1052,12 +1115,20 @@ class TnSeekFrame(MainFrame):
     def loadExpFile(self, fullpath):
         name = transit_tools.basename(fullpath)
         (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-        self.list_exp.InsertItem(self.index_exp, name)
-        self.list_exp.SetItem(self.index_exp, 1, "%1.1f" % (totalrd))
-        self.list_exp.SetItem(self.index_exp, 2, "%2.1f" % (density*100))
-        self.list_exp.SetItem(self.index_exp, 3, "%1.1f" % (meanrd))
-        self.list_exp.SetItem(self.index_exp, 4, "%d" % (maxrd))
-        self.list_exp.SetItem(self.index_exp, 5, "%s" % (fullpath))
+        if WX_VERSION > 3:
+            self.list_exp.InsertItem(self.index_exp, name)
+            self.list_exp.SetItem(self.index_exp, 1, "%1.1f" % (totalrd))
+            self.list_exp.SetItem(self.index_exp, 2, "%2.1f" % (density*100))
+            self.list_exp.SetItem(self.index_exp, 3, "%1.1f" % (meanrd))
+            self.list_exp.SetItem(self.index_exp, 4, "%d" % (maxrd))
+            self.list_exp.SetItem(self.index_exp, 5, "%s" % (fullpath))
+        else:
+            self.list_exp.InsertStringItem(self.index_exp, name)
+            self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
+            self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
+            self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
+            self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
+            self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
         self.list_exp.Select(self.index_exp)
         self.index_exp+=1
 
