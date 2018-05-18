@@ -2,19 +2,31 @@ import sys
 
 try:
     import wx
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
-    
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
+   
 
 import os
 import time
@@ -37,8 +49,9 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "gi"
-long_name = "Genetic interactions analysis for change in enrichment"
-description = """Method for determining genetic interactions based on changes in enrichment (i.e. delta log fold-change in mean read counts).
+long_name = "Genetic Interactions"
+short_desc = "Genetic interactions analysis for change in enrichment"
+long_desc = """Method for determining genetic interactions based on changes in enrichment (i.e. delta log fold-change in mean read counts).
 
 NOTE: This method requires 4 groups of datasets. Use the main interface to add datasets for the two strain backgrounds under the first condition. A window will allow you to add the datasets under the second condition.
 """
@@ -49,7 +62,7 @@ columns = ["Orf","Name","Number of TA Sites","Mean count (Strain A Condition 1)"
 
 class GIAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, GIMethod, GIGUI, [GIFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, GIMethod, GIGUI, [GIFile])
 
 
 
@@ -100,8 +113,8 @@ class GIGUI(base.AnalysisGUI):
 
         giSizer = wx.BoxSizer( wx.VERTICAL )
 
-        giLabel = wx.StaticText( giPanel, wx.ID_ANY, u"GI Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        giLabel.Wrap( -1 )
+        giLabel = wx.StaticText( giPanel, wx.ID_ANY, u"GI Options", wx.DefaultPosition, (100,-1), 0 )
+        giLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         giSizer.Add( giLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         giTopSizer = wx.BoxSizer( wx.HORIZONTAL )
@@ -129,7 +142,7 @@ class GIGUI(base.AnalysisGUI):
 
 
         # LOESS Check
-        (self.wxobj.giLoessCheck, loessCheckSizer) = self.defineCheckBox(giPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(230,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
+        (self.wxobj.giLoessCheck, loessCheckSizer) = self.defineCheckBox(giPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(-1,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
         giSizer.Add( loessCheckSizer, 0, wx.EXPAND, 5 )
 
         # LOESS Button
@@ -138,7 +151,7 @@ class GIGUI(base.AnalysisGUI):
 
 
         # Zeros Check
-        (self.wxobj.giZeroCheckBox, zeroSizer) = self.defineCheckBox(giPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(180,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
+        (self.wxobj.giZeroCheckBox, zeroSizer) = self.defineCheckBox(giPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
         giSizer.Add(zeroSizer, 0, wx.EXPAND, 5 )
 
 
@@ -474,7 +487,7 @@ class GIMethod(base.QuadConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.QuadConditionMethod.__init__(self, short_name, long_name, description, ctrldataA, ctrldataB, expdataA, expdataB, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.QuadConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldataA, ctrldataB, expdataA, expdataB, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         self.samples = samples
         self.includeZeros = includeZeros

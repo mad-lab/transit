@@ -76,7 +76,7 @@ class qcFrame ( wx.Frame ):
 
             wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = "Quality Control", pos = wx.DefaultPosition, size = wx.Size( 1560, 900 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
-            self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+            #self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
             bSizer9 = wx.BoxSizer( wx.VERTICAL )
 

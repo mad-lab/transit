@@ -2,19 +2,31 @@ import sys
 
 try:
     import wx
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
-    
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
+   
 
 import os
 import time
@@ -37,15 +49,16 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "utest"
-long_name = "Mann-Whitney U test of conditional essentiality between two conditions"
-description = """Method for determining conditional essentiality based on rank order statistics to identify significant changes in mean read-counts for each gene after normalization."""
+long_name = "Mann-Whitney U-test "
+short_desc = "Mann-Whitney U-test of conditional essentiality between two conditions"
+long_desc = """Mann-Whitney U-test for determining conditional essentiality. Based on rank order statistics to identify significant changes in mean read-counts between two conditions."""
 
 transposons = ["himar1", "tn5"]
 columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "U-Statistic","p-value","Adj. p-value"]
 
 class UTestAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, UTestMethod, UTestGUI, [UTestFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, UTestMethod, UTestGUI, [UTestFile])
 
 
 
@@ -94,8 +107,8 @@ class UTestGUI(base.AnalysisGUI):
 
         utestSizer = wx.BoxSizer( wx.VERTICAL )
 
-        utestLabel = wx.StaticText( utestPanel, wx.ID_ANY, u"utest Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        utestLabel.Wrap( -1 )
+        utestLabel = wx.StaticText( utestPanel, wx.ID_ANY, u"utest Options", wx.DefaultPosition, (120,-1), 0 )
+        utestLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         utestSizer.Add( utestLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         utestTopSizer = wx.BoxSizer( wx.HORIZONTAL )
@@ -119,7 +132,7 @@ class UTestGUI(base.AnalysisGUI):
 
 
         # LOESS Check
-        (self.wxobj.utestLoessCheck, loessCheckSizer) = self.defineCheckBox(utestPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(230,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
+        (self.wxobj.utestLoessCheck, loessCheckSizer) = self.defineCheckBox(utestPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(-1,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
         utestSizer.Add( loessCheckSizer, 0, wx.EXPAND, 5 )
 
         # LOESS Button
@@ -128,7 +141,7 @@ class UTestGUI(base.AnalysisGUI):
 
 
         # Zeros Check
-        (self.wxobj.utestZeroCheckBox, zeroSizer) = self.defineCheckBox(utestPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(180,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
+        (self.wxobj.utestZeroCheckBox, zeroSizer) = self.defineCheckBox(utestPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
         utestSizer.Add(zeroSizer, 0, wx.EXPAND, 5 )
 
 
@@ -168,7 +181,7 @@ class UTestMethod(base.DualConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.DualConditionMethod.__init__(self, short_name, long_name, description, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.DualConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         self.includeZeros = includeZeros
         

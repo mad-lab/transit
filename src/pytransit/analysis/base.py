@@ -3,19 +3,32 @@ import sys
 
 try:
     import wx
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
-    
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
+
+   
 import traceback
 import datetime
 import pytransit.transit_tools as transit_tools
@@ -47,13 +60,15 @@ class TransitGUIBase:
         self.wxobj = None
         self.short_name = "TRANSIT"
         self.long_name = "TRANSIT"
+        self.short_desc = "TRANSIT - Short Description"
+        self.long_desc =  "TRANSIT - Long Description"
 
 #
 
     def status_message(self, text, time=-1):
         #TODO: write docstring
         if self.wxobj:
-            if newWx:
+            if WX_VERSION > 2:
                 wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
             else:
                 wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))
@@ -198,8 +213,8 @@ class AnalysisGUI:
 
         Section = wx.BoxSizer( wx.VERTICAL )
 
-        Label = wx.StaticText(wPanel, id=wx.ID_ANY, label=str("Options"), pos=wx.DefaultPosition, size=wx.DefaultSize, style=0 )
-        Label.Wrap( -1 )
+        Label = wx.StaticText(wPanel, id=wx.ID_ANY, label=str("Method Options"), pos=wx.DefaultPosition, size=(130, -1), style=0 )
+        Label.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         Section.Add( Label, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
         Sizer1 = wx.BoxSizer( wx.HORIZONTAL )
@@ -265,14 +280,15 @@ class AnalysisMethod:
     Basic class for analysis methods. Inherited by SingleMethod and ComparisonMethod.
     '''
     
-    def __init__(self, short_name, long_name, description, output, annotation_path, wxobj=None):
+    def __init__(self, short_name, long_name, short_desc, long_desc, output, annotation_path, wxobj=None):
         self.short_name = short_name
         self.long_name = long_name
-        self.description = description
+        self.short_desc = short_desc
+        self.long_desc = long_desc
         self.output = output
         self.annotation_path = annotation_path
 
-        self.newWx = newWx
+        self.WX_VERSION = WX_VERSION 
         self.wxobj = wxobj
 
 #
@@ -350,7 +366,7 @@ class AnalysisMethod:
         data = {"path":path, "type":filetype, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
 
         if self.wxobj:
-            if newWx:
+            if WX_VERSION > 2:
                 wx.CallAfter(pub.sendMessage, "file", data=data)
             else:
                 wx.CallAfter(pub.sendMessage, "file", data)
@@ -360,7 +376,7 @@ class AnalysisMethod:
     def finish(self):
         #TODO: write docstring
         if self.wxobj:
-            if newWx:
+            if WX_VERSION > 2:
                 wx.CallAfter(pub.sendMessage,"finish", msg=self.short_name.lower())
             else:
                 wx.CallAfter(pub.sendMessage,"finish", self.short_name.lower())
@@ -370,7 +386,7 @@ class AnalysisMethod:
     def progress_update(self, text, count):
         #TODO: write docstring
         if self.wxobj:
-            if newWx:
+            if WX_VERSION > 2:
                 wx.CallAfter(pub.sendMessage, "progress", msg=(self.short_name, count))
             else:
                 wx.CallAfter(pub.sendMessage, "progress", (self.short_name, count))
@@ -382,7 +398,7 @@ class AnalysisMethod:
     def progress_range(self, count):
         #TODO: write docstring
         if self.wxobj:
-            if newWx:
+            if WX_VERSION > 2:
                 wx.CallAfter(pub.sendMessage, "progressrange", msg=count)
             else:
                 wx.CallAfter(pub.sendMessage, "progressrange", count)
@@ -393,7 +409,7 @@ class AnalysisMethod:
     def status_message(self, text, time=-1):
         #TODO: write docstring
         if self.wxobj:
-            if newWx:
+            if WX_VERSION > 2:
                 wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
             else:
                 wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))
@@ -446,8 +462,9 @@ class SingleConditionMethod(AnalysisMethod):
     Class to be inherited by analysis methods that determine essentiality in a single condition (e.g. Gumbel, Binomial, HMM).
     '''
 
-    def __init__(self, short_name, long_name, description, ctrldata, annotation_path, output, replicates="Sum", normalization=None, LOESS=False, ignoreCodon=True, NTerminus=0.0, CTerminus=0.0, wxobj=None):
-        AnalysisMethod.__init__(self, short_name, long_name, description, output, annotation_path, wxobj)
+    def __init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output, replicates="Sum", normalization=None, LOESS=False, ignoreCodon=True, NTerminus=0.0, CTerminus=0.0, wxobj=None):
+        AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, output, 
+            annotation_path, wxobj)
         self.ctrldata = ctrldata
         self.replicates = replicates
         self.normalization = normalization
@@ -463,8 +480,9 @@ class DualConditionMethod(AnalysisMethod):
     Class to be inherited by analysis methods that determine changes in essentiality between two conditions (e.g. Resampling, DEHMM).
     '''
 
-    def __init__(self, short_name, long_name, description, ctrldata, expdata, annotation_path, output, normalization, replicates="Sum", LOESS=False, ignoreCodon=True, NTerminus=0.0, CTerminus=0.0, wxobj=None):
-        AnalysisMethod.__init__(self, short_name, long_name, description, output, annotation_path, wxobj)
+    def __init__(self, short_name, long_name, short_desc, long_desc, ctrldata, expdata, annotation_path, output, normalization, replicates="Sum", LOESS=False, ignoreCodon=True, NTerminus=0.0, CTerminus=0.0, wxobj=None):
+        AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, 
+            output, annotation_path, wxobj)
         self.ctrldata = ctrldata
         self.expdata = expdata
         self.normalization = normalization
@@ -481,8 +499,9 @@ class QuadConditionMethod(AnalysisMethod):
     Class to be inherited by analysis methods that determine changes in essentiality between four conditions (e.g. GI).
     '''
 
-    def __init__(self, short_name, long_name, description, ctrldataA, ctrldataB, expdataA, expdataB, annotation_path, output, normalization, replicates="Sum", LOESS=False, ignoreCodon=True, NTerminus=0.0, CTerminus=0.0, wxobj=None):
-        AnalysisMethod.__init__(self, short_name, long_name, description, output, annotation_path, wxobj)
+    def __init__(self, short_name, long_name, short_desc, long_desc, ctrldataA, ctrldataB, expdataA, expdataB, annotation_path, output, normalization, replicates="Sum", LOESS=False, ignoreCodon=True, NTerminus=0.0, CTerminus=0.0, wxobj=None):
+        AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, 
+            output, annotation_path, wxobj)
         self.ctrldataA = ctrldataA
         self.ctrldataB = ctrldataB
         self.expdataA = expdataA
@@ -497,10 +516,11 @@ class QuadConditionMethod(AnalysisMethod):
 #
 
 class TransitAnalysis:
-    def __init__(self, sn, ln, desc, tn, method_class=AnalysisMethod, gui_class=AnalysisGUI, filetypes=[TransitFile]):
+    def __init__(self, sn, ln, short_desc, long_desc, tn, method_class=AnalysisMethod, gui_class=AnalysisGUI, filetypes=[TransitFile]):
         self.short_name = sn
         self.long_name = ln
-        self.description = desc
+        self.short_desc = short_desc
+        self.long_desc = long_desc
         self.transposons = tn
         self.method = method_class
         self.gui = gui_class()
@@ -512,14 +532,15 @@ class TransitAnalysis:
         return """Analysis Method:
     Short Name:  %s
     Long Name:   %s
-    Description: %s
+    Short Desc:  %s
+    Long Desc:   %s
     Method:      %s
-    GUI:         %s""" % (self.short_name, self.long_name, self.description, self.method, self.gui)
+    GUI:         %s""" % (self.short_name, self.long_name, self.short_desc, self.long_desc, self.method, self.gui)
 
 #
 
     def fullname(self):
-        return "[%s]  -  %s" % (self.short_name, self.long_name)
+        return "[%s]  -  %s" % (self.short_name, self.short_desc)
 
 #
 
@@ -529,7 +550,7 @@ class TransitAnalysis:
 #
 
     def getDescriptionText(self):
-        return self.description 
+        return self.long_desc
 
 #
 

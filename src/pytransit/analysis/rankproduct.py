@@ -2,18 +2,30 @@ import sys
 
 try:
     import wx
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
 
 
 import os
@@ -36,8 +48,9 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "rankproduct"
-long_name = "Rank Product test for determining conditional essentiality."
-description = "Differential Comparison based on ranks"
+long_name = "Rank Product"
+short_desc = "Rank Product test for determining conditional essentiality."
+long_desc = "Differential Comparison based on ranks"
 transposons = ["himar1", "tn5"]
 columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC","Obs RP","Expected RP","q-value"]
 
@@ -47,7 +60,7 @@ columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC","Obs RP",
 
 class RankProductAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, RankProductMethod, RankProductGUI, [RankProductFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, RankProductMethod, RankProductGUI, [RankProductFile])
 
 
 ################## FILE ###################
@@ -68,8 +81,8 @@ class RankProductGUI(base.AnalysisGUI):
     
         rankproductSizer = wx.BoxSizer( wx.VERTICAL )
 
-        rankproductLabel = wx.StaticText( rankproductPanel, wx.ID_ANY, u"rankproduct Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        rankproductLabel.Wrap( -1 )
+        rankproductLabel = wx.StaticText( rankproductPanel, wx.ID_ANY, u"rankproduct Options", wx.DefaultPosition, (160,-1), 0 )
+        rankproductLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         rankproductSizer.Add( rankproductLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         rankproductLabelSizer = wx.BoxSizer( wx.VERTICAL )
@@ -127,7 +140,7 @@ class RankProductMethod(base.DualConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.DualConditionMethod.__init__(self, short_name, long_name, description, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.DualConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         self.samples = samples
         self.adaptive = adaptive

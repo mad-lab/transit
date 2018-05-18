@@ -1,18 +1,32 @@
 import sys
+
 try:
     import wx
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
+
 
 import os
 import time
@@ -32,8 +46,9 @@ import pytransit.stat_tools as stat_tools
 ############# Description ##################
 
 short_name = "example"
-long_name = "Example method that calculates mean read-counts per gene."
-description = "A method made to serve as an example to implementing other methods."
+long_name = "Example"
+short_desc = "Example method that calculates mean read-counts per gene."
+long_desc = "A method made to serve as an example to implementing other methods."
 transposons = ["himar1", "tn5"]
 columns = ["Orf","Name","Desc","k","n","mean","nzmean"]
 
@@ -41,7 +56,7 @@ columns = ["Orf","Name","Desc","k","n","mean","nzmean"]
 
 class ExampleAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, ExampleMethod, ExampleGUI, [ExampleFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, ExampleMethod, ExampleGUI, [ExampleFile])
 
 
 ################## FILE ###################
@@ -81,7 +96,7 @@ class ExampleMethod(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
 
 

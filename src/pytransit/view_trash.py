@@ -28,7 +28,7 @@ class MainFrame ( wx.Frame ):
     def __init__( self, parent ):
         wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Trash View", pos = wx.DefaultPosition, size = wx.Size( 1117,439 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
         
-        self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+        self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
         
         bSizer2 = wx.BoxSizer( wx.VERTICAL )
         
@@ -166,7 +166,7 @@ class MainFrame ( wx.Frame ):
         self.Layout()
 
 
-        self.statusBar = self.CreateStatusBar( 1, wx.ST_SIZEGRIP, wx.ID_ANY )
+        self.statusBar = self.CreateStatusBar( 1, wx.STB_SIZEGRIP, wx.ID_ANY )
         #self.statusBar.SetStatusText("Track View!")
 
         self.SetIcon(images.transit_icon.GetIcon())
