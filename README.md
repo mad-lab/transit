@@ -8,6 +8,10 @@
 
 
 
+**Version 2.3.0 changes (June, 2018)**
+- Made TRANSIT compatible with wxPython 4.0 (Phoenix)
+- Datasets automatically selected when they are added to TRANSIT.
+
 
 **Version 2.1.2 changes (May, 2018)**
 - Improved resampling on comparisons with unbalanced number of replicates.
