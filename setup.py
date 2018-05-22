@@ -113,8 +113,8 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'transit=pytransit.__main__:main',
-            'tpp=pytpp.__main__:main',
+            'transit=pytransit.__main__:run_main',
+            'tpp=pytpp.__main__:run_main',
         ],
     },
 )
