@@ -61,6 +61,7 @@ import traceback
 
 import pytransit
 import pytransit.analysis
+import pytransit.export
 import pytransit.trash as trash
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
