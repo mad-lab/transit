@@ -62,6 +62,8 @@ def main(*args, **kwargs):
     # Check if running in GUI Mode
     if not (args or kwargs) and hasWx:
 
+        import matplotlib
+        matplotlib.use("WXAgg")
         import matplotlib.pyplot
         import pytransit.transit_gui as transit_gui
         transit_tools.transit_message("Running in GUI Mode")
