@@ -60,6 +60,26 @@ Welcome! This is the distribution for the TRANSIT and TPP tools developed by the
 TRANSIT is a tool for the analysis of Tn-Seq data. It provides an easy to use graphical interface and access to three different analysis methods that allow the user to determine essentiality in a single condition as well as between conditions.
 
 
+## Features
+TRANSIT offers a variety of features including:
+    
+-   More than **8 analysis methods**, including methods for determining **conditional essentiality** as well as **genetic interactions**.
+
+-   Ability to analyze datasets from libraries constructed using  **himar1 or tn5 transposons**.
+
+-   **TrackView** to help visualize read-counts accross the genome.
+
+-   Can **export datasets** into a variety of formats, including **IGV**.
+
+-   Includes a **variety of normalization methods**.
+
+-   **Quality Control** diagnostics, to idenfity poor quality datasets.
+
+-   Ability to install as a **python package**, to import and use in your own personal scripts.
+
+
+
+
 
 ## Mailing List
 
