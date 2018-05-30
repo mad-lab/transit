@@ -1149,7 +1149,6 @@ class TnSeekFrame(MainFrame):
             if dlg.ShowModal() == wx.ID_OK:
                 paths = dlg.GetPaths()
                 print "You chose the following Control file(s):"
-                print paths
                 for fullpath in paths:
                     print "\t%s" % fullpath
                     self.loadCtrlFile(fullpath)
