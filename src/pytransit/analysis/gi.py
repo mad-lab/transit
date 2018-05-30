@@ -355,12 +355,11 @@ class DatasetDialog(wx.Dialog):
                 defaultDir=self.wxobj.workdir,
                 defaultFile="",
                 wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*",
-                style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
                 )
             if dlg.ShowModal() == wx.ID_OK:
                 paths = dlg.GetPaths()
                 print "You chose the following Control file(s):"
-                print paths
                 for fullpath in paths:
                     print "\t%s" % fullpath
                     self.loadCtrlFile(fullpath)
@@ -394,7 +393,7 @@ class DatasetDialog(wx.Dialog):
                 defaultDir=self.wxobj.workdir,
                 defaultFile="",
                 wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*",
-                style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
                 )
             if dlg.ShowModal() == wx.ID_OK:
                 paths = dlg.GetPaths()
@@ -414,12 +413,22 @@ class DatasetDialog(wx.Dialog):
     def loadCtrlFile(self, fullpath):
         name = transit_tools.basename(fullpath)
         (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-        self.list_ctrl.InsertStringItem(self.index_ctrl, name)
-        self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
-        self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
-        self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
-        self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
-        self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+
+        if WX_VERSION > 3:
+            self.list_ctrl.InsertItem(self.index_ctrl, name)
+            self.list_ctrl.SetItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+            self.list_ctrl.SetItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+            self.list_ctrl.SetItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+            self.list_ctrl.SetItem(self.index_ctrl, 4, "%d" % (maxrd))
+            self.list_ctrl.SetItem(self.index_ctrl, 5, "%s" % (fullpath))
+        else:
+            self.list_ctrl.InsertStringItem(self.index_ctrl, name)
+            self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+            self.list_ctrl.Select(self.index_ctrl)
         self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
 
@@ -428,12 +437,22 @@ class DatasetDialog(wx.Dialog):
     def loadExpFile(self, fullpath):
         name = transit_tools.basename(fullpath)
         (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-        self.list_exp.InsertStringItem(self.index_exp, name)
-        self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
-        self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
-        self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
-        self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
-        self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+
+        if WX_VERSION > 3:
+            self.list_exp.InsertItem(self.index_exp, name)
+            self.list_exp.SetItem(self.index_exp, 1, "%1.1f" % (totalrd))
+            self.list_exp.SetItem(self.index_exp, 2, "%2.1f" % (density*100))
+            self.list_exp.SetItem(self.index_exp, 3, "%1.1f" % (meanrd))
+            self.list_exp.SetItem(self.index_exp, 4, "%d" % (maxrd))
+            self.list_exp.SetItem(self.index_exp, 5, "%s" % (fullpath))
+        else:
+            self.list_exp.InsertStringItem(self.index_exp, name)
+            self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
+            self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
+            self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
+            self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
+            self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+
         self.list_exp.Select(self.index_exp)
         self.index_exp+=1
 
