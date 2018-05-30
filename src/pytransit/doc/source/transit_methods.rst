@@ -97,7 +97,7 @@ defined as follows:
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------+
 | r               | Length of the Maximum Run of Non-Insertions observed.                                                                         |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------+
-| s               | Span of nucleotides for the Maximum Run of Non-Insertions.                                                                   |
+| s               | Span of nucleotides for the Maximum Run of Non-Insertions.                                                                    |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------+
 | zbar            | Posterior Probability of Essentiality.                                                                                        |
 +-----------------+-------------------------------------------------------------------------------------------------------------------------------+
@@ -430,10 +430,10 @@ parameters are available for the method:
    that terminate early (i.e. deemed not significant). This option is
    OFF by default.
 
--  **Include Zeros:** By default resampling will ignore sites that are zero
-   across all the datasets (i.e. completely empty), which is useful for
-   decreasing running time (specially for large datasets like Tn5). This
-   option allows the user to include these empty rows.
+-  **Include Zeros:** Select to include  sites that are zero. This is the
+   preferred behavior, however, unselecting this (thus ignoring sites that)
+   are zero accross all dataset (i.e. completely empty), is useful for
+   decreasing running time (specially for large datasets like Tn5).
 
 -  **Normalization Method:** Determines which normalization method to
    use when comparing datasets. Proper normalization is important as it
@@ -487,6 +487,128 @@ resampling option, the run-time is reduced to around 10 minutes.
 
 
 --------------
+
+
+
+
+|
+
+.. _genetic-interactions:
+
+Genetic Interactions
+--------------------
+
+The genetic interactions (GI) method is a comparative analysis used
+used to determine genetic interactions. It is a Bayesian method
+that estimates the distribution of log fold-changes (logFC) in two
+strain backgrounds under different conditions, and identifies significantly
+large changes in enrichment (delta-logFC) to identify those genes
+that imply a genetic interaction.
+
+
+.. NOTE::
+   Can be used for both **Himar1** and **Tn5** datasets
+
+
+|
+
+How does it work?
+~~~~~~~~~~~~~~~~~
+
+| For a formal description of how this method works, see our paper [DeJesus20170NAR]_:
+|
+|  DeJesus, M.A., Nambi, S., Smith, C.M., Baker, R.E., Sassetti, C.M., Ioerger, T.R. `Statistical analysis of genetic interactions in Tn-Seq data. <https://www.ncbi.nlm.nih.gov/pubmed/28334803>`_ *Nucleic Acids Research.* 2017. 45(11):e93. doi: 10.1093/nar/gkx128.
+
+|
+
+Parameters
+~~~~~~~~~~
+
+The resampling method is non-parametric, and therefore does not require
+any parameters governing the distributions or the model. The following
+parameters are available for the method:
+
+
+
+-  **Samples:** The number of samples (permutations) to perform. The
+   larger the number of samples, the more resolution the p-values
+   calculated will have, at the expense of longer computation time. The
+   re-sampling method runs on 10,000 samples by default.
+
+
+-  **ROPE:** Region of Practical Equivalence. This region defines an area
+   around 0.0 that represents differences in the log fold-change that are
+   practically equivalent to zero. This aids in ignoring spurious changes
+   in the logFC that would otherwise be identified under a strict 
+   null-hypothesis of no difference.
+
+-  **Include Zeros:** Select to include  sites that are zero. This is the
+   preferred behavior, however, unselecting this (thus ignoring sites that)
+   are zero accross all dataset (i.e. completely empty), is useful for
+   decreasing running time (specially for large datasets like Tn5).
+
+-  **Normalization Method:** Determines which normalization method to
+   use when comparing datasets. Proper normalization is important as it
+   ensures that other sources of variability are not mistakenly treated
+   as real differences. See the :ref:`Normalization <normalization>` section for a description
+   of normalization method available in TRANSIT.
+
+
+
+
+
+Output and Diagnostics
+~~~~~~~~~~~~~~~~~~~~~~
+
+The GI method outputs a tab-delimited file with results for each
+gene in the genome. P-values are adjusted for multiple comparisons using
+the Benjamini-Hochberg procedure (called "q-values" or "p-adj."). A
+typical threshold for conditional essentiality on is q-value < 0.05.
+
++-----------------------------------------+----------------------------------------------------+
+| Column Header                           | Column Definition                                  |
++=========================================+====================================================+
+| Orf                                     | Gene ID.                                           |
++-----------------------------------------+----------------------------------------------------+
+| Name                                    | Name of the gene.                                  |
++-----------------------------------------+----------------------------------------------------+
+| Number of TA Sites                      | Number of TA sites in the gene.                    |
++-----------------------------------------+----------------------------------------------------+
+| Mean count (Strain A Condition 1)       | Mean read count in strain A, condition 1           |
++-----------------------------------------+----------------------------------------------------+
+| Mean count (Strain A Condition 2)       | Mean read count in strain A, condition 2           |
++-----------------------------------------+----------------------------------------------------+
+| Mean count (Strain B Condition 1)       | Mean read count in strain B, condition 1           |
++-----------------------------------------+----------------------------------------------------+
+| Mean count (Strain B Condition 2)       | Mean read count in strain B, condition 2           |
++-----------------------------------------+----------------------------------------------------+
+| Mean logFC (Strain A)                   | The log2 fold-change in read-count for strain A    |
++-----------------------------------------+----------------------------------------------------+
+| Mean logFC (Strain B)                   | The log2 fold-change in read-count for strain B    |
++-----------------------------------------+----------------------------------------------------+
+| Mean delta logFC                        | The difference in log2 fold-change between B and A |
++-----------------------------------------+----------------------------------------------------+
+| Lower Bound delta logFC                 | Lower bound of the difference (delta logFC)        |
++-----------------------------------------+----------------------------------------------------+
+| Upper Bound delta logFC                 | Upper bound of the difference (delta logFC)        |
++-----------------------------------------+----------------------------------------------------+
+| Prob. of delta-logFC being within ROPE  | Portion of the delta-logFC within ROPE             |
++-----------------------------------------+----------------------------------------------------+
+| Adjusted Probability (BFDR)             | Posterior probability adjusted for comparisons     |
++-----------------------------------------+----------------------------------------------------+
+| Is HDI outside ROPE?                    | True/False whether the delta-logFC overlaps ROPE   |
++-----------------------------------------+----------------------------------------------------+
+| Type of Interaction                     | Final classification.                              |
++-----------------------------------------+----------------------------------------------------+
+
+
+
+
+
+
+
+--------------
+
 
 |
 
