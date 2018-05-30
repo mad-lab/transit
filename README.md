@@ -1,14 +1,14 @@
 
 
 
-# TRANSIT 2.1.2
+# TRANSIT 2.2.0
 
 
 [![Build Status](https://travis-ci.org/mad-lab/transit.svg?branch=master)](https://travis-ci.org/mad-lab/transit)   [![Documentation Status](https://readthedocs.org/projects/transit/badge/?version=latest)](http://transit.readthedocs.io/en/latest/?badge=latest) 
 
 
 
-**Version 2.3.0 changes (June, 2018)**
+**Version 2.2.0 changes (June, 2018)**
 - Made TRANSIT compatible with wxPython 4.0 (Phoenix)
 - Datasets automatically selected when they are added to TRANSIT.
 
