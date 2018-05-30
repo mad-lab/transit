@@ -25,7 +25,7 @@ TRANSIT offers a variety of features including:
  
 *   More than **8 analysis methods**, including methods for determining **conditional essentiality** as well as **genetic interactions**.
 
-*   Ability to analyze datasets from libraries constructed using  **himar1 or tn5 transposons**.
+*   Ability to analyze **himar1 or tn5 transposons** datasets.
 
 *   **TrackView** to help visualize read-counts accross the genome.
 
@@ -72,6 +72,7 @@ You can join our mailing list to get announcements of new versions, discuss any 
    transit_essentiality_tutorial
    transit_genome_tutorial
    transit_comparative_tutorial
+   transit_interactions_tutorial
    transit_normalization_tutorial
    transit_export_tutorial
 
