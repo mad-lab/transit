@@ -269,7 +269,7 @@ class qcFrame ( wx.Frame ):
                 ax = fig.add_subplot(111, frame_on=False)
 
                 #Plot 1
-                n, bins, patches = ax.hist(truncnzreads, normed=1, facecolor='c', alpha=0.75, bins=100)
+                n, bins, patches = ax.hist(truncnzreads, density=1, facecolor='c', alpha=0.75, bins=100)
                 plt.xlabel('Reads')
                 plt.ylabel('Probability')
 
