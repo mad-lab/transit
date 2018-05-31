@@ -74,6 +74,7 @@ def main(*args, **kwargs):
         frame = transit_gui.TnSeekFrame(None, DEBUG)
         #show the frame
         frame.Show(True)
+        frame.Maximize(True)
 
         #start the applications
         app.MainLoop()
@@ -123,5 +124,5 @@ def main(*args, **kwargs):
 
 if __name__ == "__main__":
     main()
-
+    sys.exit(1)
 
