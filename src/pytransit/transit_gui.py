@@ -96,7 +96,7 @@ transit_prefix = "[TRANSIT]"
 class MainFrame ( wx.Frame ):
     
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"TRANSIT", pos = wx.DefaultPosition, size = wx.Size( 1300,975 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"TRANSIT", pos = wx.DefaultPosition, size = wx.Size( 1350,975 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
         
 
         #Define variables
@@ -169,7 +169,7 @@ class MainFrame ( wx.Frame ):
         
         self.list_ctrl = wx.ListCtrl( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
 
-        self.list_ctrl.SetMaxSize(wx.Size(940,200))
+        self.list_ctrl.SetMaxSize(wx.Size(-1,200))
         ctrlSizer.Add( self.list_ctrl, 1, wx.ALL|wx.EXPAND, 5 )
                 
         bSizer4.Add( ctrlSizer, 1, wx.EXPAND, 5 )
@@ -201,7 +201,7 @@ class MainFrame ( wx.Frame ):
         expSizer1.Add( bSizer3, 0, wx.EXPAND, 5 )
         
         self.list_exp = wx.ListCtrl( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
-        self.list_exp.SetMaxSize(wx.Size(940, 200))
+        self.list_exp.SetMaxSize(wx.Size(-1, 200))
         expSizer1.Add( self.list_exp, 1, wx.ALL|wx.EXPAND, 5 )
         
         
@@ -236,7 +236,7 @@ class MainFrame ( wx.Frame ):
         filesSizer.Add( bSizer141, 0, 0, 5 )
         
         self.list_files = wx.ListCtrl( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
-        self.list_files.SetMaxSize(wx.Size(940,200))
+        self.list_files.SetMaxSize(wx.Size(-1,200))
         filesSizer.Add( self.list_files, 1, wx.ALL|wx.EXPAND, 5 )
         
         
