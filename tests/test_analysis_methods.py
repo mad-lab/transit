@@ -12,14 +12,19 @@ from transit_test import *
 import pytransit
 import pytransit.norm_tools as norm_tools
 
+# Single condition methods
 from pytransit.analysis.gumbel import GumbelMethod
 from pytransit.analysis.binomial import BinomialMethod
 from pytransit.analysis.griffin import GriffinMethod
 from pytransit.analysis.hmm import HMMMethod
 
+# Comparative methods
 from pytransit.analysis.resampling import ResamplingMethod
 from pytransit.analysis.rankproduct import RankProductMethod
+from pytransit.analysis.utest import UTestMethod
 
+# Genetic Interactions
+from pytransit.analysis.gi import GIMethod
 
 class TestMethods(TransitTestCase):
  
@@ -73,6 +78,27 @@ class TestMethods(TransitTestCase):
     #    self.assertTrue(os.path.exists(output))
     #    hist_path = output.rsplit(".", 1)[0] + "_histograms"
     #    self.assertTrue(os.path.isdir(hist_path))
+
+
+    def test_GI(self):
+        args = [ctrl_data_txt, exp_data_txt, annotation, output, "-s", "1000"]
+        G = GIMethod.fromargs(args)
+        G.Run()
+        self.assertTrue(os.path.exists(output))
+
+    def test_utest(self):
+        args = [ctrl_data_txt, exp_data_txt, annotation, output]
+        G = UTestMethod.fromargs(args)
+        G.Run()
+        self.assertTrue(os.path.exists(output))
+
+
+    def test_GI(self):
+        args = [ctrl_data_txt, exp_data_txt, ctrl_data_txt, exp_data_txt, annotation, output, 
+                    "-s", "1000"]
+        G = GIMethod.fromargs(args)
+        G.Run()
+        self.assertTrue(os.path.exists(output))
 
 
  
