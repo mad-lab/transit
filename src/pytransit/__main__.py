@@ -58,6 +58,7 @@ def main(*args, **kwargs):
     DEBUG = "--debug" in sys.argv
     if DEBUG:
         sys.argv.remove("--debug")
+        kwargs.pop("-debug")
 
     # Check if running in GUI Mode
     if not (args or kwargs) and hasWx:
@@ -73,6 +74,7 @@ def main(*args, **kwargs):
         frame = transit_gui.TnSeekFrame(None, DEBUG)
         #show the frame
         frame.Show(True)
+
         #start the applications
         app.MainLoop()
     
