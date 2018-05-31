@@ -1583,7 +1583,6 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 plt.axvline(0, color='r', linestyle='dashed', linewidth=3)
                 plt.grid(True)
                 plt.show()
-                plt.close()
             else:
                transit_tools.ShowError(MSG="Need to select a 'Resampling' results file for this type of plot.")
 
@@ -1648,7 +1647,6 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 plt.suptitle("Resampling - Volcano plot")
                 plt.title("Adjusted threshold (red line): %1.8f" % threshold)
                 plt.show()
-                plt.close()
             else:
                transit_tools.ShowError(MSG="Need to select a 'Resampling' results file for this type of plot.")
             
@@ -1678,7 +1676,6 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             plt.ylabel("Probability of Essentiality")
             plt.title("Ranked Probability of Essentiality")
             plt.show()
-            plt.close()
 
         except Exception as e:
             print "Error occurred creating plot:", str(e)
@@ -1711,7 +1708,6 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
             plt.title("LOESS Fit - %s" % transit_tools.basename(datasets_selected[j]) )
             plt.show()
-            #plt.close()
     
 #
 
