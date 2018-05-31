@@ -105,7 +105,6 @@ class qcFrame ( wx.Frame ):
             #self.plotsCanvas = FigureCanvas(self, -1, self.plotsFigure)
             #plotsSizer.Add( self.plotsCanvas, 0, wx.ALL, 5 )
 
-
             self.plotsScrolledWindow.SetSizer( plotsSizer )
             self.plotsScrolledWindow.Layout()
             plotsSizer.Fit( self.plotsScrolledWindow )
@@ -170,6 +169,7 @@ class qcFrame ( wx.Frame ):
             # Connect Events
             self.statsListCtrl.Bind( wx.EVT_LIST_ITEM_SELECTED, self.onStatsItemSelect)
             self.normChoice.Bind( wx.EVT_CHOICE, self.onNormSelect )
+            self.Bind(wx.EVT_CLOSE, self.OnClose)
 
 
             #######
@@ -190,7 +190,8 @@ class qcFrame ( wx.Frame ):
             ############################
             self.norm = "nonorm"
             (self.data, self.position) = tnseq_tools.get_data(self.wigList)
-            
+        
+
             self.refresh()
             #self.updateFiles()
             #self.addPlots()
@@ -322,7 +323,7 @@ class qcFrame ( wx.Frame ):
                 sorted_wx_img = PilImageToWxImage(sorted_pil_img)
                 sorted_wx_bitmap = wx.BitmapFromImage(sorted_wx_img)
 
-                self.plots_list.append([hist_wx_bitmap, qq_wx_bitmap, sorted_wx_bitmap])
+                self.plots_list.append([fig, hist_wx_bitmap, qq_wx_bitmap, sorted_wx_bitmap])
 
 
         except Exception as e:
@@ -340,7 +341,7 @@ class qcFrame ( wx.Frame ):
 
     def refreshPlots(self):
         ii = self.statsListCtrl.GetFirstSelected()
-        hist_wx_bitmap, qq_wx_bitmap, sorted_wx_bitmap = self.plots_list[ii]
+        fig, hist_wx_bitmap, qq_wx_bitmap, sorted_wx_bitmap = self.plots_list[ii]
         self.plotsBitmap1.SetBitmap(hist_wx_bitmap)
         self.plotsBitmap2.SetBitmap(qq_wx_bitmap)
         self.plotsBitmap3.SetBitmap(sorted_wx_bitmap)
@@ -363,3 +364,10 @@ class qcFrame ( wx.Frame ):
             selected_stats.append(path)
             current = next
         return selected_stats
+
+    def OnClose(self, event):
+        for (fig, a,b,c) in self.plots_list:
+            plt.close(fig)
+        self.Destroy()
+
+
