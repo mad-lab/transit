@@ -866,7 +866,7 @@ class TnSeekFrame(MainFrame):
         else:
             data, orf, path, delta = msg.data
 
-        n, bins, patches = plt.hist(data, normed=1, facecolor='c', alpha=0.75, bins=100)
+        n, bins, patches = plt.hist(data, density=1, facecolor='c', alpha=0.75, bins=100)
         plt.xlabel('Delta Sum')
         plt.ylabel('Probability')
         plt.title('%s - Histogram of Delta Sum' % orf)
@@ -1576,7 +1576,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                         log2FC = 0
                     X.append(log2FC)
 
-                n, bins, patches = plt.hist(X, normed=1, facecolor='c', alpha=0.75, bins=100)
+                n, bins, patches = plt.hist(X, density=1, facecolor='c', alpha=0.75, bins=100)
                 plt.xlabel('log2 FC - Total Gene Counts')
                 plt.ylabel('Probability')
                 plt.title('Histogram of log2 Fold Change for Total Normalized Counts within Genes')
