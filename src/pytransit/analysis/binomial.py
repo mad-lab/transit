@@ -2,18 +2,31 @@ import sys
 
 try:
     import wx
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
+
 
 import os
 import time
@@ -34,8 +47,9 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "binomial"
-long_name = "Hierarchical binomial model of essentiality with individual frequencies."
-description = """Hierarchical bayesian model of essentiality based on the binomial distribution. Estimates individual probabilities for insertion, leading to more conservative predictions.
+long_name = "Binomial"
+short_desc = "Hierarchical binomial model of essentiality with individual frequencies."
+long_desc = """Hierarchical bayesian model of essentiality based on the binomial distribution. Estimates individual probabilities for insertion, leading to more conservative predictions.
 
 Reference: DeJesus and Ioerger (2014; IEEE TCBB)
 """
@@ -46,7 +60,7 @@ columns = ["Orf","Name","Description","Mean Insertion","Sites per Replicate","To
 
 class BinomialAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, BinomialMethod, BinomialGUI, [BinomialFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, BinomialMethod, BinomialGUI, [BinomialFile])
 
 
 ################## FILE ###################
@@ -83,8 +97,8 @@ class BinomialGUI(base.AnalysisGUI):
 
         binomialSection = wx.BoxSizer( wx.VERTICAL )
 
-        binomialLabel = wx.StaticText( binomialPanel, wx.ID_ANY, u"Binomial Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        binomialLabel.Wrap( -1 )
+        binomialLabel = wx.StaticText( binomialPanel, wx.ID_ANY, u"Binomial Options", wx.DefaultPosition, (130, -1), 0 )
+        binomialLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         binomialSection.Add( binomialLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         binomialSizer1 = wx.BoxSizer( wx.HORIZONTAL )
@@ -161,7 +175,7 @@ class BinomialMethod(base.SingleConditionMethod):
                 beta_w=0.5,
                 wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         self.samples = samples
         self.burnin = burnin
@@ -453,9 +467,8 @@ class BinomialMethod(base.SingleConditionMethod):
 
 
             #Update progress
-            text = "Running Binomial Method... %2.0f%%" % (100.0*(i+1)/(sample_size))
+            text = "Running Binomial Method... %5.1f%%" % (100.0*(i+1)/(sample_size))
             self.progress_update(text, i)
-            self.transit_message_inplace(text)
 
         numpy.seterr(divide='warn')
 

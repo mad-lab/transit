@@ -2,18 +2,31 @@ import sys
 
 try:
     import wx
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
+
 
 import os
 import time
@@ -35,8 +48,9 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "griffin"
-long_name = "Basic frequentist analysis of essentiality using gaps."
-description = "Analysis of gaps used in Griffin et al. 2011"
+long_name = "Griffin"
+short_desc = "Basic frequentist analysis of essentiality using gaps."
+long_desc = "Analysis of gaps used in Griffin et al. 2011"
 transposons = ["himar1"]
 columns = ["Orf","Name","Desc","k","n","r","s","t","Expected Run","p-value", "p-adjusted"]
 
@@ -46,7 +60,7 @@ columns = ["Orf","Name","Desc","k","n","r","s","t","Expected Run","p-value", "p-
 
 class GriffinAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, GriffinMethod, GriffinGUI, [GriffinFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, GriffinMethod, GriffinGUI, [GriffinFile])
 
 
 ################## FILE ###################
@@ -83,8 +97,8 @@ class GriffinGUI(base.AnalysisGUI):
 
         griffinSection = wx.BoxSizer( wx.VERTICAL )
 
-        griffinLabel = wx.StaticText( griffinPanel, wx.ID_ANY, u"griffin Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        griffinLabel.Wrap( -1 )
+        griffinLabel = wx.StaticText( griffinPanel, wx.ID_ANY, u"griffin Options", wx.DefaultPosition, (120,-1), 0 )
+        griffinLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         griffinSection.Add( griffinLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         griffinSizer1 = wx.BoxSizer( wx.HORIZONTAL )
@@ -126,7 +140,7 @@ class GriffinMethod(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, ignoreCodon=ignoreCodon, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, ignoreCodon=ignoreCodon, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
         self.minread = minread
 
 
@@ -249,9 +263,8 @@ class GriffinMethod(base.SingleConditionMethod):
                 pval = 1.0 - tnseq_tools.GumbelCDF(gene.r, u, B)
                 results.append([gene, exprun, pval])
 
-            text = "Running Griffin Method... %2.0f%%" % (100.0*(count+1)/(N))
+            text = "Running Griffin Method... %5.1f%%" % (100.0*(count+1)/(N))
             self.progress_update(text, count)
-            self.transit_message_inplace(text)
             count+=1
 
 

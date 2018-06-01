@@ -1,18 +1,32 @@
 import sys
+
 try:
     import wx
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
+
 
 import os
 import time
@@ -103,7 +117,7 @@ class CombinedWigMethod(base.SingleConditionMethod):
         
 
         #Get output path
-        defaultFileName = "example_output.dat"
+        defaultFileName = "combined_wig_output.dat"
         defaultDir = os.getcwd()
         output_path = wxobj.SaveFile(defaultDir, defaultFileName)
         if not output_path: return None
@@ -173,11 +187,12 @@ class CombinedWigMethod(base.SingleConditionMethod):
         self.output.write("#Files:\n")
         for f in self.ctrldata:
             self.output.write("#%s\n" % f)
-        count = 0.0
+    
         for i,pos in enumerate(position):
             self.output.write("%d\t%s\t%s\n" % (position[i], "\t".join(["%1.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
-            self.transit_message_inplace("Running Export Method... %1.1f%%" % (100.0*count/N))
-            count+=1
+            # Update progress    
+            text = "Running Export Method... %5.1f%%" % (100.0*i/N)
+            self.progress_update(text, i)
         self.output.close()
 
 

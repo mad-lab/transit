@@ -2,18 +2,31 @@ import sys
 
 try:
     import wx
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
+
 
 import os
 import time
@@ -35,8 +48,9 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "tn5gaps"
-long_name = "Analysis of essentiality on gaps in entire genome (Tn5)."
-description = "A analysis method based on the extreme value (Gumbel) distribution that considers longest runs over the whole genome instead of individual genes."
+long_name = "Tn5 Gaps"
+short_desc = "Analysis of essentiality on gaps in entire genome (Tn5)."
+long_desc = "A analysis method based on the extreme value (Gumbel) distribution that considers longest runs over the whole genome instead of individual genes."
 transposons = ["tn5"]
 columns = ["Orf","Name","Desc","k","n","r","ovr","lenovr","pval","padj","call"]
 
@@ -46,7 +60,7 @@ columns = ["Orf","Name","Desc","k","n","r","ovr","lenovr","pval","padj","call"]
 
 class Tn5GapsAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, Tn5GapsMethod, Tn5GapsGUI, [Tn5GapsFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, Tn5GapsMethod, Tn5GapsGUI, [Tn5GapsFile])
 
 
 ################## FILE ###################
@@ -81,8 +95,8 @@ class Tn5GapsGUI(base.AnalysisGUI):
 
         tn5GapsSection = wx.BoxSizer( wx.VERTICAL )
 
-        tn5GapsLabel = wx.StaticText( tn5GapsPanel, wx.ID_ANY, u"Tn5 Gaps Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        tn5GapsLabel.Wrap( -1 )
+        tn5GapsLabel = wx.StaticText( tn5GapsPanel, wx.ID_ANY, u"Tn5 Gaps Options", wx.DefaultPosition, (150,-1), 0 )
+        tn5GapsLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         tn5GapsSection.Add( tn5GapsLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         mainSizer1 = wx.BoxSizer( wx.VERTICAL )   
@@ -139,7 +153,7 @@ class Tn5GapsMethod(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
         self.minread = minread
 
 
@@ -286,8 +300,10 @@ class Tn5GapsMethod(base.SingleConditionMethod):
                 curr_len = curr_val[7]
                 if inter_sz > curr_inter_sz:
                     results_per_gene[gene.orf] = [gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, inter_sz, run_len, pval]
-            self.progress_update("tn5gaps", count)
-            self.transit_message_inplace("Running Tn5Gaps method... %1.1f%%" % (100.0*count/N))
+            
+            # Update Progress
+            text = "Running Tn5Gaps method... %1.1f%%" % (100.0*count/N) 
+            self.progress_update(text, count)
                 
         data = list(results_per_gene.values())
         exp_run_len = float(accum)/N

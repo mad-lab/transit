@@ -1,18 +1,32 @@
 import sys
+
 try:
     import wx
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
+
 
 import os
 import time
@@ -32,8 +46,9 @@ import pytransit.stat_tools as stat_tools
 ############# Description ##################
 
 short_name = "norm"
-long_name = "Normalization method"
-description = "Method for normalizing datasets and outputting into CombinedWig file."
+long_name = "Normalization"
+short_desc = "Normalization method"
+long_desc = "Method for normalizing datasets and outputting into CombinedWig file."
 transposons = ["himar1", "tn5"]
 columns = ["Position","Reads","Genes"]
 
@@ -42,7 +57,7 @@ columns = ["Position","Reads","Genes"]
 
 class NormAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, NormMethod, NormGUI, [NormFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, NormMethod, NormGUI, [NormFile])
 
 
 ################## FILE ###################
@@ -83,7 +98,7 @@ class NormMethod(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
 
     @classmethod

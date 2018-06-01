@@ -2,19 +2,31 @@ import sys
 
 try:
     import wx
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
-    
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
+   
 
 import os
 import time
@@ -37,8 +49,9 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "gi"
-long_name = "Genetic interactions analysis for change in enrichment"
-description = """Method for determining genetic interactions based on changes in enrichment (i.e. delta log fold-change in mean read counts).
+long_name = "Genetic Interactions"
+short_desc = "Genetic interactions analysis for change in enrichment"
+long_desc = """Method for determining genetic interactions based on changes in enrichment (i.e. delta log fold-change in mean read counts).
 
 NOTE: This method requires 4 groups of datasets. Use the main interface to add datasets for the two strain backgrounds under the first condition. A window will allow you to add the datasets under the second condition.
 """
@@ -49,7 +62,7 @@ columns = ["Orf","Name","Number of TA Sites","Mean count (Strain A Condition 1)"
 
 class GIAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, GIMethod, GIGUI, [GIFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, GIMethod, GIGUI, [GIFile])
 
 
 
@@ -100,8 +113,8 @@ class GIGUI(base.AnalysisGUI):
 
         giSizer = wx.BoxSizer( wx.VERTICAL )
 
-        giLabel = wx.StaticText( giPanel, wx.ID_ANY, u"GI Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        giLabel.Wrap( -1 )
+        giLabel = wx.StaticText( giPanel, wx.ID_ANY, u"GI Options", wx.DefaultPosition, (100,-1), 0 )
+        giLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         giSizer.Add( giLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         giTopSizer = wx.BoxSizer( wx.HORIZONTAL )
@@ -112,12 +125,17 @@ class GIGUI(base.AnalysisGUI):
         
         mainSizer1 = wx.BoxSizer( wx.VERTICAL )
 
-        #(, , Sizer) = self.defineChoiceBox(giPanel, u"", u"", "")
-        #mainSizer1.Add(Sizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
         # Samples 
         (giSampleLabel, self.wxobj.giSampleText, sampleSizer) = self.defineTextBox(giPanel, u"Samples:", u"10000", "Number of samples to take when estimating the distributions of means. More samples give more accurate estimates at the cost of computation time.")
         mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+
+
+        # ROPE
+        (giROPELabel, self.wxobj.giROPEText, ROPESizer) = self.defineTextBox(giPanel, u"ROPE:", u"0.5", "Region of Practical Equivalence. Area around 0 (i.e. 0.0 +/- ROPE) that defines changes in enrichment (delta-log2FC) that are NOT of interest. Can be thought of as the area representing a null-hypothesis.")
+        mainSizer1.Add(ROPESizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+
+
 
         # Norm 
         giNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
@@ -129,7 +147,7 @@ class GIGUI(base.AnalysisGUI):
 
 
         # LOESS Check
-        (self.wxobj.giLoessCheck, loessCheckSizer) = self.defineCheckBox(giPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(230,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
+        (self.wxobj.giLoessCheck, loessCheckSizer) = self.defineCheckBox(giPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(-1,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
         giSizer.Add( loessCheckSizer, 0, wx.EXPAND, 5 )
 
         # LOESS Button
@@ -138,7 +156,7 @@ class GIGUI(base.AnalysisGUI):
 
 
         # Zeros Check
-        (self.wxobj.giZeroCheckBox, zeroSizer) = self.defineCheckBox(giPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(180,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
+        (self.wxobj.giZeroCheckBox, zeroSizer) = self.defineCheckBox(giPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
         giSizer.Add(zeroSizer, 0, wx.EXPAND, 5 )
 
 
@@ -342,12 +360,11 @@ class DatasetDialog(wx.Dialog):
                 defaultDir=self.wxobj.workdir,
                 defaultFile="",
                 wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*",
-                style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
                 )
             if dlg.ShowModal() == wx.ID_OK:
                 paths = dlg.GetPaths()
                 print "You chose the following Control file(s):"
-                print paths
                 for fullpath in paths:
                     print "\t%s" % fullpath
                     self.loadCtrlFile(fullpath)
@@ -381,7 +398,7 @@ class DatasetDialog(wx.Dialog):
                 defaultDir=self.wxobj.workdir,
                 defaultFile="",
                 wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*",
-                style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
                 )
             if dlg.ShowModal() == wx.ID_OK:
                 paths = dlg.GetPaths()
@@ -401,12 +418,23 @@ class DatasetDialog(wx.Dialog):
     def loadCtrlFile(self, fullpath):
         name = transit_tools.basename(fullpath)
         (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-        self.list_ctrl.InsertStringItem(self.index_ctrl, name)
-        self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
-        self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
-        self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
-        self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
-        self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+
+        if WX_VERSION > 3:
+            self.list_ctrl.InsertItem(self.index_ctrl, name)
+            self.list_ctrl.SetItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+            self.list_ctrl.SetItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+            self.list_ctrl.SetItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+            self.list_ctrl.SetItem(self.index_ctrl, 4, "%d" % (maxrd))
+            self.list_ctrl.SetItem(self.index_ctrl, 5, "%s" % (fullpath))
+        else:
+            self.list_ctrl.InsertStringItem(self.index_ctrl, name)
+            self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
+            self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+            self.list_ctrl.Select(self.index_ctrl)
+        self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
 
 #
@@ -414,12 +442,23 @@ class DatasetDialog(wx.Dialog):
     def loadExpFile(self, fullpath):
         name = transit_tools.basename(fullpath)
         (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-        self.list_exp.InsertStringItem(self.index_exp, name)
-        self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
-        self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
-        self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
-        self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
-        self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+
+        if WX_VERSION > 3:
+            self.list_exp.InsertItem(self.index_exp, name)
+            self.list_exp.SetItem(self.index_exp, 1, "%1.1f" % (totalrd))
+            self.list_exp.SetItem(self.index_exp, 2, "%2.1f" % (density*100))
+            self.list_exp.SetItem(self.index_exp, 3, "%1.1f" % (meanrd))
+            self.list_exp.SetItem(self.index_exp, 4, "%d" % (maxrd))
+            self.list_exp.SetItem(self.index_exp, 5, "%s" % (fullpath))
+        else:
+            self.list_exp.InsertStringItem(self.index_exp, name)
+            self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
+            self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
+            self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
+            self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
+            self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+
+        self.list_exp.Select(self.index_exp)
         self.index_exp+=1
 
 #
@@ -465,6 +504,7 @@ class GIMethod(base.QuadConditionMethod):
                 output_file,
                 normalization="TTR",
                 samples=10000,
+                rope=0.5,
                 includeZeros=False,
                 replicates="Sum",
                 LOESS=False,
@@ -472,11 +512,11 @@ class GIMethod(base.QuadConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.QuadConditionMethod.__init__(self, short_name, long_name, description, ctrldataA, ctrldataB, expdataA, expdataB, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.QuadConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldataA, ctrldataB, expdataA, expdataB, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         self.samples = samples
         self.includeZeros = includeZeros
-        self.rope = 0.5
+        self.rope = rope
         self.doBFDR = False
         self.doFWER = False 
 
@@ -509,8 +549,8 @@ class GIMethod(base.QuadConditionMethod):
             ctrldataB = dlg.ctrlSelected()
             expdataB = dlg.expSelected()
             if not transit_tools.validate_both_datasets(ctrldataB, expdataB):
-                dlg.Close()
-                dlg.Destroy()
+                #dlg.Close()
+                #dlg.Destroy()
                 return None
             if not transit_tools.validate_transposons_used(ctrldataB+expdataB, transposons):
                 dlg.Close()
@@ -528,6 +568,7 @@ class GIMethod(base.QuadConditionMethod):
         #Read the parameters from the wxPython widgets
         ignoreCodon = True
         samples = int(wxobj.giSampleText.GetValue())
+        rope = float(wxobj.giROPEText.GetValue())
         normalization = wxobj.giNormChoice.GetString(wxobj.giNormChoice.GetCurrentSelection())
         replicates="Sum"
 
@@ -556,6 +597,7 @@ class GIMethod(base.QuadConditionMethod):
                 output_file,
                 normalization,
                 samples,
+                rope,
                 includeZeros,
                 replicates,
                 LOESS,
@@ -578,6 +620,7 @@ class GIMethod(base.QuadConditionMethod):
 
         normalization = kwargs.get("n", "TTR")
         samples = int(kwargs.get("s", 10000))
+        rope = int(kwargs.get("-rope", 0.5))
         replicates = kwargs.get("r", "Sum")
         includeZeros = kwargs.get("iz", False)
     
@@ -595,6 +638,7 @@ class GIMethod(base.QuadConditionMethod):
                 output_file,
                 normalization,
                 samples,
+                rope,
                 includeZeros,
                 replicates,
                 LOESS,
@@ -688,6 +732,9 @@ class GIMethod(base.QuadConditionMethod):
         data = []
         postprob = []
 
+        count = 0
+        N = len(G_A1)
+        self.progress_range(N)
         # Perform actual analysis
         for gene in G_A1:
 
@@ -786,6 +833,10 @@ class GIMethod(base.QuadConditionMethod):
             data.append((gene.orf, gene.name, gene.n, numpy.mean(muA1_post), numpy.mean(muA2_post), numpy.mean(muB1_post), numpy.mean(muB2_post), mean_logFC_A, mean_logFC_B, mean_delta_logFC, l_delta_logFC, u_delta_logFC, probROPE, not_HDI_overlap_bit))
 
 
+            text = "Running GI Method... %2.0f%%" % (100.0*(count+1)/N)
+            self.progress_update(text, count)
+            self.transit_message_inplace("Running Export Method... %1.1f%%" % (100.0*count/(N-1)))
+            count+=1
 
         data.sort(key=lambda x: x[-2])
 
@@ -876,6 +927,7 @@ class GIMethod(base.QuadConditionMethod):
     
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
+        --rope <float>  :=  Region of Practical Equivalence. Area around 0 (i.e. 0 +/- ROPE) that is NOT of interest. Can be thought of similar to the area of the null-hypothesis. Default: --rope 0.5
         -n <string>     :=  Normalization method. Default: -n TTR
         -iz             :=  Include rows with zero accross conditions.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.

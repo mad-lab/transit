@@ -2,18 +2,31 @@ import sys
 
 try:
     import wx
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
+
 
 import os
 import time
@@ -35,8 +48,9 @@ import pytransit.stat_tools as stat_tools
 ############# GUI ELEMENTS ##################
 
 short_name = "hmm"
-long_name = "Analysis of genomic regions using a Hidden Markov Model"
-description = """Analysis of essentiality in the entire genome using a Hidden Markov Model. Capable of determining regions with different levels of essentiality representing Essential, Growth-Defect, Non-Essential and Growth-Advantage regions.
+long_name = "HMM"
+short_desc = "Analysis of genomic regions using a Hidden Markov Model"
+long_desc = """Analysis of essentiality in the entire genome using a Hidden Markov Model. Capable of determining regions with different levels of essentiality representing Essential, Growth-Defect, Non-Essential and Growth-Advantage regions.
 
 Reference: DeJesus et al. (2013; BMC Bioinformatics)
 """
@@ -49,7 +63,7 @@ columns_genes = ["Orf","Name","Description","Total Sites","Num. ES","Num. GD","N
 
 class HMMAnalysis(base.TransitAnalysis):
     def __init__(self):
-        base.TransitAnalysis.__init__(self, short_name, long_name, description, transposons, HMMMethod, HMMGUI, [HMMSitesFile, HMMGenesFile])
+        base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, HMMMethod, HMMGUI, [HMMSitesFile, HMMGenesFile])
 
 
 ################## FILE ###################
@@ -121,8 +135,8 @@ class HMMGUI(base.AnalysisGUI):
 
         hmmSection = wx.BoxSizer( wx.VERTICAL )
 
-        hmmLabel = wx.StaticText( hmmPanel, wx.ID_ANY, u"HMM Options", wx.DefaultPosition, wx.DefaultSize, 0 )
-        hmmLabel.Wrap( -1 )
+        hmmLabel = wx.StaticText( hmmPanel, wx.ID_ANY, u"HMM Options", wx.DefaultPosition, (110,-1), 0 )
+        hmmLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         hmmSection.Add( hmmLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
         hmmSizer1 = wx.BoxSizer( wx.VERTICAL )
@@ -143,7 +157,7 @@ class HMMGUI(base.AnalysisGUI):
 
 
         # LOESS
-        (self.wxobj.hmmLoessCheck, loessCheckSizer) = self.defineCheckBox(hmmPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(230,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
+        (self.wxobj.hmmLoessCheck, loessCheckSizer) = self.defineCheckBox(hmmPanel, labelText="Correct for Genome Positional Bias", widgetCheck=False, widgetSize=(-1,-1), tooltipText="Check to correct read-counts for possible regional biase using LOESS. Clicking on the button below will plot a preview, which is helpful to visualize the possible bias in the counts.")
         hmmSizer1.Add( loessCheckSizer, 0, wx.EXPAND, 5 )
 
         # LOESS Button
@@ -187,7 +201,7 @@ class HMMMethod(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, short_name, long_name, description, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         try:
             T = len([1 for line in open(ctrldata[0]).readlines() if not line.startswith("#")])
@@ -460,8 +474,8 @@ class HMMMethod(base.SingleConditionMethod):
             if numpy.sum(alpha[:,t]) == 0:
                 alpha[:,t] = 0.0000000000001
            
-            self.progress_update("hmm", self.count)
-            self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
+            text = "Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations)
+            self.progress_update(text, self.count)
             self.count+=1
             #print t, O[:,t], alpha[:,t]
 
@@ -490,8 +504,8 @@ class HMMMethod(base.SingleConditionMethod):
             if C.any():
                 beta[:,t] = beta[:,t] * C[t]
 
-            self.progress_update("hmm", self.count)
-            self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
+            text = "Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations)
+            self.progress_update(text, self.count)
             self.count+=1
 
         return(beta)
@@ -515,20 +529,21 @@ class HMMMethod(base.SingleConditionMethod):
             nus = delta[:, t-1] + A
             delta[:,t] = nus.max(1) + numpy.log(b_o)
             Q[:,t] = nus.argmax(1)
-            self.progress_update("hmm", self.count)
-            self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
+            text = "Running HMM Method... %5.1f%%" % (100.0*self.count/self.maxiterations)
+            self.progress_update(text, self.count)
             self.count+=1
 
         Q_opt = [int(numpy.argmax(delta[:,T-1]))]
         for t in xrange(T-2, -1, -1):
             Q_opt.insert(0, Q[Q_opt[0],t+1])
-            self.progress_update("hmm", self.count)
-            self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
+
+            text = "Running HMM Method... %5.1f%%" % (100.0*self.count/self.maxiterations)
+            self.progress_update(text, self.count)
             self.count+=1
 
         numpy.seterr(divide='warn')
-        self.progress_update("hmm", self.count)
-        self.transit_message_inplace("Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations))
+        text = "Running HMM Method... %5.1f%%" % (100.0*self.count/self.maxiterations)
+        self.progress_update(text, self.count)
 
         return((Q_opt, delta, Q))
 

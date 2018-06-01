@@ -5,19 +5,39 @@ Welcome to TRANSIT's documentation!
 ===================================
 
 
-The main documentation for the site is organized into the following sections:
+This page contains the documentation for TRANSIT. Below are a few quick links to some of the most important sections of the documentation, followed by a brief overview of TRANSIT's features.
 
+Quick Links
+~~~~~~~~~~~
+.. _quick-link:
+
+
+* :ref:`install-link`
 * :ref:`manual-link`
 * :ref:`tutorial-link`
 * :ref:`tpp-link`
 * :ref:`code-link`
 
 
-Quick Links
-~~~~~~~~~~~
+Features
+~~~~~~~~
+TRANSIT offers a variety of features including:
+ 
+*   More than **8 analysis methods**, including methods for determining **conditional essentiality** as well as **genetic interactions**.
 
-* :ref:`install-link`
-* :ref:`cheat-link`
+*   Ability to analyze **himar1 or tn5 transposons** datasets.
+
+*   **TrackView** to help visualize read-counts accross the genome.
+
+*   Can **export datasets** into a variety of formats, including **IGV**.
+
+*   Includes a **variety of normalization methods**.
+
+*   **Quality Control** diagnostics, to idenfity poor quality datasets.
+
+*   Ability to install as a **python package**, to import and use in your own personal scripts.   
+
+
 
 
 Mailing List
@@ -52,6 +72,7 @@ You can join our mailing list to get announcements of new versions, discuss any 
    transit_essentiality_tutorial
    transit_genome_tutorial
    transit_comparative_tutorial
+   transit_interactions_tutorial
    transit_normalization_tutorial
    transit_export_tutorial
 

@@ -3,19 +3,32 @@ import sys
 
 try:
     import wx
+    WX_VERSION = int(wx.version()[0])
     hasWx = True
-    #Check if wx is the newest 3.0+ version:
-    try:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        newWx = True
-    except AttributeError as e:
-        from wx.lib.pubsub import Publisher as pub
-        newWx = False
+
 except Exception as e:
     hasWx = False
-    newWx = False
-    
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+
+    #Imports depending on version:
+    if WX_VERSION == 2:
+        from wx.lib.pubsub import Publisher as pub
+
+    if WX_VERSION == 3:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+
+    if WX_VERSION == 4:
+        from wx.lib.pubsub import pub
+        pub.subscribe
+        import wx.adv
+
+   
 import traceback
 import datetime
 import pytransit.transit_tools as transit_tools
@@ -74,7 +87,7 @@ class ExportMethod:
         self.output = output
         self.annotation_path = annotation_path
 
-        self.newWx = newWx
+        self.WX_VERSION = WX_VERSION 
         self.wxobj = wxobj
 
 #
@@ -136,17 +149,40 @@ class ExportMethod:
     def finish(self):
         #TODO: write docstring
         if self.wxobj:
-            if newWx:
+            if WX_VERSION > 2:
                 wx.CallAfter(pub.sendMessage,"finish", msg=self.short_name.lower())
             else:
                 wx.CallAfter(pub.sendMessage,"finish", self.short_name.lower())
+
+#
+       
+    def progress_update(self, text, count):
+        #TODO: write docstring
+        if self.wxobj:
+            if WX_VERSION > 2:
+                wx.CallAfter(pub.sendMessage, "progress", msg=(self.short_name, count))
+            else:
+                wx.CallAfter(pub.sendMessage, "progress", (self.short_name, count))
+            wx.Yield()
+
+        self.transit_message_inplace(text)
+#
+
+    def progress_range(self, count):
+        #TODO: write docstring
+        if self.wxobj:
+            if WX_VERSION > 2:
+                wx.CallAfter(pub.sendMessage, "progressrange", msg=count)
+            else:
+                wx.CallAfter(pub.sendMessage, "progressrange", count)
+            wx.Yield()
 
 #       
 
     def status_message(self, text, time=-1):
         #TODO: write docstring
         if self.wxobj:
-            if newWx:
+            if WX_VERSION > 2:
                 wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
             else:
                 wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))

@@ -78,7 +78,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['setuptools', 'numpy', 'scipy', 'pillow', 'matplotlib'],
+    install_requires=['setuptools', 'numpy', 'scipy', 'pillow', 'matplotlib', 'wxpython'],
     
     #dependency_links = [
     #	"git+https://github.com/wxWidgets/wxPython.git#egg=wxPython"
@@ -113,8 +113,8 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'transit=pytransit.__main__:main',
-            'tpp=pytpp.__main__:main',
+            'transit=pytransit.__main__:run_main',
+            'tpp=pytpp.__main__:run_main',
         ],
     },
 )

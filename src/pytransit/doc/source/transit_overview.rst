@@ -111,7 +111,7 @@ Developers
 ==================  ============  ==============================================================================
  Name                Time Active          Contact Information
 ==================  ============  ==============================================================================
-Michael A. DeJesus  2015-Present  `http://students.cs.tamu.edu/mad <http://students.cs.tamu.edu/mad>`_
+Michael A. DeJesus  2015-Present  `http://mad-lab.org <http://mad-lab.org>`_
 Thomas R. Ioerger   2015-Present  `http://faculty.cs.tamu.edu/ioerger/ <http://faculty.cs.tamu.edu/ioerger/>`_
 Chaitra Ambadipudi  2015
 Eric Nelson         2016
@@ -151,3 +151,7 @@ Other references, including methods utilized by TRANSIT:
 
 
 .. [DeJesus2016] `DeJesus, M.A. and Ioerger, T.R. (2016). Normalization of transposon-mutant library sequencing datasets to improve identification of conditionally essential genes. Journal of Bioinformatics and Computational Biology, 14(3):1642004 <http://www.ncbi.nlm.nih.gov/pubmed/26932272>`_
+
+
+.. [DeJesus20170NAR] `DeJesus, M.A., Nambi, S., Smith, C.M., Baker, R.E., Sassetti, C.M., Ioerger, T.R. Statistical analysis of genetic interactions in Tn-Seq data.  Nucleic Acids Research. 2017. 45(11):e93. doi: 10.1093/nar/gkx128. <https://www.ncbi.nlm.nih.gov/pubmed/28334803>`_
+

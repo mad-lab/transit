@@ -7,7 +7,7 @@ Submodules
 ----------
 
 pytransit.norm_tools module
--------------------------
+---------------------------
 
 .. automodule:: pytransit.norm_tools
     :members:

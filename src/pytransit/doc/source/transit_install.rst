@@ -6,7 +6,14 @@ Installation
 ============
 TRANSIT can be downloaded from the public GitHub server,
 `http://github.com/mad-lab/transit <http://github.com/mad-lab/transit>`_. It is released under a GPL
-License. It can be downloaded with git as follows:
+License. An archive with the lastest version fo the source code can be downloaded at the following link:
+
+
+`Source code.zip <https://github.com/mad-lab/transit/archive/master.zip>`_
+
+
+
+If you know how to utilize git, you can clone the git respository as follows:
 
 ::
 
@@ -49,7 +56,7 @@ Use as a Python Package
 -----------------------------------------------------
 
 
-TRANSIT can be (optionally) installed as a python package. This can simplify the installation process as it will automatically install most of the requirements. In addition, it will allow users to use some of transit functions in their own scripts if they desire. Below is a brief example of importing transit functions into python. See the documentation of the package for further examples:
+TRANSIT can be (optionally) installed as a python package. This can simplify the installation process as it will automatically install most of the requirements. In addition, it will allow users to use some of transit functions in their own scripts if they desire. Below is a brief example of importing transit functions into python. In this example, pair of .wig files are parsed into their read-counts (data) and genomic positions (position), and then normalization factors are calculated. See the documentation of the package for further examples:
 
     :Example:
         >>> import pytransit.norm_tools as norm_tools
@@ -161,6 +168,21 @@ commands:
 
 
 
+
+After all the requirements have been installed, you can download an archive with the lastest version of the TRANSIT source code through the following link:
+
+
+`Source code.zip <https://github.com/mad-lab/transit/archive/master.zip>`_
+
+
+Or, if you prefer to utilize git, you can clone the git respository as follows:
+
+::
+
+    git clone https://github.com/mad-lab/transit/
+
+
+
 .. NOTE::
        If you will be using the pre-processor, TPP, you will also need to install :ref:`install BWA <bwa-unix>`.
 
@@ -262,6 +284,21 @@ Download and install the OSX binary of wxpython (cocoa version) for python 2.7:
 .. NOTE::
    If you are running OSX El Capitan or later, you will need to use a repackaged version of the
    wxpython installer. You can `download a repackaged version from our servers <http://orca1.tamu.edu/essentiality/transit/wxPython3.0-osx-cocoa-py2.7_mad_elcapitan.pkg>`_ or you can follow `these detailed instructions to repackage the installer <http://davixx.fr/blog/2016/01/25/wxpython-on-os-x-el-capitan/>`_ if you prefer.
+
+
+
+After all the requirements have been installed, you can download an archive with the lastest version of the TRANSIT source code through the following link:
+
+
+`Source code.zip <https://github.com/mad-lab/transit/archive/master.zip>`_
+
+
+Or, if you prefer to utilize git, you can clone the git respository as follows:
+
+::
+
+    git clone https://github.com/mad-lab/transit/
+
 
 
 .. NOTE::
@@ -416,6 +453,21 @@ Finally, install the files using pip:
 
 
 
+After all the requirements have been installed, you can download an archive with the lastest version of the TRANSIT source code through the following link:
+
+
+`Source code.zip <https://github.com/mad-lab/transit/archive/master.zip>`_
+
+
+Or, if you prefer to utilize git, you can clone the git respository as follows:
+
+::
+
+    git clone https://github.com/mad-lab/transit/
+
+
+
+
 .. NOTE::
        If you will be using the pre-processor, TPP, you will also need to install :ref:`install BWA <bwa-win>`.
 
@@ -482,6 +534,53 @@ The 32-bit version of Windows is not recommended as it is limited in the amount 
 
 |
 
+.. _transit-upgrade:
+
+Upgrading
+---------
+
+The process of upgrading transit will depend on how you installed transit initially.
+
+
+
+Method 1: Upgrading package installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+If you installed TRANSIT as a package, then to upgrade, simply use pip to install tnseq-transit again, but this time include the '--upgrade' flag. For example:
+
+
+::
+
+    sudo pip install tnseq-transit
+
+This will automatically download and install the latest version of TRANSIT, as well as upgrade any of its requirements if necessary for compatability.
+
+
+
+
+Method 2: Upgrading source installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you installed TRANSIT by downloading the raw source, then you can upgrade TRANSIT simply by replacing the old source code with the latest version. You can obtain a .zip archive with the latest version of the source through the following link:
+
+https://github.com/mad-lab/transit/archive/master.zip
+
+Simply exctract the code, and replace your existing files or delete the directory with the old source doe and use the newest version.
+
+
+|
+
+|
+----
+
+
+|
+
+|
+
+
+
 .. _transit-troubleshoot:
 
 Troubleshooting
@@ -512,17 +611,12 @@ from our servers <http://orca1.tamu.edu/essentiality/transit/wxPython3.0-osx-coc
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-This problem is likely due to running an unsupported version of matplotlib.
-Please download and install the version 2.0.2. You can download  and manually
-install the source from the following location:
-
- + `matplotlib-1.4.3 <https://sourceforge.net/projects/matplotlib/files/matplotlib/>`_
-
-Or, if you have pip installed, you can install using pip and specify the desired version:
+This problem is likely due to running OSX and previously unsuported versions of matplotlib.
+Please upgrade matplotlib to the latest version using:
 
 ::
 
-    pip install 'matplotlib' --force-reinstall
+    pip install 'matplotlib' --upgrade
 
 
 |
