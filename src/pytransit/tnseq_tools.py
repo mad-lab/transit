@@ -1461,12 +1461,12 @@ def griffin_analysis(genes_obj, pins):
         if gene.n == 0:
             results.append([gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, 0.0, 1.000])
         else:
-            # do I need to estimate this better (using exact calc for variance) for small genes too?
+            # do I need to estimate B better (using exact calc for variance) for small genes too?
             B = 1.0/math.log(1.0/pnon) # beta param of Gumbel distn; like tau in our Bioinfo paper
             #u = math.log(gene.n*pins, 1.0/pnon) # instead, calculate this based on estimate of ExpectedRun() length below
             exprun = ExpectedRuns(gene.n, pnon)
             # u is mu of Gumbel (mean=mu+gamma*beta); matching of moments; like Eq 5 in Schilling, but subtract off unneeded terms
-            u = exprun-getGamma()/math.log(1.0/pnon)+0.5 
+            u = exprun-getGamma()/math.log(1.0/pnon)
             pval = 1.0 - GumbelCDF(gene.r, u, B)
             results.append([gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, exprun, pval])
     return(results)
