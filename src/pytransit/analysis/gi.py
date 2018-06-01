@@ -125,12 +125,17 @@ class GIGUI(base.AnalysisGUI):
         
         mainSizer1 = wx.BoxSizer( wx.VERTICAL )
 
-        #(, , Sizer) = self.defineChoiceBox(giPanel, u"", u"", "")
-        #mainSizer1.Add(Sizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
         # Samples 
         (giSampleLabel, self.wxobj.giSampleText, sampleSizer) = self.defineTextBox(giPanel, u"Samples:", u"10000", "Number of samples to take when estimating the distributions of means. More samples give more accurate estimates at the cost of computation time.")
         mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+
+
+        # ROPE
+        (giROPELabel, self.wxobj.giROPEText, ROPESizer) = self.defineTextBox(giPanel, u"ROPE:", u"0.5", "Region of Practical Equivalence. Area around 0 (i.e. 0.0 +/- ROPE) that defines changes in enrichment (delta-log2FC) that are NOT of interest. Can be thought of as the area representing a null-hypothesis.")
+        mainSizer1.Add(ROPESizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+
+
 
         # Norm 
         giNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
@@ -499,6 +504,7 @@ class GIMethod(base.QuadConditionMethod):
                 output_file,
                 normalization="TTR",
                 samples=10000,
+                rope=0.5,
                 includeZeros=False,
                 replicates="Sum",
                 LOESS=False,
@@ -510,7 +516,7 @@ class GIMethod(base.QuadConditionMethod):
 
         self.samples = samples
         self.includeZeros = includeZeros
-        self.rope = 0.5
+        self.rope = rope
         self.doBFDR = False
         self.doFWER = False 
 
@@ -562,6 +568,7 @@ class GIMethod(base.QuadConditionMethod):
         #Read the parameters from the wxPython widgets
         ignoreCodon = True
         samples = int(wxobj.giSampleText.GetValue())
+        rope = float(wxobj.giROPEText.GetValue())
         normalization = wxobj.giNormChoice.GetString(wxobj.giNormChoice.GetCurrentSelection())
         replicates="Sum"
 
@@ -590,6 +597,7 @@ class GIMethod(base.QuadConditionMethod):
                 output_file,
                 normalization,
                 samples,
+                rope,
                 includeZeros,
                 replicates,
                 LOESS,
@@ -612,6 +620,7 @@ class GIMethod(base.QuadConditionMethod):
 
         normalization = kwargs.get("n", "TTR")
         samples = int(kwargs.get("s", 10000))
+        rope = int(kwargs.get("-rope", 0.5))
         replicates = kwargs.get("r", "Sum")
         includeZeros = kwargs.get("iz", False)
     
@@ -629,6 +638,7 @@ class GIMethod(base.QuadConditionMethod):
                 output_file,
                 normalization,
                 samples,
+                rope,
                 includeZeros,
                 replicates,
                 LOESS,
@@ -917,6 +927,7 @@ class GIMethod(base.QuadConditionMethod):
     
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
+        --rope <float>  :=  Region of Practical Equivalence. Area around 0 (i.e. 0 +/- ROPE) that is NOT of interest. Can be thought of similar to the area of the null-hypothesis. Default: --rope 0.5
         -n <string>     :=  Normalization method. Default: -n TTR
         -iz             :=  Include rows with zero accross conditions.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.
