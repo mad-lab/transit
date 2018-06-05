@@ -155,6 +155,8 @@ class GumbelGUI(base.AnalysisGUI):
 
 ########## METHOD #######################
 
+EXACT = 20
+
 ALPHA = 1
 BETA = 1
 class GumbelMethod(base.SingleConditionMethod):
@@ -185,8 +187,7 @@ class GumbelMethod(base.SingleConditionMethod):
       
 
         self.cache_nn = {}
- 
-
+        self.cache_expruns = {}
 
     @classmethod
     def fromGUI(self, wxobj):
@@ -380,6 +381,10 @@ class GumbelMethod(base.SingleConditionMethod):
         
         SIG = numpy.array([self.sigmoid(g.s, g.t) * scipy.stats.norm.pdf(g.r, mu_r*g.s, sigma_r) for g in G if self.good_orf(g)])
 
+#        idxG,idxN = -1,0
+#        for i in range(len(G)):
+#          if G[i].name=="glf": idxG = i
+#          if ii_good[i]==True: idxN += 1 # could do sum(ii_good[:idxG])
 
         i = 1; count = 0;
         while i < self.samples:
@@ -397,7 +402,7 @@ class GumbelMethod(base.SingleConditionMethod):
                 # Z
                 Z = self.sample_Z(phi_new, w1, N, R, S, T, mu_s, sigma_s, SIG)
             
-            # w1
+                # w1
                 N_ESS = sum(Z == 1)
                 w1 = scipy.stats.beta.rvs(N_ESS + ALPHA_w, N_GOOD - N_ESS + BETA_w)
             
@@ -408,13 +413,15 @@ class GumbelMethod(base.SingleConditionMethod):
                     phi_sample[i] = phi_new
                     Z_sample[:,i] = Z
                     i+=1
+
             except ValueError as e:
                 self.transit_message("Error: %s" % e) 
                 self.transit_message("This is likely to have been caused by poor data (e.g. too sparse).") 
                 self.transit_message("If the density of the dataset is too low, the Gumbel method will not work.") 
                 self.transit_message("Quitting.") 
                 return
-                
+
+#            print i,phi_new,w1,G[idxG].name,N[idxN],R[idxN],Z[idxN]
             
             phi_old = phi_new
             #Update progress
@@ -490,28 +497,44 @@ class GumbelMethod(base.SingleConditionMethod):
     def good_orf(self, gene):
         return (gene.n >= 3 and gene.t >= 150)
 
+    def ExpectedRuns_cached(self,n,q):
+        if (n,q) not in self.cache_expruns: self.cache_expruns[(n,q)] = tnseq_tools.ExpectedRuns(n,q)
+        return self.cache_expruns[(n,q)]
+
     def classify(self, n,r,p):
         if n == 0: return 0
-        q = 1-p; B = 1/math.log(1/p); u = math.log(n*q,1/p);
-        pval = 1 - scipy.stats.gumbel_r.cdf(r,u,B)
+        q = 1-p; B = 1/math.log(1/p); u = math.log(n*q,1/p) 
+        BetaGamma = B*tnseq_tools.getGamma()
+        if n<EXACT: # estimate more accurately based on expected run len, using exact calc for small genes
+          exprun = self.ExpectedRuns_cached(n,p)
+          u = exprun-BetaGamma # u is mu of Gumbel (mean=mu+gamma*beta); matching of moments
+        pval = 1 - scipy.exp(scipy.stats.gumbel_r.logcdf(r,u,B))
         if pval < 0.05: return(1)
         else: return(0)
 
-    def F_non(self, p, N, R):
-        q = 1.0 - p
+    def F_non(self, p, N, R): # pass in P_nonins as p
+        q = 1.0 - p; 
+        BetaGamma = tnseq_tools.getGamma()/math.log(1/p)
         total = numpy.log(scipy.stats.beta.pdf(p,ALPHA,BETA))
         mu = numpy.log(N*q) / numpy.log(1/p)
+        for i in range(len(N)): # estimate more accurately based on expected run len, using exact calc for small genes
+          if N[i]<EXACT: mu[i] = self.ExpectedRuns_cached(int(N[i]),p)-BetaGamma
         sigma = 1/math.log(1/p);
-        total+= numpy.sum(numpy.log(scipy.stats.gumbel_r.pdf(R, mu, sigma)))
+        #for i in range(len(N)): print '\t'.join([str(x) for x in N[i],R[i],self.ExpectedRuns_cached(int(N[i]),q),mu[i],scipy.stats.gumbel_r.pdf(R[i], mu[i], sigma)])
+        total += numpy.sum(scipy.stats.gumbel_r.logpdf(R, mu, sigma))
         return(total)
     
     def sample_Z(self, p, w1, N, R, S, T, mu_s, sigma_s, SIG):
         G = len(N)
         q = 1.0-p
-        mu = numpy.log(N*q) / numpy.log(1.0/p)
+        BetaGamma = tnseq_tools.getGamma()/math.log(1/p)
+        mu = numpy.log(N*q) / numpy.log(1/p)
+        for i in range(len(N)): # estimate more accurately based on expected run len, using exact calc for small genes
+          if N[i]<EXACT: mu[i] = self.ExpectedRuns_cached(int(N[i]),p)-BetaGamma
         sigma = 1.0/math.log(1.0/p);
-        h0 = ((scipy.stats.gumbel_r.pdf(R,mu,sigma)) * scipy.stats.norm.pdf(S, mu_s*R, sigma_s)  * (1-w1))
+        h0 = ((scipy.exp(scipy.stats.gumbel_r.logpdf(R,mu,sigma))) * scipy.stats.norm.pdf(S, mu_s*R, sigma_s)  * (1-w1))
         h1 = SIG * w1
+        h1 += 1e-10; h0 += 1e-10 # to prevent div-by-zero; if neither class is probable, p(z1) should be ~0.5
         p_z1 = h1/(h0+h1)
         return scipy.stats.binom.rvs(1, p_z1, size=G)
 
