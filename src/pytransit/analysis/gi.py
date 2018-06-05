@@ -178,312 +178,312 @@ class GIGUI(base.AnalysisGUI):
 
 
 
+if hasWx:
 
-
-class DatasetDialog(wx.Dialog):
+    class DatasetDialog(wx.Dialog):
     
+    
+        def __init__(self, *args, **kw):
 
-    def __init__(self, *args, **kw):
+            self.wxobj = args[0]
+            self.verbose = self.wxobj.verbose
+    
+            from wx.lib.buttons import GenBitmapTextButton
+            bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_OTHER, (16, 16))
 
-        self.wxobj = args[0]
-        self.verbose = self.wxobj.verbose
+            wx.Dialog.__init__(self, None, title="Dataset Dialog")
+    
+            self.ID_DONE = wx.NewId()
 
-        from wx.lib.buttons import GenBitmapTextButton
-        bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_OTHER, (16, 16))
-
-        wx.Dialog.__init__(self, None, title="Dataset Dialog")
-
-        self.ID_DONE = wx.NewId()
-
-        self.SetSize((900, 800))
-        self.SetTitle("Please select files for the second condition.")
-
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(mainSizer)
-
-        warningText = """
+            self.SetSize((900, 800))
+            self.SetTitle("Please select files for the second condition.")
+    
+            mainSizer = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(mainSizer)
+    
+            warningText = """
 
     The Genetic Interactions method requires a total of four sets of datasets. Typically these are 2 strain backgrounds (e.g. Wildtype and Knockout) each grown under two conditions (e.g. in vitro and in vivo, or rich-media and presence of antibiotic).
 
     The Control and Experimental datasets added in the main TRANSIT interface are assumed to be the two strain backgrounds grown under the first condition. This interface allows you to add the remaining datasets for the second condition.
 
-        """
-        warningStaticBox = wx.StaticText(self, wx.ID_ANY, warningText, (-1,-1), (-1, -1), wx.EXPAND)
-        warningStaticBox.Wrap(800)
-        mainSizer.Add(warningStaticBox, flag=wx.CENTER, border=5)
+            """
+            warningStaticBox = wx.StaticText(self, wx.ID_ANY, warningText, (-1,-1), (-1, -1), wx.EXPAND)
+            warningStaticBox.Wrap(800)
+            mainSizer.Add(warningStaticBox, flag=wx.CENTER, border=5)
 
 
-        # CONTROL 
-        ctrlSizerB = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Control Samples - Condition B" ), wx.VERTICAL )
+            # CONTROL 
+            ctrlSizerB = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Control Samples - Condition B" ), wx.VERTICAL )
 
-        bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-
-        self.ctrlRemoveButton = wx.Button( self, wx.ID_ANY, u"Remove", wx.DefaultPosition, (96,-1), 0 )
-        bSizer2.Add( self.ctrlRemoveButton, 0, wx.ALL, 5 )
-
-        self.ctrlView = wx.Button( self, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.ctrlView.Hide()
-
-        bSizer2.Add( self.ctrlView, 0, wx.ALL, 5 )
-
-        self.ctrlScatter = wx.Button( self, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.ctrlScatter.Hide()
-
-        bSizer2.Add( self.ctrlScatter, 0, wx.ALL, 5 )
-
-        self.ctrlFilePicker = GenBitmapTextButton(self, 1, bmp, '[Click to add Control Dataset(s)]', size= wx.Size(500, -1))
-        bSizer2.Add( self.ctrlFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
-
-        ctrlSizerB.Add( bSizer2, 0, wx.EXPAND, 5 )
-
-        self.list_ctrl = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
-
-        self.list_ctrl.SetMaxSize(wx.Size(940,200))
-        ctrlSizerB.Add( self.list_ctrl, 1, wx.ALL|wx.EXPAND, 5 )
-
-
-        # EXPERIMENTAL
-
-        expSizerB = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Experimental Samples - Condition B" ), wx.VERTICAL )
-
-        bSizer3 = wx.BoxSizer( wx.HORIZONTAL )
-
-        self.expRemoveButton = wx.Button( self, wx.ID_ANY, u"Remove", wx.DefaultPosition, (96,-1), 0 )
-        bSizer3.Add( self.expRemoveButton, 0, wx.ALL, 5 )
-
-        self.expView = wx.Button( self, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.expView.Hide()
-
-        bSizer3.Add( self.expView, 0, wx.ALL, 5 )
-
-        self.expScatter = wx.Button( self, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.expScatter.Hide()
-
-        bSizer3.Add( self.expScatter, 0, wx.ALL, 5 )
-
-
-        self.expFilePicker = GenBitmapTextButton(self, 1, bmp, '[Click to add Experimental Dataset(s)]', size= wx.Size(500, -1))
-        bSizer3.Add( self.expFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
-
-
-        expSizerB.Add( bSizer3, 0, wx.EXPAND, 5 )
-
-        self.list_exp = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
-        self.list_exp.SetMaxSize(wx.Size(940, 200))
-        expSizerB.Add( self.list_exp, 1, wx.ALL|wx.EXPAND, 5 )
-
-
-
-
+            bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
     
-        # MAIN
-
-
-
-        mainSizer.Add( ctrlSizerB, 1, wx.EXPAND, 5 )
-        mainSizer.Add( expSizerB, 1, wx.EXPAND, 5 )
-
-
-        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        doneButton = wx.Button(self, self.ID_DONE, label='Done')
-        cancelButton = wx.Button(self, wx.ID_CANCEL, label='Cancel')
-
-
-        button_sizer.Add(doneButton, flag=wx.LEFT, border=5)
-        button_sizer.Add(cancelButton, flag=wx.LEFT, border=5)
-
-        self.expFilePicker.Bind( wx.EVT_BUTTON, self.loadExpFileFunc )
-        self.ctrlFilePicker.Bind( wx.EVT_BUTTON, self.loadCtrlFileFunc )
+            self.ctrlRemoveButton = wx.Button( self, wx.ID_ANY, u"Remove", wx.DefaultPosition, (96,-1), 0 )
+            bSizer2.Add( self.ctrlRemoveButton, 0, wx.ALL, 5 )
+    
+            self.ctrlView = wx.Button( self, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
+            self.ctrlView.Hide()
+    
+            bSizer2.Add( self.ctrlView, 0, wx.ALL, 5 )
+    
+            self.ctrlScatter = wx.Button( self, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
+            self.ctrlScatter.Hide()
+    
+            bSizer2.Add( self.ctrlScatter, 0, wx.ALL, 5 )
+    
+            self.ctrlFilePicker = GenBitmapTextButton(self, 1, bmp, '[Click to add Control Dataset(s)]', size= wx.Size(500, -1))
+            bSizer2.Add( self.ctrlFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
+    
+            ctrlSizerB.Add( bSizer2, 0, wx.EXPAND, 5 )
+    
+            self.list_ctrl = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
+    
+            self.list_ctrl.SetMaxSize(wx.Size(940,200))
+            ctrlSizerB.Add( self.list_ctrl, 1, wx.ALL|wx.EXPAND, 5 )
+    
+    
+            # EXPERIMENTAL
+    
+            expSizerB = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Experimental Samples - Condition B" ), wx.VERTICAL )
+    
+            bSizer3 = wx.BoxSizer( wx.HORIZONTAL )
+    
+            self.expRemoveButton = wx.Button( self, wx.ID_ANY, u"Remove", wx.DefaultPosition, (96,-1), 0 )
+            bSizer3.Add( self.expRemoveButton, 0, wx.ALL, 5 )
+    
+            self.expView = wx.Button( self, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
+            self.expView.Hide()
+    
+            bSizer3.Add( self.expView, 0, wx.ALL, 5 )
+    
+            self.expScatter = wx.Button( self, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
+            self.expScatter.Hide()
+    
+            bSizer3.Add( self.expScatter, 0, wx.ALL, 5 )
+    
+    
+            self.expFilePicker = GenBitmapTextButton(self, 1, bmp, '[Click to add Experimental Dataset(s)]', size= wx.Size(500, -1))
+            bSizer3.Add( self.expFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
+    
+    
+            expSizerB.Add( bSizer3, 0, wx.EXPAND, 5 )
+    
+            self.list_exp = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
+            self.list_exp.SetMaxSize(wx.Size(940, 200))
+            expSizerB.Add( self.list_exp, 1, wx.ALL|wx.EXPAND, 5 )
+    
+    
+    
+    
         
+            # MAIN
+    
+    
+    
+            mainSizer.Add( ctrlSizerB, 1, wx.EXPAND, 5 )
+            mainSizer.Add( expSizerB, 1, wx.EXPAND, 5 )
+    
+    
+            button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            doneButton = wx.Button(self, self.ID_DONE, label='Done')
+            cancelButton = wx.Button(self, wx.ID_CANCEL, label='Cancel')
+    
+    
+            button_sizer.Add(doneButton, flag=wx.LEFT, border=5)
+            button_sizer.Add(cancelButton, flag=wx.LEFT, border=5)
+    
+            self.expFilePicker.Bind( wx.EVT_BUTTON, self.loadExpFileFunc )
+            self.ctrlFilePicker.Bind( wx.EVT_BUTTON, self.loadCtrlFileFunc )
+            
 
-        mainSizer.Add(button_sizer,
-            flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
+            mainSizer.Add(button_sizer,
+                flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
+    
+            doneButton.Bind(wx.EVT_BUTTON, self.OnClose)
+            cancelButton.Bind(wx.EVT_BUTTON, self.OnClose)
 
-        doneButton.Bind(wx.EVT_BUTTON, self.OnClose)
-        cancelButton.Bind(wx.EVT_BUTTON, self.OnClose)
-
-        self.ctrlFilePicker.Bind( wx.EVT_BUTTON, self.loadCtrlFileFunc )
-        self.expFilePicker.Bind( wx.EVT_BUTTON, self.loadExpFileFunc )
-        self.ctrlRemoveButton.Bind( wx.EVT_BUTTON, self.ctrlRemoveFunc )
-        self.expRemoveButton.Bind( wx.EVT_BUTTON, self.expRemoveFunc )
+            self.ctrlFilePicker.Bind( wx.EVT_BUTTON, self.loadCtrlFileFunc )
+            self.expFilePicker.Bind( wx.EVT_BUTTON, self.loadExpFileFunc )
+            self.ctrlRemoveButton.Bind( wx.EVT_BUTTON, self.ctrlRemoveFunc )
+            self.expRemoveButton.Bind( wx.EVT_BUTTON, self.expRemoveFunc )
+    
 
 
-
-        self.index_ctrl = 0
-        self.list_ctrl.InsertColumn(0, 'File', width=210)
-        self.list_ctrl.InsertColumn(1, 'Total Reads', width=85)
-        self.list_ctrl.InsertColumn(2, 'Density', width=85)
-        self.list_ctrl.InsertColumn(3, 'Mean Count', width=90)
-        self.list_ctrl.InsertColumn(4, 'Max Count', width=85)
-        self.list_ctrl.InsertColumn(5, 'Full Path', width=403)
-
-        self.index_exp = 0
-        self.list_exp.InsertColumn(0, 'File', width=210)
-        self.list_exp.InsertColumn(1, 'Total Reads', width=85)
-        self.list_exp.InsertColumn(2, 'Density', width=85)
-        self.list_exp.InsertColumn(3, 'Mean Count', width=90)
-        self.list_exp.InsertColumn(4, 'Max Count', width=85)
-        self.list_exp.InsertColumn(5, 'Full Path',width=403)
+            self.index_ctrl = 0
+            self.list_ctrl.InsertColumn(0, 'File', width=210)
+            self.list_ctrl.InsertColumn(1, 'Total Reads', width=85)
+            self.list_ctrl.InsertColumn(2, 'Density', width=85)
+            self.list_ctrl.InsertColumn(3, 'Mean Count', width=90)
+            self.list_ctrl.InsertColumn(4, 'Max Count', width=85)
+            self.list_ctrl.InsertColumn(5, 'Full Path', width=403)
+    
+            self.index_exp = 0
+            self.list_exp.InsertColumn(0, 'File', width=210)
+            self.list_exp.InsertColumn(1, 'Total Reads', width=85)
+            self.list_exp.InsertColumn(2, 'Density', width=85)
+            self.list_exp.InsertColumn(3, 'Mean Count', width=90)
+            self.list_exp.InsertColumn(4, 'Max Count', width=85)
+            self.list_exp.InsertColumn(5, 'Full Path',width=403)
 
         
+    
+    
+    
+        def OnClose(self, event):
+            if self.IsModal():
+                self.EndModal(event.EventObject.Id)
+                self.Close()
+            else:
+                self.Close()
+                self.Destroy()
+    
+    
+        def ctrlSelected(self, col=5):
+            selected_ctrl = []
+            current = -1
+            while True:
+                next = self.list_ctrl.GetNextSelected(current)
+                if next == -1:
+                    break
+                path = self.list_ctrl.GetItem(next, col).GetText()
+                selected_ctrl.append(path)
+                current = next
+            return selected_ctrl
+    
+#   
+    
+        def loadCtrlFileFunc(self, event):
+            try:
+    
+                dlg = wx.FileDialog(
+                    self, message="Choose a file",
+                    defaultDir=self.wxobj.workdir,
+                    defaultFile="",
+                    wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*",
+                    style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
+                    )
+                if dlg.ShowModal() == wx.ID_OK:
+                    paths = dlg.GetPaths()
+                    print "You chose the following Control file(s):"
+                    for fullpath in paths:
+                        print "\t%s" % fullpath
+                        self.loadCtrlFile(fullpath)
+                dlg.Destroy()
+            except Exception as e:
+                transit_tools.transit_message("Error: %s" % e)
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print(exc_type, fname, exc_tb.tb_lineno)
+    
+#   
 
+        def expSelected(self, col=5):
+            selected_exp = []
+            current = -1
+            while True:
+                next = self.list_exp.GetNextSelected(current)
+                if next == -1:
+                    break
+                path = self.list_exp.GetItem(next, col).GetText()
+                selected_exp.append(path)
+                current = next
+            return selected_exp
+    
 
-
-    def OnClose(self, event):
-        if self.IsModal():
-            self.EndModal(event.EventObject.Id)
-            self.Close()
-        else:
-            self.Close()
-            self.Destroy()
-
-
-    def ctrlSelected(self, col=5):
-        selected_ctrl = []
-        current = -1
-        while True:
-            next = self.list_ctrl.GetNextSelected(current)
-            if next == -1:
-                break
-            path = self.list_ctrl.GetItem(next, col).GetText()
-            selected_ctrl.append(path)
-            current = next
-        return selected_ctrl
+        def loadExpFileFunc(self, event):
+            try:
+    
+                dlg = wx.FileDialog(
+                    self, message="Choose a file",
+                    defaultDir=self.wxobj.workdir,
+                    defaultFile="",
+                    wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*",
+                    style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
+                    )
+                if dlg.ShowModal() == wx.ID_OK:
+                    paths = dlg.GetPaths()
+                    print "You chose the following Experimental file(s):"
+                    for fullpath in paths:
+                        print "\t%s" % fullpath
+                        self.loadExpFile(fullpath)
+                dlg.Destroy()
+            except Exception as e:
+                transit_tools.transit_message("Error: %s" % e)
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print(exc_type, fname, exc_tb.tb_lineno)
 
 #
 
-    def loadCtrlFileFunc(self, event):
-        try:
+        def loadCtrlFile(self, fullpath):
+            name = transit_tools.basename(fullpath)
+            (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
 
-            dlg = wx.FileDialog(
-                self, message="Choose a file",
-                defaultDir=self.wxobj.workdir,
-                defaultFile="",
-                wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*",
-                style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
-                )
-            if dlg.ShowModal() == wx.ID_OK:
-                paths = dlg.GetPaths()
-                print "You chose the following Control file(s):"
-                for fullpath in paths:
-                    print "\t%s" % fullpath
-                    self.loadCtrlFile(fullpath)
-            dlg.Destroy()
-        except Exception as e:
-            transit_tools.transit_message("Error: %s" % e)
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-
-#
-
-    def expSelected(self, col=5):
-        selected_exp = []
-        current = -1
-        while True:
-            next = self.list_exp.GetNextSelected(current)
-            if next == -1:
-                break
-            path = self.list_exp.GetItem(next, col).GetText()
-            selected_exp.append(path)
-            current = next
-        return selected_exp
-
-
-    def loadExpFileFunc(self, event):
-        try:
-
-            dlg = wx.FileDialog(
-                self, message="Choose a file",
-                defaultDir=self.wxobj.workdir,
-                defaultFile="",
-                wildcard=u"Read Files (*.wig)|*.wig;|\nRead Files (*.txt)|*.txt;|\nRead Files (*.dat)|*.dat;|\nAll files (*.*)|*.*",
-                style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
-                )
-            if dlg.ShowModal() == wx.ID_OK:
-                paths = dlg.GetPaths()
-                print "You chose the following Experimental file(s):"
-                for fullpath in paths:
-                    print "\t%s" % fullpath
-                    self.loadExpFile(fullpath)
-            dlg.Destroy()
-        except Exception as e:
-            transit_tools.transit_message("Error: %s" % e)
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-
-#
-
-    def loadCtrlFile(self, fullpath):
-        name = transit_tools.basename(fullpath)
-        (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-
-        if WX_VERSION > 3:
-            self.list_ctrl.InsertItem(self.index_ctrl, name)
-            self.list_ctrl.SetItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
-            self.list_ctrl.SetItem(self.index_ctrl, 2, "%2.1f" % (density*100))
-            self.list_ctrl.SetItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
-            self.list_ctrl.SetItem(self.index_ctrl, 4, "%d" % (maxrd))
-            self.list_ctrl.SetItem(self.index_ctrl, 5, "%s" % (fullpath))
-        else:
-            self.list_ctrl.InsertStringItem(self.index_ctrl, name)
-            self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+            if WX_VERSION > 3:
+                self.list_ctrl.InsertItem(self.index_ctrl, name)
+                self.list_ctrl.SetItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+                self.list_ctrl.SetItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+                self.list_ctrl.SetItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+                self.list_ctrl.SetItem(self.index_ctrl, 4, "%d" % (maxrd))
+                self.list_ctrl.SetItem(self.index_ctrl, 5, "%s" % (fullpath))
+            else:
+                self.list_ctrl.InsertStringItem(self.index_ctrl, name)
+                self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+                self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+                self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+                self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
+                self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+                self.list_ctrl.Select(self.index_ctrl)
             self.list_ctrl.Select(self.index_ctrl)
-        self.list_ctrl.Select(self.index_ctrl)
-        self.index_ctrl+=1
+            self.index_ctrl+=1
+    
+#
+    
+        def loadExpFile(self, fullpath):
+            name = transit_tools.basename(fullpath)
+            (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
+
+            if WX_VERSION > 3:
+                self.list_exp.InsertItem(self.index_exp, name)
+                self.list_exp.SetItem(self.index_exp, 1, "%1.1f" % (totalrd))
+                self.list_exp.SetItem(self.index_exp, 2, "%2.1f" % (density*100))
+                self.list_exp.SetItem(self.index_exp, 3, "%1.1f" % (meanrd))
+                self.list_exp.SetItem(self.index_exp, 4, "%d" % (maxrd))
+                self.list_exp.SetItem(self.index_exp, 5, "%s" % (fullpath))
+            else:
+                self.list_exp.InsertStringItem(self.index_exp, name)
+                self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
+                self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
+                self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
+                self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
+                self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+
+            self.list_exp.Select(self.index_exp)
+            self.index_exp+=1
 
 #
 
-    def loadExpFile(self, fullpath):
-        name = transit_tools.basename(fullpath)
-        (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-
-        if WX_VERSION > 3:
-            self.list_exp.InsertItem(self.index_exp, name)
-            self.list_exp.SetItem(self.index_exp, 1, "%1.1f" % (totalrd))
-            self.list_exp.SetItem(self.index_exp, 2, "%2.1f" % (density*100))
-            self.list_exp.SetItem(self.index_exp, 3, "%1.1f" % (meanrd))
-            self.list_exp.SetItem(self.index_exp, 4, "%d" % (maxrd))
-            self.list_exp.SetItem(self.index_exp, 5, "%s" % (fullpath))
-        else:
-            self.list_exp.InsertStringItem(self.index_exp, name)
-            self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
-            self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
-            self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
-            self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
-            self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
-
-        self.list_exp.Select(self.index_exp)
-        self.index_exp+=1
-
-#
-
-    def ctrlRemoveFunc(self, event):
-        next = self.list_ctrl.GetNextSelected(-1)
-        while next != -1:
-            if self.verbose:
-                transit_tools.transit_message("Removing control item (%d): %s" % (next, self.list_ctrl.GetItem(next, 0).GetText()))
-            self.list_ctrl.DeleteItem(next)
+        def ctrlRemoveFunc(self, event):
             next = self.list_ctrl.GetNextSelected(-1)
-            self.index_ctrl-=1
+            while next != -1:
+                if self.verbose:
+                    transit_tools.transit_message("Removing control item (%d): %s" % (next, self.list_ctrl.GetItem(next, 0).GetText()))
+                self.list_ctrl.DeleteItem(next)
+                next = self.list_ctrl.GetNextSelected(-1)
+                self.index_ctrl-=1
 
 #
 
-    def expRemoveFunc(self, event):
-        next = self.list_exp.GetNextSelected(-1)
-        while next != -1:
-            if self.verbose:
-                transit_tools.transit_message("Removing experimental item (%d): %s" % (next, self.list_exp.GetItem(next, 0).GetText()))
-            self.list_exp.DeleteItem(next)
+        def expRemoveFunc(self, event):
             next = self.list_exp.GetNextSelected(-1)
-            self.index_exp-=1
-
-
+            while next != -1:
+                if self.verbose:
+                    transit_tools.transit_message("Removing experimental item (%d): %s" % (next, self.list_exp.GetItem(next, 0).GetText()))
+                self.list_exp.DeleteItem(next)
+                next = self.list_exp.GetNextSelected(-1)
+                self.index_exp-=1
+    
+    
 
 
 
@@ -730,8 +730,8 @@ class GIMethod(base.QuadConditionMethod):
         k0=1.0
         nu0=1.0
         data = []
-        postprob = []
 
+        postprob = []
         count = 0
         N = len(G_A1)
         self.progress_range(N)
