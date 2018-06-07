@@ -324,7 +324,7 @@ class MainFrame ( wx.Frame ):
         self.methodSizer.Add( self.globalLabel, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
         
         self.globalPanel = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.globalPanel.SetMinSize( wx.Size( 250,90 ) )
+        self.globalPanel.SetMinSize( wx.Size( 280,150 ) )
         self.globalPanel.SetMaxSize( wx.Size(-1,-1) )
       
  
@@ -354,10 +354,50 @@ class MainFrame ( wx.Frame ):
         cTermSizer.Add( self.globalCTerminusText, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
         cTermSizer.Add( self.globalCTerminusIcon, 1, wx.ALIGN_CENTER, 5 )
  
-        
+        # Control Libraries text - GLOBAL
+        ctrlLibSizer = wx.BoxSizer( wx.HORIZONTAL )
+        self.ctrlLibLabel = wx.StaticText(self.globalPanel, wx.ID_ANY, u"Control Libraries:", 
+            wx.DefaultPosition, (170,-1), 0)
+        self.ctrlLibLabel.Wrap( -1 )
+        self.ctrlLibText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, "",
+            wx.DefaultPosition, (-1,-1), 0 )
+        self.ctrlLibTip = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY,
+            tooltip="String of letters representing an \
+            identifier for the libraries the datasets belong to. For example, if adding three \
+            datasets of different libraries, change the string to 'ABC'. Set of letters used  \
+            must match those in Experimental datasets. Keep empty or with all letters equal, e.g. \
+            'AAA', to do regular resampling.")
 
+        self.ctrlLibText.Disable()
+        ctrlLibSizer.Add(self.ctrlLibLabel, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        ctrlLibSizer.Add(self.ctrlLibText, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        ctrlLibSizer.Add(self.ctrlLibTip, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+
+
+        # Experimental Libraries text - GLOBAL 
+        expLibSizer = wx.BoxSizer( wx.HORIZONTAL )
+        self.expLibLabel = wx.StaticText(self.globalPanel, wx.ID_ANY,
+            u"Experimental Libraries:",  wx.DefaultPosition, (170,-1), 0)
+        self.expLibLabel.Wrap( -1 )
+        self.expLibText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, "", wx.DefaultPosition,
+            (-1,-1), 0 )
+        self.expLibTip = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY,
+            tooltip="String of letters representing an identifier for the libraries the datasets \
+            belong to. For example, if adding three datasets of different libraries, change the \
+            string to 'ABC'. Set  of letters used must match those in Control datasets. Keep \
+            empty or with all letters equal, e.g. 'AAA', to do regular resampling.")
+
+        self.expLibText.Disable()
+        expLibSizer.Add(self.expLibLabel, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        expLibSizer.Add(self.expLibText, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        expLibSizer.Add(self.expLibTip, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+
+        
         globalSizerVT.Add( nTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
         globalSizerVT.Add( cTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        globalSizerVT.Add( ctrlLibSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        globalSizerVT.Add( expLibSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+
         
         
         self.globalPanel.SetSizer( globalSizerVT )
@@ -928,23 +968,79 @@ class TnSeekFrame(MainFrame):
 
     def HideGlobalOptions(self):
         self.globalLabel.Hide()
-        self.globalNTerminusLabel.Hide()
+        self.HideGlobalCTerminus()
+        self.HideGlobalNTerminus()
+        self.HideGlobalLibraries()
+
+#
+
+    def HideGlobalCTerminus(self):
         self.globalCTerminusLabel.Hide()
-        self.globalNTerminusText.Hide()
         self.globalCTerminusText.Hide()
-        self.globalNTerminusIcon.Hide()
         self.globalCTerminusIcon.Hide()
+
+#
+
+    def HideGlobalNTerminus(self):
+        self.globalNTerminusLabel.Hide()
+        self.globalNTerminusText.Hide()
+        self.globalNTerminusIcon.Hide()
+
+#
+
+    def HideGlobalLibraries(self):
+        self.HideGlobalCtrlLibraries()
+        self.HideGlobalExpLibraries()
+#
+
+    def HideGlobalCtrlLibraries(self):
+        self.ctrlLibLabel.Hide()
+        self.ctrlLibText.Hide()
+        self.ctrlLibTip.Hide()
+
+#
+
+    def HideGlobalExpLibraries(self):
+        self.expLibLabel.Hide()
+        self.expLibText.Hide()
+        self.expLibTip.Hide()
 
 #
 
     def ShowGlobalOptions(self):
         self.globalLabel.Show()
-        self.globalNTerminusLabel.Show()
+        self.ShowGlobalCTerminus()
+        self.ShowGlobalNTerminus()
+        self.ShowGlobalLibraries()
+
+#
+
+    def ShowGlobalCTerminus(self):
         self.globalCTerminusLabel.Show()
-        self.globalNTerminusText.Show()
         self.globalCTerminusText.Show()
-        self.globalNTerminusIcon.Show()
         self.globalCTerminusIcon.Show()
+
+#
+
+    def ShowGlobalNTerminus(self):
+        self.globalNTerminusText.Show()
+        self.globalNTerminusLabel.Show()
+        self.globalNTerminusIcon.Show()
+
+    def ShowGlobalLibraries(self):
+        self.ShowGlobalCtrlLibraries()
+        self.ShowGlobalExpLibraries()
+
+    def ShowGlobalCtrlLibraries(self):
+        self.ctrlLibLabel.Show()
+        self.ctrlLibText.Show()
+        self.ctrlLibTip.Show()
+
+    def ShowGlobalExpLibraries(self):
+        self.expLibLabel.Show()
+        self.expLibText.Show()
+        self.expLibTip.Show()
+
 
 #
 
@@ -1110,6 +1206,14 @@ class TnSeekFrame(MainFrame):
 
         self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
+        try:
+            self.ctrlLibText.SetValue(self.ctrlLibText.GetValue()+"A")
+        except Exception as e:
+            transit_tools.transit_message("Error Modifying Ctrl Lib String: %s" % e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
+ 
 
 #
 
@@ -1132,6 +1236,15 @@ class TnSeekFrame(MainFrame):
             self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
         self.list_exp.Select(self.index_exp)
         self.index_exp+=1
+
+        try:
+            self.expLibText.SetValue(self.expLibText.GetValue()+"A")
+        except Exception as e:
+            transit_tools.transit_message("Error Modifying Ctrl Lib String: %s" % e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
+
 
 #
 
@@ -1196,6 +1309,13 @@ class TnSeekFrame(MainFrame):
         while next != -1:
             if self.verbose:
                 transit_tools.transit_message("Removing control item (%d): %s" % (next, self.list_ctrl.GetItem(next, 0).GetText()))
+
+            # Update library string after removing wig file
+            updated_lib_text = self.ctrlLibText.GetValue()
+            updated_lib_text = updated_lib_text[:next] + updated_lib_text[(next+1):]
+            self.ctrlLibText.SetValue(updated_lib_text)
+
+            # Delete and Get next selected
             self.list_ctrl.DeleteItem(next)
             next = self.list_ctrl.GetNextSelected(-1)
             self.index_ctrl-=1 
@@ -1207,6 +1327,13 @@ class TnSeekFrame(MainFrame):
         while next != -1:
             if self.verbose:
                 transit_tools.transit_message("Removing experimental item (%d): %s" % (next, self.list_exp.GetItem(next, 0).GetText()))
+
+            # Update library string after removing wig file
+            updated_lib_text = self.expLibText.GetValue()
+            updated_lib_text = updated_lib_text[:next] + updated_lib_text[(next+1):]
+            self.expLibText.SetValue(updated_lib_text)
+
+            # Delete and Get next selected
             self.list_exp.DeleteItem(next)
             next = self.list_exp.GetNextSelected(-1)
             self.index_exp-=1
@@ -1422,24 +1549,32 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             self.ShowGlobalOptions()
             self.methodSizerText.Show()
             
-            #Show Selected Method and hide Others
+            #Get selected Method and hide Others
             for name in methods:
                 methods[name].gui.Hide()
+                methods[name].gui.GlobalHide()
+                methods[name].gui.GlobalDisable()
+                
                 if methods[name].fullname() == selected_name:
-                    self.methodInfoText.SetLabel("%s" % methods[name].long_name)
-                    
-                    self.methodTnText.Show()
-                    self.methodTnText.SetLabel(methods[name].getTransposonsText())
-                    self.methodTnText.Wrap(250)
+                    matched_name = name
 
-                    self.methodDescText.Show()
-                    self.methodDescText.SetLabel(methods[name].getDescriptionText())
-                    self.methodDescText.Wrap(250)
-                    self.methodInstructions.SetLabel(" ")
-                    methods[name].gui.Show()
-                    self.statusBar.SetStatusText("[%s]" % methods[name].short_name)
-                else:
-                    methods[name].gui.Hide()
+            if matched_name in methods:
+                name = matched_name
+                self.methodInfoText.SetLabel("%s" % methods[name].long_name)
+                    
+                self.methodTnText.Show()
+                self.methodTnText.SetLabel(methods[name].getTransposonsText())
+                self.methodTnText.Wrap(250)
+
+                self.methodDescText.Show()
+                self.methodDescText.SetLabel(methods[name].getDescriptionText())
+                self.methodDescText.Wrap(250)
+                self.methodInstructions.SetLabel(" ")
+                methods[name].gui.Show()
+                methods[name].gui.Show()
+                methods[name].gui.GlobalEnable()
+                self.statusBar.SetStatusText("[%s]" % methods[name].short_name)
+
             self.ShowProgressSection()
             self.method_choice = selected_name
 
