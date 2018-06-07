@@ -148,7 +148,13 @@ class ResamplingGUI(base.AnalysisGUI):
         mainSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 ) 
 
 
+
+
         resamplingSizer.Add( mainSizer1, 1, wx.EXPAND, 5 )
+
+
+
+
 
 
         # LOESS Check
@@ -186,6 +192,14 @@ class ResamplingGUI(base.AnalysisGUI):
         self.wxobj.resamplingLoessPrev.Bind(wx.EVT_BUTTON, self.wxobj.LoessPrevFunc)        
 
         self.panel = resamplingPanel
+
+    def GlobalEnable(self):
+        self.wxobj.ctrlLibText.Enable()
+        self.wxobj.expLibText.Enable()
+
+    def GlobalDisable(self):
+        self.wxobj.ctrlLibText.Disable()
+        self.wxobj.expLibText.Disable()
 
 
 
