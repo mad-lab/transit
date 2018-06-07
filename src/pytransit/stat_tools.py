@@ -458,23 +458,68 @@ def loess_correction(X, Y, h=10000, window=100):
 
 #
 
-def F_mean_diff_flat(A, B):
+def F_mean_diff_flat(*args, **kwargs):
+    A = args[0]
+    B = args[1]
     return numpy.mean(B) - numpy.mean(A)
 
 # 
    
-def F_sum_diff_flat(A, B):
+def F_sum_diff_flat(*args, **kwargs):
+    A = args[0]
+    B = args[1]
     return numpy.sum(B) - numpy.sum(A)
 
 #
 
-def F_shuffle_flat(X):
+def F_mean_diff_dict(*args, **kwargs):
+    D = args[0] 
+    data1_total = 0; data2_total = 0;
+    data1_size = 0; data2_size = 0;
+    for L in D:
+        data1_total+= numpy.sum(D[L][0])
+        data1_size+= len(D[L][0])
+        data2_total+= numpy.sum(D[L][1])
+        data2_size+= len(D[L][1])
+    return (data2_total/float(data2_size)) - (data1_total/float(data1_size))
+
+# 
+
+def F_sum_diff_dict(*args, **kwargs):
+    D = args[0]
+    data1_total = 0; data2_total = 0;
+    for L in D:
+        data1_total+= numpy.sum(D[L][0])
+        data2_total+= numpy.sum(D[L][1])
+    return data2_total - data1_total
+
+#
+
+def F_shuffle_flat(*args, **kwargs):
+    X = args[0]
     return numpy.random.permutation(X)
 
 #
 
+def F_shuffle_dict_libraries(*args, **kwargs):
+    D = args[0]
+    E = {}
+    for L in D:
+        #print "L", L
+        n1 = len(D[L][0])
+        combined = numpy.append(D[L][0], D[L][1])
+        #print "combined", combined
+        perm = numpy.random.permutation(combined)
+        #print "perm", perm
+        #print "perm[:n1]", perm[:n1]
+        E[L] = numpy.array([perm[:n1], perm[n1:]])
+        #print "D[L]", D[L]
+    return E
+
+#
+
 def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
-            permFunc=F_shuffle_flat, adaptive=False):
+            permFunc=F_shuffle_flat, adaptive=False, lib_str1="", lib_str2=""):
     """Does a permutation test on two sets of data.
 
     Performs the resampling / permutation test given two sets of data using a
@@ -482,7 +527,7 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
     the data.
 
     Args:
-        data1: List or numpy array with the first set of observations.
+        ar: List or numpy array with the first set of observations.
         data2: List or numpy array with the second set of observations.
         S: Number of permutation tests (or samples) to obtain.
         testFunc: Function defining the desired test statistic. Should accept
@@ -516,12 +561,25 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
         [0.076213992904990535, -0.0052513291091412784, -0.0038425140184765172]
     
     """
+
+    # Do basic sanity checks:
+    # - Check library strings match in some way
+    lib_diff = set(lib_str1) ^ set(lib_str2)
+    if lib_diff:
+        raise ValueError("At least one library string has a letter not used by \
+             the other: %s" % ", ".join(lib_diff))
+
+    # - Check input has some data
+    assert len(data1) > 0, "Data1 cannot be empty"
+    assert len(data2) > 0, "Data2 cannot be empty"
+
     count_ltail = 0
     count_utail = 0
     count_2tail = 0
 
     test_list = []
 
+    # Calculate basic statistics for the input data:
     n1 = len(data1)
     n2 = len(data2)
 
@@ -532,26 +590,60 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
     if n2 > 0:
         mean2 = numpy.mean(data2)
 
-    test_obs = testFunc(data1, data2)
-
     try:
         # Only adjust log2FC if one of the means is zero
         if mean1 > 0 and mean2 > 0:
-            log2FC = math.log((mean2)/(mean1),2)  
+            log2FC = math.log((mean2)/(mean1),2)
         else:
             log2FC = math.log((mean2+1.0)/(mean1+1.0),2)
     except:
         log2FC = 0.0
+   
 
-    perm = numpy.zeros(n1+n2)
-    perm[:n1] = data1
-    perm[n1:] = data2
+ 
+    # Get stats and info based on whether working with libraries or not:
+    nTAs = 0
+    if lib_str1:
+        # Get number of TA sites implied
+        nTAs = len(data1.flatten())/len(lib_str1)
+        assert len(data2.flatten())/len(lib_str2) == nTAs, "Datasets do not have matching sites;\
+             check input data and library strings."
+        # Get data
+        perm = get_lib_data_dict(data1, ctrl_lib_str, data2, exp_lib_str, nTAs)
+        test_obs = testFunc(perm)
+    else:
+        try:
+            test_obs = testFunc(data1, data2)
+        except Exception as e:
+            print ""
+            print "!"*100
+            print "Error: Could not apply test function to input data!"
+            print "data1", data1
+            print "data2", data2
+            print ""
+            print "\t%s" % e
+            print "!"*100
+            print ""
+            return None
 
+        perm = numpy.zeros(n1+n2)
+        perm[:n1] = data1
+        perm[n1:] = data2
+
+
+
+    count_ltail = 0
+    count_utail = 0
+    count_2tail = 0
+    test_list = []
     s_performed = 0
     for s in range(S):
         if len(perm) >0:
             perm = permFunc(perm)
-            test_sample = testFunc(perm[:n1], perm[n1:])
+            if not lib_str1:
+                test_sample = testFunc(perm[:n1], perm[n1:])
+            else:
+                test_sample = testFunc(perm)
         else:
             test_sample = 0
 
@@ -565,7 +657,7 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
             if s_performed == round(S*0.01) or s_performed == round(S*0.1) or s_performed == round(S*1):
                     if count_2tail >= round(S*0.01*0.10):
                         break
-    
+
 
 
     pval_ltail = count_ltail/float(s_performed)
@@ -574,65 +666,104 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
 
     return (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, test_list)
 
+
+
+
+
+
+
+
 #
 
 def cumulative_average(new_x, n, prev_avg):
     return ((new_x + (n*prev_avg))/(n+1.0), n+1)
 
+#
+
+def text_histogram(X, nBins = 20, resolution=200, obs = None):
+    MIN = numpy.min(X)
+    MAX = numpy.max(X)
+    bin_list = numpy.linspace(MIN, MAX, nBins)
+    hit_flag = "->"; empty_flag = "  "
+    for b_l, b_u in zip(bin_list[:-2], bin_list[1:]):
+        Z = numpy.logical_and(b_l <= X,  X < b_u)
+        density = numpy.mean(Z)
+        if obs != None and (b_l <= obs < b_u):
+            flag = hit_flag
+        else:
+            flag  = empty_flag
+        print "%-12f\t%s|%s" % (b_l, flag, "#"*int(resolution*density))
+    Z = numpy.logical_and(bin_list[-1] <= X,  X < float("inf"))
+    density = numpy.mean(Z)
+    if obs != None and (bin_list[-1] <= obs < float("inf")):
+        flag = hit_flag
+    else:
+        flag = empty_flag
+    print "%-12f\t%s|%s" % (bin_list[-1], flag,  "#"*int(resolution*density))
 
 
+
+def parse_lib_index(nData, libstr, nTAs):
+    full_index = numpy.arange(nData)
+    lib_to_index = {}
+    for (k,L) in enumerate(libstr):
+        if L not in lib_to_index: lib_to_index[L] = []
+        lib_to_index[L] += list(full_index[k*nTAs:((k+1)*nTAs)])
+    for L,index in lib_to_index.items():
+        lib_to_index[L] = numpy.array(index)
+    return lib_to_index
+
+#
+
+def combine_lib_dicts(L1, L2):
+    KEYS = L1.keys()
+    DATA = {}
+    for K in KEYS:
+        DATA[K] = numpy.array([L1[K], L2[K]])
+    return DATA
+
+#
+
+def get_lib_data_dict(data1, ctrl_lib_str, data2, exp_lib_str, nTAs):
+    lib1_index_dict = parse_lib_index(len(data1), ctrl_lib_str, nTAs)
+    lib2_index_dict = parse_lib_index(len(data2), exp_lib_str, nTAs)
+
+    lib1_data_dict = dict([(L, data1[lib1_index_dict[L]]) for L in sorted(lib1_index_dict)])
+    lib2_data_dict = dict([(L, data2[lib2_index_dict[L]]) for L in sorted(lib2_index_dict)])
+
+    data_dict = combine_lib_dicts(lib1_data_dict, lib2_data_dict)
+    return data_dict
 
 
 #TEST-CASES
 
 if __name__ == "__main__":
-    sdata = """
-.15 .09 .18 .10 .05 .12 .08
-.05 .08 .10 .07 .02 .01 .10
-.10 .10 .02 .10 .01 .40 .10
-.05 .03 .05 .15 .10 .15 .09
-.08 .18 .10 .20 .11 .30 .02
-.20 .20 .30 .30 .40 .30 .05 
-"""
-    X = [float(x) for x in sdata.split()]
-    out = boxcoxTable(X, -2, 2, 0.10)
-    out.sort()
-    print "Log likelihood function:"
-    for (llik, lambdax) in out:
-       print llik, lambdax
-    print "best lambda = ", out[-1][1]
-    print "with loglik function value = ",out[-1][0]
 
-
-
-
-    print ""
+    """
+    n = 20
+    p = 0.5
+    k = 14
     print ""
     print "#########################################"
     print "############ BINOM TEST #################"
     print "#########################################"
-    print "DEFAULT"
-    n = 15
-    p = 0.5
-    for i in range(0,16):
-        print i, binom(i,n,p), binom_cdf(i,n,p)
+    print "Coin Tosses: %d" % n
+    print "Success Prob: %3.2f" % p
+    print "Observed: %d" % k
 
 
     print ""
-    print "LESS"    
-    for i in range(0,16):
-        print i, binom_test(i,n,p,"less")
+    print "Left-Tail Test:"
+    print "%d tosses, p-value = %f" % (k, binom_test(k,n,p,"less"))
 
     print ""
-    print "GREATER"
-    for i in range(0,16):
-        print i, binom_test(i,n,p,"greater")
+    print "Right-Tail Test:"
+    print "%d tosses, p-value = %f" % (k, binom_test(k,n,p,"greater"))
 
 
     print ""
-    print "TWO-SIDED"
-    for i in range(0,16):
-        print i, binom_test(i,n,p,"two-sided")
+    print "Two-Sided Test:"
+    print "%d tosses, p-value = %f" % (k, binom_test(k,n,p,"two-sided"))
 
 
 
@@ -642,12 +773,94 @@ if __name__ == "__main__":
     print "############ RESAMPLING #################"
     print "#########################################"
 
-    data1 = scipy.stats.norm.rvs(100,10, size=100)
-    data2 = scipy.stats.norm.rvs(105,10, size=100)
+    data1 = scipy.stats.norm.rvs(100,10, size=1000)
+    data2 = scipy.stats.norm.rvs(105,10, size=1000)
 
-
-    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail) = resampling(data1, data2, S=10000)
-    print "Data1:", data1
-    print "Data2:", data2
+    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, test_list) = resampling(data1, data2, S=10000)
+    print "Data1:"
+    text_histogram(data1, nBins = 20)
+    print ""
+    print "Data2:"
+    text_histogram(data2, nBins = 20)
+    print ""
     print "Results:", (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail)
+    print ""
+    print "Resampling Histogram:"   
+    text_histogram(test_list, nBins = 20, obs=test_obs)
 
+    """
+
+    ## TEST
+    import pytransit.transit_tools as transit_tools
+    import pytransit.tnseq_tools as tnseq_tools
+    import pytransit.norm_tools as norm_tools
+    import sys
+
+    ctrldata = ["/pacific/home/mdejesus/transit/tests/GI/H37Rv_day0_rep1.wig",
+                "/pacific/home/mdejesus/transit/tests/GI/Rv2680_day0_rep1.wig", 
+                "/pacific/home/mdejesus/transit/tests/GI/H37Rv_day0_rep2.wig",
+                "/pacific/home/mdejesus/transit/tests/GI/Rv2680_day0_rep2.wig"]
+
+
+    expdata = ["/pacific/home/mdejesus/transit/tests/GI/H37Rv_day32_rep1.wig", 
+               "/pacific/home/mdejesus/transit/tests/GI/H37Rv_day32_rep2.wig",
+               "/pacific/home/mdejesus/transit/tests/GI/H37Rv_day32_rep3.wig",
+               "/pacific/home/mdejesus/transit/tests/GI/Rv2680_day32_rep1.wig",
+               "/pacific/home/mdejesus/transit/tests/GI/Rv2680_day32_rep2.wig",
+               "/pacific/home/mdejesus/transit/tests/GI/Rv2680_day32_rep3.wig"]
+
+    annotation = "/pacific/home/mdejesus/transit/tests/GI/H37Rv.prot_table"
+
+    i = 202
+    if len(sys.argv) > 1:
+        i = int(sys.argv[1])
+    DO_LIB = True
+    if len(sys.argv) > 2:
+        DO_LIB = bool(int(sys.argv[2]))
+    
+    
+    if DO_LIB:
+        ctrl_lib_str = "ABAB"
+        exp_lib_str = "AAABBB"
+    else:
+        ctrl_lib_str = ""
+        exp_lib_str = ""
+    
+    Kctrl = len(ctrldata)
+    Kexp  = len(expdata)
+
+    (data, position) = transit_tools.get_validated_data(ctrldata+expdata)
+    (K,N) = data.shape
+
+    (data, factors) = norm_tools.normalize_data(data, "TTR", ctrldata+expdata, annotation)
+
+    G = tnseq_tools.Genes(ctrldata + expdata, annotation, data=data, position=position)
+
+
+    gene = G[i]
+
+    print "\n\n"
+    print "#"*100
+    print "#  (%s)  NEW TEST:   %s"  % (DO_LIB, gene)
+    print "#"*100
+    print ""
+       
+
+ 
+    ii = numpy.ones(gene.n) == 1
+        
+    data1 = gene.reads[:Kctrl,ii].flatten()
+    data2 = gene.reads[Kctrl:,ii].flatten()
+    
+    data_dict = get_lib_data_dict(data1, ctrl_lib_str, data2, exp_lib_str, gene.n)
+
+    if DO_LIB:
+        (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  resampling(data1, data2, S=10000, testFunc=F_mean_diff_dict, permFunc=F_shuffle_dict_libraries, adaptive=False, lib_str1=ctrl_lib_str, lib_str2=exp_lib_str)
+    else:
+        (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat, permFunc=F_shuffle_flat, adaptive=False, lib_str1=ctrl_lib_str, lib_str2=exp_lib_str)
+        
+    print "Resampling Histogram:"
+    text_histogram(testlist, nBins = 20, obs=test_obs)
+    
+     
+        
