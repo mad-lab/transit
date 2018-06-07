@@ -205,6 +205,26 @@ class AnalysisGUI:
 
 #
 
+    def GlobalEnable(self):
+        pass
+
+#
+
+    def GlobalHide(self):
+        pass
+
+#
+
+    def GlobalShow(self):
+        pass
+
+#
+
+    def GlobalDisable(self):
+        pass
+
+#
+
     def definePanel(self, wxobj):
         #TODO: write docstring
         
