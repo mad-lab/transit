@@ -325,7 +325,8 @@ class ResamplingMethod(base.DualConditionMethod):
         adaptive = kwargs.get("a", False)
         doHistogram = kwargs.get("h", False)
         replicates = kwargs.get("r", "Sum")
-        includeZeros = kwargs.get("iz", False)
+        excludeZeros = kwargs.get("ez", False)
+        includeZeros = not excludeZeros
         pseudocount = float(kwargs.get("pc", 0.00))
     
         
@@ -412,6 +413,7 @@ class ResamplingMethod(base.DualConditionMethod):
         if self.ctrl_lib_str or self.exp_lib_str:
             letters_ctrl = set(self.ctrl_lib_str)
             letters_exp = set(self.exp_lib_str)
+
             # Check if using exactly 1 letters; i.e. no different libraries
             if len(letters_ctrl) == 1 and letters_exp==1:
                 pass
@@ -448,9 +450,9 @@ class ResamplingMethod(base.DualConditionMethod):
                 data2 = gene.reads[Kctrl:,ii].flatten()+self.pseudocount
                
                 if doLibraryResampling:
-                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=10000, testFunc=stat_tools.F_mean_diff_dict, permFunc=stat_tools.F_shuffle_dict_libraries, adaptive=False, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str)
+                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_dict, permFunc=stat_tools.F_shuffle_dict_libraries, adaptive=self.adaptive, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str)
                 else:
-                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=10000, testFunc=stat_tools.F_mean_diff_flat, permFunc=stat_tools.F_shuffle_flat, adaptive=False, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str)
+                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_flat, permFunc=stat_tools.F_shuffle_flat, adaptive=self.adaptive, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str)
  
 
             if self.doHistogram:
@@ -522,7 +524,8 @@ class ResamplingMethod(base.DualConditionMethod):
         -n <string>     :=  Normalization method. Default: -n TTR
         -h              :=  Output histogram of the permutations for each gene. Default: Turned Off.
         -a              :=  Perform adaptive resampling. Default: Turned Off.
-        -iz             :=  Include rows with zero accross conditions.
+        -ez             :=  Exclude rows with zero accross conditions. Default: Turned off 
+                            (i.e. include rows with zeros).
         -pc             :=  Pseudocounts to be added at each site.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias.
                             Default: Turned Off.
