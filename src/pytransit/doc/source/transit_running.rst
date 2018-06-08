@@ -199,97 +199,113 @@ Resampling
 To run the Resampling analysis from the command line, type "python
 PATH/src/transit.py resampling" followed by the following arguments:
 
-+----------------+----------------+----------------+----------------+----------------+
-| Argument       | Type           | Description    | Default        | Example        |
-+================+================+================+================+================+
-| annotation     | Required       | Path to        |                | genomes/H37Rv. |
-|                |                | annotation     |                | prot\_table    |
-|                |                | file in        |                |                |
-|                |                | .prot\_table   |                |                |
-|                |                | format         |                |                |
-+----------------+----------------+----------------+----------------+----------------+
-| control\_files | Required       | Comma-separate |                | data/glycerol\ |
-|                |                | d              |                | _reads\_rep1.w |
-|                |                | list of paths  |                | ig,data/glycer |
-|                |                | to the \*.wig  |                | ol\_reads\_rep |
-|                |                | replicate      |                | 2.wig          |
-|                |                | datasets for   |                |                |
-|                |                | the control    |                |                |
-|                |                | condition      |                |                |
-+----------------+----------------+----------------+----------------+----------------+
-| exp\_files     | Required       | Comma-separate |                | data/cholester |
-|                |                | d              |                | ol\_reads\_rep |
-|                |                | list of paths  |                | 1.wig,data/cho |
-|                |                | to the \*.wig  |                | lesterol\_read |
-|                |                | replicate      |                | s\_rep2.wig    |
-|                |                | datasets for   |                |                |
-|                |                | the            |                |                |
-|                |                | experimental   |                |                |
-|                |                | condition      |                |                |
-+----------------+----------------+----------------+----------------+----------------+
-| output\_file   | Required       | Name of the    |                | results/gumbel |
-|                |                | output file    |                | \_glycerol.dat |
-|                |                | with the       |                |                |
-|                |                | results.       |                |                |
-+----------------+----------------+----------------+----------------+----------------+
-| -s SAMPLES     | Optional       | Number of      | 10000          | -s 5000        |
-|                |                | permutations   |                |                |
-|                |                | performed.     |                |                |
-+----------------+----------------+----------------+----------------+----------------+
-| -H             | Optional       | Creates        | Not set        | -H             |
-|                |                | histograms of  |                |                |
-|                |                | the            |                |                |
-|                |                | permutations   |                |                |
-|                |                | for all genes. |                |                |
-+----------------+----------------+----------------+----------------+----------------+
-| -a             | Optional       | Performs       | Not set        | -a             |
-|                |                | adaptive       |                |                |
-|                |                | appoximation   |                |                |
-|                |                | to resampling. |                |                |
-+----------------+----------------+----------------+----------------+----------------+
-| -N             | Optional       | Select which   | nzmean         | -N nzmean      |
-|                |                | normalizing    |                |                |
-|                |                | procedure to   |                |                |
-|                |                | use. Can       |                |                |
-|                |                | choose between |                |                |
-|                |                | 'TTR',         |                |                |
-|                |                | 'nzmean',      |                |                |
-|                |                | 'totreads',    |                |                |
-|                |                | 'zinfnb',      |                |                |
-|                |                | 'betageom',    |                |                |
-|                |                | and 'nonorm'.  |                |                |
-|                |                | See the        |                |                |
-|                |                | parameters     |                |                |
-|                |                | section for    |                |                |
-|                |                | the            |                |                |
-|                |                | `Re-sampling   |                |                |
-|                |                | method <http:/ |                |                |
-|                |                | /saclab.tamu.e |                |                |
-|                |                | du/essentialit |                |                |
-|                |                | y/transit/tran |                |                |
-|                |                | sit.html#resam |                |                |
-|                |                | pling>`__      |                |                |
-|                |                | for a          |                |                |
-|                |                | description of |                |                |
-|                |                | these          |                |                |
-|                |                | normalization  |                |                |
-|                |                | options.       |                |                |
-+----------------+----------------+----------------+----------------+----------------+
-| -iN IGNOREN    | Optional       | Ignore TAs     | 5              | -iN 0          |
-|                |                | occuring at X% |                |                |
-|                |                | of the N       |                |                |
-|                |                | terminus.      |                |                |
-+----------------+----------------+----------------+----------------+----------------+
-| -iC IGNOREC    | Optional       | Ignore TAs     | 5              | -iC 10         |
-|                |                | occuring at X% |                |                |
-|                |                | of the C       |                |                |
-|                |                | terminus.      |                |                |
-+----------------+----------------+----------------+----------------+----------------+
++------------------+----------------+--------------------------+----------------+----------------+
+| Argument         | Type           | Description              | Default        | Example        |
++==================+================+==========================+================+================+
+| annotation       | Required       | Path to                  |                | genomes/H37Rv. |
+|                  |                | annotation               |                | prot\_table    |
+|                  |                | file in                  |                |                |
+|                  |                | .prot\_table             |                |                |
+|                  |                | format                   |                |                |
++------------------+----------------+--------------------------+----------------+----------------+
+| control\_files   | Required       | Comma-separate           |                | data/glycerol\ |
+|                  |                | d                        |                | _reads\_rep1.w |
+|                  |                | list of paths            |                | ig,data/glycer |
+|                  |                | to the \*.wig            |                | ol\_reads\_rep |
+|                  |                | replicate                |                | 2.wig          |
+|                  |                | datasets for             |                |                |
+|                  |                | the control              |                |                |
+|                  |                | condition                |                |                |
++------------------+----------------+--------------------------+----------------+----------------+
+| exp\_files       | Required       | Comma-separate           |                | data/cholester |
+|                  |                | d                        |                | ol\_reads\_rep |
+|                  |                | list of paths            |                | 1.wig,data/cho |
+|                  |                | to the \*.wig            |                | lesterol\_read |
+|                  |                | replicate                |                | s\_rep2.wig    |
+|                  |                | datasets for             |                |                |
+|                  |                | the                      |                |                |
+|                  |                | experimental             |                |                |
+|                  |                | condition                |                |                |
++------------------+----------------+--------------------------+----------------+----------------+
+| output\_file     | Required       | Name of the              |                | results/gumbel |
+|                  |                | output file              |                | \_glycerol.dat |
+|                  |                | with the                 |                |                |
+|                  |                | results.                 |                |                |
++------------------+----------------+--------------------------+----------------+----------------+
+| -s SAMPLES       | Optional       | Number of                | 10000          | -s 5000        |
+|                  |                | permutations             |                |                |
+|                  |                | performed.               |                |                |
++------------------+----------------+--------------------------+----------------+----------------+
+| -h               | Optional       | Creates                  | Not set        | -H             |
+|                  |                | histograms of            |                |                |
+|                  |                | the                      |                |                |
+|                  |                | permutations             |                |                |
+|                  |                | for all genes.           |                |                |
++------------------+----------------+--------------------------+----------------+----------------+
+| -a               | Optional       | Performs                 | Not set        | -a             |
+|                  |                | adaptive                 |                |                |
+|                  |                | appoximation             |                |                |
+|                  |                | to resampling.           |                |                |
++------------------+----------------+--------------------------+----------------+----------------+
+| -N               | Optional       | Select which             | nzmean         | -N nzmean      |
+|                  |                | normalizing              |                |                |
+|                  |                | procedure to             |                |                |
+|                  |                | use. Can                 |                |                |
+|                  |                | choose between           |                |                |
+|                  |                | 'TTR',                   |                |                |
+|                  |                | 'nzmean',                |                |                |
+|                  |                | 'totreads',              |                |                |
+|                  |                | 'zinfnb',                |                |                |
+|                  |                | 'betageom',              |                |                |
+|                  |                | and 'nonorm'.            |                |                |
+|                  |                | See the                  |                |                |
+|                  |                | parameters               |                |                |
+|                  |                | section for              |                |                |
+|                  |                | the                      |                |                |
+|                  |                | `Re-sampling             |                |                |
+|                  |                | method <http:/           |                |                |
+|                  |                | /saclab.tamu.e           |                |                |
+|                  |                | du/essentialit           |                |                |
+|                  |                | y/transit/tran           |                |                |
+|                  |                | sit.html#resam           |                |                |
+|                  |                | pling>`__                |                |                |
+|                  |                | for a                    |                |                |
+|                  |                | description of           |                |                |
+|                  |                | these                    |                |                |
+|                  |                | normalization            |                |                |
+|                  |                | options.                 |                |                |
++------------------+----------------+--------------------------+----------------+----------------+
+| -iN IGNOREN      | Optional       | Ignore TAs               | 5              | -iN 0          |
+|                  |                | occuring at X%           |                |                |
+|                  |                | of the N                 |                |                |
+|                  |                | terminus.                |                |                |
++------------------+----------------+--------------------------+----------------+----------------+
+| -iC IGNOREC      | Optional       | Ignore TAs               | 5              | -iC 10         |
+|                  |                | occuring at X%           |                |                |
+|                  |                | of the C                 |                |                |
+|                  |                | terminus.                |                |                |
++------------------+----------------+--------------------------+----------------+----------------+
+| --ctrl_lib <str> | Optional       | String of letters (ABC)  | Empty          | -ctrl_lib AB   |
+|                  |                | representing the         |                |                |
+|                  |                | libraries of the control |                |                |
+|                  |                | datasets being used.     |                |                |
+|                  |                | If set, permutatations   |                |                | 
+|                  |                | will be within libraries |                |                |
++------------------+----------------+--------------------------+----------------+----------------+
+| --exp_lib <str>  | Optional       | String of letters (ABC)  | Empty          | -exp_lib ABB   |
+|                  |                | representing the         |                |                |
+|                  |                | libraries of the experi- |                |                |
+|                  |                | mental datasets used.    |                |                |  
+|                  |                | If set, permutatations   |                |                |   |                  |                | will be within libraries |                |                |
++------------------+----------------+--------------------------+----------------+----------------+
+
+
+
 
 Example Resampling command:
 
 ::
 
-    python PATH/src/transit.py resampling genomes/H37Rv.prot_table data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig data/cholesterol_reads_rep1.wig,data/cholesterol_reads_rep2.wig,data/cholesterol_reads_rep3.wig test_console_resampling.dat -H -s 10000 -N nzmean
+    python PATH/src/transit.py resampling genomes/H37Rv.prot_table data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig data/cholesterol_reads_rep1.wig,data/cholesterol_reads_rep2.wig,data/cholesterol_reads_rep3.wig test_console_resampling.dat -h -s 10000 -n nzmean
 
 
