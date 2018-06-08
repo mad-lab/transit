@@ -225,7 +225,10 @@ class ResamplingMethod(base.DualConditionMethod):
                 LOESS=False,
                 ignoreCodon=True,
                 NTerminus=0.0,
-                CTerminus=0.0, wxobj=None):
+                CTerminus=0.0, 
+                ctrl_lib_str="",
+                exp_lib_str="",
+                wxobj=None):
 
         base.DualConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
@@ -234,7 +237,8 @@ class ResamplingMethod(base.DualConditionMethod):
         self.doHistogram = doHistogram
         self.includeZeros = includeZeros
         self.pseudocount = pseudocount
-        
+        self.ctrl_lib_str = ctrl_lib_str
+        self.exp_lib_str = exp_lib_str 
 
 
     @classmethod
@@ -266,10 +270,14 @@ class ResamplingMethod(base.DualConditionMethod):
 
         includeZeros = wxobj.resamplingZeroCheckBox.GetValue()
         pseudocount = float(wxobj.resamplingPseudocountText.GetValue())
+        LOESS = wxobj.resamplingLoessCheck.GetValue()
 
+        # Global Parameters
         NTerminus = float(wxobj.globalNTerminusText.GetValue())
         CTerminus = float(wxobj.globalCTerminusText.GetValue())
-        LOESS = wxobj.resamplingLoessCheck.GetValue()
+        ctrl_lib_str = wxobj.ctrlLibText.GetValue()
+        exp_lib_str = wxobj.expLibText.GetValue()
+
 
         #Get output path
         defaultFileName = "resampling_output_s%d_pc%1.2f" % (samples, pseudocount)
@@ -297,7 +305,9 @@ class ResamplingMethod(base.DualConditionMethod):
                 LOESS,
                 ignoreCodon,
                 NTerminus,
-                CTerminus, wxobj)
+                CTerminus, 
+                ctrl_lib_str,
+                exp_lib_str, wxobj)
 
     @classmethod
     def fromargs(self, rawargs):
@@ -321,8 +331,11 @@ class ResamplingMethod(base.DualConditionMethod):
         
         LOESS = kwargs.get("l", False)
         ignoreCodon = True
+    
         NTerminus = float(kwargs.get("iN", 0.00))
         CTerminus = float(kwargs.get("iC", 0.00))
+        ctrl_lib_str = kwargs.get("-ctrl_lib", "")
+        exp_lib_str = kwargs.get("-exp_lib", "")
 
         return self(ctrldata,
                 expdata,
@@ -338,7 +351,9 @@ class ResamplingMethod(base.DualConditionMethod):
                 LOESS,
                 ignoreCodon,
                 NTerminus,
-                CTerminus)
+                CTerminus,
+                ctrl_lib_str,
+                exp_lib_str)
 
 
 
@@ -390,7 +405,26 @@ class ResamplingMethod(base.DualConditionMethod):
 
         G = tnseq_tools.Genes(self.ctrldata + self.expdata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data, position=position)
 
-        #G = tnseq_tools.Genes(self.ctrldata+self.expdata, self.annotation_path, norm=self.normalization, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus)
+
+
+        doLibraryResampling = False
+        # If library string not empty
+        if self.ctrl_lib_str or self.exp_lib_str:
+            letters_ctrl = set(self.ctrl_lib_str)
+            letters_exp = set(self.exp_lib_str)
+            # Check if using exactly 1 letters; i.e. no different libraries
+            if len(letters_ctrl) == 1 and letters_exp==1:
+                pass
+            # If using more than one letter, then check no differences in set
+            else:
+                lib_diff = letters_ctrl ^ letters_exp
+                # Check that their differences
+                if not lib_diff:
+                    doLibraryResampling = True
+                else:
+                    transit_tools.transit_error("Error: Library Strings (Ctrl = %s, Exp = %s) do not use the same letters. Make sure every letter / library is represented in both Control and Experimental Conditions. Proceeding with resampling assuming all datasets belong to the same library." % (self.ctrl_lib_str, self.exp_lib_str))
+                    self.ctrl_lib_str = ""
+                    self.exp_lib_str = "" 
 
 
         #Resampling
@@ -412,9 +446,12 @@ class ResamplingMethod(base.DualConditionMethod):
 
                 data1 = gene.reads[:Kctrl,ii].flatten()+self.pseudocount
                 data2 = gene.reads[Kctrl:,ii].flatten()+self.pseudocount
-                
-                (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_flat, adaptive=self.adaptive)
-
+               
+                if doLibraryResampling:
+                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=10000, testFunc=stat_tools.F_mean_diff_dict, permFunc=stat_tools.F_shuffle_dict_libraries, adaptive=False, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str)
+                else:
+                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=10000, testFunc=stat_tools.F_mean_diff_flat, permFunc=stat_tools.F_shuffle_flat, adaptive=False, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str)
+ 
 
             if self.doHistogram:
                 import matplotlib.pyplot as plt
@@ -487,9 +524,18 @@ class ResamplingMethod(base.DualConditionMethod):
         -a              :=  Perform adaptive resampling. Default: Turned Off.
         -iz             :=  Include rows with zero accross conditions.
         -pc             :=  Pseudocounts to be added at each site.
-        -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.
+        -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias.
+                            Default: Turned Off.
         -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
         -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        --ctrl_lib      :=  String of letters representing library of control files in order
+                            e.g. 'AABB'. Default empty. Letters used must also be used in --exp_lib
+                            If non-empty, resampling will limit permutations to within-libraries.
+
+        --exp_lib       :=  String of letters representing library of experimental files in order
+                            e.g. 'ABAB'. Default empty. Letters used must also be used in --ctrl_lib
+                            If non-empty, resampling will limit permutations to within-libraries.
+
         """ % (sys.argv[0])
 
 
