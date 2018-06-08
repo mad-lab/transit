@@ -566,8 +566,7 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
     # - Check library strings match in some way
     lib_diff = set(lib_str1) ^ set(lib_str2)
     if lib_diff:
-        raise ValueError("At least one library string has a letter not used by \
-             the other: %s" % ", ".join(lib_diff))
+        raise ValueError("At least one library string has a letter not used by the other:\ %s" % ", ".join(lib_diff))
 
     # - Check input has some data
     assert len(data1) > 0, "Data1 cannot be empty"
@@ -609,7 +608,7 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
         assert len(data2.flatten())/len(lib_str2) == nTAs, "Datasets do not have matching sites;\
              check input data and library strings."
         # Get data
-        perm = get_lib_data_dict(data1, ctrl_lib_str, data2, exp_lib_str, nTAs)
+        perm = get_lib_data_dict(data1, lib_str1, data2, lib_str2, nTAs)
         test_obs = testFunc(perm)
     else:
         try:
