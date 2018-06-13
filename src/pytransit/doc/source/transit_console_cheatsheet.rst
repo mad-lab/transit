@@ -46,7 +46,8 @@ positional arguments followed by optional flags.
 +----------------------+-------------------------------------------------------------------------+
 
 Example
-'''''''
+~~~~~~~
+
 .. code-block:: python
 
    python transit.py gumbel glycerol_H37Rv_rep1.wig,glycerol_H37Rv_rep2.wig H37Rv.prot_table glycerol_TTR.txt -r Sum -s 10000
@@ -79,7 +80,8 @@ positional arguments followed by optional flags.
 
 
 Example
-'''''''
+~~~~~~~
+
 .. code-block:: python
 
    python transit.py resampling glycerol_H37Rv_rep1.wig,glycerol_H37Rv_rep2.wig cholesterol_H37Rv_rep1.wig,cholesterol_H37Rv_rep2.wig H37Rv.prot_table glycerol_TTR.txt -n TTR -s 10000
@@ -90,19 +92,21 @@ Example
 Normalizing datasets
 ++++++++++++++++++++
 
-TRANSIT also allows users to normalize datasets and export them
-afterwards. To normalize datasets, 3 positional arguments followed
-by optional flags.
+TRANSIT also allows users to normalize datasets and export them afterwards. To normalize datasets, 3 positional arguments followed by optional flags.
+
+
+
 
 Positional Arguments
-''''''''''''''''''''
+--------------------
+
 
 +----------------------+-------------------------------------------------------------------------+
 | Positional Arguments | Definition                                                              |
 +======================+=========================================================================+
 | <wig-files>          | Comma-separated list of paths read-count datasets in .wig format        |
 +----------------------+-------------------------------------------------------------------------+
-| <annotation>         | Path to the annotation in .prot_table or .GFF3 format.                  |
+| <annotation>         | Path to the annotation in .prot\_table or .GFF3 format.                 |
 +----------------------+-------------------------------------------------------------------------+
 | <output>             | Desired path and name of the output file                                |
 +----------------------+-------------------------------------------------------------------------+
@@ -110,7 +114,7 @@ Positional Arguments
 
 
 Optional Arguments
-''''''''''''''''''
+------------------
 
 +----------------------+-----------------------------------------------------+
 | Argument             | Definition                                          |
@@ -121,7 +125,7 @@ Optional Arguments
 
 
 Example
-'''''''
+~~~~~~~
 
 .. code-block:: python
 
