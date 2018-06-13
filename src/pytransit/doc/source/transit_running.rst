@@ -296,8 +296,10 @@ PATH/src/transit.py resampling" followed by the following arguments:
 |                  |                | representing the         |                |                |
 |                  |                | libraries of the experi- |                |                |
 |                  |                | mental datasets used.    |                |                |  
-|                  |                | If set, permutatations   |                |                |   |                  |                | will be within libraries |                |                |
+|                  |                | If set, permutatations   |                |                | 
+|                  |                | will be within libraries |                |                |
 +------------------+----------------+--------------------------+----------------+----------------+
+
 
 
 
