@@ -276,7 +276,7 @@ def validate_wig_format(wig_list, wxobj=None):
             status = 1
             # Get genome
             wc = u"Known Sequence Extensions (*.fna,*.fasta)|*.fna;*.fasta;|\nAll files (*.*)|*.*"
-            gen_dlg = wx.FileDialog(wxobj, message="Save file as ...", defaultDir=os.getcwd(), defaultFile="", wildcard=wc, style=wx.OPEN)
+            gen_dlg = wx.FileDialog(wxobj, message="Save file as ...", defaultDir=os.getcwd(), defaultFile="", wildcard=wc, style=wx.FD_OPEN)
             if gen_dlg.ShowModal() == wx.ID_OK:
                 genome = gen_dlg.GetPath()
             else:

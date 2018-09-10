@@ -322,7 +322,7 @@ class TrashFrame(view_trash.MainFrame):
         dlg = wx.FileDialog(
             self, message="Save file as ...",
             defaultDir=DIR,
-            defaultFile=FILE, wildcard=WC, style=wx.OPEN
+            defaultFile=FILE, wildcard=WC, style=wx.FD_OPEN
             )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()

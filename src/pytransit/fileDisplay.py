@@ -129,7 +129,7 @@ def getInfoFromFileType(X):
 
     
 
-class TransitTable(wx.grid.PyGridTableBase):
+class TransitTable(wx.grid.GridTableBase):
     """
     A custom wx.Grid Table using user supplied data
     """
@@ -140,7 +140,7 @@ class TransitTable(wx.grid.PyGridTableBase):
         colname
         """
         # The base class must be initialized *first*
-        wx.grid.PyGridTableBase.__init__(self)
+        wx.grid.GridTableBase.__init__(self)
         self.data = data
         self.colnames = colnames
         # XXX

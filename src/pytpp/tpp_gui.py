@@ -99,7 +99,7 @@ if hasWx:
             sizer3 = wx.BoxSizer(wx.HORIZONTAL)
             label3 = wx.StaticText(panel, label='Choose a reference genome (FASTA):',size=(330,-1))
             sizer3.Add(label3,0,wx.ALIGN_CENTER_VERTICAL,0)
-            self.picker3 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the reference genome', fileMode=wx.OPEN, fileMask='*.fna;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.ref), initialValue=vars.ref, labelText='')
+            self.picker3 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the reference genome', fileMode=wx.FD_OPEN, fileMask='*.fna;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.ref), initialValue=vars.ref, labelText='')
             sizer3.Add(self.picker3, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer3.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a reference genome in FASTA format."), flag=wx.CENTER, border=0)
             sizer3.Add((10, 1), 0, wx.EXPAND)
@@ -109,7 +109,7 @@ if hasWx:
             sizer1 = wx.BoxSizer(wx.HORIZONTAL)
             label1 = wx.StaticText(panel, label='Choose the Fastq file for read 1:',size=(330,-1))
             sizer1.Add(label1,0,wx.ALIGN_CENTER_VERTICAL,0)
-            self.picker1 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 1', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa;*.fastq.gz', size=(400,30), startDirectory=os.path.dirname(vars.fq1), initialValue=vars.fq1, labelText='',changeCallback=self.OnChanged2)
+            self.picker1 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 1', fileMode=wx.FD_OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa;*.fastq.gz', size=(400,30), startDirectory=os.path.dirname(vars.fq1), initialValue=vars.fq1, labelText='',changeCallback=self.OnChanged2)
             sizer1.Add(self.picker1, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer1.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a file containing the reads in .FASTQ (or compressed FASTQ) format."), flag=wx.CENTER, border=0)
             sizer1.Add((10, 1), 0, wx.EXPAND)
@@ -120,7 +120,7 @@ if hasWx:
             sizer2 = wx.BoxSizer(wx.HORIZONTAL)
             label2 = wx.StaticText(panel, label='Choose the Fastq file for read 2:',size=(330,-1))
             sizer2.Add(label2,0,wx.ALIGN_CENTER_VERTICAL,0)
-            self.picker2 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 2', fileMode=wx.OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa;*.fastq.gz', size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue=vars.fq2, labelText='', changeCallback=self.OnChanged2)
+            self.picker2 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 2', fileMode=wx.FD_OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa;*.fastq.gz', size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue=vars.fq2, labelText='', changeCallback=self.OnChanged2)
             sizer2.Add(self.picker2, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer2.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a file containing the pair-end reads in .FASTQ (or compressed FASTQ) format. Optional."), flag=wx.CENTER, border=0)
             sizer2.Add((10, 1), 0, wx.EXPAND)
@@ -207,7 +207,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             label0 = wx.StaticText(panel, label='BWA executable:',size=(330,-1))
             sizer0.Add(label0,0,wx.ALIGN_CENTER_VERTICAL,0)
 
-            self.picker0 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id = wx.ID_ANY, size=(400,30), dialogTitle='Path to BWA', fileMode=wx.OPEN, fileMask='bwa*', startDirectory=os.path.dirname(vars.bwa), initialValue=vars.bwa, labelText='')
+            self.picker0 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id = wx.ID_ANY, size=(400,30), dialogTitle='Path to BWA', fileMode=wx.FD_OPEN, fileMask='bwa*', startDirectory=os.path.dirname(vars.bwa), initialValue=vars.bwa, labelText='')
 
              
             sizer0.Add(self.picker0, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
@@ -235,7 +235,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             self.barseq_select.SetSelection(0)
             sizer9.Add(self.barseq_select, proportion=0.5, flag=wx.EXPAND|wx.ALL, border=5) ## 
 
-            self.picker9 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the Barseq catalog filename', fileMode=wx.OPEN, size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue="", labelText='', ) # no need for this: changeCallback=self.OnChanged9 ; initialValue set below ; no file mask
+            self.picker9 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the Barseq catalog filename', fileMode=wx.FD_OPEN, size=(400,30), startDirectory=os.path.dirname(vars.fq2), initialValue="", labelText='', ) # no need for this: changeCallback=self.OnChanged9 ; initialValue set below ; no file mask
             sizer9.Add(self.picker9, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
 
             if vars.barseq_catalog_in!=None:
@@ -348,7 +348,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
               defaultDir=".",
               defaultFile="",
               wildcard="*.wig",
-              style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+              style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
               )
           if dlg.ShowModal() == wx.ID_OK:
               paths = dlg.GetPaths()
