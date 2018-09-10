@@ -17,7 +17,7 @@ here = path.abspath(path.dirname(__file__))
 # Get the long description from the README file
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
-    
+
 # Get current version
 import sys
 sys.path.insert(1, "src/")
@@ -38,7 +38,7 @@ setup(
     # The project's main homepage.
     url='https://github.com/mad-lab/transit',
     download_url='https://github.com/mad-lab/transit',
-    
+
     # Author details
     author='Michael A. DeJesus',
     author_email='mad@cs.tamu.edu',
@@ -59,7 +59,7 @@ setup(
 
     # What does your project relate to?
     keywords=['tnseq', 'analysis', 'biology', 'genome'],
-    
+
     #package_dir = {'tnseq-transit': 'src/pytransit'},
 
     # You can just specify the packages manually here if your project is
@@ -78,8 +78,8 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['setuptools', 'numpy', 'scipy', 'pillow', 'matplotlib', 'wxpython'],
-    
+    install_requires=['setuptools', 'numpy~=1.15', 'scipy~=1.1', 'matplotlib<3', 'wxpython~=4.0', 'pypubsub~=3.3.0', 'pillow~=5.0'],
+
     #dependency_links = [
     #	"git+https://github.com/wxWidgets/wxPython.git#egg=wxPython"
 	#],
@@ -99,7 +99,7 @@ setup(
     package_data={
         'pytransit': ['pytransit/data/*', 'pytransit/doc/*.*', 'pytransit/doc/images/*', 'pytransit/genomes/*']
     },
-    
+
     #scripts=['src/tpp.py', 'src/transit.py'],
 
     # Although 'package_data' is the preferred approach, in some case you may

@@ -14,21 +14,9 @@ except Exception as e:
 if hasWx:
     import wx.xrc
     from wx.lib.buttons import GenBitmapTextButton
+    from pubsub import pub
+    import wx.adv
 
-    #Imports depending on version:
-    if WX_VERSION == 2:
-        from wx.lib.pubsub import Publisher as pub
-
-    if WX_VERSION == 3:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-
-    if WX_VERSION == 4:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        import wx.adv
-
-   
 import traceback
 import datetime
 import pytransit.transit_tools as transit_tools
@@ -176,12 +164,12 @@ class TransitFile (TransitGUIBase):
             gene = displayFrame.grid.GetCellValue(displayFrame.row, 0)
             displayFrame.parent.allViewFunc(displayFrame, gene)
         except Exception as e:
-            print file_prefix, "Error occurred: %s" % e 
+            print file_prefix, "Error occurred: %s" % e
 
 #
 
 class AnalysisGUI:
-    
+
     def __init__(self):
         self.wxobj = None
         self.panel = None
@@ -227,7 +215,7 @@ class AnalysisGUI:
 
     def definePanel(self, wxobj):
         #TODO: write docstring
-        
+
         self.wxobj = wxobj
         wPanel = wx.Panel( self.wxobj.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 
@@ -236,13 +224,13 @@ class AnalysisGUI:
         Label = wx.StaticText(wPanel, id=wx.ID_ANY, label=str("Method Options"), pos=wx.DefaultPosition, size=(130, -1), style=0 )
         Label.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         Section.Add( Label, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-        
+
         Sizer1 = wx.BoxSizer( wx.HORIZONTAL )
         Section.Add( Sizer1, 1, wx.EXPAND, 5 )
-        
+
         Button = wx.Button( wPanel, wx.ID_ANY, u"Run", wx.DefaultPosition, wx.DefaultSize, 0 )
         Section.Add( Button, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-        
+
         wPanel.SetSizer( Section )
         wPanel.Layout()
         Section.Fit( wPanel )
@@ -299,7 +287,7 @@ class AnalysisMethod:
     '''
     Basic class for analysis methods. Inherited by SingleMethod and ComparisonMethod.
     '''
-    
+
     def __init__(self, short_name, long_name, short_desc, long_desc, output, annotation_path, wxobj=None):
         self.short_name = short_name
         self.long_name = long_name
@@ -308,12 +296,12 @@ class AnalysisMethod:
         self.output = output
         self.annotation_path = annotation_path
 
-        self.WX_VERSION = WX_VERSION 
+        self.WX_VERSION = WX_VERSION
         self.wxobj = wxobj
 
 #
 
-    @classmethod 
+    @classmethod
     def fromGUI(self, wxobj):
         #TODO: write docstring
         raise NotImplementedError
@@ -350,7 +338,7 @@ class AnalysisMethod:
             print "Error: %s" % str(e)
             traceback.print_exc()
             print self.usage_string()
-        sys.exit() 
+        sys.exit()
 
 #
 
@@ -424,7 +412,7 @@ class AnalysisMethod:
                 wx.CallAfter(pub.sendMessage, "progressrange", count)
             wx.Yield()
 
-#       
+#
 
     def status_message(self, text, time=-1):
         #TODO: write docstring
@@ -474,7 +462,7 @@ class AnalysisMethod:
     def transit_warning(self,text):
         self.transit_message(text)
         if self.wxobj:
-            transit_tools.ShowWarning(text)    
+            transit_tools.ShowWarning(text)
 
 
 class SingleConditionMethod(AnalysisMethod):
@@ -483,7 +471,7 @@ class SingleConditionMethod(AnalysisMethod):
     '''
 
     def __init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output, replicates="Sum", normalization=None, LOESS=False, ignoreCodon=True, NTerminus=0.0, CTerminus=0.0, wxobj=None):
-        AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, output, 
+        AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, output,
             annotation_path, wxobj)
         self.ctrldata = ctrldata
         self.replicates = replicates
@@ -501,7 +489,7 @@ class DualConditionMethod(AnalysisMethod):
     '''
 
     def __init__(self, short_name, long_name, short_desc, long_desc, ctrldata, expdata, annotation_path, output, normalization, replicates="Sum", LOESS=False, ignoreCodon=True, NTerminus=0.0, CTerminus=0.0, wxobj=None):
-        AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, 
+        AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc,
             output, annotation_path, wxobj)
         self.ctrldata = ctrldata
         self.expdata = expdata
@@ -520,7 +508,7 @@ class QuadConditionMethod(AnalysisMethod):
     '''
 
     def __init__(self, short_name, long_name, short_desc, long_desc, ctrldataA, ctrldataB, expdataA, expdataB, annotation_path, output, normalization, replicates="Sum", LOESS=False, ignoreCodon=True, NTerminus=0.0, CTerminus=0.0, wxobj=None):
-        AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, 
+        AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc,
             output, annotation_path, wxobj)
         self.ctrldataA = ctrldataA
         self.ctrldataB = ctrldataB
@@ -583,7 +571,7 @@ class TransitAnalysis:
             return "Intended for %s or %s" % tuple(self.transposons)
         else:
             return "Intended for " + ", ".join(self.transposons[:-1]) + ", and " + self.transposons[-1]
-    
+
 
 #
 

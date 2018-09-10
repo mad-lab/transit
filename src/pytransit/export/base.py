@@ -14,21 +14,9 @@ except Exception as e:
 if hasWx:
     import wx.xrc
     from wx.lib.buttons import GenBitmapTextButton
+    from pubsub import pub
+    import wx.adv
 
-    #Imports depending on version:
-    if WX_VERSION == 2:
-        from wx.lib.pubsub import Publisher as pub
-
-    if WX_VERSION == 3:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-
-    if WX_VERSION == 4:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        import wx.adv
-
-   
 import traceback
 import datetime
 import pytransit.transit_tools as transit_tools
