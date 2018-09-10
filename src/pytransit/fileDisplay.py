@@ -257,7 +257,7 @@ class TransitGridFrame(wx.Frame):
         self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnCellRightClicked)
 
         mytable = TransitTable(data, self.columnlabels)
-        self.grid.SetTable(mytable)
+        self.grid.SetTable(mytable, True)
 
         self.grid.EnableEditing(False)
         self.grid.AdjustScrollbars()
