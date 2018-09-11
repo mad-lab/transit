@@ -56,10 +56,7 @@ class TransitGUIBase:
     def status_message(self, text, time=-1):
         #TODO: write docstring
         if self.wxobj:
-            if WX_VERSION > 2:
-                wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
-            else:
-                wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))
+            wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
             wx.Yield()
 
 #
@@ -374,30 +371,21 @@ class AnalysisMethod:
         data = {"path":path, "type":filetype, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
 
         if self.wxobj:
-            if WX_VERSION > 2:
-                wx.CallAfter(pub.sendMessage, "file", data=data)
-            else:
-                wx.CallAfter(pub.sendMessage, "file", data)
+            wx.CallAfter(pub.sendMessage, "file", data=data)
 
 #
 
     def finish(self):
         #TODO: write docstring
         if self.wxobj:
-            if WX_VERSION > 2:
-                wx.CallAfter(pub.sendMessage,"finish", msg=self.short_name.lower())
-            else:
-                wx.CallAfter(pub.sendMessage,"finish", self.short_name.lower())
+            wx.CallAfter(pub.sendMessage,"finish", msg=self.short_name.lower())
 
 #
 
     def progress_update(self, text, count):
         #TODO: write docstring
         if self.wxobj:
-            if WX_VERSION > 2:
-                wx.CallAfter(pub.sendMessage, "progress", msg=(self.short_name, count))
-            else:
-                wx.CallAfter(pub.sendMessage, "progress", (self.short_name, count))
+            wx.CallAfter(pub.sendMessage, "progress", msg=(self.short_name, count))
             wx.Yield()
 
         self.transit_message_inplace(text)
@@ -406,10 +394,7 @@ class AnalysisMethod:
     def progress_range(self, count):
         #TODO: write docstring
         if self.wxobj:
-            if WX_VERSION > 2:
-                wx.CallAfter(pub.sendMessage, "progressrange", msg=count)
-            else:
-                wx.CallAfter(pub.sendMessage, "progressrange", count)
+            wx.CallAfter(pub.sendMessage, "progressrange", msg=count)
             wx.Yield()
 
 #
@@ -417,10 +402,7 @@ class AnalysisMethod:
     def status_message(self, text, time=-1):
         #TODO: write docstring
         if self.wxobj:
-            if WX_VERSION > 2:
-                wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
-            else:
-                wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))
+            wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
             wx.Yield()
 
 #

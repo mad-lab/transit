@@ -44,7 +44,7 @@ if hasWx:
 #
 
 class ExportGUI:
-    
+
     def __init__(self):
         self.wxobj = None
         self.menuitem = None
@@ -55,18 +55,18 @@ class ExportGUI:
 
     def defineMenuItem(self, wxobj, label):
         #TODO: write docstring
-        
+
         self.wxobj = wxobj
 
         self.menuitem = wx.MenuItem( wxobj.selectedExportMenuItem, wx.ID_ANY, label, wx.EmptyString, wx.ITEM_NORMAL)
-         
+
 #
 
 class ExportMethod:
     '''
     Basic class for analysis methods. Inherited by SingleMethod and ComparisonMethod.
     '''
-    
+
     def __init__(self, short_name, long_name, description, label, output, annotation_path, wxobj=None):
         self.short_name = short_name
         self.long_name = long_name
@@ -75,12 +75,12 @@ class ExportMethod:
         self.output = output
         self.annotation_path = annotation_path
 
-        self.WX_VERSION = WX_VERSION 
+        self.WX_VERSION = WX_VERSION
         self.wxobj = wxobj
 
 #
 
-    @classmethod 
+    @classmethod
     def fromGUI(self, wxobj):
         #TODO: write docstring
         raise NotImplementedError
@@ -117,7 +117,7 @@ class ExportMethod:
             print "Error: %s" % str(e)
             traceback.print_exc()
             print self.usage_string()
-        sys.exit() 
+        sys.exit()
 
 #
 
@@ -137,20 +137,14 @@ class ExportMethod:
     def finish(self):
         #TODO: write docstring
         if self.wxobj:
-            if WX_VERSION > 2:
-                wx.CallAfter(pub.sendMessage,"finish", msg=self.short_name.lower())
-            else:
-                wx.CallAfter(pub.sendMessage,"finish", self.short_name.lower())
+            wx.CallAfter(pub.sendMessage,"finish", msg=self.short_name.lower())
 
 #
-       
+
     def progress_update(self, text, count):
         #TODO: write docstring
         if self.wxobj:
-            if WX_VERSION > 2:
-                wx.CallAfter(pub.sendMessage, "progress", msg=(self.short_name, count))
-            else:
-                wx.CallAfter(pub.sendMessage, "progress", (self.short_name, count))
+            wx.CallAfter(pub.sendMessage, "progress", msg=(self.short_name, count))
             wx.Yield()
 
         self.transit_message_inplace(text)
@@ -159,21 +153,15 @@ class ExportMethod:
     def progress_range(self, count):
         #TODO: write docstring
         if self.wxobj:
-            if WX_VERSION > 2:
-                wx.CallAfter(pub.sendMessage, "progressrange", msg=count)
-            else:
-                wx.CallAfter(pub.sendMessage, "progressrange", count)
+            wx.CallAfter(pub.sendMessage, "progressrange", msg=count)
             wx.Yield()
 
-#       
+#
 
     def status_message(self, text, time=-1):
         #TODO: write docstring
         if self.wxobj:
-            if WX_VERSION > 2:
-                wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
-            else:
-                wx.CallAfter(pub.sendMessage, "status", (self.short_name, text, time))
+            wx.CallAfter(pub.sendMessage, "status", msg=(self.short_name, text, time))
             wx.Yield()
 
 #
@@ -215,7 +203,7 @@ class ExportMethod:
     def transit_warning(self,text):
         self.transit_message(text)
         if self.wxobj:
-            transit_tools.ShowWarning(text)    
+            transit_tools.ShowWarning(text)
 
 #
 
@@ -304,7 +292,7 @@ class TransitExport:
 #
 
     def getDescriptionText(self):
-        return self.description 
+        return self.description
 
 #
 
@@ -317,7 +305,7 @@ class TransitExport:
             return "Intended for %s or %s" % tuple(self.transposons)
         else:
             return "Intended for " + ", ".join(self.transposons[:-1]) + ", and " + self.transposons[-1]
-    
+
 
 #
 
