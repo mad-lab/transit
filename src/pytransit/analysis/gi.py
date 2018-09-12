@@ -13,20 +13,8 @@ except Exception as e:
 if hasWx:
     import wx.xrc
     from wx.lib.buttons import GenBitmapTextButton
-
-    #Imports depending on version:
-    if WX_VERSION == 2:
-        from wx.lib.pubsub import Publisher as pub
-
-    if WX_VERSION == 3:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-
-    if WX_VERSION == 4:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        import wx.adv
-   
+    from pubsub import pub
+    import wx.adv
 
 import os
 import time
@@ -80,18 +68,18 @@ class GIFile(base.TransitFile):
             tmp = line.strip().split("\t")
             if tmp[-1] not in types_to_counts: types_to_counts[tmp[-1]] = 0
             types_to_counts[tmp[-1]]+=1
-        
+
 
         text = """
 Results:
     Aggravating:   %s
     Alleviating:   %s
     Suppressive:   %s
-    No Interaction:   %s 
-    
-""" % (types_to_counts["Aggravating"], types_to_counts["Alleviating"],  
+    No Interaction:   %s
+
+""" % (types_to_counts["Aggravating"], types_to_counts["Alleviating"],
         types_to_counts["Suppressive"], types_to_counts["No Interaction"])
-    
+
         return text
 
 
@@ -101,7 +89,7 @@ Results:
         return menus
 
 
-        
+
 
 ############# GUI ##################
 
@@ -122,11 +110,11 @@ class GIGUI(base.AnalysisGUI):
         giTopSizer2 = wx.BoxSizer( wx.HORIZONTAL )
 
         giLabelSizer = wx.BoxSizer( wx.VERTICAL )
-        
+
         mainSizer1 = wx.BoxSizer( wx.VERTICAL )
 
 
-        # Samples 
+        # Samples
         (giSampleLabel, self.wxobj.giSampleText, sampleSizer) = self.defineTextBox(giPanel, u"Samples:", u"10000", "Number of samples to take when estimating the distributions of means. More samples give more accurate estimates at the cost of computation time.")
         mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
@@ -137,10 +125,10 @@ class GIGUI(base.AnalysisGUI):
 
 
 
-        # Norm 
+        # Norm
         giNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
         (giNormLabel, self.wxobj.giNormChoice, normSizer) = self.defineChoiceBox(giPanel, u"Normalization:", giNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods. ")
-        mainSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 ) 
+        mainSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
 
         giSizer.Add( mainSizer1, 1, wx.EXPAND, 5 )
@@ -163,14 +151,14 @@ class GIGUI(base.AnalysisGUI):
         giButton = wx.Button( giPanel, wx.ID_ANY, u"Run GI", wx.DefaultPosition, wx.DefaultSize, 0 )
         giSizer.Add( giButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
- 
+
         giPanel.SetSizer( giSizer )
         giPanel.Layout()
         giSizer.Fit( giPanel )
 
         #Connect events
         giButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
-        self.wxobj.giLoessPrev.Bind(wx.EVT_BUTTON, self.wxobj.LoessPrevFunc)        
+        self.wxobj.giLoessPrev.Bind(wx.EVT_BUTTON, self.wxobj.LoessPrevFunc)
 
         self.panel = giPanel
 
@@ -181,26 +169,26 @@ class GIGUI(base.AnalysisGUI):
 if hasWx:
 
     class DatasetDialog(wx.Dialog):
-    
-    
+
+
         def __init__(self, *args, **kw):
 
             self.wxobj = args[0]
             self.verbose = self.wxobj.verbose
-    
+
             from wx.lib.buttons import GenBitmapTextButton
             bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_OTHER, (16, 16))
 
             wx.Dialog.__init__(self, None, title="Dataset Dialog")
-    
+
             self.ID_DONE = wx.NewId()
 
             self.SetSize((900, 800))
             self.SetTitle("Please select files for the second condition.")
-    
+
             mainSizer = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(mainSizer)
-    
+
             warningText = """
 
     The Genetic Interactions method requires a total of four sets of datasets. Typically these are 2 strain backgrounds (e.g. Wildtype and Knockout) each grown under two conditions (e.g. in vitro and in vivo, or rich-media and presence of antibiotic).
@@ -213,92 +201,92 @@ if hasWx:
             mainSizer.Add(warningStaticBox, flag=wx.CENTER, border=5)
 
 
-            # CONTROL 
+            # CONTROL
             ctrlSizerB = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Control Samples - Condition B" ), wx.VERTICAL )
 
             bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-    
+
             self.ctrlRemoveButton = wx.Button( self, wx.ID_ANY, u"Remove", wx.DefaultPosition, (96,-1), 0 )
             bSizer2.Add( self.ctrlRemoveButton, 0, wx.ALL, 5 )
-    
+
             self.ctrlView = wx.Button( self, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
             self.ctrlView.Hide()
-    
+
             bSizer2.Add( self.ctrlView, 0, wx.ALL, 5 )
-    
+
             self.ctrlScatter = wx.Button( self, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
             self.ctrlScatter.Hide()
-    
+
             bSizer2.Add( self.ctrlScatter, 0, wx.ALL, 5 )
-    
+
             self.ctrlFilePicker = GenBitmapTextButton(self, 1, bmp, '[Click to add Control Dataset(s)]', size= wx.Size(500, -1))
             bSizer2.Add( self.ctrlFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
-    
+
             ctrlSizerB.Add( bSizer2, 0, wx.EXPAND, 5 )
-    
+
             self.list_ctrl = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
-    
+
             self.list_ctrl.SetMaxSize(wx.Size(940,200))
             ctrlSizerB.Add( self.list_ctrl, 1, wx.ALL|wx.EXPAND, 5 )
-    
-    
+
+
             # EXPERIMENTAL
-    
+
             expSizerB = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Experimental Samples - Condition B" ), wx.VERTICAL )
-    
+
             bSizer3 = wx.BoxSizer( wx.HORIZONTAL )
-    
+
             self.expRemoveButton = wx.Button( self, wx.ID_ANY, u"Remove", wx.DefaultPosition, (96,-1), 0 )
             bSizer3.Add( self.expRemoveButton, 0, wx.ALL, 5 )
-    
+
             self.expView = wx.Button( self, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
             self.expView.Hide()
-    
+
             bSizer3.Add( self.expView, 0, wx.ALL, 5 )
-    
+
             self.expScatter = wx.Button( self, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
             self.expScatter.Hide()
-    
+
             bSizer3.Add( self.expScatter, 0, wx.ALL, 5 )
-    
-    
+
+
             self.expFilePicker = GenBitmapTextButton(self, 1, bmp, '[Click to add Experimental Dataset(s)]', size= wx.Size(500, -1))
             bSizer3.Add( self.expFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
-    
-    
+
+
             expSizerB.Add( bSizer3, 0, wx.EXPAND, 5 )
-    
+
             self.list_exp = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
             self.list_exp.SetMaxSize(wx.Size(940, 200))
             expSizerB.Add( self.list_exp, 1, wx.ALL|wx.EXPAND, 5 )
-    
-    
-    
-    
-        
+
+
+
+
+
             # MAIN
-    
-    
-    
+
+
+
             mainSizer.Add( ctrlSizerB, 1, wx.EXPAND, 5 )
             mainSizer.Add( expSizerB, 1, wx.EXPAND, 5 )
-    
-    
+
+
             button_sizer = wx.BoxSizer(wx.HORIZONTAL)
             doneButton = wx.Button(self, self.ID_DONE, label='Done')
             cancelButton = wx.Button(self, wx.ID_CANCEL, label='Cancel')
-    
-    
+
+
             button_sizer.Add(doneButton, flag=wx.LEFT, border=5)
             button_sizer.Add(cancelButton, flag=wx.LEFT, border=5)
-    
+
             self.expFilePicker.Bind( wx.EVT_BUTTON, self.loadExpFileFunc )
             self.ctrlFilePicker.Bind( wx.EVT_BUTTON, self.loadCtrlFileFunc )
-            
+
 
             mainSizer.Add(button_sizer,
                 flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
-    
+
             doneButton.Bind(wx.EVT_BUTTON, self.OnClose)
             cancelButton.Bind(wx.EVT_BUTTON, self.OnClose)
 
@@ -306,7 +294,7 @@ if hasWx:
             self.expFilePicker.Bind( wx.EVT_BUTTON, self.loadExpFileFunc )
             self.ctrlRemoveButton.Bind( wx.EVT_BUTTON, self.ctrlRemoveFunc )
             self.expRemoveButton.Bind( wx.EVT_BUTTON, self.expRemoveFunc )
-    
+
 
 
             self.index_ctrl = 0
@@ -316,7 +304,7 @@ if hasWx:
             self.list_ctrl.InsertColumn(3, 'Mean Count', width=90)
             self.list_ctrl.InsertColumn(4, 'Max Count', width=85)
             self.list_ctrl.InsertColumn(5, 'Full Path', width=403)
-    
+
             self.index_exp = 0
             self.list_exp.InsertColumn(0, 'File', width=210)
             self.list_exp.InsertColumn(1, 'Total Reads', width=85)
@@ -325,10 +313,10 @@ if hasWx:
             self.list_exp.InsertColumn(4, 'Max Count', width=85)
             self.list_exp.InsertColumn(5, 'Full Path',width=403)
 
-        
-    
-    
-    
+
+
+
+
         def OnClose(self, event):
             if self.IsModal():
                 self.EndModal(event.EventObject.Id)
@@ -336,8 +324,8 @@ if hasWx:
             else:
                 self.Close()
                 self.Destroy()
-    
-    
+
+
         def ctrlSelected(self, col=5):
             selected_ctrl = []
             current = -1
@@ -349,12 +337,12 @@ if hasWx:
                 selected_ctrl.append(path)
                 current = next
             return selected_ctrl
-    
-#   
-    
+
+#
+
         def loadCtrlFileFunc(self, event):
             try:
-    
+
                 dlg = wx.FileDialog(
                     self, message="Choose a file",
                     defaultDir=self.wxobj.workdir,
@@ -374,8 +362,8 @@ if hasWx:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                 print(exc_type, fname, exc_tb.tb_lineno)
-    
-#   
+
+#
 
         def expSelected(self, col=5):
             selected_exp = []
@@ -388,11 +376,11 @@ if hasWx:
                 selected_exp.append(path)
                 current = next
             return selected_exp
-    
+
 
         def loadExpFileFunc(self, event):
             try:
-    
+
                 dlg = wx.FileDialog(
                     self, message="Choose a file",
                     defaultDir=self.wxobj.workdir,
@@ -419,45 +407,27 @@ if hasWx:
             name = transit_tools.basename(fullpath)
             (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
 
-            if WX_VERSION > 3:
-                self.list_ctrl.InsertItem(self.index_ctrl, name)
-                self.list_ctrl.SetItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
-                self.list_ctrl.SetItem(self.index_ctrl, 2, "%2.1f" % (density*100))
-                self.list_ctrl.SetItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
-                self.list_ctrl.SetItem(self.index_ctrl, 4, "%d" % (maxrd))
-                self.list_ctrl.SetItem(self.index_ctrl, 5, "%s" % (fullpath))
-            else:
-                self.list_ctrl.InsertStringItem(self.index_ctrl, name)
-                self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
-                self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
-                self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
-                self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
-                self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
-                self.list_ctrl.Select(self.index_ctrl)
+            self.list_ctrl.InsertItem(self.index_ctrl, name)
+            self.list_ctrl.SetItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+            self.list_ctrl.SetItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+            self.list_ctrl.SetItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+            self.list_ctrl.SetItem(self.index_ctrl, 4, "%d" % (maxrd))
+            self.list_ctrl.SetItem(self.index_ctrl, 5, "%s" % (fullpath))
             self.list_ctrl.Select(self.index_ctrl)
             self.index_ctrl+=1
-    
+
 #
-    
+
         def loadExpFile(self, fullpath):
             name = transit_tools.basename(fullpath)
             (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
 
-            if WX_VERSION > 3:
-                self.list_exp.InsertItem(self.index_exp, name)
-                self.list_exp.SetItem(self.index_exp, 1, "%1.1f" % (totalrd))
-                self.list_exp.SetItem(self.index_exp, 2, "%2.1f" % (density*100))
-                self.list_exp.SetItem(self.index_exp, 3, "%1.1f" % (meanrd))
-                self.list_exp.SetItem(self.index_exp, 4, "%d" % (maxrd))
-                self.list_exp.SetItem(self.index_exp, 5, "%s" % (fullpath))
-            else:
-                self.list_exp.InsertStringItem(self.index_exp, name)
-                self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
-                self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
-                self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
-                self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
-                self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
-
+            self.list_exp.InsertItem(self.index_exp, name)
+            self.list_exp.SetItem(self.index_exp, 1, "%1.1f" % (totalrd))
+            self.list_exp.SetItem(self.index_exp, 2, "%2.1f" % (density*100))
+            self.list_exp.SetItem(self.index_exp, 3, "%1.1f" % (meanrd))
+            self.list_exp.SetItem(self.index_exp, 4, "%d" % (maxrd))
+            self.list_exp.SetItem(self.index_exp, 5, "%s" % (fullpath))
             self.list_exp.Select(self.index_exp)
             self.index_exp+=1
 
@@ -482,8 +452,8 @@ if hasWx:
                 self.list_exp.DeleteItem(next)
                 next = self.list_exp.GetNextSelected(-1)
                 self.index_exp-=1
-    
-    
+
+
 
 
 
@@ -491,9 +461,9 @@ if hasWx:
 ########## CLASS #######################
 
 class GIMethod(base.QuadConditionMethod):
-    """   
+    """
     GI
- 
+
     """
     def __init__(self,
                 ctrldataA,
@@ -521,7 +491,6 @@ class GIMethod(base.QuadConditionMethod):
         self.doFWER = True # TRI
         self.NTerminus = NTerminus
         self.CTerminus = CTerminus
-
 
     @classmethod
     def fromGUI(self, wxobj):
@@ -584,7 +553,7 @@ class GIMethod(base.QuadConditionMethod):
         defaultFileName = "genetic_interactions_output_s%d" % (samples)
         if includeZeros: defaultFileName+= "_iz"
         defaultFileName+=".dat"
-    
+
         defaultDir = os.getcwd()
         output_path = wxobj.SaveFile(defaultDir, defaultFileName)
         if not output_path: return None
@@ -625,8 +594,8 @@ class GIMethod(base.QuadConditionMethod):
         rope = float(kwargs.get("-rope", 0.5)) # fixed! changed int to float
         replicates = kwargs.get("r", "Sum")
         includeZeros = kwargs.get("iz", False)
-    
-        
+
+
         LOESS = kwargs.get("l", False)
         ignoreCodon = True
         NTerminus = float(kwargs.get("iN", 0.00))
@@ -656,7 +625,7 @@ class GIMethod(base.QuadConditionMethod):
         self.transit_message("Starting Genetic Interactions Method")
         start_time = time.time()
         self.output.write("#GI\n")
-       
+
         wiglist = self.ctrldataA + self.expdataA + self.ctrldataB + self.expdataB
 
         Nwig = len(wiglist)
@@ -665,8 +634,8 @@ class GIMethod(base.QuadConditionMethod):
         Na2 = len(self.ctrldataB)
         Nb2 = len(self.expdataB)
 
-       
-        # Get data 
+
+        # Get data
         self.transit_message("Getting Data")
         (data, position) = transit_tools.get_validated_data(wiglist, wxobj=self.wxobj)
 
@@ -697,27 +666,27 @@ class GIMethod(base.QuadConditionMethod):
         var_list_b1 = []
         var_list_b2 = []
 
-   
-        # Base priors on empirical observations accross genes. 
+
+        # Base priors on empirical observations accross genes.
         for gene in sorted(G_A1):
             if gene.n > 1:
                 A1_data = G_A1[gene.orf].reads.flatten()
                 B1_data = G_B1[gene.orf].reads.flatten()
                 A2_data = G_A2[gene.orf].reads.flatten()
                 B2_data = G_B2[gene.orf].reads.flatten()
-    
+
                 means_list_a1.append(numpy.mean(A1_data))
                 var_list_a1.append(numpy.var(A1_data))
 
                 means_list_b1.append(numpy.mean(B1_data))
                 var_list_b1.append(numpy.var(B1_data))
-    
+
                 means_list_a2.append(numpy.mean(A2_data))
                 var_list_a2.append(numpy.var(A2_data))
 
                 means_list_b2.append(numpy.mean(B2_data))
                 var_list_b2.append(numpy.var(B2_data))
- 
+
         # Priors
         mu0_A1 = scipy.stats.trim_mean(means_list_a1, 0.01)
         mu0_B1 = scipy.stats.trim_mean(means_list_b1, 0.01)
@@ -746,8 +715,8 @@ class GIMethod(base.QuadConditionMethod):
                 B1_data = G_B1[gene.orf].reads.flatten()
                 A2_data = G_A2[gene.orf].reads.flatten()
                 B2_data = G_B2[gene.orf].reads.flatten()
-  
-   
+
+
             #            Time-1   Time-2
             #
             #  Strain-A     A       C
@@ -755,7 +724,7 @@ class GIMethod(base.QuadConditionMethod):
             #  Strain-B     B       D
 
                 try:
-                    muA1_post, varA1_post = stat_tools.sample_trunc_norm_post(A1_data, self.samples, 
+                    muA1_post, varA1_post = stat_tools.sample_trunc_norm_post(A1_data, self.samples,
                         mu0_A1, s20_A1, k0, nu0)
                     muB1_post, varB1_post = stat_tools.sample_trunc_norm_post(B1_data, self.samples,
                         mu0_B1, s20_B1, k0, nu0)
@@ -776,7 +745,7 @@ class GIMethod(base.QuadConditionMethod):
 
                 alpha = 0.05
 
-                # Get Bounds of the HDI 
+                # Get Bounds of the HDI
                 l_logFC_A, u_logFC_A = stat_tools.HDI_from_MCMC(logFC_A_post, 1-alpha)
 
                 l_logFC_B, u_logFC_B = stat_tools.HDI_from_MCMC(logFC_B_post, 1-alpha)
@@ -788,11 +757,11 @@ class GIMethod(base.QuadConditionMethod):
                 mean_logFC_B = numpy.mean(logFC_B_post)
                 mean_delta_logFC = numpy.mean(delta_logFC_post)
 
-                # Is HDI significantly different than ROPE? 
+                # Is HDI significantly different than ROPE?
                 not_HDI_overlap_bit = l_delta_logFC > self.rope or u_delta_logFC < -self.rope
-    
+
                 # Probability of posterior overlaping with ROPE
-                probROPE = numpy.mean(numpy.logical_and(delta_logFC_post>=0.0-self.rope,  delta_logFC_post<=0.0+self.rope))                
+                probROPE = numpy.mean(numpy.logical_and(delta_logFC_post>=0.0-self.rope,  delta_logFC_post<=0.0+self.rope))
 
             # If there is no data, assume empty defaults
             else:
@@ -854,7 +823,7 @@ class GIMethod(base.QuadConditionMethod):
             adjusted_prob = fwer
             adjusted_label = "FWER"
 
-        # If not using adjustment for classification, sort correctly 
+        # If not using adjustment for classification, sort correctly
         if not self.doBFDR and not self.doFWER:
             sorted_index = numpy.argsort([d[-1] for d in data])[::-1][:len(data)]
             adjusted_prob = [adjusted_prob[ii] for ii in sorted_index]
@@ -893,7 +862,7 @@ class GIMethod(base.QuadConditionMethod):
 
         # Write gene results
         for i,row in enumerate(data):
-        #1   2    3        4                5              6               7                8            9            10              11             12            13         14   
+        #1   2    3        4                5              6               7                8            9            10              11             12            13         14
             orf, name, n, mean_muA1_post, mean_muA2_post, mean_muB1_post, mean_muB2_post, mean_logFC_A, mean_logFC_B, mean_delta_logFC, l_delta_logFC, u_delta_logFC, probROPE, not_HDI_overlap_bit = row
             type_of_interaction = "No Interaction"
             if ((self.doBFDR or self.doFWER) and adjusted_prob[i] < 0.05):
@@ -908,7 +877,7 @@ class GIMethod(base.QuadConditionMethod):
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file(filetype="GI")
         self.finish()
-        self.transit_message("Finished Genetic Interactions Method") 
+        self.transit_message("Finished Genetic Interactions Method")
 
 
     @staticmethod
@@ -926,7 +895,7 @@ class GIMethod(base.QuadConditionMethod):
     @classmethod
     def usage_string(self):
         return """python %s GI <comma-separated .wig control files condition A> <comma-separated .wig control files condition B> <comma-separated .wig experimental files condition A> <comma-separated .wig experimental files condition B> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
-    
+
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
         --rope <float>  :=  Region of Practical Equivalence. Area around 0 (i.e. 0 +/- ROPE) that is NOT of interest. Can be thought of similar to the area of the null-hypothesis. Default: --rope 0.5
@@ -948,7 +917,7 @@ if __name__ == "__main__":
 
     G = GIMethod.fromargs(sys.argv[1:])
 
-    G.console_message("Printing the member variables:")   
+    G.console_message("Printing the member variables:")
     G.print_members()
 
     print ""

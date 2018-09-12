@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 
 
 import sys
@@ -12,24 +12,13 @@ except Exception as e:
     hasWx = False
     WX_VERSION = 0
     print "EXCEPTION:", str(e)
-   
+
 if hasWx:
     import wx.xrc
     from wx.lib.buttons import GenBitmapTextButton
+    from pubsub import pub
+    import wx.adv
 
-    #Imports depending on version:
-    if WX_VERSION == 2:
-        from wx.lib.pubsub import Publisher as pub
-
-    if WX_VERSION == 3:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-
-    if WX_VERSION == 4:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        import wx.adv
-    
 import os
 import time
 import datetime
@@ -94,10 +83,10 @@ transit_prefix = "[TRANSIT]"
 ###########################################################################
 
 class MainFrame ( wx.Frame ):
-    
+
     def __init__( self, parent ):
         wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"TRANSIT", pos = wx.DefaultPosition, size = wx.Size( 1350,975 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
-        
+
 
         #Define variables
 
@@ -116,147 +105,147 @@ class MainFrame ( wx.Frame ):
 
 
         #self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
-        
+
         bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
-        
+
         self.mainWindow = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL )
         self.mainWindow.SetScrollRate( 5, 5 )
         self.mainWindow.SetMinSize( wx.Size( 700,-1 ) )
-        
+
         bSizer4 = wx.BoxSizer( wx.VERTICAL )
 
         # ANNOTATION
         orgSizer = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Organism" ), wx.VERTICAL )
-        
+
         bSizer10 = wx.BoxSizer( wx.HORIZONTAL )
-        
+
         self.m_staticText5 = wx.StaticText( self.mainWindow, wx.ID_ANY, u"Annotation File:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText5.Wrap( -1 )
         bSizer10.Add( self.m_staticText5, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-        
+
 
         self.annotationFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Annotation File (.prot_table or .gff3)]', size= wx.Size(500, -1))
 
         bSizer10.Add( self.annotationFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
-        
-        orgSizer.Add( bSizer10, 1, wx.EXPAND, 5 )
-        
-        bSizer4.Add( orgSizer, 0, wx.EXPAND, 5 )
-       
 
-        # CONTROL 
+        orgSizer.Add( bSizer10, 1, wx.EXPAND, 5 )
+
+        bSizer4.Add( orgSizer, 0, wx.EXPAND, 5 )
+
+
+        # CONTROL
         ctrlSizer = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Control Samples" ), wx.VERTICAL )
-        
+
         bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
-       
+
         self.ctrlRemoveButton = wx.Button( self.mainWindow, wx.ID_ANY, u"Remove", wx.DefaultPosition, (96,-1), 0 )
         bSizer2.Add( self.ctrlRemoveButton, 0, wx.ALL, 5 )
-        
+
         self.ctrlView = wx.Button( self.mainWindow, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.ctrlView.Hide()
-        
+
         bSizer2.Add( self.ctrlView, 0, wx.ALL, 5 )
-        
+
         self.ctrlScatter = wx.Button( self.mainWindow, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.ctrlScatter.Hide()
-        
+
         bSizer2.Add( self.ctrlScatter, 0, wx.ALL, 5 )
-        
+
         self.ctrlFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Control Dataset(s)]', size= wx.Size(500, -1))
         bSizer2.Add( self.ctrlFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
-        
+
         ctrlSizer.Add( bSizer2, 0, wx.EXPAND, 5 )
-        
+
         self.list_ctrl = wx.ListCtrl( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
 
         self.list_ctrl.SetMaxSize(wx.Size(-1,200))
         ctrlSizer.Add( self.list_ctrl, 1, wx.ALL|wx.EXPAND, 5 )
-                
+
         bSizer4.Add( ctrlSizer, 1, wx.EXPAND, 5 )
-       
-    
+
+
         # EXPERIMENTAL
         expSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Experimental Samples" ), wx.VERTICAL )
-        
+
         bSizer3 = wx.BoxSizer( wx.HORIZONTAL )
-        
+
         self.expSizer = wx.Button( self.mainWindow, wx.ID_ANY, u"Remove", wx.DefaultPosition, (96,-1), 0 )
         bSizer3.Add( self.expSizer, 0, wx.ALL, 5 )
-        
+
         self.expView = wx.Button( self.mainWindow, wx.ID_ANY, u"Track View", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.expView.Hide()
-        
+
         bSizer3.Add( self.expView, 0, wx.ALL, 5 )
-        
+
         self.expScatter = wx.Button( self.mainWindow, wx.ID_ANY, u"Scatter", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.expScatter.Hide()
-        
+
         bSizer3.Add( self.expScatter, 0, wx.ALL, 5 )
-       
+
 
         self.expFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Experimental Dataset(s)]', size= wx.Size(500, -1))
         bSizer3.Add( self.expFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
-        
-        
+
+
         expSizer1.Add( bSizer3, 0, wx.EXPAND, 5 )
-        
+
         self.list_exp = wx.ListCtrl( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
         self.list_exp.SetMaxSize(wx.Size(-1, 200))
         expSizer1.Add( self.list_exp, 1, wx.ALL|wx.EXPAND, 5 )
-        
-        
+
+
         bSizer4.Add( expSizer1, 1, wx.EXPAND, 5 )
-        
+
 
 
         # RESULTS
         filesSizer = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Results Files" ), wx.VERTICAL )
-        
+
         bSizer141 = wx.BoxSizer( wx.HORIZONTAL )
-        
+
         self.displayButton = wx.Button( self.mainWindow, wx.ID_ANY, u"Display Table", wx.DefaultPosition, wx.DefaultSize, 0 )
         bSizer141.Add( self.displayButton, 0, wx.ALL, 5 )
-        
+
         self.fileActionButton = wx.Button( self.mainWindow, wx.ID_ANY, u"Display Graph", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.fileActionButton.Hide()
-        
+
         bSizer141.Add( self.fileActionButton, 0, wx.ALL, 5 )
-        
+
         self.addFileButton = GenBitmapTextButton(self.mainWindow, 1 , bmp, 'Add Results File', size= wx.Size(150, 30))
 
 
         bSizer141.Add( self.addFileButton, 0, wx.ALL, 5 )
-        
+
         fileActionChoiceChoices = [ u"[Choose Action]"]
         self.fileActionChoice = wx.Choice( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, fileActionChoiceChoices, 0 )
         self.fileActionChoice.SetSelection( 0 )
         bSizer141.Add( self.fileActionChoice, 0, wx.ALL, 5 )
-        
-        
+
+
         filesSizer.Add( bSizer141, 0, 0, 5 )
-        
+
         self.list_files = wx.ListCtrl( self.mainWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT|wx.SUNKEN_BORDER )
         self.list_files.SetMaxSize(wx.Size(-1,200))
         filesSizer.Add( self.list_files, 1, wx.ALL|wx.EXPAND, 5 )
-        
-        
+
+
         bSizer4.Add( filesSizer, 1, wx.EXPAND, 5 )
-        
-        
+
+
         self.mainWindow.SetSizer( bSizer4 )
         self.mainWindow.Layout()
         bSizer4.Fit( self.mainWindow )
         bSizer1.Add( self.mainWindow, 1, wx.ALL|wx.EXPAND, 5 )
-        
+
         self.m_panel5 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.DOUBLE_BORDER|wx.TAB_TRAVERSAL )
         self.m_panel5.SetMaxSize( wx.Size( 2,-1 ) )
-        
+
         bSizer1.Add( self.m_panel5, 0, wx.ALL|wx.EXPAND, 5 )
-        
+
         self.optionsWindow = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL |wx.EXPAND)
         self.optionsWindow.SetScrollRate( 5, 5 )
         self.optionsWindow.SetMinSize( wx.Size( 310,1000 ) )
-        
+
 
         self.optionsSizer = wx.BoxSizer( wx.VERTICAL )
 
@@ -271,7 +260,7 @@ class MainFrame ( wx.Frame ):
         self.optionsSizer.Add( self.versionLabel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
 
-        # Method Information 
+        # Method Information
         self.methodInfoText = wx.StaticBox( self.optionsWindow, wx.ID_ANY, u"Instructions" )
         self.methodInfoText.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD))
         self.methodInfoSizer = wx.StaticBoxSizer( self.methodInfoText, wx.VERTICAL )
@@ -308,35 +297,35 @@ class MainFrame ( wx.Frame ):
 
 
 
-        # Method Options 
+        # Method Options
         self.methodSizerText = wx.StaticBox( self.optionsWindow, wx.ID_ANY, u"Method Options" )
         self.methodSizerText.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         self.methodSizer = wx.StaticBoxSizer( self.methodSizerText, wx.VERTICAL )
 
-        
+
         self.m_panel1 = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.m_panel1.SetMinSize( wx.Size( 50,1 ) )
-        
+
         self.methodSizer.Add( self.m_panel1, 0, wx.ALL, 5 )
-        
+
         self.globalLabel = wx.StaticText( self.optionsWindow, wx.ID_ANY, u"Global Options", wx.DefaultPosition, (130,20), 0 )
         self.globalLabel.SetFont( wx.Font( 10, wx.DEFAULT, wx.NORMAL, wx.BOLD) )
         self.methodSizer.Add( self.globalLabel, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
-        
+
         self.globalPanel = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.globalPanel.SetMinSize( wx.Size( 280,150 ) )
         self.globalPanel.SetMaxSize( wx.Size(-1,-1) )
-      
- 
+
+
         globalSizerVT = wx.BoxSizer( wx.VERTICAL )
         nTermSizer = wx.BoxSizer( wx.HORIZONTAL )
         cTermSizer = wx.BoxSizer( wx.HORIZONTAL )
-        
 
-        # N TERMINUS - GLOBAL 
+
+        # N TERMINUS - GLOBAL
         self.globalNTerminusLabel = wx.StaticText( self.globalPanel, wx.ID_ANY, u"Ignore N-Terminus %:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalNTerminusLabel.Wrap( -1 )
-       
+
         self.globalNTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalNTerminusIcon = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the N-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function.")
         nTermSizer.Add( self.globalNTerminusLabel, 1, wx.ALIGN_CENTER, 5 )
@@ -344,19 +333,19 @@ class MainFrame ( wx.Frame ):
         nTermSizer.Add( self.globalNTerminusIcon, 1, wx.ALIGN_CENTER, 5 )
 
 
-        # C TERMINUS - GLOBAL 
+        # C TERMINUS - GLOBAL
         self.globalCTerminusLabel = wx.StaticText( self.globalPanel, wx.ID_ANY, u"Ignore C-Terminus %:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.globalCTerminusLabel.Wrap( -1 )
         self.globalCTerminusText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, u"0", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.globalCTerminusIcon = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the C-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function.")      
- 
+        self.globalCTerminusIcon = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY, tooltip="Ignores a fraction of the ORF, beginning at the C-terminal end. Useful for ignoring read-counts that may occur at the terminal ends, even though they do not truly disrupt a genes function.")
+
         cTermSizer.Add( self.globalCTerminusLabel, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
         cTermSizer.Add( self.globalCTerminusText, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
         cTermSizer.Add( self.globalCTerminusIcon, 1, wx.ALIGN_CENTER, 5 )
- 
+
         # Control Libraries text - GLOBAL
         ctrlLibSizer = wx.BoxSizer( wx.HORIZONTAL )
-        self.ctrlLibLabel = wx.StaticText(self.globalPanel, wx.ID_ANY, u"Control Libraries:", 
+        self.ctrlLibLabel = wx.StaticText(self.globalPanel, wx.ID_ANY, u"Control Libraries:",
             wx.DefaultPosition, (170,-1), 0)
         self.ctrlLibLabel.Wrap( -1 )
         self.ctrlLibText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, "",
@@ -374,7 +363,7 @@ class MainFrame ( wx.Frame ):
         ctrlLibSizer.Add(self.ctrlLibTip, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
-        # Experimental Libraries text - GLOBAL 
+        # Experimental Libraries text - GLOBAL
         expLibSizer = wx.BoxSizer( wx.HORIZONTAL )
         self.expLibLabel = wx.StaticText(self.globalPanel, wx.ID_ANY,
             u"Experimental Libraries:",  wx.DefaultPosition, (170,-1), 0)
@@ -392,14 +381,14 @@ class MainFrame ( wx.Frame ):
         expLibSizer.Add(self.expLibText, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
         expLibSizer.Add(self.expLibTip, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
 
-        
+
         globalSizerVT.Add( nTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
         globalSizerVT.Add( cTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
         globalSizerVT.Add( ctrlLibSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
         globalSizerVT.Add( expLibSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
-        
-        
+
+
         self.globalPanel.SetSizer( globalSizerVT )
         self.globalPanel.Layout()
         globalSizerVT.Fit( self.globalPanel )
@@ -414,10 +403,10 @@ class MainFrame ( wx.Frame ):
         self.optionsWindow.Layout()
 
         self.optionsWindow.Fit()
-        
+
         bSizer1.Add( self.optionsWindow, 0, wx.ALL, 5 )
-        
-        #--------------------#        
+
+        #--------------------#
 
         self.SetSizer( bSizer1 )
         self.Layout()
@@ -428,107 +417,71 @@ class MainFrame ( wx.Frame ):
 
         # Selected datasets
         self.exportMenuItem.AppendSubMenu( self.selectedExportMenuItem, u"Selected Datasets" )
-        
+
         self.fileMenuItem.AppendSubMenu( self.exportMenuItem, u"Export" )
-        
+
         self.convertMenuItem = wx.Menu()
         self.annotationConvertPTToPTTMenu = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"prot_table to PTT", wx.EmptyString, wx.ITEM_NORMAL )
-        if WX_VERSION > 3:
-            self.convertMenuItem.Append( self.annotationConvertPTToPTTMenu )
-        else:
-            self.convertMenuItem.AppendItem( self.annotationConvertPTToPTTMenu )
-        
+        self.convertMenuItem.Append( self.annotationConvertPTToPTTMenu )
+
         self.annotationConvertPTToGFF3Menu = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"prot_table to GFF3", wx.EmptyString, wx.ITEM_NORMAL )
-        if WX_VERSION > 3:
-            self.convertMenuItem.Append( self.annotationConvertPTToGFF3Menu )
-        else:
-            self.convertMenuItem.AppendItem( self.annotationConvertPTToGFF3Menu )
-        
+        self.convertMenuItem.Append( self.annotationConvertPTToGFF3Menu )
+
         self.annotationConvertPTTToPT = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"PTT to prot_table", wx.EmptyString, wx.ITEM_NORMAL )
 
-        if WX_VERSION > 3:
-            self.convertMenuItem.Append( self.annotationConvertPTTToPT )
-        else:
-            self.convertMenuItem.AppendItem( self.annotationConvertPTTToPT )
-        
+        self.convertMenuItem.Append( self.annotationConvertPTTToPT )
+
         self.annotationConvertGFF3ToPT = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"GFF3 to prot_table", wx.EmptyString, wx.ITEM_NORMAL )
-        if WX_VERSION > 3:
-            self.convertMenuItem.Append( self.annotationConvertGFF3ToPT )
-        else:
-            self.convertMenuItem.AppendItem( self.annotationConvertGFF3ToPT )
-        
+        self.convertMenuItem.Append( self.annotationConvertGFF3ToPT )
         self.fileMenuItem.AppendSubMenu( self.convertMenuItem, u"Convert" )
-        
+
         self.fileExitMenuItem = wx.MenuItem( self.fileMenuItem, wx.ID_ANY, u"&Exit", wx.EmptyString, wx.ITEM_NORMAL )
-        if WX_VERSION > 3:
-            self.fileMenuItem.Append( self.fileExitMenuItem )
-        else:
-            self.fileMenuItem.AppendItem( self.fileExitMenuItem )
-        
-        self.m_menubar1.Append( self.fileMenuItem, u"&File" ) 
-        
+        self.fileMenuItem.Append( self.fileExitMenuItem )
+        self.m_menubar1.Append( self.fileMenuItem, u"&File" )
+
         self.viewMenuItem = wx.Menu()
         self.scatterMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"&Scatter Plot", wx.EmptyString, wx.ITEM_NORMAL )
 
-        if WX_VERSION > 3:
-            self.viewMenuItem.Append( self.scatterMenuItem )
-        else:
-            self.viewMenuItem.AppendItem( self.scatterMenuItem )
-        
+        self.viewMenuItem.Append( self.scatterMenuItem )
+
         self.trackMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"&Track View", wx.EmptyString, wx.ITEM_NORMAL )
 
-        if WX_VERSION > 3:
-            self.viewMenuItem.Append( self.trackMenuItem )
-        else:
-            self.viewMenuItem.AppendItem( self.trackMenuItem )
-        
+        self.viewMenuItem.Append( self.trackMenuItem )
         self.qcMenuItem = wx.MenuItem( self.viewMenuItem, wx.ID_ANY, u"&Quality Control", wx.EmptyString, wx.ITEM_NORMAL )
 
-        if WX_VERSION > 3:
-            self.viewMenuItem.Append( self.qcMenuItem )
-        else:
-            self.viewMenuItem.AppendItem( self.qcMenuItem )
-        
-        self.m_menubar1.Append( self.viewMenuItem, u"&View" ) 
-       
+        self.viewMenuItem.Append( self.qcMenuItem )
+        self.m_menubar1.Append( self.viewMenuItem, u"&View" )
 
-        # 
+        #
         self.methodsMenuItem = wx.Menu()
         self.himar1MenuItem = wx.Menu()
         self.tn5MenuItem = wx.Menu()
-        
-        
+
+
         self.methodsMenuItem.AppendSubMenu(self.himar1MenuItem, "&Himar1 Methods")
         self.methodsMenuItem.AppendSubMenu(self.tn5MenuItem, "&Tn5 Methods")
         self.m_menubar1.Append( self.methodsMenuItem, u"&Analysis" )
-        
- 
+
+
         self.SetMenuBar( self.m_menubar1 )
 
-        
+
         self.helpMenuItem = wx.Menu()
         self.documentationMenuItem = wx.MenuItem(self.helpMenuItem, wx.ID_ANY, u"&Documentation", wx.EmptyString, wx.ITEM_NORMAL)
-        if WX_VERSION > 3:
-            self.helpMenuItem.Append(self.documentationMenuItem)
-        else:
-            self.helpMenuItem.AppendItem(self.documentationMenuItem)
-
+        self.helpMenuItem.Append(self.documentationMenuItem)
         self.aboutMenuItem = wx.MenuItem(self.helpMenuItem, wx.ID_ANY, u"&About", wx.EmptyString, wx.ITEM_NORMAL)
-        if WX_VERSION > 3:
-            self.helpMenuItem.Append(self.aboutMenuItem)
-        else:
-            self.helpMenuItem.AppendItem(self.aboutMenuItem)
+        self.helpMenuItem.Append(self.aboutMenuItem)
 
         self.m_menubar1.Append( self.helpMenuItem, u"&Help" )
-        
-        
+
+
         self.statusBar = self.CreateStatusBar( 1, wx.STB_SIZEGRIP, wx.ID_ANY )
-        
+
 
 
 
         self.Centre( wx.BOTH )
-        
+
         # Connect Events
 
         self.annotationFilePicker.Bind( wx.EVT_BUTTON, self.annotationFileFunc )
@@ -545,7 +498,7 @@ class MainFrame ( wx.Frame ):
         self.addFileButton.Bind( wx.EVT_BUTTON, self.addFileFunc )
         self.fileActionChoice.Bind( wx.EVT_CHOICE, self.fileActionFunc )
         self.list_files.Bind( wx.EVT_LIST_ITEM_SELECTED, self.fileSelected )
-        
+
         self.Bind( wx.EVT_MENU, self.annotationPT_to_PTT, id = self.annotationConvertPTToPTTMenu.GetId() )
         self.Bind( wx.EVT_MENU, self.annotationPT_to_GFF3, id = self.annotationConvertPTToGFF3Menu.GetId() )
         self.Bind( wx.EVT_MENU, self.annotationPTT_to_PT, id = self.annotationConvertPTTToPT.GetId() )
@@ -561,11 +514,11 @@ class MainFrame ( wx.Frame ):
         self.Bind(wx.EVT_TIMER, self.clearStatus, self.timer)
 
 
-    
+
     def __del__( self ):
         pass
-    
-    
+
+
     # Virtual event handlers, overide them in your derived class
     def clearStatus(self, event):
         event.Skip()
@@ -578,89 +531,89 @@ class MainFrame ( wx.Frame ):
 
     def annotationFileFunc( self, event ):
         event.Skip()
-    
+
     def ctrlRemoveFunc( self, event ):
         event.Skip()
-    
+
     def allViewFunc( self, event ):
         event.Skip()
-    
+
     def scatterFunc( self, event ):
         event.Skip()
-    
+
     def loadCtrlFileFunc( self, event ):
         event.Skip()
-    
+
     def expRemoveFunc( self, event ):
         event.Skip()
-    
+
     def loadExpFileFunc( self, event ):
         event.Skip()
-    
+
     def displayFileFunc( self, event ):
         event.Skip()
-    
+
     def fileActionFunc( self, event ):
         event.Skip()
-    
+
     def addFileFunc( self, event ):
         event.Skip()
-    
-    
+
+
     def MethodSelectFunc( self, event ):
         event.Skip()
-    
+
 #    def RunGumbelFunc( self, event ):
 #        event.Skip()
-    
+
     def RunBinomialFunc( self, event ):
         event.Skip()
-    
+
     def LoessPrevFunc( self, event ):
         event.Skip()
-    
+
     def RunHMMFunc( self, event ):
         event.Skip()
-    
-    
+
+
     def RunResamplingFunc( self, event ):
         event.Skip()
-    
-    
+
+
     def RunDEHMMFunc( self, event ):
         event.Skip()
-    
+
     def ctrlToIGV( self, event ):
         event.Skip()
-    
+
     def expToIGV( self, event ):
         event.Skip()
-    
+
     def annotationPT_to_PTT( self, event ):
         event.Skip()
-    
+
     def annotationPT_to_GFF3( self, event ):
         event.Skip()
-    
+
     def annotationPTT_to_PT( self, event ):
         event.Skip()
-    
+
     def annotationGFF3_to_PT( self, event ):
         event.Skip()
-    
+
     def Exit( self, event ):
         event.Skip()
-    
-    
+
+
     def qcFunc( self, event ):
         event.Skip()
-    
+
     def aboutFunc( self, event ):
         event.Skip()
 
     def documentationFunc( self, event ):
         event.Skip()
-    
+
 
 #!/usr/bin/env python
 
@@ -702,7 +655,7 @@ class TnSeekFrame(MainFrame):
 
         self.logoImg.SetBitmap(images.transit_logo2.GetImage().ConvertToBitmap())
         self.versionLabel.SetLabel(pytransit.__version__)
-        self.methodSizerText.Hide()        
+        self.methodSizerText.Hide()
 
         self.index_ctrl = 0
         self.list_ctrl.InsertColumn(0, 'File', width=210)
@@ -739,8 +692,8 @@ class TnSeekFrame(MainFrame):
         pub.subscribe(self.updateStatus, "status")
         pub.subscribe(self.addFile, "file")
         pub.subscribe(self.finishRun, "finish")
-        pub.subscribe(self.saveHistogram, "histogram")   
- 
+        pub.subscribe(self.saveHistogram, "histogram")
+
         #self.outputDirPicker.SetPath(os.path.dirname(os.path.realpath(__file__)))
 
 
@@ -748,10 +701,7 @@ class TnSeekFrame(MainFrame):
         for name in export_methods:
             export_methods[name].gui.defineMenuItem(self, export_methods[name].label)
             tempMenuItem = export_methods[name].gui.menuitem
-            if WX_VERSION > 3:
-                self.selectedExportMenuItem.Append( tempMenuItem )
-            else:
-                self.selectedExportMenuItem.AppendItem( tempMenuItem )
+            self.selectedExportMenuItem.Append( tempMenuItem )
 
             self.Bind( wx.EVT_MENU, partial(self.ExportSelectFunc,  export_methods[name].label),
                 tempMenuItem )
@@ -772,18 +722,12 @@ class TnSeekFrame(MainFrame):
                 tempMenuItem = wx.MenuItem( self.himar1MenuItem, wx.ID_ANY, methods[name].fullname(), wx.EmptyString, wx.ITEM_NORMAL )
                 self.Bind( wx.EVT_MENU, partial(self.MethodSelectFunc,  methods[name].fullname()), tempMenuItem )
 
-                if WX_VERSION > 3:
-                    self.himar1MenuItem.Append( tempMenuItem )
-                else:
-                    self.himar1MenuItem.AppendItem( tempMenuItem )
+                self.himar1MenuItem.Append( tempMenuItem )
 
             if "tn5" in methods[name].transposons:
                 tempMenuItem = wx.MenuItem( self.tn5MenuItem, wx.ID_ANY, methods[name].fullname(), wx.EmptyString, wx.ITEM_NORMAL )
                 self.Bind( wx.EVT_MENU, partial(self.MethodSelectFunc, methods[name].fullname()), tempMenuItem )
-                if WX_VERSION > 3:
-                    self.tn5MenuItem.Append( tempMenuItem )
-                else:
-                    self.tn5MenuItem.AppendItem( tempMenuItem )
+                self.tn5MenuItem.Append( tempMenuItem )
 
         #progress
         self.progressPanel = wx.Panel( self.optionsWindow, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
@@ -804,12 +748,12 @@ class TnSeekFrame(MainFrame):
 
         #progressSizer.Fit( self.progressPanel )
         self.methodSizer.Add( self.progressPanel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-        
+
         #self.methodSizer.Add( self.globalLabel, 1, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
         #self.methodSizer.Hide()
         self.progress.SetRange(50)
         #########
-        
+
         self.optionsWindow.Fit()
 
         self.HideProgressSection()
@@ -826,7 +770,7 @@ class TnSeekFrame(MainFrame):
                     self.loadCtrlFile(path)
                 except Exception as e:
                     print "Error:", str(e)
-               
+
             expData = ["cholesterol_H37Rv_rep1.wig", "cholesterol_H37Rv_rep2.wig", "cholesterol_H37Rv_rep3.wig"]
             for dataset in expData:
                 try:
@@ -842,7 +786,7 @@ class TnSeekFrame(MainFrame):
                 transit_tools.transit_message("Annotation File Selected: %s" % self.annotation)
             except Exception as e:
                 print "Error:", str(e)
- 
+
 #
 
     def Exit(self, event):
@@ -855,10 +799,7 @@ class TnSeekFrame(MainFrame):
 
     def updateProgress(self, msg):
         """"""
-        if WX_VERSION > 2:
-            method, count = msg
-        else:
-            method, count = msg.data
+        method, count = msg
         self.progress_count = count
         try:
             self.progress.SetValue(self.progress_count)
@@ -869,29 +810,24 @@ class TnSeekFrame(MainFrame):
 
     def setProgressRange(self, msg):
         """"""
-        if WX_VERSION > 2:
-            count = msg
-        else:
-            count = msg.data
+        count = msg
         try:
             self.progress.SetRange(count)
         except:
             pass
 
-#    
+#
 
     def updateStatus(self, msg, time=-1):
         """"""
         if type(msg) == type("A"):
             text = msg
-        elif WX_VERSION > 2:
-            method, text, time = msg 
         else:
-            method, text,time = msg.data
+            method, text, time = msg
         if time > 0:
-            self.timer.Start(time)        
+            self.timer.Start(time)
         self.statusBar.SetStatusText(text)
-   
+
 #
 
     def clearStatus(self, event):
@@ -899,12 +835,9 @@ class TnSeekFrame(MainFrame):
         self.timer.Stop()
 
 #
-    
+
     def saveHistogram(self, msg):
-        if WX_VERSION > 2:
-            data, orf, path, delta = msg
-        else:
-            data, orf, path, delta = msg.data
+        data, orf, path, delta = msg
 
         n, bins, patches = plt.hist(data, density=1, facecolor='c', alpha=0.75, bins=100)
         plt.xlabel('Delta Sum')
@@ -919,28 +852,19 @@ class TnSeekFrame(MainFrame):
 #
 
     def addFile(self, data):
-        if not WX_VERSION > 2:
-            data = data.data
         fullpath = data["path"]
         name = transit_tools.basename(fullpath)
         type = data["type"]
         date = data["date"]
-        if WX_VERSION > 3:
-            self.list_files.InsertItem(self.index_file, name)
-            self.list_files.SetItem(self.index_file, 1, "%s" % type)
-            self.list_files.SetItem(self.index_file, 2, "%s" % (date))
-            self.list_files.SetItem(self.index_file, 3, "%s" % (fullpath))
-        else:
-            self.list_files.InsertStringItem(self.index_file, name)
-            self.list_files.SetStringItem(self.index_file, 1, "%s" % type)
-            self.list_files.SetStringItem(self.index_file, 2, "%s" % (date))
-            self.list_files.SetStringItem(self.index_file, 3, "%s" % (fullpath))
+        self.list_files.InsertItem(self.index_file, name)
+        self.list_files.SetItem(self.index_file, 1, "%s" % type)
+        self.list_files.SetItem(self.index_file, 2, "%s" % (date))
+        self.list_files.SetItem(self.index_file, 3, "%s" % (fullpath))
         self.index_file+=1
-        
+
 #
 
     def finishRun(self,msg):
-        if not WX_VERSION > 2: msg = msg.data
         try:
             self.progress_count = 0
             self.progress.SetValue(self.progress_count)
@@ -1085,7 +1009,7 @@ class TnSeekFrame(MainFrame):
                     goodTn = True
             if goodTn:
                 newmethods[method] = fullmethods[method]
-        
+
         methodChoiceChoices = [ "[Choose Method]"]
         for name in newmethods:
             methodChoiceChoices.append(methods[name].fullname())
@@ -1189,20 +1113,12 @@ class TnSeekFrame(MainFrame):
     def loadCtrlFile(self, fullpath):
         name = transit_tools.basename(fullpath)
         (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-        if WX_VERSION > 3:
-            self.list_ctrl.InsertItem(self.index_ctrl, name)
-            self.list_ctrl.SetItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
-            self.list_ctrl.SetItem(self.index_ctrl, 2, "%2.1f" % (density*100))
-            self.list_ctrl.SetItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
-            self.list_ctrl.SetItem(self.index_ctrl, 4, "%d" % (maxrd))
-            self.list_ctrl.SetItem(self.index_ctrl, 5, "%s" % (fullpath))
-        else:
-            self.list_ctrl.InsertStringItem(self.index_ctrl, name)
-            self.list_ctrl.SetStringItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 2, "%2.1f" % (density*100))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 4, "%d" % (maxrd))
-            self.list_ctrl.SetStringItem(self.index_ctrl, 5, "%s" % (fullpath))
+        self.list_ctrl.InsertItem(self.index_ctrl, name)
+        self.list_ctrl.SetItem(self.index_ctrl, 1, "%1.1f" % (totalrd))
+        self.list_ctrl.SetItem(self.index_ctrl, 2, "%2.1f" % (density*100))
+        self.list_ctrl.SetItem(self.index_ctrl, 3, "%1.1f" % (meanrd))
+        self.list_ctrl.SetItem(self.index_ctrl, 4, "%d" % (maxrd))
+        self.list_ctrl.SetItem(self.index_ctrl, 5, "%s" % (fullpath))
 
         self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
@@ -1213,27 +1129,19 @@ class TnSeekFrame(MainFrame):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
- 
+
 
 #
 
     def loadExpFile(self, fullpath):
         name = transit_tools.basename(fullpath)
         (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis) = tnseq_tools.get_wig_stats(fullpath)
-        if WX_VERSION > 3:
-            self.list_exp.InsertItem(self.index_exp, name)
-            self.list_exp.SetItem(self.index_exp, 1, "%1.1f" % (totalrd))
-            self.list_exp.SetItem(self.index_exp, 2, "%2.1f" % (density*100))
-            self.list_exp.SetItem(self.index_exp, 3, "%1.1f" % (meanrd))
-            self.list_exp.SetItem(self.index_exp, 4, "%d" % (maxrd))
-            self.list_exp.SetItem(self.index_exp, 5, "%s" % (fullpath))
-        else:
-            self.list_exp.InsertStringItem(self.index_exp, name)
-            self.list_exp.SetStringItem(self.index_exp, 1, "%1.1f" % (totalrd))
-            self.list_exp.SetStringItem(self.index_exp, 2, "%2.1f" % (density*100))
-            self.list_exp.SetStringItem(self.index_exp, 3, "%1.1f" % (meanrd))
-            self.list_exp.SetStringItem(self.index_exp, 4, "%d" % (maxrd))
-            self.list_exp.SetStringItem(self.index_exp, 5, "%s" % (fullpath))
+        self.list_exp.InsertItem(self.index_exp, name)
+        self.list_exp.SetItem(self.index_exp, 1, "%1.1f" % (totalrd))
+        self.list_exp.SetItem(self.index_exp, 2, "%2.1f" % (density*100))
+        self.list_exp.SetItem(self.index_exp, 3, "%1.1f" % (meanrd))
+        self.list_exp.SetItem(self.index_exp, 4, "%d" % (maxrd))
+        self.list_exp.SetItem(self.index_exp, 5, "%s" % (fullpath))
         self.list_exp.Select(self.index_exp)
         self.index_exp+=1
 
@@ -1251,7 +1159,7 @@ class TnSeekFrame(MainFrame):
     def loadCtrlFileFunc(self, event):
         self.statusBar.SetStatusText("Loading Control Dataset(s)...")
         try:
-        
+
             dlg = wx.FileDialog(
                 self, message="Choose a file",
                 defaultDir=self.workdir,
@@ -1318,9 +1226,9 @@ class TnSeekFrame(MainFrame):
             # Delete and Get next selected
             self.list_ctrl.DeleteItem(next)
             next = self.list_ctrl.GetNextSelected(-1)
-            self.index_ctrl-=1 
+            self.index_ctrl-=1
 
-#     
+#
 
     def expRemoveFunc(self, event):
         next = self.list_exp.GetNextSelected(-1)
@@ -1341,7 +1249,7 @@ class TnSeekFrame(MainFrame):
 #
 
     def allViewFunc(self, event, gene=""):
-        
+
         annotationpath = self.annotation
         datasets = self.ctrlSelected() + self.expSelected()
 
@@ -1407,7 +1315,7 @@ class TnSeekFrame(MainFrame):
             plt.plot(X,Y, "bo")
             plt.title('Scatter plot - Reads at TA sites')
             plt.xlabel(transit_tools.fetch_name(datasets[0]))
-            plt.ylabel(transit_tools.fetch_name(datasets[1])) 
+            plt.ylabel(transit_tools.fetch_name(datasets[1]))
             plt.show()
         else:
             transit_tools.ShowError(MSG="Please make sure only two datasets are selected (across control and experimental datasets).")
@@ -1421,7 +1329,7 @@ class TnSeekFrame(MainFrame):
         if nfiles == 0:
             transit_tools.transit_message("You must select atleast one dataset control or experimental dataset.")
             transit_tools.ShowError(MSG="You must select atleast one dataset control or experimental dataset.")
-            
+
         elif nfiles >= 1:
             transit_tools.transit_message("Displaying results: %s" % datasets[0])
             try:
@@ -1462,10 +1370,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-        if WX_VERSION > 3:
-            info = wx.adv.AboutDialogInfo()
-        else:
-            info = wx.AboutDialogInfo()
+        info = wx.adv.AboutDialogInfo()
         info.SetIcon(images.transit_logo2.GetIcon())
         #images.transit_logo2.GetImage().ConvertToBitmap()
         info.SetName('TRANSIT')
@@ -1480,11 +1385,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         info.AddDeveloper('Richard Baker')
         info.AddDeveloper('Christopher Sassetti')
         info.AddDeveloper('Eric Nelson')
-        if WX_VERSION > 3: 
-            wx.adv.AboutBox(info)
-        else:
-            wx.AboutBox(info)
-
+        wx.adv.AboutBox(info)
 #
 
     def documentationFunc(self, event):
@@ -1518,7 +1419,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
     def annotationFileFunc(self, event):
 
-        wc = u"Known Annotation Formats (*.prot_table,*.gff3,*.gff)|*.prot_table;*.gff3;*.gff;|\nProt Table (*.prot_table)|*.prot_table;|\nGFF3 (*.gff,*.gff3)|*.gff;*.gff3;|\nAll files (*.*)|*.*" 
+        wc = u"Known Annotation Formats (*.prot_table,*.gff3,*.gff)|*.prot_table;*.gff3;*.gff;|\nProt Table (*.prot_table)|*.prot_table;|\nGFF3 (*.gff,*.gff3)|*.gff;*.gff3;|\nAll files (*.*)|*.*"
         self.annotation = self.OpenFile(DIR=self.workdir, FILE="", WC=wc)
         if self.annotation:
             self.annotationFilePicker.SetLabel(transit_tools.basename(self.annotation))
@@ -1526,12 +1427,12 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 transit_tools.transit_message("Annotation File Selected: %s" % self.annotation)
         else:
             self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table or .gff3)]")
-       
-# 
+
+#
     def MethodSelectFunc(self, selected_name, test=""):
         #X = self.methodChoice.GetCurrentSelection()
         #selected_name = self.methodChoice.GetString(X)
-    
+
         #If empty is selected
         if selected_name == "[Choose Method]":
             self.HideAllOptions()
@@ -1548,20 +1449,20 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         else:
             self.ShowGlobalOptions()
             self.methodSizerText.Show()
-            
+
             #Get selected Method and hide Others
             for name in methods:
                 methods[name].gui.Hide()
                 methods[name].gui.GlobalHide()
                 methods[name].gui.GlobalDisable()
-                
+
                 if methods[name].fullname() == selected_name:
                     matched_name = name
 
             if matched_name in methods:
                 name = matched_name
                 self.methodInfoText.SetLabel("%s" % methods[name].long_name)
-                    
+
                 self.methodTnText.Show()
                 self.methodTnText.SetLabel(methods[name].getTransposonsText())
                 self.methodTnText.Wrap(250)
@@ -1587,7 +1488,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
     def ExportSelectFunc(self, selected_name, test=""):
         #X = self.methodChoice.GetCurrentSelection()
         #selected_name = self.methodChoice.GetString(X)
-        
+
         if self.verbose:
             transit_tools.transit_message("Selected Export Method: %s" % (selected_name))
 
@@ -1624,7 +1525,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         else:
             if self.verbose:
                 transit_tools.transit_message("No results selected to display!")
-        
+
 #
 
     def fileSelected(self,event):
@@ -1636,7 +1537,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             self.updateGraphChoices(dataset_type)
         else:
             pass
-        
+
 #
 
     def updateGraphChoices(self, dataset_type):
@@ -1657,7 +1558,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         elif dataset_type == "DE-HMM - Segments":
             choices = [empty_action]
         else:
-           choices = [empty_action] 
+           choices = [empty_action]
 
         self.fileActionChoice.SetItems(choices)
         self.fileActionChoice.SetSelection(0)
@@ -1668,7 +1569,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         # 0 - nothing
         # 1 - Volcano
         # 2 - Hist gene counts ratio
-        
+
         plot_choice  = self.fileActionChoice.GetCurrentSelection()
         plot_name = self.fileActionChoice.GetString(plot_choice)
         if plot_name == "[Choose Action]":
@@ -1678,7 +1579,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             dataset_path = self.list_files.GetItem(next, 3).GetText()
             dataset_name = self.list_files.GetItem(next, 0).GetText()
             dataset_type = self.list_files.GetItem(next, 1).GetText()
-            
+
             if self.verbose:
                 transit_tools.transit_message("Performing the '%s' action on dataset '%s'" % (plot_name, dataset_name))
 
@@ -1692,12 +1593,12 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 return
 
             self.fileActionChoice.SetSelection(0)
-            
+
         else:
             transit_tools.ShowError(MSG="Please select a results file to plot!")
-    
+
 #
-       
+
     def graphGeneCounts(self, dataset_name, dataset_type, dataset_path):
         try:
             if dataset_type == "Resampling":
@@ -1738,15 +1639,15 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 for line in open(dataset_path):
                     if line.startswith("#"):
                         tmp = line.split("\t")
-                        temp_col_logfc = [i for (i,x) in enumerate(tmp) if "logfc" in x.lower() or "log-fc" in x.lower() or "log2fc" in x.lower()] 
-                        temp_col_pval = [i for (i,x) in enumerate(tmp) if ("pval" in x.lower() or "p-val" in x.lower()) and "adj" not in x.lower()] 
+                        temp_col_logfc = [i for (i,x) in enumerate(tmp) if "logfc" in x.lower() or "log-fc" in x.lower() or "log2fc" in x.lower()]
+                        temp_col_pval = [i for (i,x) in enumerate(tmp) if ("pval" in x.lower() or "p-val" in x.lower()) and "adj" not in x.lower()]
                         if temp_col_logfc:
                             col_logFC = temp_col_logfc[-1]
                         if temp_col_pval:
                             col_pval = temp_col_pval[-1]
                         continue
 
-                    
+
                     tmp = line.strip().split("\t")
                     try:
                         log10qval = -math.log(float(tmp[col_pval].strip()), 10)
@@ -1755,7 +1656,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                         log10qval = 0
 
                     log2FC = float(tmp[col_logFC])
-                
+
                     qval_list.append((float(tmp[col_qval]), float(tmp[col_pval].strip())))
                     X.append(log2FC)
                     Y.append(log10qval)
@@ -1784,10 +1685,10 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 plt.show()
             else:
                transit_tools.ShowError(MSG="Need to select a 'Resampling' results file for this type of plot.")
-            
+
         except Exception as e:
             print "Error occurred creating plot:", str(e)
-        
+
 #
 
     def graphRankedZbar(self, dataset_name, dataset_type, dataset_path):
@@ -1843,7 +1744,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
             plt.title("LOESS Fit - %s" % transit_tools.basename(datasets_selected[j]) )
             plt.show()
-    
+
 #
 
     def addFileFunc(self, event):
@@ -1882,10 +1783,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                     else:
                         type = "Unknown"
                     data = {"path":fullpath, "type":type, "date": datetime.datetime.today().strftime("%B %d, %Y %I:%M%p")}
-                    if WX_VERSION > 2:
-                        wx.CallAfter(pub.sendMessage, "file", data=data)
-                    else:
-                        wx.CallAfter(pub.sendMessage, "file", data)
+                    wx.CallAfter(pub.sendMessage, "file", data=data)
             dlg.Destroy()
         except Exception as e:
             transit_tools.transit_message("Error: %s" %  e)
@@ -1899,7 +1797,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
     def choseMethodsMenu(self, selected_name, event):
         if self.verbose:
             transit_tools.transit_message("Selected Method: %s" % (selected_name))
-        self.MethodSelectFunc(selected_name) 
+        self.MethodSelectFunc(selected_name)
 
 #
 
@@ -1908,16 +1806,16 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         norm_methods_choices = sorted(normmethods.keys())
         dlg = wx.SingleChoiceDialog(
                 self, "Choose how to normalize read-counts accross datasets.", 'Normalization Choice',
-                norm_methods_choices, 
+                norm_methods_choices,
                 wx.CHOICEDLG_STYLE
                 )
- 
+
         if dlg.ShowModal() == wx.ID_OK:
             transit_tools.transit_message("Selected the '%s' normalization method" % dlg.GetStringSelection())
- 
+
         dlg.Destroy()
         return dlg.GetStringSelection()
-        
+
 #
 
     def annotationPT_to_GFF3(self, event):
@@ -1937,13 +1835,13 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             year = time.localtime().tm_year
             month = time.localtime().tm_mon
             day = time.localtime().tm_mday
-            
+
             output = open(outputPath, "w")
             output.write("##gff-version 3\n")
             output.write("##converted to IGV with TRANSIT.\n")
             output.write("##date %d-%d-%d\n" % (year, month, day))
             output.write("##Type DNA %s\n" % ORGANISM)
-            
+
             for line in open(annotationpath):
                 if line.startswith("#"): continue
                 tmp = line.strip().split("\t")
@@ -1952,15 +1850,15 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 ID = name
                 desc.replace("%", "%25").replace(";", "%3B").replace("=","%3D").replace(",","%2C")
                 output.write("%s\tRefSeq\tgene\t%d\t%d\t.\t%s\t.\tID=%s;Name=%s;Alias=%s;locus_tag=%s;desc=%s\n" % (ORGANISM, start, end, strand, orf,ID, orf, orf,desc))
-                
+
             output.close()
             if self.verbose:
-                transit_tools.transit_message("Finished conversion")      
+                transit_tools.transit_message("Finished conversion")
 
 #
 
     def annotationPT_to_PTT(self, event):
- 
+
         annotationpath = self.annotation
         defaultFile = transit_tools.fetch_name(annotationpath) + ".ptt.table"
         #defaultDir = os.path.dirname(os.path.realpath(__file__))
@@ -1970,9 +1868,9 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         if not annotationpath:
             transit_tools.ShowError("Error: No annotation file selected.")
         elif not datasets:
-            transit_tools.ShowError("Error: Please add a .wig dataset, to determine TA sites.")            
+            transit_tools.ShowError("Error: Please add a .wig dataset, to determine TA sites.")
         else:
-            
+
             outputPath = self.SaveFile(defaultDir, defaultFile)
             if not outputPath: return
             if self.verbose:
@@ -1999,7 +1897,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             output.close()
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
-                
+
 #
 
     def annotationPTT_to_PT(self, event):
@@ -2008,7 +1906,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         defaultFile = transit_tools.fetch_name(annotationpath) + ".prot_table"
         #defaultDir = os.path.dirname(os.path.realpath(__file__))
         defaultDir = os.getcwd()
-        
+
         datasets = self.ctrlSelected() + self.expSelected()
         if not annotationpath:
             transit_tools.ShowError("Error: No annotation file selected.")
@@ -2024,8 +1922,8 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             #orf2info = transit_tools.get_gene_info(annotationpath)
             #hash = transit_tools.get_pos_hash(annotationpath)
             #(orf2reads, orf2pos) = tnseq_tools.get_gene_reads(hash, data, position, orf2info)
-            
-            
+
+
             output = open(outputPath, "w")
             #output.write("geneID\tstart\tend\tstrand\tTA coordinates\n")
             for line in open(annotationpath):
@@ -2082,7 +1980,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 orf = features["ID"]
                 name = features.get("Name", "-")
                 if name == "-": name = features.get("name", "-")
-                
+
                 desc = features.get("Description", "-")
                 if desc == "-": desc = features.get("description", "-")
                 if desc == "-": desc = features.get("Desc", "-")
@@ -2096,7 +1994,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             if self.verbose:
                 transit_tools.transit_message("Finished conversion")
 
-#                 
+#
 
     def RunMethod(self, event):
         #FLORF
@@ -2108,7 +2006,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                 methodobj = methods[name].method
         try:
             M = methodobj.fromGUI(self)
-            if M: 
+            if M:
                 thread = threading.Thread(target=M.Run())
                 thread.setDaemon(True)
                 thread.start()
@@ -2158,7 +2056,7 @@ class AssumeZerosDialog(wx.Dialog):
         warningText = """
 
 One or more of your .wig files does not include any empty sites (i.e. sites with zero read-counts). The analysis methods in TRANSIT require knowing ALL possible insertion sites, even those without reads.
-    
+
     Please indicate how you want to proceed:
 
     As Himar1: You will need to provide the DNA sequence (.fasta format) and TRANSIT will automatically determine empty TA sites.

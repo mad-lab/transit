@@ -23,25 +23,13 @@ try:
 except Exception as e:
     hasWx = False
 
-
 import view_trash
 import draw_trash
 from math import *
 import os
 import ntpath
-
 import traceback
-
-
-try:
-    import Image
-    import ImageDraw
-    import ImageFont
-except ImportError:
-    import PIL.Image as Image
-    import PIL.ImageDraw as ImageDraw
-    import PIL.ImageFont as ImageFont
-
+from PIL import Image, ImageDraw, ImageFont
 
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
@@ -334,7 +322,7 @@ class TrashFrame(view_trash.MainFrame):
         dlg = wx.FileDialog(
             self, message="Save file as ...",
             defaultDir=DIR,
-            defaultFile=FILE, wildcard=WC, style=wx.OPEN
+            defaultFile=FILE, wildcard=WC, style=wx.FD_OPEN
             )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()

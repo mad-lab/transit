@@ -35,20 +35,8 @@ except Exception as e:
 if hasWx:
     import wx.xrc
     from wx.lib.buttons import GenBitmapTextButton
-
-    #Imports depending on version:
-    if WX_VERSION == 2:
-        from wx.lib.pubsub import Publisher as pub
-
-    if WX_VERSION == 3:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-
-    if WX_VERSION == 4:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        import wx.adv
-
+    from pubsub import pub
+    import wx.adv
 
 import math
 import ntpath
@@ -288,7 +276,7 @@ def validate_wig_format(wig_list, wxobj=None):
             status = 1
             # Get genome
             wc = u"Known Sequence Extensions (*.fna,*.fasta)|*.fna;*.fasta;|\nAll files (*.*)|*.*"
-            gen_dlg = wx.FileDialog(wxobj, message="Save file as ...", defaultDir=os.getcwd(), defaultFile="", wildcard=wc, style=wx.OPEN)
+            gen_dlg = wx.FileDialog(wxobj, message="Save file as ...", defaultDir=os.getcwd(), defaultFile="", wildcard=wc, style=wx.FD_OPEN)
             if gen_dlg.ShowModal() == wx.ID_OK:
                 genome = gen_dlg.GetPath()
             else:

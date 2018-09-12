@@ -13,20 +13,8 @@ except Exception as e:
 if hasWx:
     import wx.xrc
     from wx.lib.buttons import GenBitmapTextButton
-
-    #Imports depending on version:
-    if WX_VERSION == 2:
-        from wx.lib.pubsub import Publisher as pub
-
-    if WX_VERSION == 3:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-
-    if WX_VERSION == 4:
-        from wx.lib.pubsub import pub
-        pub.subscribe
-        import wx.adv
-   
+    from pubsub import pub
+    import wx.adv
 
 import os
 import time
@@ -95,7 +83,7 @@ class UTestFile(base.TransitFile):
         return menus
 
 
-        
+
 
 ############# GUI ##################
 
@@ -116,16 +104,16 @@ class UTestGUI(base.AnalysisGUI):
         utestTopSizer2 = wx.BoxSizer( wx.HORIZONTAL )
 
         utestLabelSizer = wx.BoxSizer( wx.VERTICAL )
-        
+
         mainSizer1 = wx.BoxSizer( wx.VERTICAL )
 
         #(, , Sizer) = self.defineChoiceBox(utestPanel, u"", u"", "")
         #mainSizer1.Add(Sizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
-        # Norm 
+        # Norm
         utestNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
         (utestNormLabel, self.wxobj.utestNormChoice, normSizer) = self.defineChoiceBox(utestPanel, u"Normalization:", utestNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods. ")
-        mainSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 ) 
+        mainSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
 
         utestSizer.Add( mainSizer1, 1, wx.EXPAND, 5 )
@@ -148,14 +136,14 @@ class UTestGUI(base.AnalysisGUI):
         utestButton = wx.Button( utestPanel, wx.ID_ANY, u"Run U-test", wx.DefaultPosition, wx.DefaultSize, 0 )
         utestSizer.Add( utestButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
- 
+
         utestPanel.SetSizer( utestSizer )
         utestPanel.Layout()
         utestSizer.Fit( utestPanel )
 
         #Connect events
         utestButton.Bind( wx.EVT_BUTTON, self.wxobj.RunMethod )
-        self.wxobj.utestLoessPrev.Bind(wx.EVT_BUTTON, self.wxobj.LoessPrevFunc)        
+        self.wxobj.utestLoessPrev.Bind(wx.EVT_BUTTON, self.wxobj.LoessPrevFunc)
 
         self.panel = utestPanel
 
@@ -164,9 +152,9 @@ class UTestGUI(base.AnalysisGUI):
 ########## CLASS #######################
 
 class UTestMethod(base.DualConditionMethod):
-    """   
+    """
     U-test
- 
+
     """
     def __init__(self,
                 ctrldata,
@@ -184,7 +172,7 @@ class UTestMethod(base.DualConditionMethod):
         base.DualConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
         self.includeZeros = includeZeros
-        
+
 
 
     @classmethod
@@ -221,7 +209,7 @@ class UTestMethod(base.DualConditionMethod):
         defaultFileName = "utest_%s_output" % (normalization)
         if includeZeros: defaultFileName+= "_iz"
         defaultFileName+=".dat"
-    
+
         defaultDir = os.getcwd()
         output_path = wxobj.SaveFile(defaultDir, defaultFileName)
         if not output_path: return None
@@ -254,8 +242,8 @@ class UTestMethod(base.DualConditionMethod):
         normalization = kwargs.get("n", "TTR")
         includeZeros = kwargs.get("iz", False)
         replicates = None
-    
-        
+
+
         LOESS = kwargs.get("l", False)
         ignoreCodon = True
         NTerminus = float(kwargs.get("iN", 0.00))
@@ -279,7 +267,7 @@ class UTestMethod(base.DualConditionMethod):
 
         self.transit_message("Starting Mann-Whitney U-test Method")
         start_time = time.time()
-       
+
 
 
         Kctrl = len(self.ctrldata)
@@ -319,16 +307,16 @@ class UTestMethod(base.DualConditionMethod):
                     ii = numpy.sum(gene.reads,0) > 0
                 else:
                     ii = numpy.ones(gene.n) == 1
-               
+
 
                 data1 = gene.reads[:Kctrl,ii].flatten()
                 data2 = gene.reads[Kctrl:,ii].flatten()
                 try:
-                    u_stat, pval_2tail = scipy.stats.mannwhitneyu(data1, data2, 
+                    u_stat, pval_2tail = scipy.stats.mannwhitneyu(data1, data2,
                         alternative="two-sided")
                 except ValueError as e:
                     u_stat, pval_2tail = 0.0, 1.00
-                    
+
                 n1 = len(data1)
                 n2 = len(data2)
 
@@ -350,22 +338,22 @@ class UTestMethod(base.DualConditionMethod):
 
 
             #["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "U-Statistic","p-value","Adj. p-value"]
-        
+
 
             data.append([gene.orf, gene.name, gene.desc, gene.n, mean1, mean2, log2FC, u_stat, pval_2tail])
-            
+
             # Update Progress
             text = "Running Mann-Whitney U-test Method... %1.1f%%" % (100.0*count/N)
             self.progress_update(text, count)
 
 
         #
-        self.transit_message("") # Printing empty line to flush stdout 
+        self.transit_message("") # Printing empty line to flush stdout
         self.transit_message("Performing Benjamini-Hochberg Correction")
-        data.sort() 
+        data.sort()
         qval = stat_tools.BH_fdr_correction([row[-1] for row in data])
-       
- 
+
+
         self.output.write("#utest\n")
         if self.wxobj:
             members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
@@ -375,8 +363,8 @@ class UTestMethod(base.DualConditionMethod):
             self.output.write("#GUI with: norm=%s, includeZeros=%s, output=%s\n" % (self.normalization, self.includeZeros, self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
-        self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
-        self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata).encode('utf-8'))) 
+        self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata).encode('utf-8')))
+        self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata).encode('utf-8')))
         self.output.write("#Annotation path: %s\n" % (self.annotation_path.encode('utf-8')))
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         self.output.write("#%s\n" % "\t".join(columns))
@@ -389,13 +377,13 @@ class UTestMethod(base.DualConditionMethod):
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file(filetype="utest")
         self.finish()
-        self.transit_message("Finished Mann-Whitney U-test Method") 
+        self.transit_message("Finished Mann-Whitney U-test Method")
 
 
     @classmethod
     def usage_string(self):
         return """python %s utest <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
-    
+
         Optional Arguments:
         -n <string>     :=  Normalization method. Default: -n TTR
         -iz             :=  Include rows with zero accross conditions.
@@ -415,7 +403,7 @@ if __name__ == "__main__":
 
     G = UTestMethod.fromargs(sys.argv[1:])
 
-    G.console_message("Printing the member variables:")   
+    G.console_message("Printing the member variables:")
     G.print_members()
 
     print ""

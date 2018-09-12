@@ -22,18 +22,8 @@ import view_trash
 from math import *
 import os
 import platform
-
 import numpy
-
-try:
-    import Image
-    import ImageDraw
-    import ImageFont
-except ImportError:
-    import PIL.Image as Image
-    import PIL.ImageDraw as ImageDraw
-    import PIL.ImageFont as ImageFont
-
+from PIL import Image, ImageDraw, ImageFont
 
 def normalize(X, old_min, old_max, new_min, new_max):
     old_range = (old_max - old_min)
