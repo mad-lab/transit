@@ -4,6 +4,12 @@
 Tutorial: Genetic Interactions Analysis
 =======================================
 
+The feature implements the method derscribed in the following publication:
+
+`DeJesus, M.A., Nambi, S., Smith, C.M., Baker, R.E., Sassetti, C.M.,
+and Ioerger, T.R. (2017). Statistical Analysis of Genetic Interactions
+in TnSeq Data. Nucleic Acids Research, 45(11):e93.
+<https://www.ncbi.nlm.nih.gov/pubmed/28334803>`__
 
 To illustrate how TRANSIT can be used to analyze genetic interactions,
 we are going to go through a tutorial where we analyze datasets of 

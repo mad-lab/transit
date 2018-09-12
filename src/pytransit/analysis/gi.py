@@ -517,8 +517,10 @@ class GIMethod(base.QuadConditionMethod):
         self.samples = samples
         self.includeZeros = includeZeros
         self.rope = rope
-        self.doBFDR = False
-        self.doFWER = False 
+        self.doBFDR = True # TRI
+        self.doFWER = True # TRI
+        self.NTerminus = NTerminus
+        self.CTerminus = CTerminus
 
 
     @classmethod
@@ -620,7 +622,7 @@ class GIMethod(base.QuadConditionMethod):
 
         normalization = kwargs.get("n", "TTR")
         samples = int(kwargs.get("s", 10000))
-        rope = int(kwargs.get("-rope", 0.5))
+        rope = float(kwargs.get("-rope", 0.5)) # fixed! changed int to float
         replicates = kwargs.get("r", "Sum")
         includeZeros = kwargs.get("iz", False)
     
@@ -680,10 +682,10 @@ class GIMethod(base.QuadConditionMethod):
                 data[j] = stat_tools.loess_correction(position, data[j])
 
         # Get Gene objects for each condition
-        G_A1 = tnseq_tools.Genes([], self.annotation_path, data=data[:Na1], position=position)
-        G_B1 = tnseq_tools.Genes([], self.annotation_path, data=data[Na1:(Na1+Nb1)], position=position)
-        G_A2 = tnseq_tools.Genes([], self.annotation_path, data=data[(Na1+Nb1):(Na1+Nb1+Na2)], position=position)
-        G_B2 = tnseq_tools.Genes([], self.annotation_path, data=data[(Na1+Nb1+Na2):], position=position)
+        G_A1 = tnseq_tools.Genes([], self.annotation_path, data=data[:Na1], position=position,nterm=self.NTerminus,cterm=self.CTerminus)
+        G_B1 = tnseq_tools.Genes([], self.annotation_path, data=data[Na1:(Na1+Nb1)], position=position,nterm=self.NTerminus,cterm=self.CTerminus)
+        G_A2 = tnseq_tools.Genes([], self.annotation_path, data=data[(Na1+Nb1):(Na1+Nb1+Na2)], position=position,nterm=self.NTerminus,cterm=self.CTerminus)
+        G_B2 = tnseq_tools.Genes([], self.annotation_path, data=data[(Na1+Nb1+Na2):], position=position,nterm=self.NTerminus,cterm=self.CTerminus)
 
         means_list_a1 = []
         means_list_b1 = []

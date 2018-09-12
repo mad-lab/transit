@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 2.2.0 - 2018-06-04
+- TRANSIT:
+    - Added analysis method for Genetic Interactions.
+    - Added Mann-Whitney U-test for comparative analysis.
+    - Made TRANSIT compatible with wxPython 4.0 (Phoenix).
+    - Datasets now automatically selected when they are added to TRANSIT.
+    - Fixed bug in packaging of TPP, causing problem with console mode in new setuptools.
+    - Miscellaneous bugs fixes 
+
+	
 
 ## Version 2.1.0 - 2017-06-23
 - TRANSIT:

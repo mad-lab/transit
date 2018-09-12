@@ -224,7 +224,7 @@ Download and install the OSX binary of wxpython (cocoa version) for python 2.7:
 
 .. NOTE::
    If you are running OSX El Capitan or later, you will need to use a repackaged version of the
-   wxpython installer. You can `download a repackaged version from our servers <http://orca1.tamu.edu/essentiality/transit/wxPython3.0-osx-cocoa-py2.7_mad_elcapitan.pkg>`_ or you can follow `these detailed instructions to repackage the installer <http://davixx.fr/blog/2016/01/25/wxpython-on-os-x-el-capitan/>`_ if you prefer.
+   wxpython installer. You can `download a repackaged version from our servers <http://orca1.tamu.edu/essentiality/transit/wxPython3.0-osx-cocoa-py2.7_mad_elcapitan.pkg>`.
 
 
 

@@ -980,7 +980,7 @@ def warning(s):
 
 
 
-def set_defaults(vars, protocol):
+def set_protocol_defaults(vars, protocol):
     #protocol = kwargs.get("protocol", "sassetti")
     if protocol == "sassetti":
         set_sassetti_defaults(vars)

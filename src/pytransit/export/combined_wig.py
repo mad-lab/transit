@@ -175,8 +175,8 @@ class CombinedWigMethod(base.SingleConditionMethod):
 
         self.transit_message("Normalizing")
         self.output.write("#Converted to CombinedWig with TRANSIT.\n")
+        self.output.write("#normalization method: %s\n" % self.normalization)
         if self.normalization != "nonorm":
-            self.output.write("#Reads normalized using '%s'\n" % self.normalization)
             if type(factors[0]) == type(0.0):
                 self.output.write("#Normalization Factors: %s\n" % "\t".join(["%s" % f for f in factors.flatten()]))
             else:
@@ -184,12 +184,14 @@ class CombinedWigMethod(base.SingleConditionMethod):
 
 
         (K,N) = fulldata.shape
-        self.output.write("#Files:\n")
         for f in self.ctrldata:
-            self.output.write("#%s\n" % f)
+            self.output.write("#File: %s\n" % f)
     
         for i,pos in enumerate(position):
-            self.output.write("%d\t%s\t%s\n" % (position[i], "\t".join(["%1.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
+            #self.output.write("%d\t%s\t%s\n" % (position[i], "\t".join(["%1.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
+            if self.normalization!='nonorm': vals = "\t".join(["%1.1f" % c for c in fulldata[:,i]])
+            else: vals = "\t".join(["%d" % c for c in fulldata[:,i]]) # no decimals if raw counts
+            self.output.write("%d\t%s\t%s\n" % (position[i],vals,",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
             # Update progress    
             text = "Running Export Method... %5.1f%%" % (100.0*i/N)
             self.progress_update(text, i)
