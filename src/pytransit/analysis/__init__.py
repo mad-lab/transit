@@ -17,6 +17,7 @@ import hmm
 import rankproduct
 import gi
 import utest
+import anova
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -29,6 +30,7 @@ methods["tn5gaps"] = tn5gaps.Tn5GapsAnalysis()
 methods["rankproduct"] = rankproduct.RankProductAnalysis()
 methods["utest"] = utest.UTestAnalysis()
 methods["gi"] = gi.GIAnalysis()
+methods["anova"] = anova.AnovaAnalysis()
 #methods["mcce"] = mcce.MCCEAnalysis()
 #methods["mcce2"] = mcce2.MCCE2Analysis()
 #methods["motifhmm"] = motifhmm.MotifHMMAnalysis()

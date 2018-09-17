@@ -344,8 +344,6 @@ class ResamplingMethod(base.DualConditionMethod):
                 ctrl_lib_str,
                 exp_lib_str)
 
-
-
     def Run(self):
 
         #if not self.wxobj:
