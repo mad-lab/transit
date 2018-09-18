@@ -509,7 +509,7 @@ class GSEAMethod(base.SingleConditionMethod):
 
 	@classmethod
 	def usage_string(self):
-		return """python %s pathway_enrichment <resampling files> <annotation file> <output file> [-p .-S -M < GSEA, HYPE >] """ % (sys.argv[0])
+		return """python %s pathway_enrichment <resampling files> <annotation file> <output file> [-p .-S -M < GSEA, HYPE, Z, CHI >] """ % (sys.argv[0])
 
 
 if __name__ == "__main__":
