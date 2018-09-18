@@ -1,5 +1,0 @@
-8/1/18
-
-example of resampling from command line:
-
-> python src/transit.py resampling /pacific/home/ioerger/TRASH/macrophages/Input-1_raw_templates.wig,/pacific/home/ioerger/TRASH/macrophages/Input-2_raw_templates.wig,/pacific/home/ioerger/TRASH/macrophages/Input-3_raw_templates.wig,/pacific/home/ioerger/TRASH/macrophages/Input-4_raw_templates.wig /pacific/home/ioerger/TRASH/macrophages/IFNg1_raw_templates.wig,/pacific/home/ioerger/TRASH/macrophages/IFNg2_raw_templates.wig,/pacific/home/ioerger/TRASH/macrophages/IFNg3_raw_templates.wig H37RvBD1.prot_table resampling_Input_IFNg.dat -a
