@@ -17,6 +17,7 @@ import hmm
 import rankproduct
 import gi
 import utest
+import pathway_enrichment #08/22/2018 by Ivan
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -32,6 +33,7 @@ methods["gi"] = gi.GIAnalysis()
 #methods["mcce"] = mcce.MCCEAnalysis()
 #methods["mcce2"] = mcce2.MCCE2Analysis()
 #methods["motifhmm"] = motifhmm.MotifHMMAnalysis()
+methods["pathway_enrichment"]=pathway_enrichment.GSEAAnalysis()
 
 
 # EXPORT METHODS
