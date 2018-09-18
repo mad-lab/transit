@@ -17,6 +17,7 @@ import hmm
 import rankproduct
 import gi
 import utest
+import normalize
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -32,7 +33,7 @@ methods["gi"] = gi.GIAnalysis()
 #methods["mcce"] = mcce.MCCEAnalysis()
 #methods["mcce2"] = mcce2.MCCE2Analysis()
 #methods["motifhmm"] = motifhmm.MotifHMMAnalysis()
-
+methods["normalize"] = normalize.Normalize()
 
 # EXPORT METHODS
 import norm
