@@ -18,6 +18,7 @@ import rankproduct
 import gi
 import utest
 import normalize
+import pathway_enrichment #08/22/2018 by Ivan
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -34,6 +35,7 @@ methods["gi"] = gi.GIAnalysis()
 #methods["mcce2"] = mcce2.MCCE2Analysis()
 #methods["motifhmm"] = motifhmm.MotifHMMAnalysis()
 methods["normalize"] = normalize.Normalize()
+methods["pathway_enrichment"]=pathway_enrichment.GSEAAnalysis()
 
 # EXPORT METHODS
 import norm
