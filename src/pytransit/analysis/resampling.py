@@ -42,7 +42,7 @@ short_desc = "Resampling test of conditional essentiality between two conditions
 long_desc = """Method for determining conditional essentiality based on resampling (i.e. permutation test). Identifies significant changes in mean read-counts for each gene after normalization."""
 
 transposons = ["himar1", "tn5"]
-columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "Sum Ctrl", "Sum Exp", "Delta Mean","p-value","Z-score","Adj. p-value"]
+columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "Sum Ctrl", "Sum Exp", "Delta Mean","p-value","Adj. p-value"]
 
 class ResamplingAnalysis(base.TransitAnalysis):
     def __init__(self):
@@ -476,7 +476,6 @@ class ResamplingMethod(base.DualConditionMethod):
         data.sort() 
         qval = stat_tools.BH_fdr_correction([row[-1] for row in data])
        
- 
         self.output.write("#Resampling\n")
         if self.wxobj:
             members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
@@ -490,22 +489,28 @@ class ResamplingMethod(base.DualConditionMethod):
         self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata).encode('utf-8'))) 
         self.output.write("#Annotation path: %s\n" % (self.annotation_path.encode('utf-8')))
         self.output.write("#Time: %s\n" % (time.time() - start_time))
+        Z = False # include Z-score column in resampling output? 
+        global columns # consider redefining columns above (for GUI)
+        if Z==True: columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "Sum Ctrl", "Sum Exp", "Delta Mean","p-value","Z-score","Adj. p-value"]
         self.output.write("#%s\n" % "\t".join(columns))
 
         for i,row in enumerate(data):
             (orf, name, desc, n, mean1, mean2, sum1, sum2, test_obs, log2FC, pval_2tail) = row
-            p = pval_2tail/2 # convert from 2-sided back to 1-sided
-            if p==0: p = 1e-5 # or 1 level deeper the num of iterations of resampling, which is 1e-4=1/10000, by default
-            if p==1: p = 1-1e-5
-            z = scipy.stats.norm.ppf(p)
-            if log2FC>0: z *= -1
-            self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.2f\t%1.1f\t%1.2f\t%1.1f\t%1.5f\t%0.2f\t%1.5f\n" % (orf, name, desc, n, mean1, mean2, log2FC, sum1, sum2, test_obs, pval_2tail, z, qval[i]))
+            if Z==True:
+              p = pval_2tail/2 # convert from 2-sided back to 1-sided
+              if p==0: p = 1e-5 # or 1 level deeper the num of iterations of resampling, which is 1e-4=1/10000, by default
+              if p==1: p = 1-1e-5
+              z = scipy.stats.norm.ppf(p)
+              if log2FC>0: z *= -1
+              self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.2f\t%1.1f\t%1.2f\t%1.1f\t%1.5f\t%0.2f\t%1.5f\n" % (orf, name, desc, n, mean1, mean2, log2FC, sum1, sum2, test_obs, pval_2tail, z, qval[i]))
+            else: self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.2f\t%1.1f\t%1.2f\t%1.1f\t%1.5f\t%1.5f\n" % (orf, name, desc, n, mean1, mean2, log2FC, sum1, sum2, test_obs, pval_2tail, qval[i]))
         self.output.close()
 
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file(filetype="Resampling")
         self.finish()
         self.transit_message("Finished resampling Method") 
+
 
 
     @classmethod
