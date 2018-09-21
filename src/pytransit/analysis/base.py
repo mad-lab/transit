@@ -509,13 +509,12 @@ class MultiConditionMethod(AnalysisMethod):
     Class to be inherited by analysis methods that compare essentiality between multiple conditions (e.g Anova).
     '''
 
-    def __init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation_path, output, ignored_conditions=set(), normalization=None, LOESS=False, ignoreCodon=True, wxobj=None):
+    def __init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation_path, output, normalization=None, LOESS=False, ignoreCodon=True, wxobj=None):
         AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, output,
                 annotation_path, wxobj)
         self.combined_wig = combined_wig
         self.metadata = metadata
         self.normalization = normalization
-        self.ignored_conditions = ignored_conditions
         self.LOESS = LOESS
         self.ignoreCodon = ignoreCodon
 
