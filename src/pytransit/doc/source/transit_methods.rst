@@ -751,17 +751,17 @@ Parameters
   -**GSEA**
     This method was proposed by Subramanian in:
     
-    Subramanian, A., Tamayo, P., Mootha, V. K., Mukherjee, S., Ebert, B. L., Gillette, M. A., ... & Mesirov, J. P. (2005).  <http://www.pnas.org/content/102/43/15545.short>`_*Gene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles*. Proceedings of the National Academy of Sciences, 102(43), 15545-15550.
+    Subramanian, A., Tamayo, P., Mootha, V. K., Mukherjee, S., Ebert, B. L., Gillette, M. A., ... & Mesirov, J. P. (2005).  <http://www.pnas.org/content/102/43/15545.short>`_* Gene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles*. Proceedings of the National Academy of Sciences, 102(43), 15545-15550.
   -**HYPE**
     This is a traditional Hypergeometric approach.
   -**GSEA-Z**
     This method is the one proposed by Irizarry, R. A et al in :
 
-    Irizarry, R. A., Wang, C., Zhou, Y., & Speed, T. P. (2009). <http://journals.sagepub.com/doi/abs/10.1177/0962280209351908>`_*Gene set enrichment analysis made simple *. Statistical methods in medical research, 18(6), 565-575.
+    Irizarry, R. A., Wang, C., Zhou, Y., & Speed, T. P. (2009). <http://journals.sagepub.com/doi/abs/10.1177/0962280209351908>`_* Gene set enrichment analysis made simple *. Statistical methods in medical research, 18(6), 565-575.
   -**GSEA-CHI**
     This method is the one proposed by Irizarry, R. A et al in :
     
-    Irizarry, R. A., Wang, C., Zhou, Y., & Speed, T. P. (2009). <http://journals.sagepub.com/doi/abs/10.1177/0962280209351908>`_*Gene set enrichment analysis made simple *. Statistical methods in medical research, 18(6), 565-575.
+    Irizarry, R. A., Wang, C., Zhou, Y., & Speed, T. P. (2009). <http://journals.sagepub.com/doi/abs/10.1177/0962280209351908>`_* Gene set enrichment analysis made simple *. Statistical methods in medical research, 18(6), 565-575.
 
 Run-time
 ~~~~~~~~
