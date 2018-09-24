@@ -721,3 +721,77 @@ as real differences in datasets. TRANSIT provides various normalization methods,
 
 - **nonorm:**
     No normalization is performed.
+
+-----------------------------------
+
+
+
+.. _GSEA:
+
+Gene Set Enrichment Analysis (GSEA)
+-----------------------------------
+How does it work?
+~~~~~~~~~~~~~~~~~
+Gene Set Enrichment Analysis provides a score to measure a set of functionally related genes are related to a pathway. The programmed analysis here provides 4 methodologies to perform GSEA, GSEA by Subramanian et al, a Hypergeometric approach, and GSEA-Z, GSEA-Chi proposed by Irizarry et al.
+
+Parameters
+~~~~~~~~~~
+- **Resampling File**
+    The resampling file is the one obtained after using the resampling method in Transit. It is a tab separated file with 11 columns. GSEA method makes usage of the first two, Genes and Name, and column 10, P-value.
+- **Annotation File**
+    This file is a text, the first column represents the pathway to check, followed by a description joined by a dash (-), and the list of genes, separated by a space, in that specific pathway. For example, GO:0090502-RNA phosphodiester bond hydrolysis,Rv0627 Rv1102c Rv1339 Rv1955 Rv2063A Rv2228c Rv2407 Rv2549c Rv2752c Rv2801c Rv2816c Rv2902c Rv2925c Rv3796 Rv3923c
+- **Output File**
+    This parameter is used to set the output file name and the path where it will be created.
+- **p**
+  This parameter is optional. GSEA method calculates a weighted Kolgomorov-Smirnov statistics. The default value is 1, when p=0, the enrichment score is the Kolgomorov-Smirnov statistics.
+- **S**
+  In order to estimate the significance, the enrichment score is compared to a null distribution computed with S randomly assigned phenotypes. The default S value is 1000.
+- **M**
+    This analysis can be performed using different methodologies
+  -**GSEA**
+    This method was proposed by Subramanian in:
+    
+    Subramanian, A., Tamayo, P., Mootha, V. K., Mukherjee, S., Ebert, B. L., Gillette, M. A., ... & Mesirov, J. P. (2005). Gene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles <http://www.pnas.org/content/102/43/15545.short>. Proceedings of the National Academy of Sciences, 102(43), 15545-15550.
+  -**HYPE**
+    This is a traditional Hypergeometric approach.
+  -**GSEA-Z**
+    This method is the one proposed by Irizarry, R. A et al in :
+
+    Irizarry, R. A., Wang, C., Zhou, Y., & Speed, T. P. (2009). Gene set enrichment analysis made simple <http://journals.sagepub.com/doi/abs/10.1177/0962280209351908>. Statistical methods in medical research, 18(6), 565-575.
+  -**GSEA-CHI**
+    This method is the one proposed by Irizarry, R. A et al in :
+    
+    Irizarry, R. A., Wang, C., Zhou, Y., & Speed, T. P. (2009). Gene set enrichment analysis made simple <http://journals.sagepub.com/doi/abs/10.1177/0962280209351908>. Statistical methods in medical research, 18(6), 565-575.
+
+Run-time
+~~~~~~~~
+GSEA method, proposed by Subramanian, might take some hours to calculate the p-value.
+
+
+Outputs and diagnostics
+~~~~~~~~~~~~~~~~~~~~~~~
+The output file is a tab separated file and according to the method, the file has specific columns.
+
+- *Output File*
+  -*GSEA*
+      -ID descr: ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
+      -Total genes: The number of genes in the pathway
+      -score: Enrichment Score
+      -pval: Statistical Significance
+      -padj : FDR Correction
+      -rank of genes: According to Subramanian, "The goal of GSEA is to determine whether the member of S are randomly distributed throughout L or primarily find at the top or bottom "
+  -*HYPE*
+      -ID descr, ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
+      -Total genes, The number of genes in the pathway      
+      -Total in the intersection, The number of genes that are in the pathway and the whole genome
+      -pval, the statistical significance
+      -padj, FDR correction of the p-value
+      -genes in intersection
+  -*GSEA-Z, GSEA-CHI*
+      -ID descr, ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
+      -Total genes, The number of genes in the pathway      
+      -Score, Either Z or Chi, according to the one selected to calculate
+      -P-Value, the statistical significance
+      -P-Adjust, FDR correction of the p-value
+
+-----------------------------------

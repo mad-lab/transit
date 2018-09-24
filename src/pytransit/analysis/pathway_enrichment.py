@@ -112,17 +112,19 @@ class GSEAMethod(base.SingleConditionMethod):
 ####################################################################################
 	###############FILES################################
 	def loadD(self,fileName):
+		lfc=6
+		pv=10
 		file = open(fileName,"r")
 		line = file.readline()
 		while line.startswith("#"):
 			line = file.readline()		
 		dict=[]
 		line = line.split("\t")	
-		dict.append([line[0],float(line[10])])
+		dict.append([line[0],float(line[lfc])])
 		ORFNameDict={line[0]:line[1]}
 		for line in file:		
 			line = line.strip().split("\t")
-			dict.append([line[0],float(line[10])])
+			dict.append([line[0],float(line[lfc])])
 			ORFNameDict[line[0]]=line[1]
 		return dict,ORFNameDict
 
@@ -414,14 +416,14 @@ class GSEAMethod(base.SingleConditionMethod):
 			test[keys[i]]+=[adj[i]]
 
 	def t_ishEstimators(self,D):
-		lenD = len(D)
+		lenD = len(D)		
 		for i in range(lenD):
-			if D[i][1] == 0:
-				D[i][1]=-4.0
-			elif D[i][1] == 1:
-				D[i][1]=3.0
-			else:
-				D[i][1]=norm.ppf(D[i][1])
+			p = D[i][1] 
+			if p == 0:
+				p=1e-5
+			if p== 1:
+				p = 1-1e-5
+			D[i][1]=norm.ppf(p)
 ####################################################################################
 	@classmethod
 	def fromGUI(self, wxobj):
@@ -433,7 +435,7 @@ class GSEAMethod(base.SingleConditionMethod):
 
 		p=int(kwargs.get("p", 1))
 		N=int(kwargs.get("S", 1000))
-		M = kwargs.get("M", "GSEA")
+		M = kwargs.get("M", "GSEA-Z")
 		resamplingFile = args[0]		
 		geneSetFile = args[1]
 		outpath = args[2]
@@ -458,12 +460,12 @@ class GSEAMethod(base.SingleConditionMethod):
 			W = len(D) #Whole Genes			
 			# k is the number of genes in DE that are in GoTermsWithRv
 			results=self.hyperGeometricTest(DE,W,GoTermsWithRV,S)
-		elif self.M=="Z":
+		elif self.M=="GSEA-Z":
 			D,ORFNameDict = self.loadD(self.resamplingFile)
 			GoTermsWithRV = self.loadGoTermsGoTermAsKey(self.geneSetFile)
-			self.t_ishEstimators(D)
+			# self.t_ishEstimators(D)
 			results = self.Ztest(D,GoTermsWithRV)
-		elif self.M=="CHI":
+		elif self.M=="GSEA-CHI":
 			D,ORFNameDict = self.loadD(self.resamplingFile)
 			GoTermsWithRV = self.loadGoTermsGoTermAsKey(self.geneSetFile)
 			self.t_ishEstimators(D)
@@ -493,11 +495,11 @@ class GSEAMethod(base.SingleConditionMethod):
 			self.output.write("#%s\n" % "\t".join(columns))
 			self.saveHyperGeometricTest(results,ORFNameDict)
 		elif self.M =="Z":
-			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust","genes"]
+			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust"]
 			self.output.write("#%s\n" % "\t".join(columns))
 			self.printTest(results,ORFNameDict)
 		elif self.M =="CHI":			
-			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust","genes"]
+			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust"]
 			self.output.write("#%s\n" % "\t".join(columns))
 			self.printTest(results,ORFNameDict)
 		self.transit_message("") # Printing empty line to flush stdout 
@@ -509,7 +511,7 @@ class GSEAMethod(base.SingleConditionMethod):
 
 	@classmethod
 	def usage_string(self):
-		return """python %s pathway_enrichment <resampling files> <annotation file> <output file> [-p .-S -M < GSEA, HYPE, Z, CHI >] """ % (sys.argv[0])
+		return """python %s pathway_enrichment <resampling files> <annotation file> <output file> [-p .-S -M < GSEA, HYPE, GSEA-Z, GSEA-CHI >] """ % (sys.argv[0])
 
 
 if __name__ == "__main__":
