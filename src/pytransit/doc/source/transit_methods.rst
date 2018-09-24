@@ -743,9 +743,9 @@ Parameters
 - **Output File**
     This parameter is used to set the output file name and the path where it will be created.
 - **p**
-  This parameter is optional. GSEA method calculates a weighted Kolgomorov-Smirnov statistics. The default value is 1, when p=0, the enrichment score is the Kolgomorov-Smirnov statistics.
+   This parameter is optional. GSEA method calculates a weighted Kolgomorov-Smirnov statistics. The default value is 1, when p=0, the enrichment score is the Kolgomorov-Smirnov statistics.
 - **S**
-  In order to estimate the significance, the enrichment score is compared to a null distribution computed with S randomly assigned phenotypes. The default S value is 1000.
+   In order to estimate the significance, the enrichment score is compared to a null distribution computed with S randomly assigned phenotypes. The default S value is 1000.
 - **M**
     This analysis can be performed using different methodologies
   -**GSEA**
@@ -788,10 +788,10 @@ The output file is a tab separated file and according to the method, the file ha
       -padj, FDR correction of the p-value
       -genes in intersection
   -*GSEA-Z, GSEA-CHI*
-      -ID descr, ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
-      -Total genes, The number of genes in the pathway      
-      -Score, Either Z or Chi, according to the one selected to calculate
-      -P-Value, the statistical significance
-      -P-Adjust, FDR correction of the p-value
+         -ID descr, ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
+         -Total genes, The number of genes in the pathway      
+         -Score, Either Z or Chi, according to the one selected to calculate
+         -P-Value, the statistical significance
+         -P-Adjust, FDR correction of the p-value
 
 -----------------------------------
