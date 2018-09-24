@@ -772,26 +772,26 @@ Outputs and diagnostics
 ~~~~~~~~~~~~~~~~~~~~~~~
 The output file is a tab separated file and according to the method, the file has specific columns.
 
-- *Output File*
-  -*GSEA*
+-*Output File*
+   -*GSEA*
       -ID descr: ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
       -Total genes: The number of genes in the pathway
       -score: Enrichment Score
       -pval: Statistical Significance
       -padj : FDR Correction
       -rank of genes: According to Subramanian, "The goal of GSEA is to determine whether the member of S are randomly distributed throughout L or primarily find at the top or bottom "
-  -*HYPE*
+   -*HYPE*
       -ID descr, ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
       -Total genes, The number of genes in the pathway      
       -Total in the intersection, The number of genes that are in the pathway and the whole genome
       -pval, the statistical significance
       -padj, FDR correction of the p-value
       -genes in intersection
-  -*GSEA-Z, GSEA-CHI*
-         -ID descr, ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
-         -Total genes, The number of genes in the pathway      
-         -Score, Either Z or Chi, according to the one selected to calculate
-         -P-Value, the statistical significance
-         -P-Adjust, FDR correction of the p-value
+   -*GSEA-Z, GSEA-CHI*
+      -ID descr, ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
+      -Total genes, The number of genes in the pathway      
+      -Score, Either Z or Chi, according to the one selected to calculate
+      -P-Value, the statistical significance
+      -P-Adjust, FDR correction of the p-value
 
 -----------------------------------
