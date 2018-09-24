@@ -19,6 +19,7 @@ import gi
 import utest
 import normalize
 import pathway_enrichment #08/22/2018 by Ivan
+import anova
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -31,6 +32,7 @@ methods["tn5gaps"] = tn5gaps.Tn5GapsAnalysis()
 methods["rankproduct"] = rankproduct.RankProductAnalysis()
 methods["utest"] = utest.UTestAnalysis()
 methods["gi"] = gi.GIAnalysis()
+methods["anova"] = anova.AnovaAnalysis()
 #methods["mcce"] = mcce.MCCEAnalysis()
 #methods["mcce2"] = mcce2.MCCE2Analysis()
 #methods["motifhmm"] = motifhmm.MotifHMMAnalysis()
