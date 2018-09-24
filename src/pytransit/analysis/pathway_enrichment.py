@@ -473,6 +473,7 @@ class GSEAMethod(base.SingleConditionMethod):
 		else:
 			self.progress_update("Not a valid option", 100)
 
+
 		self.output.write("#Pathway Enrichment\n")
 		if self.wxobj:
 			members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
@@ -494,11 +495,11 @@ class GSEAMethod(base.SingleConditionMethod):
 			columns=["cat id descr","Total genes","Total in intersection","pval","padj","genes in intersection"]
 			self.output.write("#%s\n" % "\t".join(columns))
 			self.saveHyperGeometricTest(results,ORFNameDict)
-		elif self.M =="Z":
+		elif self.M =="GSEA-Z":
 			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust"]
 			self.output.write("#%s\n" % "\t".join(columns))
 			self.printTest(results,ORFNameDict)
-		elif self.M =="CHI":			
+		elif self.M =="GSEA-CHI":			
 			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust"]
 			self.output.write("#%s\n" % "\t".join(columns))
 			self.printTest(results,ORFNameDict)
