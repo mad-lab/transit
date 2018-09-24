@@ -40,12 +40,17 @@ class AnovaMethod(base.MultiConditionMethod):
     @classmethod
     def fromargs(self, rawargs):
         (args, kwargs) = transit_tools.cleanargs(rawargs)
-        combined_wig = kwargs['-wig']
-        metadata = kwargs['-meta']
-        annotation = kwargs['-prot']
+
+        if (kwargs.get('-help', False)):
+            print(AnovaMethod.usage_string())
+            sys.exit(0)
+
+        combined_wig = args[0]
+        annotation = args[1]
+        metadata = args[2]
+        output_file = args[3]
         normalization = kwargs.get("n", "TTR")
         ignored_conditions = set(kwargs.get("-ignore-conditions", " ").split(","))
-        output_file = kwargs['o']
 
         return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions)
 
@@ -139,14 +144,22 @@ class AnovaMethod(base.MultiConditionMethod):
             SiteIndex: Integer
             Condition :: String
         """
+        count = 0
+        self.progress_range(len(genes))
+
         pvals,Rvs = [],[]
         for gene in genes:
+            count += 1
             Rv = gene["rv"]
             if Rv in MeansByRv:
                 countsvec = self.group_by_condition(map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data), conditions)
                 stat,pval = scipy.stats.f_oneway(*countsvec)
                 pvals.append(pval)
                 Rvs.append(Rv)
+
+            # Update progress
+            text = "Running Anova Method... %5.1f%%" % (100.0*count/len(genes))
+            self.progress_update(text, count)
 
         pvals = numpy.array(pvals)
         mask = numpy.isfinite(pvals)
@@ -179,25 +192,10 @@ class AnovaMethod(base.MultiConditionMethod):
         RvSiteindexesMap = tnseq_tools.rv_siteindexes_map(genes, TASiteindexMap)
         MeansByRv = self.means_by_rv(data, RvSiteindexesMap, genes, conditions)
 
-        # pvals,Rvs, = [],[] # lists
-        # for gene in genes:
-        #   Rv = gene["rv"]
-        #   if Rv in MeansByRv:
-        #     countsvec = self.group_by_condition(map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data), conditions)
-        #     stat,pval = scipy.stats.f_oneway(*countsvec)
-        #     pvals.append(pval)
-        #     Rvs.append(Rv)
-
-        # pvals = numpy.array(pvals)
-        # mask = numpy.isfinite(pvals)
-        # qvals = numpy.full(pvals.shape, numpy.nan)
-        # qvals[mask] = statsmodels.stats.multitest.fdrcorrection(pvals[mask])[1] # BH, alpha=0.05
-
-        # p,q = {},{}
-        # for i,rv in enumerate(Rvs):
-        #    p[rv],q[rv] = pvals[i],qvals[i]
+        self.transit_message("Running Anova")
         pvals,qvals = self.run_anova(data, genes, MeansByRv, RvSiteindexesMap, conditions)
 
+        self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
         conditionsList = list(set(conditions))
         vals = "Rv Gene TAs".split() + conditionsList + "pval padj".split()
@@ -205,9 +203,24 @@ class AnovaMethod(base.MultiConditionMethod):
         for gene in genes:
             Rv = gene["rv"]
             if Rv in MeansByRv:
-              vals = [Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] + ["%0.1f" % MeansByRv[Rv][c] for c in conditionsList] + ["%f" % x for x in [pvals[Rv], qvals[Rv]]]
+              vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
+                      ["%0.1f" % MeansByRv[Rv][c] for c in conditionsList] +
+                      ["%f" % x for x in [pvals[Rv], qvals[Rv]]])
               file.write('\t'.join(vals)+EOL)
         file.close()
+        self.transit_message("Finished Anova analysis")
+
+    @classmethod
+    def usage_string(self):
+        return """python %s anova <combined wig file> <annotation .prot_table> <samples_metadata file> <output file> [Optional Arguments]
+
+        Optional Arguments:
+        -n <string>         :=  Normalization method. Default: -n TTR
+        --ignore-conditions <cond1,cond2> :=  Comma seperated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
+
+        """ % (sys.argv[0])
+
+
 
 if __name__ == "__main__":
     main()
