@@ -76,6 +76,13 @@ pytransit.analysis.tn5gaps module
     :undoc-members:
     :show-inheritance:
 
+pytransit.analysis.anova module
+------------------------------------
+
+.. automodule:: pytransit.analysis.anova
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Module contents
 ---------------
