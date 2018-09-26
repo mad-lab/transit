@@ -732,7 +732,7 @@ Gene Set Enrichment Analysis (GSEA)
 -----------------------------------
 How does it work?
 ~~~~~~~~~~~~~~~~~
-Gene Set Enrichment Analysis provides a score to measure a set of functionally related genes are related to a pathway. The programmed analysis here provides 4 methodologies to perform GSEA, GSEA by Subramanian et al, a Hypergeometric approach, and GSEA-Z, GSEA-Chi proposed by Irizarry et al.
+Gene Set Enrichment Analysis provides a score to measure a set of functionally related genes are related to a pathway. The programmed analysis here provides 4 methodologies to perform GSEA, GSEA by Subramanian et al, a Hypergeometric approach, and GSEA-Z, GSEA-Chi proposed by Irizarry et al. Hypergeometric Methodology the genes, in the resampling input file, with p-value < 0.05 were taken as hits.
 
 Parameters
 ~~~~~~~~~~
@@ -777,21 +777,22 @@ The output file is a tab separated file and according to the method, the file ha
       -ID descr: ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
       -Total genes: The number of genes in the pathway
       -score: Enrichment Score
-      -pval: Statistical Significance
-      -padj : FDR Correction
-      -rank of genes: According to Subramanian, "The goal of GSEA is to determine whether the member of S are randomly distributed throughout L or primarily find at the top or bottom "
+      -P-Value: Statistical Significance
+      -P-Adjust : FDR Correction
+      -rank of genes: According to Subramanian, "The goal of GSEA is to determine whether the member of S are randomly distributed throughout L or primarily find at the top or bottom", taken this into account, we presented the genes sorted by the position they have in the resampling file.
    -*HYPE*
       -ID descr, ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
-      -Total genes, The number of genes in the pathway      
+      -Total genes, The number of genes in the pathway. The genes considered hits are those with p-value < 0.05
       -Total in the intersection, The number of genes that are in the pathway and the whole genome
-      -pval, the statistical significance
-      -padj, FDR correction of the p-value
-      -genes in intersection
+      -P-Value, the statistical significance
+      -P-Adjust, FDR correction of the p-value
+      -genes in intersection. 
    -*GSEA-Z, GSEA-CHI*
       -ID descr, ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
       -Total genes, The number of genes in the pathway      
       -Score, Either Z or Chi, according to the one selected to calculate
       -P-Value, the statistical significance
       -P-Adjust, FDR correction of the p-value
+      -Rank of Genes, list of genes in the pathway and their position in the resampling file.
 
 -----------------------------------

@@ -120,12 +120,13 @@ class GSEAMethod(base.SingleConditionMethod):
 			line = file.readline()		
 		dict=[]
 		line = line.split("\t")	
-		dict.append([line[0],float(line[lfc])])
+		dict.append([line[0],float(line[pv])])
 		ORFNameDict={line[0]:line[1]}
 		for line in file:		
 			line = line.strip().split("\t")
-			dict.append([line[0],float(line[lfc])])
+			dict.append([line[0],float(line[pv])])
 			ORFNameDict[line[0]]=line[1]
+		dict =sorted(dict,key=lambda x: x[1])
 		return dict,ORFNameDict
 
 	def getM(self,protTable):
@@ -374,23 +375,28 @@ class GSEAMethod(base.SingleConditionMethod):
 #################Z Test#################################
 # D is the whole set with p values <=0.05
 # S is the Sanger Categories with their genes.
-	def Ztest(self,D,S):
+	def Ztest(self,D,S):		
+		auxD = [d[0] for d in D]		
 		DictD={d[0]:d[1] for d in D}
-		ES={}	
+		ES={}
+		rank={}	
 		for key in S: #GoTerms or Category in S		
 			r=[DictD[k] for k in S[key] if k in DictD]
 			lenr=len(r)
-			if(lenr>1):
+			if(lenr>1):				
 				meanR = numpy.mean(r)
 				es = math.sqrt(lenr)*meanR
-				ES[key]= [lenr,es,norm.sf(es)]
-		self.padjustTest(ES)
-		return ES
+				ES[key]= [lenr,es,norm.sf(es)]				
+				rank[key]={i: auxD.index(i) for i in S[key] if i in auxD}
+		self.padjustTest(ES)		
+		return ES, rank
 
 
-	def ChiSquareTest(self,D,S):
+	def ChiSquareTest(self,D,S):		
+		auxD = [d[0] for d in D]
 		DictD={d[0]:d[1] for d in D}
 		ES={}
+		rank={}
 		for key in S: #GoTerms or Category in S
 			r=[DictD[k] for k in S[key] if k in DictD]
 			lenr=len(r)
@@ -399,13 +405,15 @@ class GSEAMethod(base.SingleConditionMethod):
 				lenSkey = lenr-1
 				es=(sum([(ri-meanR)**2 for ri in r]) - (lenSkey)) / (2*lenSkey)
 				ES[key]= [lenr,es, norm.sf(es)]
+				rank[key]={i: auxD.index(i) for i in S[key] if i in auxD}
 		self.padjustTest(ES)
-		return ES
+		return ES,rank
 
 
-	def printTest(self,test,ORFNameDict):		
+	def printTest(self,test,ORFNameDict,rank):		
 		for key in test:
-			self.output.write(key+"\t"+str(test[key][0])+"\t"+str(test[key][1])+"\t"+str(test[key][2])+"\t"+str(test[key][3])+"\n")
+			cad = " ".join([str(rank[key][g])+":"+g+"/"+ORFNameDict[g] for g in rank[key]])
+			self.output.write(key+"\t"+str(test[key][0])+"\t"+str(test[key][1])+"\t"+str(test[key][2])+"\t"+str(test[key][3])+"\t"+cad+"\n")
 		self.output.close()
 
 	def padjustTest(self,test):
@@ -418,12 +426,12 @@ class GSEAMethod(base.SingleConditionMethod):
 	def t_ishEstimators(self,D):
 		lenD = len(D)		
 		for i in range(lenD):
-			p = D[i][1] 
-			if p == 0:
+			p = 2*D[i][1] 
+			if p <= 0:
 				p=1e-5
-			if p== 1:
+			if p>= 1:
 				p = 1-1e-5
-			D[i][1]=norm.ppf(p)
+			D[i][1]=norm.ppf(p)	
 ####################################################################################
 	@classmethod
 	def fromGUI(self, wxobj):
@@ -448,11 +456,14 @@ class GSEAMethod(base.SingleConditionMethod):
 				p,N,M)
 
 	def Run(self):
-		self.transit_message("Starting Pathway Enrichment Method")
+		self.transit_message("Starting Pathway Enrichment Method")		
+
 		start_time = time.time()
 		if self.M =="GSEA":
+			method = "GSEA"
 			gseaVal,PathDict,rank,ORFNameDict=self.GSEA2(self.resamplingFile,self.geneSetFile,self.p,self.N)
 		elif self.M =="HYPE":
+			method = "HYPERGEOMETRIC"
 			D,ORFNameDict = self.loadD(self.resamplingFile)
 			GoTermsWithRV = self.loadGoTermsGoTermAsKey(self.geneSetFile)
 			DE = [d[0] for d in D if d[1]<=0.05]
@@ -461,16 +472,19 @@ class GSEAMethod(base.SingleConditionMethod):
 			# k is the number of genes in DE that are in GoTermsWithRv
 			results=self.hyperGeometricTest(DE,W,GoTermsWithRV,S)
 		elif self.M=="GSEA-Z":
-			D,ORFNameDict = self.loadD(self.resamplingFile)
-			GoTermsWithRV = self.loadGoTermsGoTermAsKey(self.geneSetFile)
-			# self.t_ishEstimators(D)
-			results = self.Ztest(D,GoTermsWithRV)
-		elif self.M=="GSEA-CHI":
+			method = "GSEA-Z"
 			D,ORFNameDict = self.loadD(self.resamplingFile)
 			GoTermsWithRV = self.loadGoTermsGoTermAsKey(self.geneSetFile)
 			self.t_ishEstimators(D)
-			results= self.ChiSquareTest(D,GoTermsWithRV)
+			results,rank = self.Ztest(D,GoTermsWithRV)
+		elif self.M=="GSEA-CHI":
+			method = "GSEA-CHI"
+			D,ORFNameDict = self.loadD(self.resamplingFile)
+			GoTermsWithRV = self.loadGoTermsGoTermAsKey(self.geneSetFile)
+			self.t_ishEstimators(D)
+			results,rank= self.ChiSquareTest(D,GoTermsWithRV)
 		else:
+			method = "Not a valid option"
 			self.progress_update("Not a valid option", 100)
 
 
@@ -484,25 +498,27 @@ class GSEAMethod(base.SingleConditionMethod):
 		else:
 			self.output.write("#Console: python %s\n" % " ".join(sys.argv))
 
+
 		self.output.write("#Data: %s\n" % self.resamplingFile) 
 		self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
 		self.output.write("#Time: %s\n" % (time.time() - start_time))
+		self.output.write("#Methodology: %s\n"%method)
 		if self.M =="GSEA":
-			columns = ["[ID][descr]","Total genes","score","pval","padj","rank of genes"]
+			columns = ["ID-descr","Total genes","score","P-Value","P-Adjust","rank of genes"]
 			self.output.write("#%s\n" % "\t".join(columns))
 			self.saveExit(gseaVal,PathDict,rank,ORFNameDict)
 		elif self.M =="HYPE":
-			columns=["cat id descr","Total genes","Total in intersection","pval","padj","genes in intersection"]
+			columns=["cat id descr","Total genes","Total in intersection","P-Value","P-Adjust","genes in intersection"]
 			self.output.write("#%s\n" % "\t".join(columns))
 			self.saveHyperGeometricTest(results,ORFNameDict)
 		elif self.M =="GSEA-Z":
-			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust"]
+			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust","Rank of Genes"]
 			self.output.write("#%s\n" % "\t".join(columns))
-			self.printTest(results,ORFNameDict)
+			self.printTest(results,ORFNameDict,rank)
 		elif self.M =="GSEA-CHI":			
-			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust"]
+			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust","Rank of Genes"]
 			self.output.write("#%s\n" % "\t".join(columns))
-			self.printTest(results,ORFNameDict)
+			self.printTest(results,ORFNameDict,rank)
 		self.transit_message("") # Printing empty line to flush stdout 
 		self.transit_message("Adding File: %s" % (self.output.name))
 		self.add_file(filetype="Pathway Enrichment")
