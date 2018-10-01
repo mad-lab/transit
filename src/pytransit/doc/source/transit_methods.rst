@@ -539,7 +539,7 @@ parameters are available for the method:
 -  **ROPE:** Region of Practical Equivalence. This region defines an area
    around 0.0 that represents differences in the log fold-change that are
    practically equivalent to zero. This aids in ignoring spurious changes
-   in the logFC that would otherwise be identified under a strict 
+   in the logFC that would otherwise be identified under a strict
    null-hypothesis of no difference.
 
 -  **Include Zeros:** Select to include  sites that are zero. This is the
@@ -602,13 +602,73 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 +-----------------------------------------+----------------------------------------------------+
 
 
+--------------
 
+|
 
+.. _anova:
 
+ANOVA (command line only)
+--------------
 
+The Anova (Analysis of variance) method, is used to determine conditionally essential genes, across multiple conditions. See :ref:`Example <anova_example>` for usage.
 
 --------------
 
+.. NOTE::
+   Can be used for both **Himar1** and **Tn5** datasets
+
+|
+
+How does it work?
+~~~~~~~~~~~~~~~~~
+
+The method performs the `One-way anova test <https://en.wikipedia.org/wiki/Analysis_of_variance?oldformat=true#The_F-test>`_ for each gene, across conditions.
+
+Parameters
+~~~~~~~~~~
+
+The following parameters are available for the method:
+
+-  **Ignore Conditions:** Ignores the given set of conditions from the Anova test.
+
+-  **Normalization Method:** Determines which normalization method to
+   use when comparing datasets. Proper normalization is important as it
+   ensures that other sources of variability are not mistakenly treated
+   as real differences. See the :ref:`Normalization <normalization>` section for a description
+   of normalization method available in TRANSIT.
+
+
+Output and Diagnostics
+~~~~~~~~~~~~~~~~~~~~~~
+
+The re-sampling method outputs a tab-delimited file with results for each
+gene in the genome. P-values are adjusted for multiple comparisons using
+the Benjamini-Hochberg procedure (called "q-values" or "p-adj."). A
+typical threshold for conditional essentiality on is q-value < 0.05.
+
++-----------------+-----------------------------------------------------------------+
+| Column Header   | Column Definition                                               |
++=================+=================================================================+
+| Orf             | Gene ID.                                                        |
++-----------------+-----------------------------------------------------------------+
+| Name            | Name of the gene.                                               |
++-----------------+-----------------------------------------------------------------+
+| TAs             | Number of TA sites in Gene                                      |
++-----------------+-----------------------------------------------------------------+
+| <Condition Mean>| Mean readcounts for the Gene, by condition                      |
++-----------------+-----------------------------------------------------------------+
+| p-value         | P-value calculated by the Anova test.                           |
++-----------------+-----------------------------------------------------------------+
+| p-adj.          | Adjusted p-value controlling for the FDR (Benjamini-Hochberg)   |
++-----------------+-----------------------------------------------------------------+
+
+|
+
+Run-time
+~~~~~~~~
+
+Takes in the order of 30 seconds for a combined wig file with 10 conditions, with 3 replicates per condition.
 
 |
 

@@ -50,7 +50,7 @@ class AnovaMethod(base.MultiConditionMethod):
         metadata = args[2]
         output_file = args[3]
         normalization = kwargs.get("n", "TTR")
-        ignored_conditions = set(kwargs.get("-ignore-conditions", " ").split(","))
+        ignored_conditions = set(kwargs.get("-ignore-conditions", "Unknown").split(","))
 
         return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions)
 
@@ -93,14 +93,19 @@ class AnovaMethod(base.MultiConditionMethod):
           Filename -> ConditionMap
           ConditionMap :: {Filename: Condition}
         """
-        conditions = set()
         wigFiles = []
         conditionsByFile = {}
+        headersToRead = ["condition", "filename"]
         with open(metadata_file) as mfile:
-            next(mfile) # Skip headers
-            for line in mfile:
+            lines = mfile.readlines()
+            headIndexes = [i
+                    for h in headersToRead
+                    for i, c in enumerate(lines[0].split())
+                    if c.lower() == h]
+            for line in lines:
                 if line[0]=='#': continue
-                [id, condition, wfile] = line.split()
+                vals = line.split()
+                [condition, wfile] = vals[headIndexes[0]], vals[headIndexes[1]]
                 conditionsByFile[wfile] = condition
         return conditionsByFile
 

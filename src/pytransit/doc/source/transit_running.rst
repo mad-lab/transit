@@ -28,10 +28,10 @@ In general, if you installed TRANSIT as a python package (e.g. using *pip instal
 If, however, you installed transit by downloading and extracting the source-code archive, you can run TRANSIT in GUI mode by typing in the command line:
 
 ::
-    
+
     python PATH/src/transit.py
 
-where PATH is the path to the TRANSIT installation directory. You might be able to double-click on icon for transit.py, if your OS associates .py files with python and automatically runs them. 
+where PATH is the path to the TRANSIT installation directory. You might be able to double-click on icon for transit.py, if your OS associates .py files with python and automatically runs them.
 
 
 .. NOTE::
@@ -191,7 +191,7 @@ Example HMM command:
     python PATH/src/transit.py hmm genomes/H37Rv.prot_table data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig test_console_hmm.dat -r Sum
 
 
-| 
+|
 
 Resampling
 ~~~~~~~~~~
@@ -289,14 +289,14 @@ PATH/src/transit.py resampling" followed by the following arguments:
 |                  |                | representing the         |                |                |
 |                  |                | libraries of the control |                |                |
 |                  |                | datasets being used.     |                |                |
-|                  |                | If set, permutatations   |                |                | 
+|                  |                | If set, permutatations   |                |                |
 |                  |                | will be within libraries |                |                |
 +------------------+----------------+--------------------------+----------------+----------------+
 | --exp_lib <str>  | Optional       | String of letters (ABC)  | Empty          | -exp_lib ABB   |
 |                  |                | representing the         |                |                |
 |                  |                | libraries of the experi- |                |                |
-|                  |                | mental datasets used.    |                |                |  
-|                  |                | If set, permutatations   |                |                | 
+|                  |                | mental datasets used.    |                |                |
+|                  |                | If set, permutatations   |                |                |
 |                  |                | will be within libraries |                |                |
 +------------------+----------------+--------------------------+----------------+----------------+
 
@@ -310,4 +310,53 @@ Example Resampling command:
 
     python PATH/src/transit.py resampling genomes/H37Rv.prot_table data/glycerol_reads_rep1.wig,data/glycerol_reads_rep2.wig data/cholesterol_reads_rep1.wig,data/cholesterol_reads_rep2.wig,data/cholesterol_reads_rep3.wig test_console_resampling.dat -h -s 10000 -n nzmean
 
+|
+
+.. _anova_example:
+
+Anova
+~~~~~~~~~~
+
+To run the Anova analysis from the command line, type "python
+PATH/src/transit.py anova" followed by the following arguments:
+
++--------------------+----------------+--------------------------+----------------+----------------+
+| Argument           | Type           | Description              | Default        | Example        |
++====================+================+==========================+================+================+
+| annotation         | Required       | Path to                  |                | genomes/H37Rv. |
+|                    |                | annotation               |                | prot\_table    |
+|                    |                | file in                  |                |                |
+|                    |                | .prot\_table             |                |                |
+|                    |                | format                   |                |                |
++--------------------+----------------+--------------------------+----------------+----------------+
+| combined\_wig      | Required       | Path to combined wig     |                |                |
+|                    |                | file.                    |                |                |
+|                    |                |                          |                |                |
++--------------------+----------------+--------------------------+----------------+----------------+
+| output\_file       | Required       | Name of the              |                | results/gumbel |
+|                    |                | output file              |                | \_glycerol.dat |
+|                    |                | with the                 |                |                |
+|                    |                | results.                 |                |                |
++--------------------+----------------+--------------------------+----------------+----------------+
+| -n                 | Optional       | Select which             | TTR            | -n TTR         |
+|                    |                | normalizing              |                |                |
+|                    |                | procedure to             |                |                |
+|                    |                | use. Can                 |                |                |
+|                    |                | choose between           |                |                |
+|                    |                | 'TTR',                   |                |                |
+|                    |                | 'nzmean',                |                |                |
+|                    |                | 'totreads',              |                |                |
+|                    |                | 'zinfnb',                |                |                |
+|                    |                | 'betageom',              |                |                |
+|                    |                | and 'nonorm'.            |                |                |
++--------------------+----------------+--------------------------+----------------+----------------+
+| --ignore-conditions|                | Comma seperated list of  | Unknown        | Unknown,Tcell  |
+|                    |                | conditions to ignore.    |                |                |
++--------------------+----------------+--------------------------+----------------+----------------+
+
+Example Anova command:
+
+::
+
+    python src/transit.py anova anova-data/combined_wig_macrophages.dat anova-data/H37RvBD1.prot_table anova-data/samples_metadata.txt anova-data/output.txt --ignore-conditions Unknown,Tcell
 
