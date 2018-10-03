@@ -20,6 +20,7 @@ import utest
 import normalize
 import pathway_enrichment #08/22/2018 by Ivan
 import anova
+import tnseq_stats
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -38,11 +39,11 @@ methods["anova"] = anova.AnovaAnalysis()
 #methods["motifhmm"] = motifhmm.MotifHMMAnalysis()
 methods["normalize"] = normalize.Normalize()
 methods["pathway_enrichment"]=pathway_enrichment.GSEAAnalysis()
+## TODO Does this belong here?
+methods["tnseq_stats"]=tnseq_stats.TnseqStats()
 
 # EXPORT METHODS
 import norm
 export_methods = {}
 export_methods["norm"] = norm.NormAnalysis()
-
-
 
