@@ -97,9 +97,14 @@ class TnseqStatsMethod(base.SingleConditionMethod):
     def fromargs(self, rawargs): 
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
+        if (kwargs.get('-help', False)): print(self.usage_string()); sys.exit(0)
+
         self.wigs = args
         self.outfile = kwargs.get("o", None)
         self.combined_wig = kwargs.get("c", None)
+
+        if self.combined_wig==None and len(self.wigs)==0: print(self.usage_string()); sys.exit(0)
+
         return self(self.wigs,outfile=self.outfile)
 
     def Run(self):
