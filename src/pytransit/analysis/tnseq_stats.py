@@ -79,10 +79,10 @@ class TnseqStatsMethod(base.SingleConditionMethod):
     Norm
  
     """
-    def __init__(self,wigs): # list of wig files
+    def __init__(self,wigs,outfile=None): # list of wig files
                 ctrldata=wigs # initializers for superclass
                 annotation_path=""
-                output_file=""
+                output_file=outfile
                 replicates="Sum"
                 normalization="nonorm"
                 LOESS=False
@@ -97,36 +97,38 @@ class TnseqStatsMethod(base.SingleConditionMethod):
     def fromargs(self, rawargs): 
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
-        if len(args) < 2:
-            raise base.InvalidArgumentException("Must provide all necessary arguments")
-
         self.wigs = args
-        return self(self.wigs)
+        self.outfile = kwargs.get("o", None)
+        self.combined_wig = kwargs.get("c", None)
+        return self(self.wigs,outfile=self.outfile)
 
     def Run(self):
 
         self.transit_message("Starting TnseqStats")
         start_time = time.time()
 
-        (data, sites) = tnseq_tools.get_data(self.wigs)
+        datasets = self.wigs
+        if self.combined_wig==None: (data, sites) = tnseq_tools.get_data(self.wigs)
+        else: (sites, data, datasets) = tnseq_tools.read_combined_wig(self.combined_wig)
 
-        # should write this to an output file?
-        print "dataset\tdensity\tmean_ct\tNZmean\tNZmedian\tmax_ct\ttotal_cts\tskewness\tkurtosis"
+        # write table of stats (saturation,NZmean)
+        file = sys.stdout
+        if self.outfile!=None: file = open(self.outfile,"w")
+        file.write("dataset\tdensity\tmean_ct\tNZmean\tNZmedian\tmax_ct\ttotal_cts\tskewness\tkurtosis\n")
         for i in range(data.shape[0]):
           density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis = tnseq_tools.get_data_stats(data[i,:])
           nzmedianrd = int(nzmedianrd) if numpy.isnan(nzmedianrd)==False else 0
-          vals = [self.wigs[i], "%0.2f" % density, "%0.1f" % meanrd, "%0.1f" % nzmeanrd, "%d" % nzmedianrd, maxrd, totalrd, "%0.1f" % skew, "%0.1f" % kurtosis]
-          print '\t'.join([str(x) for x in vals])
+          vals = [datasets[i], "%0.2f" % density, "%0.1f" % meanrd, "%0.1f" % nzmeanrd, "%d" % nzmedianrd, maxrd, totalrd, "%0.1f" % skew, "%0.1f" % kurtosis]
+          file.write('\t'.join([str(x) for x in vals])+'\n')
+        if self.outfile!=None: file.close()
 
         self.finish()
         self.transit_message("Finished TnseqStats") 
 
     @classmethod
     def usage_string(self):
-        return """usage: python %s tnseq_stats <file1.wig> [<file2.wig>...]
-        """ % (sys.argv[0])
-
-
+        return """usage: python %s tnseq_stats <file.wig>+ [-o <output_file>]\n       python %s tnseq_stats -c <combined_wig> [-o <output_file>]
+        """ % (sys.argv[0],sys.argv[0])
 
 
 if __name__ == "__main__":
