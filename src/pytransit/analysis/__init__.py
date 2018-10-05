@@ -39,7 +39,6 @@ methods["anova"] = anova.AnovaAnalysis()
 #methods["motifhmm"] = motifhmm.MotifHMMAnalysis()
 methods["normalize"] = normalize.Normalize()
 methods["pathway_enrichment"]=pathway_enrichment.GSEAAnalysis()
-## TODO Does this belong here?
 methods["tnseq_stats"]=tnseq_stats.TnseqStats()
 
 # EXPORT METHODS
