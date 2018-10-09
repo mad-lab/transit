@@ -49,6 +49,13 @@ def main(*args, **kwargs):
         sys.argv.remove("--debug")
         kwargs.pop("-debug")
 
+    if (not args and 'h' in kwargs):
+        print "For commandline mode, please use one of the known methods (or see documentation to add a new one):"
+        for m in all_methods:
+            print "\t - %s" % m
+        print "Usage: python %s <method>" % sys.argv[0]
+        sys.exit(0)
+
     # Check if running in GUI Mode
     if not (args or kwargs) and hasWx:
 

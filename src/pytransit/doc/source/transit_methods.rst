@@ -1,5 +1,7 @@
 
 
+.. _`analysis_methods`:
+
 Analysis Methods
 ================
 
@@ -154,7 +156,6 @@ replicates; replicate datasets will be automatically merged.
 
 |
 
-
 .. _`tn5gaps`:
 
 Tn5Gaps
@@ -211,6 +212,16 @@ essential genes. Of these 356 essential genes, 344 overlap with the
 output of our analysis.
 
 |
+
+Example
+~~~~~~~
+::
+
+    python PATH/src/transit.py tn5gaps genomes/Salmonella-Ty2.prot_table data/salmonella_2122_rep1.wig,data/salmonella_2122_rep2.wig results/test_console_tn5gaps.dat -m 2 -r Sum
+
+        Optional Arguments:
+        -m <integer>    :=  Smallest read-count to consider. Default: -m 1
+        -r <string>     :=  How to handle replicates. Sum or Mean. Default: -r Sum
 
 Parameters
 ~~~~~~~~~~
@@ -762,7 +773,7 @@ The following parameters are available for the method:
 Output and Diagnostics
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The re-sampling method outputs a tab-delimited file with results for each
+The anova method outputs a tab-delimited file with results for each
 gene in the genome. P-values are adjusted for multiple comparisons using
 the Benjamini-Hochberg procedure (called "q-values" or "p-adj."). A
 typical threshold for conditional essentiality on is q-value < 0.05.

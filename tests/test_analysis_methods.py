@@ -1,11 +1,12 @@
 import sys
+import os
 
-sys.path.insert(0, '../src/')
+basedir = os.path.dirname(__file__)
+sys.path.insert(0, basedir + '/../src/')
 #sys.path.insert(0, '/home/travis/build/mad-lab/transit/src/')
 
 import shutil
 import unittest
-import os
 
 from transit_test import *
 
@@ -17,6 +18,7 @@ from pytransit.analysis.gumbel import GumbelMethod
 from pytransit.analysis.binomial import BinomialMethod
 from pytransit.analysis.griffin import GriffinMethod
 from pytransit.analysis.hmm import HMMMethod
+from pytransit.analysis.anova import AnovaMethod
 
 # Comparative methods
 from pytransit.analysis.resampling import ResamplingMethod
@@ -27,8 +29,8 @@ from pytransit.analysis.utest import UTestMethod
 from pytransit.analysis.gi import GIMethod
 
 class TestMethods(TransitTestCase):
- 
- 
+
+
     def test_Gumbel(self):
         args = [ctrl_data_txt, annotation, output, "-s", "1000", "-b", "100"]
         G = GumbelMethod.fromargs(args)
@@ -54,7 +56,7 @@ class TestMethods(TransitTestCase):
         G.Run()
         self.assertTrue(os.path.exists(output))
         genes_path = output.rsplit(".", 1)[0] + "_genes." + output.rsplit(".", 1)[1]
-        self.assertTrue(os.path.exists(genes_path))        
+        self.assertTrue(os.path.exists(genes_path))
 
 
     def test_resampling(self):
@@ -69,7 +71,13 @@ class TestMethods(TransitTestCase):
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
-    
+
+    def test_anova(self):
+        args = [combined_wig, annotation, samples_metadata, output, "--ignore-conditions", "Unknown,Tcell"]
+        G = AnovaMethod.fromargs(args)
+        G.Run()
+        self.assertTrue(os.path.exists(output))
+
 
     #def test_resampling_histogram(self):
     #    args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000", "-h"]
@@ -94,14 +102,14 @@ class TestMethods(TransitTestCase):
 
 
     def test_GI(self):
-        args = [ctrl_data_txt, exp_data_txt, ctrl_data_txt, exp_data_txt, annotation, output, 
+        args = [ctrl_data_txt, exp_data_txt, ctrl_data_txt, exp_data_txt, annotation, output,
                     "-s", "1000"]
         G = GIMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
 
 
- 
+
 if __name__ == '__main__':
     unittest.main()
     #suite = unittest.TestLoader().loadTestsFromTestCase(TestMethods)
