@@ -28,6 +28,21 @@ from pytransit.analysis.utest import UTestMethod
 # Genetic Interactions
 from pytransit.analysis.gi import GIMethod
 
+def significant_pvals_qvals(fname, pcol=-2, qcol=-1):
+    print(fname)
+    pvals, qvals = [], []
+    with open(fname) as f:
+        lines = f.readlines()
+    for line in lines[1:]:
+        if line[0]=='#': continue
+        cols = line.split("\t")
+        # Read in position as int, and readcounts as float
+        pvals.append(float(cols[pcol]))
+        qvals.append(float(cols[qcol]))
+
+    return (filter(lambda p: p < 0.05, pvals), filter(lambda q: q < 0.05, qvals))
+
+
 class TestMethods(TransitTestCase):
 
 
@@ -73,11 +88,20 @@ class TestMethods(TransitTestCase):
         self.assertTrue(os.path.exists(output))
 
     def test_anova(self):
-        args = [combined_wig, annotation, samples_metadata, output, "--ignore-conditions", "Unknown,Tcell"]
+        args = [combined_wig, annotation, samples_metadata, output, "--ignore-conditions", "Unknown"]
         G = AnovaMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
-
+        (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-2, qcol=-1))
+        sig_qvals.sort()
+        self.assertEqual(
+            len(sig_pvals),
+            196,
+            "sig_pvals expected: %d, actual: %d" % (196, len(sig_pvals)))
+        self.assertEqual(
+            len(sig_qvals),
+            37,
+            "sig_qvals expected: %d, actual: %d" % (37, len(sig_qvals)))
 
     #def test_resampling_histogram(self):
     #    args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000", "-h"]
