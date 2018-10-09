@@ -113,18 +113,29 @@ class GSEAMethod(base.SingleConditionMethod):
 	###############FILES################################
 	def loadD(self,fileName):
 		file = open(fileName,"r")
-		line = file.readline()
-		while line.startswith("#"):
-			line = file.readline()		
 		dict=[]
-		line = line.split("\t")	
-		dict.append([line[0],float(line[10])])
-		ORFNameDict={line[0]:line[1]}
-		for line in file:		
-			line = line.strip().split("\t")
-			dict.append([line[0],float(line[10])])
-			ORFNameDict[line[0]]=line[1]
+		ORFNameDict={}		
+		for line in file:
+			if not(line.startswith("#")):
+				line.strip().split("\t") #this will return three elements
+				ORFNameDict[line[0]]=line[1]
+				dict.append([line[0],float(line[10])])	
+		file.close()
 		return dict,ORFNameDict
+
+		# file = open(fileName,"r")
+		# line = file.readline()
+		# while line.startswith("#"):
+		# 	line = file.readline()		
+		# dict=[]
+		# line = line.split("\t")	
+		# dict.append([line[0],float(line[10])])
+		# ORFNameDict={line[0]:line[1]}
+		# for line in file:		
+		# 	line = line.strip().split("\t")
+		# 	dict.append([line[0],float(line[10])])
+		# 	ORFNameDict[line[0]]=line[1]
+		# return dict,ORFNameDict
 
 	def getM(self,protTable):
 		file = open(protTable,"r")
@@ -132,26 +143,29 @@ class GSEAMethod(base.SingleConditionMethod):
 
 	def loadGoTermsGoTermAsKey(self,fileName):
 		dict={}
+		descr={}
 		file = open(fileName,"r")
 		for f in file:
-			line = f.split(",")
-			if not(line[0] in dict):
-				dict[line[0]]=[]
-			dict[line[0]]+=line[1].split()
-		return dict
+			if not(line.startswith("#")):
+				line = f.strip().split("\t") # It will return the id , description and list of ORFS
+				if not(line[0] in dict):
+					dict[line[0]]=[]					
+				dict[line[0]]+=line[2].split()
+				descr[line[0]] = line[1]
+		return dict,descr
 
 
-	def loadGoTermsRVsAsKeys(self,fileName):
-		dict={}
-		file=open(fileName,"r")
-		for f in file:
-			line = f.split(",")
-			rvs=line[1].split()
-			for l in rvs:
-				if not(l in dict):
-					dict[l]=[]
-				dict[l].append(line[0])
-		return dict
+	# def loadGoTermsRVsAsKeys(self,fileName):
+	# 	dict={}
+	# 	file=open(fileName,"r")
+	# 	for f in file:
+	# 		line = f.split(",")
+	# 		rvs=line[1].split()
+	# 		for l in rvs:
+	# 			if not(l in dict):
+	# 				dict[l]=[]
+	# 			dict[l].append(line[0])
+	# 	return dict
 
 	def saveInterestingPaths(self,fileName,m,n):
 		inputF = open(fileName,"r")
@@ -203,12 +217,12 @@ class GSEAMethod(base.SingleConditionMethod):
 
 
 
-	def saveHyperGeometricTest(self,results,ORFNameDict):
+	def saveHyperGeometricTest(self,results,ORFNameDict,DESCR):
 		#GoTermsDescription = loadGoTermsDescriptions("GO_terms_used_in_H37Rv.csv")
 		# f = open(fileNameOut,"w")
 		for k in results:
 			cad = " ".join([x+"/"+ORFNameDict[x] for x in results[k]["Intersection"]])
-			self.output.write(k+"\t"+results[k]["parameters"]+"\t"+str(results[k]["p-value"])+"\t"+str(results[k]["padjust"])+"\t"+cad+"\n")
+			self.output.write(k+"\t"+DESCR[k]+"\t"+results[k]["parameters"]+"\t"+str(results[k]["p-value"])+"\t"+str(results[k]["padjust"])+"\t"+cad+"\n")
 
 	# HYPERGEOMETRIC END
 
@@ -356,7 +370,7 @@ class GSEAMethod(base.SingleConditionMethod):
 		self.padjust(gseaVal)
 		return gseaVal,GoTerms,rank,ORFNameDict
 
-	def saveExit(self,GSEADict, PathDict,rank,ORFNameDict):		
+	def saveExit(self,GSEADict, PathDict,rank,ORFNameDict,DESCR):		
 		for gsea in GSEADict:
 			# cad=gsea+":\n \t"+" ".join(PathDict[gsea])+"\n\tEnrichment Score: "+str(GSEADict[gsea][0])+" P-value:"+str(GSEADict[gsea][1])+" P-Adjust:"+str(GSEADict[gsea][2])+"\n"			
 			d = rank[gsea]			
@@ -364,7 +378,7 @@ class GSEAMethod(base.SingleConditionMethod):
 			rankCad = " ".join([str(k[1])+":"+k[0]+"/"+ORFNameDict[k[0]] for k in sorted_d])
 			# cad="["+"][ ".join(gsea.split("-"))+"],"+str(len(PathDict[gsea]))+","+str(GSEADict[gsea][0])+","+str(GSEADict[gsea][1])+","+str(GSEADict[gsea][2])+","+rankCad+"\n"
 
-			cad=gsea+"\t"+str(len(PathDict[gsea]))+"\t"+str(GSEADict[gsea][0])+"\t"+str(GSEADict[gsea][1])+"\t"+str(GSEADict[gsea][2])+"\t"+rankCad+"\n"
+			cad=gsea+"\t"+DESCR[gsea]+"\t"+str(len(PathDict[gsea]))+"\t"+str(GSEADict[gsea][0])+"\t"+str(GSEADict[gsea][1])+"\t"+str(GSEADict[gsea][2])+"\t"+rankCad+"\n"
 			self.output.write(cad)
 		self.output.close()
 
@@ -401,9 +415,9 @@ class GSEAMethod(base.SingleConditionMethod):
 		return ES
 
 
-	def printTest(self,test,ORFNameDict):		
+	def printTest(self,test,ORFNameDict,DESCR):		
 		for key in test:
-			self.output.write(key+"\t"+str(test[key][0])+"\t"+str(test[key][1])+"\t"+str(test[key][2])+"\t"+str(test[key][3])+"\n")
+			self.output.write(key+"\t"+DESCR[key]+"\t"+str(test[key][0])+"\t"+str(test[key][1])+"\t"+str(test[key][2])+"\t"+str(test[key][3])+"\n")
 		self.output.close()
 
 	def padjustTest(self,test):
@@ -452,7 +466,7 @@ class GSEAMethod(base.SingleConditionMethod):
 			gseaVal,PathDict,rank,ORFNameDict=self.GSEA2(self.resamplingFile,self.geneSetFile,self.p,self.N)
 		elif self.M =="HYPE":
 			D,ORFNameDict = self.loadD(self.resamplingFile)
-			GoTermsWithRV = self.loadGoTermsGoTermAsKey(self.geneSetFile)
+			GoTermsWithRV,DESCR = self.loadGoTermsGoTermAsKey(self.geneSetFile)
 			DE = [d[0] for d in D if d[1]<=0.05]
 			S = len(DE) #Sample Size in hyperGeometric	
 			W = len(D) #Whole Genes			
@@ -487,19 +501,19 @@ class GSEAMethod(base.SingleConditionMethod):
 		if self.M =="GSEA":
 			columns = ["[ID][descr]","Total genes","score","pval","padj","rank of genes"]
 			self.output.write("#%s\n" % "\t".join(columns))
-			self.saveExit(gseaVal,PathDict,rank,ORFNameDict)
+			self.saveExit(gseaVal,PathDict,rank,ORFNameDict,DESCR)
 		elif self.M =="HYPE":
 			columns=["cat id descr","Total genes","Total in intersection","pval","padj","genes in intersection"]
 			self.output.write("#%s\n" % "\t".join(columns))
-			self.saveHyperGeometricTest(results,ORFNameDict)
+			self.saveHyperGeometricTest(results,ORFNameDict,DESCR)
 		elif self.M =="Z":
 			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust","genes"]
 			self.output.write("#%s\n" % "\t".join(columns))
-			self.printTest(results,ORFNameDict)
+			self.printTest(results,ORFNameDict,DESCR)
 		elif self.M =="CHI":			
 			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust","genes"]
 			self.output.write("#%s\n" % "\t".join(columns))
-			self.printTest(results,ORFNameDict)
+			self.printTest(results,ORFNameDict,DESCR)
 		self.transit_message("") # Printing empty line to flush stdout 
 		self.transit_message("Adding File: %s" % (self.output.name))
 		self.add_file(filetype="Pathway Enrichment")
