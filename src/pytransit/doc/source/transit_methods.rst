@@ -37,6 +37,24 @@ How does it work?
 
 |
 
+Example
+~~~~~~~
+
+::
+
+ python transit.py gumbel <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        Optional Arguments:
+        -s <integer>    :=  Number of samples. Default: -s 10000
+        -b <integer>    :=  Number of Burn-in samples. Default -b 500
+        -m <integer>    :=  Smallest read-count to consider. Default: -m 1
+        -t <integer>    :=  Trims all but every t-th value. Default: -t 1
+        -r <string>     :=  How to handle replicates. Sum or Mean. Default: -r Sum
+        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
+        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+
+
+
+
 Parameters
 ~~~~~~~~~~
 
@@ -279,6 +297,21 @@ How does it work?
 
 |
 
+
+Example
+~~~~~~~
+
+::
+
+
+  python transit.py hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output file>
+        Optional Arguments:
+            -r <string>     :=  How to handle replicates. Sum, Mean. Default: -r Mean
+            -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Off.
+            -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
+            -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+
+
 Parameters
 ~~~~~~~~~~
 
@@ -385,6 +418,10 @@ used to determine conditional essentiality of genes. It is based on a
 permutation test, and is capable of determining read-counts that are
 significantly different across conditions.
 
+See :ref:`Pathway Enrichment Analysis <GSEA>` for post-processing the hits to 
+determine if the hits are associated with a particular functional catogory
+of genes or known biological pathway.
+
 
 .. NOTE::
    Can be used for both **Himar1** and **Tn5** datasets
@@ -406,6 +443,35 @@ forms a null distribution, from which a p-value is calculated for the
 original, observed difference in read-counts.
 
 |
+
+
+Example
+~~~~~~~
+
+
+::
+
+  python transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        Optional Arguments:
+        -s <integer>    :=  Number of samples. Default: -s 10000
+        -n <string>     :=  Normalization method. Default: -n TTR
+        -h              :=  Output histogram of the permutations for each gene. Default: Turned Off.
+        -a              :=  Perform adaptive resampling. Default: Turned Off.
+        -ez             :=  Exclude rows with zero accross conditions. Default: Turned off
+                            (i.e. include rows with zeros).
+        -pc             :=  Pseudocounts to be added at each site.
+        -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias.
+                            Default: Turned Off.
+        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
+        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        --ctrl_lib      :=  String of letters representing library of control files in order
+                            e.g. 'AABB'. Default empty. Letters used must also be used in --exp_lib
+                            If non-empty, resampling will limit permutations to within-libraries.
+
+        --exp_lib       :=  String of letters representing library of experimental files in order
+                            e.g. 'ABAB'. Default empty. Letters used must also be used in --ctrl_lib
+                            If non-empty, resampling will limit permutations to within-libraries.
+
 
 Parameters
 ~~~~~~~~~~
@@ -521,6 +587,24 @@ How does it work?
 
 |
 
+
+Example
+~~~~~~~
+
+::
+
+  python transit.py GI <comma-separated .wig control files condition A> <comma-separated .wig control files condition B> <comma-separated .wig experimental files condition A> <comma-separated .wig experimental files condition B> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        Optional Arguments:
+        -s <integer>    :=  Number of samples. Default: -s 10000
+        --rope <float>  :=  Region of Practical Equivalence. Area around 0 (i.e. 0 +/- ROPE) that is NOT of interest. Can be thought of similar to the area of the null-hypothesis. Default: --rope 0.5
+        -n <string>     :=  Normalization method. Default: -n TTR
+        -iz             :=  Include rows with zero accross conditions.
+        -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.
+        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
+        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+
+You can think of 'control' and 'experimental' samples as 'untreated' vs. 'treated'.
+
 Parameters
 ~~~~~~~~~~
 
@@ -611,19 +695,55 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 ANOVA (command line only)
 --------------
 
-The Anova (Analysis of variance) method, is used to determine conditionally essential genes, across multiple conditions. See :ref:`Example <anova_example>` for usage.
-
---------------
-
-.. NOTE::
-   Can be used for both **Himar1** and **Tn5** datasets
+The Anova (Analysis of variance) method is used to determine which genes
+exhibit statistically significant variability of insertion counts across multiple conditions.
+Unlike other methods which take a comma-separated list of wig files as input,
+the method takes a *combined_wig* file (which combined multiple datasets in one file)
+and a *samples_metadata* file (which describes which samples/replicates belong
+to which experimental conditions).
 
 |
 
 How does it work?
 ~~~~~~~~~~~~~~~~~
 
-The method performs the `One-way anova test <https://en.wikipedia.org/wiki/Analysis_of_variance?oldformat=true#The_F-test>`_ for each gene, across conditions.
+The method performs the `One-way anova test <https://en.wikipedia.org/wiki/Analysis_of_variance?oldformat=true#The_F-test>`_ for each gene across conditions.
+It takes into account variability of normalized transposon insertion counts among TA sites 
+and among replicates, 
+to determine if the differences among the mean counts for each condition are significant.
+
+
+Example
+~~~~~~~
+
+::
+
+  python transit.py anova <combined wig file> <annotation .prot_table> <samples_metadata file> <output file> [Optional Arguments]
+        Optional Arguments:
+        -n <string>         :=  Normalization method. Default: -n TTR
+        --ignore-conditions <cond1,cond2> :=  Comma seperated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
+
+Note: the combined_wig input file can be generated from multiple wig
+files through the Transit GUI
+(File->Export->Selected_Datasets->Combined_wig), or via the
+command-line (*see this example*).
+
+Format of the samples metadata file: a tab-separated file (which you can edit in Excel)
+with 3 columns: Id, Condition, and Filename (it must have these headers).  You can include
+other columns of info, but do not include additional rows.  Individual rows can be
+commented out by prefixing them with a '#'.  Here is an example of a samples metadata file:
+The filenames should match what is shown in the header of the combined_wig (including pathnames, if present).
+
+::
+
+  ID      Condition    Filename
+  glyc1   glycerol     /Users/example_data/glycerol_rep1.wig
+  glyc2   glycerol     /Users/example_data/glycerol_rep2.wig
+  chol1   cholesterol  /Users/example_data/cholesterol_rep1.wig
+  chol2   cholesterol  /Users/example_data/cholesterol_rep2.wig
+  chol2   cholesterol  /Users/example_data/cholesterol_rep3.wig
+
+
 
 Parameters
 ~~~~~~~~~~
@@ -728,44 +848,80 @@ as real differences in datasets. TRANSIT provides various normalization methods,
 
 .. _GSEA:
 
-Gene Set Enrichment Analysis (GSEA)
------------------------------------
+Pathway Enrichment Analysis (command-line only)
+---------------------------
 How does it work?
 ~~~~~~~~~~~~~~~~~
-Gene Set Enrichment Analysis provides a score to measure a set of functionally related genes are related to a pathway. The programmed analysis here provides 4 methodologies to perform GSEA, GSEA by Subramanian et al, a Hypergeometric approach, and GSEA-Z, GSEA-Chi proposed by Irizarry et al. Hypergeometric Methodology the genes, in the resampling input file, with p-value < 0.05 were taken as hits.
+Pathway Enrichment Analysis provides a method to 
+identify enrichment of functionally-related genes among those that are 
+conditionally essential (i.e.
+significantly more or less essential between two conditions).
+The analysis is typically applied as post-processing step to the hits identified
+by a comparative analysis, such as resampling.
+Four analytical method are provided:
+a Hypergeometric approach, GSEA by `Subramanian et al (2005) <https://www.ncbi.nlm.nih.gov/pubmed/16199517>`_, and GSEA-Z, GSEA-Chi proposed by `Irizarry et al. (2009) <https://www.ncbi.nlm.nih.gov/pubmed/20048385>`_.
+For the Hypergeometic test, genes in the resampling output file with adjusted p-value < 0.05 are taken as hits,
+and evaluated for overlap with functional categories of genes.
+The GSEA methods use the whole list of genes, ranked in order of statistical significance
+(without requiring a cutoff), to calculated enrichment.
+
+Two systems of categories are provided for *M. tuberculosis* (but you can add your own):
+the Sanger functional categories of genes determined by Stewart Cole in the 
+original annotation of the H37Rv genome (1998, with updates), and 
+also GO terms (Gene Ontology).  They are in the src/pytransit/data/ directory.
+
+For now, pathway enrichment analysis is only implemented as a command-line function,
+and is not available in the Transit GUI.
+
+GSEA is very slow, which is why we included 
+two faster methods that use approximations (GSEA-Z and GSEA-Chi).
+
+
+Example
+~~~~~~~
+
+::
+
+    python ../../transit.py pathway_enrichment <resampling files> <annotation file> <output file> [-p] [-S] [-M GSEA|HYPE|GSEA-Z|GSEA-CHI]
+
+|
+
 
 Parameters
 ~~~~~~~~~~
 - **Resampling File**
-    The resampling file is the one obtained after using the resampling method in Transit. It is a tab separated file with 11 columns. GSEA method makes usage of the first two, Genes and Name, and column 10, P-value.
+    The resampling file is the one obtained after using the resampling method in Transit. (It is a tab separated file with 11 columns.) GSEA method makes usage of the last column (adjusted P-value)
 - **Annotation File**
-    This file is a text, the first column represents the pathway to check, followed by a description joined by a dash (-), and the list of genes, separated by a space, in that specific pathway. For example, GO:0090502-RNA phosphodiester bond hydrolysis,Rv0627 Rv1102c Rv1339 Rv1955 Rv2063A Rv2228c Rv2407 Rv2549c Rv2752c Rv2801c Rv2816c Rv2902c Rv2925c Rv3796 Rv3923c
+    This file is a tab-separated text file (which you could open in Excel).  The file format has 3 columns: the id of the pathway (e.g. "GO:0090502"), a description (e.g. "RNA phosphodiester bond hydrolysis"), and a space-separated list of genes (ORF ids, like Rv1339).  Examples for Sanger categories and GO terms for H37Rv are in src/pytransit/data/.  
 - **Output File**
-    This parameter is used to set the output file name and the path where it will be created.
+    This parameter is used to specify the output file name and the path where it will be created.
 - **p**
-   This parameter is optional. GSEA method calculates a weighted Kolgomorov-Smirnov statistics. The default value is 1, when p=0, the enrichment score is the Kolgomorov-Smirnov statistics.
+   This parameter is optional, and can be used to adjust the stringency of the GSEA calculation. GSEA method calculates a weighted Kolgomorov-Smirnov statistics. The default value is 1, when p=0, the enrichment score is the Kolgomorov-Smirnov statistics.
 - **S**
-   In order to estimate the significance, the enrichment score is compared to a null distribution computed with S randomly assigned phenotypes. The default S value is 1000.
+   Number of samples for generating the null distribution.  In order to estimate the significance, the enrichment score is compared to a null distribution computed with S randomly assigned phenotypes. The default S value is 1000.  Changing S affects the speed of the calculation linearly.
 - **M**
-    This analysis can be performed using different methodologies
+    Methodology to be used. (HYPE, or hypergeometric test, is the default)
   -**GSEA**
     This method was proposed by Subramanian in:
     
     Subramanian, A., Tamayo, P., Mootha, V. K., Mukherjee, S., Ebert, B. L., Gillette, M. A., ... & Mesirov, J. P. (2005).  `Gene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles <http://www.pnas.org/content/102/43/15545.short>`_ . Proceedings of the National Academy of Sciences, 102(43), 15545-15550.
   -**HYPE**
-    This is a traditional Hypergeometric approach.
+    This is a traditional Hypergeometric approach, which test whether the
+proportion of genes with a given function/pathway among the list of hits from resampling
+is significantly higher or lower than expected, relative to the background distribution (proportion of the category/pathway among all the ORFS in the genome)
   -**GSEA-Z**
-    This method is the one proposed by Irizarry, R. A et al in :
+    A faster approximation of GSEA.  This method is the one proposed by Irizarry, R. A et al in :
 
     Irizarry, R. A., Wang, C., Zhou, Y., & Speed, T. P. (2009). `Gene set enrichment analysis made simple  <http://journals.sagepub.com/doi/abs/10.1177/0962280209351908>`_. Statistical methods in medical research, 18(6), 565-575.
   -**GSEA-CHI**
-    This method is the one proposed by Irizarry, R. A et al in :
+    A faster approximation of GSEA.  This method is the one proposed by Irizarry, R. A et al in :
         
     Irizarry, R. A., Wang, C., Zhou, Y., & Speed, T. P. (2009). `Gene set enrichment analysis made simple  <http://journals.sagepub.com/doi/abs/10.1177/0962280209351908>`_. Statistical methods in medical research, 18(6), 565-575.
 
 Run-time
 ~~~~~~~~
-GSEA method, proposed by Subramanian, might take some hours to calculate the p-value.
+The GSEA method, proposed by Subramanian, might take some hours to calculate the p-value.
+The other methods are much faster.
 
 
 Outputs and diagnostics
@@ -774,25 +930,44 @@ The output file is a tab separated file and according to the method, the file ha
 
 -*Output File*
    -*GSEA*
-      -ID descr: ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
-      -Total genes: The number of genes in the pathway
-      -score: Enrichment Score
-      -P-Value: Statistical Significance
-      -P-Adjust : FDR Correction
-      -rank of genes: According to Subramanian, "The goal of GSEA is to determine whether the member of S are randomly distributed throughout L or primarily find at the top or bottom", taken this into account, we presented the genes sorted by the position they have in the resampling file.
+      - ID descr: ID of the pathway, functional category, or GO term, with its description. This information comes from the annotation file
+
+      - Total genes: The number of genes in the pathway
+
+      - score: Enrichment Score
+
+      - P-Value: Statistical Significance
+
+      - P-Adjust : FDR Correction
+
+      - list of genes in the category, ranked by their log-fold-change (from resampling). Rank values near 0 or near N (total number of genes in genome) are the most interesting (representing pathways with high enrichment)
+
    -*HYPE*
-      -ID descr, ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
-      -Total genes, The number of genes in the pathway. The genes considered hits are those with p-value < 0.05
-      -Total in the intersection, The number of genes that are in the pathway and the whole genome
-      -P-Value, the statistical significance
-      -P-Adjust, FDR correction of the p-value
-      -genes in intersection. 
+
+      - ID descr: ID of the pathway, functional category, or GO term, with its description. This information comes from the annotation file
+
+      - Total genes, The number of genes in the pathway. The genes considered hits are those with p-value < 0.05
+
+      - Total in the intersection, The number of genes that are in the pathway and the whole genome
+
+      - P-Value, the statistical significance
+
+      - P-Adjust, FDR correction of the p-value (using Benjamini-Hochberg)
+
+      - genes in intersection of the pathway and list of hits (conditional essentials)
+
    -*GSEA-Z, GSEA-CHI*
-      -ID descr, ID of the pathway, SAGER Category, GO Term, with its description. This information comes from the annotation file
-      -Total genes, The number of genes in the pathway      
-      -Score, Either Z or Chi, according to the one selected to calculate
-      -P-Value, the statistical significance
-      -P-Adjust, FDR correction of the p-value
-      -Rank of Genes, list of genes in the pathway and their position in the resampling file.
+
+      - ID descr: ID of the pathway, functional category, or GO term, with its description. This information comes from the annotation file
+
+      - Total genes, The number of genes in the pathway      
+
+      - Score, Either Z or Chi, according to the one selected to calculate
+
+      - P-Value, the statistical significance
+
+      - P-Adjust, FDR correction of the p-value
+
+      - Rank of Genes, list of genes in the pathway and their position in the resampling file (LFC order).
 
 -----------------------------------
