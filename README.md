@@ -11,8 +11,8 @@
 - Added calculation of Pathway Enrichment as post-processing for resampling, to determine if conditionally essential genes over-represent a particular functional category or pathway (such as for GO terms)
 - Added ANOVA analysis for identifying genes with significant variability of counts across multiple conditions
 - Updated Documentation - especially for "Quality Control/TnSeq Statistics"; also added more command-line examples under "Analysis Methods"
-- Fixed bugs, including TrackView in the GUI
-- Upgraded dependencies, including wxPython 4.0
+- Fixed bugs (including TrackView in the GUI)
+- Upgraded dependencies, including wxPython 4.0 (required)
 
 
 **Version 2.2.0 changes (June, 2018)**
