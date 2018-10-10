@@ -1,32 +1,20 @@
 import sys
 
 try:
-	import wx
-	WX_VERSION = int(wx.version()[0])
-	hasWx = True
+    import wx
+    WX_VERSION = int(wx.version()[0])
+    hasWx = True
 
 except Exception as e:
-	hasWx = False
-	WX_VERSION = 0
-	print "EXCEPTION:", str(e)
+    hasWx = False
+    WX_VERSION = 0
+    print "EXCEPTION:", str(e)
 
 if hasWx:
-	import wx.xrc
-	from wx.lib.buttons import GenBitmapTextButton
-
-	#Imports depending on version:
-	if WX_VERSION == 2:
-		from wx.lib.pubsub import Publisher as pub
-
-	if WX_VERSION == 3:
-		from wx.lib.pubsub import pub
-		pub.subscribe
-
-	if WX_VERSION == 4:
-		from wx.lib.pubsub import pub
-		pub.subscribe
-		import wx.adv
-
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+    from pubsub import pub
+    import wx.adv
 
 import os
 import time
@@ -60,7 +48,7 @@ short_name = "pathway_enrichment"
 long_name = "pathway_enrichment"
 short_desc = "Gene set enrichment analysis"
 long_desc = "Gene set enrichment analysis"
-transposons = ["himar1", "tn5"] ##What's this for?
+transposons = [] ##What's this for?
 columns = ["[ID][descr]","Total genes","score","pval","padj","rank of genes"]
 
 ############# Analysis Method ##############
@@ -115,9 +103,9 @@ class GSEAMethod(base.SingleConditionMethod):
 		file = open(fileName,"r")
 		dict=[]
 		ORFNameDict={}		
-		for line in file:
-			if not(line.startswith("#")):
-				line.strip().split("\t") #this will return three elements
+		for line in file:			
+			if not(line.startswith("#")):				
+				line=line.strip().split("\t") #this will return three elements				
 				ORFNameDict[line[0]]=line[1]
 				dict.append([line[0],float(line[10])])	
 		file.close()
@@ -146,26 +134,16 @@ class GSEAMethod(base.SingleConditionMethod):
 		descr={}
 		file = open(fileName,"r")
 		for f in file:
-			if not(line.startswith("#")):
-				line = f.strip().split("\t") # It will return the id , description and list of ORFS
+			if not(f.startswith("#")):				
+				line = f.strip().split("\t") # It will return the id , description and list of ORFS				
+				if len(line)!=3: 					
+					self.output.write("Format Error in"+fileName+"\n")
 				if not(line[0] in dict):
 					dict[line[0]]=[]					
 				dict[line[0]]+=line[2].split()
 				descr[line[0]] = line[1]
 		return dict,descr
 
-
-	# def loadGoTermsRVsAsKeys(self,fileName):
-	# 	dict={}
-	# 	file=open(fileName,"r")
-	# 	for f in file:
-	# 		line = f.split(",")
-	# 		rvs=line[1].split()
-	# 		for l in rvs:
-	# 			if not(l in dict):
-	# 				dict[l]=[]
-	# 			dict[l].append(line[0])
-	# 	return dict
 
 	def saveInterestingPaths(self,fileName,m,n):
 		inputF = open(fileName,"r")
@@ -314,7 +292,7 @@ class GSEAMethod(base.SingleConditionMethod):
 	def GSEA(self,fileNameForD, fileNameForS, p=1,N=1000):
 		#D is a list of 2XN
 		D = self.loadD(fileNameForD)
-		GoTerms = self.loadGoTermsGoTermAsKey(fileNameForS)
+		GoTerms,DESCR = self.loadGoTermsGoTermAsKey(fileNameForS)
 		l=len(GoTerms.keys())
 		Total = float(l*N)	
 		gseaVal={}	
@@ -342,7 +320,7 @@ class GSEAMethod(base.SingleConditionMethod):
 	def GSEA2(self,fileNameForD, fileNameForS, p=1,N=100):
 		#D is a list of 2XN
 		D,ORFNameDict = self.loadD(fileNameForD)
-		GoTerms = self.loadGoTermsGoTermAsKey(fileNameForS)
+		GoTerms,DESCR = self.loadGoTermsGoTermAsKey(fileNameForS)
 		l=len(GoTerms.keys())
 		Total = float(l*N)	
 		gseaVal={}
@@ -368,7 +346,7 @@ class GSEAMethod(base.SingleConditionMethod):
 				if gseaVal[goTerm][0]<=ES:
 					gseaVal[goTerm][1]+=1.0/N
 		self.padjust(gseaVal)
-		return gseaVal,GoTerms,rank,ORFNameDict
+		return gseaVal,GoTerms,rank,ORFNameDict,DESCR
 
 	def saveExit(self,GSEADict, PathDict,rank,ORFNameDict,DESCR):		
 		for gsea in GSEADict:
@@ -386,23 +364,29 @@ class GSEAMethod(base.SingleConditionMethod):
 #################Z Test#################################
 # D is the whole set with p values <=0.05
 # S is the Sanger Categories with their genes.
-	def Ztest(self,D,S):
-		DictD={d[0]:d[1] for d in D}
-		ES={}	
-		for key in S: #GoTerms or Category in S		
-			r=[DictD[k] for k in S[key] if k in DictD]
-			lenr=len(r)
-			if(lenr>1):
-				meanR = numpy.mean(r)
-				es = math.sqrt(lenr)*meanR
-				ES[key]= [lenr,es,norm.sf(es)]
-		self.padjustTest(ES)
-		return ES
-
-
-	def ChiSquareTest(self,D,S):
+	
+	def Ztest(self,D,S):		
+		auxD = [d[0] for d in D]		
 		DictD={d[0]:d[1] for d in D}
 		ES={}
+		rank={}		
+		for key in S: #GoTerms or Category in S			
+			r=[DictD[k] for k in S[key] if k in DictD]
+			lenr=len(r)
+			if(lenr>1):				
+				meanR = numpy.mean(r)
+				es = math.sqrt(lenr)*meanR
+				ES[key]= [lenr,es,norm.sf(es)]				
+				rank[key]={i: auxD.index(i) for i in S[key] if i in auxD}
+		self.padjustTest(ES)		
+		return ES, rank
+
+	def ChiSquareTest(self,D,S):		
+		auxD = [d[0] for d in D]
+		DictD={d[0]:d[1] for d in D}
+		ES={}
+		rank={}
+
 		for key in S: #GoTerms or Category in S
 			r=[DictD[k] for k in S[key] if k in DictD]
 			lenr=len(r)
@@ -411,14 +395,16 @@ class GSEAMethod(base.SingleConditionMethod):
 				lenSkey = lenr-1
 				es=(sum([(ri-meanR)**2 for ri in r]) - (lenSkey)) / (2*lenSkey)
 				ES[key]= [lenr,es, norm.sf(es)]
+				rank[key]={i: auxD.index(i) for i in S[key] if i in auxD}
 		self.padjustTest(ES)
-		return ES
+		return ES,rank
 
 
-	def printTest(self,test,ORFNameDict,DESCR):		
+	def printTest(self,test,ORFNameDict,rank,DESCR):		
 		for key in test:
-			self.output.write(key+"\t"+DESCR[key]+"\t"+str(test[key][0])+"\t"+str(test[key][1])+"\t"+str(test[key][2])+"\t"+str(test[key][3])+"\n")
-		self.output.close()
+			cad = " ".join([str(rank[key][g])+":"+g+"/"+ORFNameDict[g] for g in rank[key]])
+			self.output.write(key+"\t"+DESCR[key]+"\t"+str(test[key][0])+"\t"+str(test[key][1])+"\t"+str(test[key][2])+"\t"+str(test[key][3])+"\t"+cad+"\n")
+		self.output.close()	
 
 	def padjustTest(self,test):
 		keys = test.keys()
@@ -462,9 +448,12 @@ class GSEAMethod(base.SingleConditionMethod):
 	def Run(self):
 		self.transit_message("Starting Pathway Enrichment Method")
 		start_time = time.time()
+
 		if self.M =="GSEA":
-			gseaVal,PathDict,rank,ORFNameDict=self.GSEA2(self.resamplingFile,self.geneSetFile,self.p,self.N)
+			method = "GSEA"
+			gseaVal,PathDict,rank,ORFNameDict,DESCR=self.GSEA2(self.resamplingFile,self.geneSetFile,self.p,self.N)
 		elif self.M =="HYPE":
+			method = "HYPERGEOMETRIC"
 			D,ORFNameDict = self.loadD(self.resamplingFile)
 			GoTermsWithRV,DESCR = self.loadGoTermsGoTermAsKey(self.geneSetFile)
 			DE = [d[0] for d in D if d[1]<=0.05]
@@ -472,17 +461,21 @@ class GSEAMethod(base.SingleConditionMethod):
 			W = len(D) #Whole Genes			
 			# k is the number of genes in DE that are in GoTermsWithRv
 			results=self.hyperGeometricTest(DE,W,GoTermsWithRV,S)
-		elif self.M=="Z":
+		elif self.M=="GSEA-Z":
+			method = "GSEA-Z"
 			D,ORFNameDict = self.loadD(self.resamplingFile)
-			GoTermsWithRV = self.loadGoTermsGoTermAsKey(self.geneSetFile)
+			GoTermsWithRV,DESCR = self.loadGoTermsGoTermAsKey(self.geneSetFile)
+
 			self.t_ishEstimators(D)
-			results = self.Ztest(D,GoTermsWithRV)
-		elif self.M=="CHI":
+			results,rank = self.Ztest(D,GoTermsWithRV)
+		elif self.M=="GSEA-CHI":
+			method = "GSEA-CHI"
 			D,ORFNameDict = self.loadD(self.resamplingFile)
-			GoTermsWithRV = self.loadGoTermsGoTermAsKey(self.geneSetFile)
+			GoTermsWithRV,DESCR = self.loadGoTermsGoTermAsKey(self.geneSetFile)
 			self.t_ishEstimators(D)
-			results= self.ChiSquareTest(D,GoTermsWithRV)
+			results,rank= self.ChiSquareTest(D,GoTermsWithRV)
 		else:
+			method = "Not a valid option"
 			self.progress_update("Not a valid option", 100)
 
 		self.output.write("#Pathway Enrichment\n")
@@ -498,6 +491,7 @@ class GSEAMethod(base.SingleConditionMethod):
 		self.output.write("#Data: %s\n" % self.resamplingFile) 
 		self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
 		self.output.write("#Time: %s\n" % (time.time() - start_time))
+		self.output.write("#Methodology: %s\n"%method)
 		if self.M =="GSEA":
 			columns = ["[ID][descr]","Total genes","score","pval","padj","rank of genes"]
 			self.output.write("#%s\n" % "\t".join(columns))
@@ -506,14 +500,14 @@ class GSEAMethod(base.SingleConditionMethod):
 			columns=["cat id descr","Total genes","Total in intersection","pval","padj","genes in intersection"]
 			self.output.write("#%s\n" % "\t".join(columns))
 			self.saveHyperGeometricTest(results,ORFNameDict,DESCR)
-		elif self.M =="Z":
+		elif self.M =="GSEA-Z":
 			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust","genes"]
 			self.output.write("#%s\n" % "\t".join(columns))
-			self.printTest(results,ORFNameDict,DESCR)
-		elif self.M =="CHI":			
+			self.printTest(results,ORFNameDict,rank,DESCR)
+		elif self.M =="GSEA-CHI":			
 			columns=["#ID-Description","Total Genes","Score","P-Value","P-Adjust","genes"]
 			self.output.write("#%s\n" % "\t".join(columns))
-			self.printTest(results,ORFNameDict,DESCR)
+			self.printTest(results,ORFNameDict,rank,DESCR)
 		self.transit_message("") # Printing empty line to flush stdout 
 		self.transit_message("Adding File: %s" % (self.output.name))
 		self.add_file(filetype="Pathway Enrichment")
