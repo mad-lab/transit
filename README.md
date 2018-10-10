@@ -1,11 +1,18 @@
 
 
 
-# TRANSIT 2.2.1
+# TRANSIT 2.3.0
 
 
 [![Build Status](https://travis-ci.org/mad-lab/transit.svg?branch=master)](https://travis-ci.org/mad-lab/transit)   [![Documentation Status](https://readthedocs.org/projects/transit/badge/?version=latest)](http://transit.readthedocs.io/en/latest/?badge=latest) 
 
+
+**Version 2.3.0 changes (Oct, 2018)**
+- Added calculation of Pathway Enrichment as post-processing for resampling, to determine if conditionally essential genes over-represent a particular functional category or pathway (such as for GO terms)
+- Added ANOVA analysis for identifying genes with significant variability of counts across multiple conditions
+- Updated Documentation - especially for "Quality Control/TnSeq Statistics"; also added more command-line examples under "Analysis Methods"
+- Fixed bugs, including TrackView in the GUI
+- Upgraded dependencies, including wxPython 4.0
 
 
 **Version 2.2.0 changes (June, 2018)**

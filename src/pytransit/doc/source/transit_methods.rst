@@ -747,8 +747,8 @@ Example
 
 Note: the combined_wig input file can be generated from multiple wig
 files through the Transit GUI
-(File->Export->Selected_Datasets->Combined_wig), or via the
-command-line (*see this example*).
+(File->Export->Selected_Datasets->Combined_wig), or via the 'export'
+command on the command-line (see combined_wig_).
 
 Format of the samples metadata file: a tab-separated file (which you can edit in Excel)
 with 3 columns: Id, Condition, and Filename (it must have these headers).  You can include
@@ -866,7 +866,48 @@ as real differences in datasets. TRANSIT provides various normalization methods,
 - **nonorm:**
     No normalization is performed.
 
------------------------------------
+
+Command-line
+~~~~~~~~~~~~
+
+In addition to choosing normalization for various analyses in the GUI,
+you can also call Transit to normalize wig files from the command-line, 
+as shown in this example:
+
+Example
+~~~~~~~
+
+::
+
+  > python src/transit.py normalize --help
+
+  usage: python src/transit.py normalize <input.wig> <output.wig> [-n TTR|betageom]
+
+  > python src/transit.py normalize Rv_1_H37RvRef.wig Rv_1_H37RvRef_TTR.wig -n TTR
+
+  > python src/transit.py normalize Rv_1_H37RvRef.wig Rv_1_H37RvRef_BG.wig -n betageom
+
+.. _combined_wig:
+
+Combined wig files
+~~~~~~~~~~~~~~~~~~
+
+Transit now supports a new file format called 'combined_wig' which basically
+combines multiple wig files into one file (with multiple columns).  This is
+used for some of the new analysis methods for larger collections of datasets, like ANOVA.
+You can specify the normalization method you want to use with a flag.
+TTR is the default, but other relevant normalization options would be 'nonorm'
+(i.e. preserve raw counts) and 'betageom' (this corrects for skew, but is slow).
+
+
+::
+
+  > python src/transit.py export combined_wig --help
+
+  usage: python src/transit.py export combined_wig <comma-separated .wig files> <annotation .prot_table> <output file>
+
+  > python ../transit/src/transit.py export combined_wig Rv_1_H37RvRef.wig,Rv_2_H37RvRef.wig,Rv_3_H37RvRef.wig H37Rv.prot_table clinicals_combined_TTR.wig -n TTR
+
 
 `----------------------------------------------------------------------------------------------------------------------------------------------`
 
@@ -1014,26 +1055,30 @@ In the GUI, one can load a set of
 wig files a select "View->Quality Control" in the menu; this will
 display some plots of read-count distribution.  Ideally, you want most of
 your datasets to fall along the diagonal on a QQ-plot.  Real data will
-often deviate somewhat (I will be more quantitative about this in future),
-but if a dataset skew far off of the diagonal, it could causes problems
-with analyses like resampling.  
+often deviate somewhat (I will try to be more quantitative about this in the future),
+but if a dataset skews far off from the diagonal, it could cause problems
+with analytical methods like resampling or the HMM.  
 
 .. image:: http://saclab.tamu.edu/essentiality/transit/QC_example.png
 
 Below the plots are a table of statistics.  While there are not
 rigorous criteria for defining "bad" datasets, rules of thumb I use
-for "good" datasets are: density>30%, NZmean>10.  In addition, I look
+for "good" datasets are: density>30% (ideally >50%) and NZmean>10 (ideally >50).  
+In addition, I look
 at MaxReadCount and Skewness as indicators.  Typically, MaxReadCount
-will be in the range of 1000-10,000.  If you see individual sites with
+will be in the range of a few thousand to tens-of-thousands.  
+If you see individual sites with
 counts in the range of 10^5-10^6, it might mean you have some positive
 selection at a site (e.g. biological, or due to PCR jackpotting), and
 this can have the effect of reducing counts and influencing the
-distribution at all the other sites.  Also, skewness>30 often (but not
+distribution at all the other sites.  If MaxReadCount<100, that is also
+probably problematic (either not enough reads, or possibly skewing).
+Also, skewness>30 often (but not
 always) signals a problem.  Kurtosis doesn't seem to be very
 meaningful.  The reason it is not easy to boil all these down to a
 simple set of criteria is that some some of the metrics interact with
-each other.  (I am working on new QC metrics for a future release of
-Transit, TRI, 10/10/18)
+each other.  I am working on new QC metrics for a future release of
+Transit (TRI, 10/10/18).
 
 If you have a "bad" or poorly-behaving or "skewed" dataset (e.g. with mostly low
 counts, dominated by a few high counts), right now the only remedy you
@@ -1048,7 +1093,8 @@ normalization is compute-intensive and might take few minutes.
 If it looks like it might help (i.e. if the QQ-plot fits the diagonal better using BG
 normalization),
 you can created BG-corrected versions of individual wig files by
-exporting them using the 'normalize' command on the command-line with '-n betageom'
+exporting them using the :ref:`normalize <normalization>` 
+command on the command-line with '-n betageom'
 to specify normalization.
 
 You can also generate the same table to statistics as on the QC panel
