@@ -53,6 +53,7 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+**/doc/_build/
 
 #Data files
 *.wig
@@ -63,4 +64,8 @@ docs/_build/
 
 NOTES
 *~
+
+#Test output ignore
+tests/testoutput.txt
+tests/testoutput_genes.txt
 

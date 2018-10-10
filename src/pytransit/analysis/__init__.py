@@ -20,6 +20,7 @@ import utest
 import normalize
 import pathway_enrichment #08/22/2018 by Ivan
 import anova
+import tnseq_stats
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -31,18 +32,17 @@ methods["resampling"] = resampling.ResamplingAnalysis()
 methods["tn5gaps"] = tn5gaps.Tn5GapsAnalysis()
 methods["rankproduct"] = rankproduct.RankProductAnalysis()
 methods["utest"] = utest.UTestAnalysis()
-methods["gi"] = gi.GIAnalysis()
+methods["GI"] = gi.GIAnalysis()
 methods["anova"] = anova.AnovaAnalysis()
 #methods["mcce"] = mcce.MCCEAnalysis()
 #methods["mcce2"] = mcce2.MCCE2Analysis()
 #methods["motifhmm"] = motifhmm.MotifHMMAnalysis()
 methods["normalize"] = normalize.Normalize()
 methods["pathway_enrichment"]=pathway_enrichment.GSEAAnalysis()
+methods["tnseq_stats"]=tnseq_stats.TnseqStats()
 
 # EXPORT METHODS
 import norm
 export_methods = {}
 export_methods["norm"] = norm.NormAnalysis()
-
-
 
