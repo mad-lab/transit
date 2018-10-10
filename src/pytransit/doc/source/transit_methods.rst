@@ -156,6 +156,9 @@ replicates; replicate datasets will be automatically merged.
 
 |
 
+`----------------------------------------------------------------------------------------------------------------------------------------------`
+
+
 .. _`tn5gaps`:
 
 Tn5Gaps
@@ -289,6 +292,8 @@ datasets will be automatically merged.
 
 |
 
+`----------------------------------------------------------------------------------------------------------------------------------------------`
+
 HMM
 ---
 
@@ -418,6 +423,8 @@ Run-time
 --------------
 
 |
+
+`----------------------------------------------------------------------------------------------------------------------------------------------`
 
 .. _resampling:
 
@@ -569,6 +576,8 @@ resampling option, the run-time is reduced to around 10 minutes.
 
 
 |
+`--------------------------------------------------------------------------------------------------------------------------------------------------`
+
 
 .. _genetic-interactions:
 
@@ -701,6 +710,8 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 
 |
 
+`--------------------------------------------------------------------------------------------------------------------------------------------------`
+
 .. _anova:
 
 ANOVA (command line only)
@@ -803,6 +814,8 @@ Takes in the order of 30 seconds for a combined wig file with 10 conditions, wit
 
 |
 
+`------------------------------------------------------------------------------------------------------------------------------------------------`
+
 .. _normalization:
 
 Normalization
@@ -855,12 +868,14 @@ as real differences in datasets. TRANSIT provides various normalization methods,
 
 -----------------------------------
 
+`----------------------------------------------------------------------------------------------------------------------------------------------`
 
 
 .. _GSEA:
 
 Pathway Enrichment Analysis (command-line only)
 ---------------------------
+
 How does it work?
 ~~~~~~~~~~~~~~~~~
 Pathway Enrichment Analysis provides a method to 
@@ -981,4 +996,84 @@ The output file is a tab separated file and according to the method, the file ha
 
       - Rank of Genes, list of genes in the pathway and their position in the resampling file (LFC order).
 
------------------------------------
+
+`----------------------------------------------------------------------------------------------------------------------------------------------`
+
+
+.. _QC:
+
+Quality Control/TnSeq Statistics
+--------------------------------
+
+It is important to be able to evaluate the quality of datasets.
+In a nutshell, we look at statistics like saturation, and mean read count,
+but also things like max count and skewness.
+
+There are two ways to do QC in Transit - via the GUI and command-line.  
+In the GUI, one can load a set of
+wig files a select "View->Quality Control" in the menu; this will
+display some plots of read-count distribution.  Ideally, you want most of
+your datasets to fall along the diagonal on a QQ-plot.  Real data will
+often deviate somewhat (I will be more quantitative about this in future),
+but if a dataset skew far off of the diagonal, it could causes problems
+with analyses like resampling.  
+
+.. image:: http://saclab.tamu.edu/essentiality/transit/QC_example.png
+
+Below the plots are a table of statistics.  While there are not
+rigorous criteria for defining "bad" datasets, rules of thumb I use
+for "good" datasets are: density>30%, NZmean>10.  In addition, I look
+at MaxReadCount and Skewness as indicators.  Typically, MaxReadCount
+will be in the range of 1000-10,000.  If you see individual sites with
+counts in the range of 10^5-10^6, it might mean you have some positive
+selection at a site (e.g. biological, or due to PCR jackpotting), and
+this can have the effect of reducing counts and influencing the
+distribution at all the other sites.  Also, skewness>30 often (but not
+always) signals a problem.  Kurtosis doesn't seem to be very
+meaningful.  The reason it is not easy to boil all these down to a
+simple set of criteria is that some some of the metrics interact with
+each other.  (I am working on new QC metrics for a future release of
+Transit, TRI, 10/10/18)
+
+If you have a "bad" or poorly-behaving or "skewed" dataset (e.g. with mostly low
+counts, dominated by a few high counts), right now the only remedy you
+can try in applying the Beta-Geometric correction, which is a
+non-linear adjustment to the insertion counts in a wig file to make
+them more like an ideal Geometric distribution (`DeJesus & Ioerger, 2016 <https://www.ncbi.nlm.nih.gov/pubmed/26932272>`_). (Note, all the
+other normalizations, like TTR, are linear adjustments, and so they
+can't correct for skewing.)
+In the GUI, when you are looking the QC panel, you can change
+the normalization using the drop-down.  Be aware that the Beta-Geometric
+normalization is compute-intensive and might take few minutes.
+If it looks like it might help (i.e. if the QQ-plot fits the diagonal better using BG
+normalization),
+you can created BG-corrected versions of individual wig files by
+exporting them using the 'normalize' command on the command-line with '-n betageom'
+to specify normalization.
+
+You can also generate the same table to statistics as on the QC panel
+from the command-line using the 'tnseq_stats' command.  Here is an example:
+
+Example
+~~~~~~~
+
+::
+
+  > python src/transit.py tnseq_stats --help
+
+  usage: python src/transit.py tnseq_stats <file.wig>+ [-o <output_file>]
+         python src/transit.py tnseq_stats -c <combined_wig> [-o <output_file>]
+
+  > python src/transit.py tnseq_stats -c src/pytransit/data/cholesterol_glycerol_combined.dat
+
+  dataset density mean_ct NZmean  NZmedian        max_ct  total_cts       skewness        kurtosis
+  src/pytransit/data/cholesterol_H37Rv_rep1.wig   0.44    139.6   317.6   147     125355.5        10414005.0      54.8    4237.7
+  src/pytransit/data/cholesterol_H37Rv_rep2.wig   0.44    171.4   390.5   148     704662.8        12786637.9      105.8   14216.2
+  src/pytransit/data/cholesterol_H37Rv_rep3.wig   0.36    173.8   484.2   171     292294.8        12968502.500000002      42.2    2328.0
+  src/pytransit/data/glycerol_H37Rv_rep1.wig      0.42    123.3   294.5   160     8813.3  9195672.4       4.0     33.0
+  src/pytransit/data/glycerol_H37Rv_rep2.wig      0.52    123.8   240.1   127     8542.5  9235984.2       4.0     33.5
+
+
+
+
+
