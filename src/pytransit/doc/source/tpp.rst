@@ -188,8 +188,9 @@ filenames and parameters as command-line arguments.
 
 ::
 
-    For a list of possible command line arguments, type: python tpp.py -help
-    usage: python TRANSIT_PATH/src/tpp.py -bwa PATH_TO_EXECUTABLE -ref REF_SEQ -reads1 PATH_TO_FASTQ_OR_FASTA_FILE [-reads2 PATH_TO_FASTQ_OR_FASTA_FILE] -output OUTPUT_BASE_FILENAME [-maxreads N] [-tn5|-himar1] [-primer <seq>]
+    > python tpp.py -help
+
+    usage: python PATH/src/tpp.py -bwa <EXECUTABLE_WITH_PATH> -ref <REF_SEQ> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-flags "<STRING>"] [-tn5|-himar1] [-primer <seq>] [-barseq_catalog_in|_out <file>]
 
 The input arguments and file types are as follows:
 
@@ -216,6 +217,7 @@ The input arguments and file types are as follows:
 | -himar1         | process reads as a Himar1 library (assumed by default)        | Considers reads that map to TA sites only.           |
 +-----------------+---------------------------------------------------------------+------------------------------------------------------+
 | -primer         |   nucleotide sequence                                         | Constant prefix of reads that TPP searches for.      |
+|                 |                                                               | default: ACTTATCAGCCAACCTGTTA (terminus of Himar1)   |
 +-----------------+---------------------------------------------------------------+------------------------------------------------------+
 &dagger; In earlier versions of Transit, this flag used to be '-prefix', but we changed it to '-output'
 
