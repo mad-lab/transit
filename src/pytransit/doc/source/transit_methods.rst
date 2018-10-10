@@ -1,5 +1,4 @@
 
-
 .. _`analysis_methods`:
 
 Analysis Methods
@@ -150,14 +149,11 @@ Run-time is linearly proportional to the 'samples' parameter, or length
 of MH sampling trajectory. Other notes: Gumbel can be run on multiple
 replicates; replicate datasets will be automatically merged.
 
-
-
-
-
 |
 
-`----------------------------------------------------------------------------------------------------------------------------------------------`
 
+.. rst-class:: transit_sectionend
+----
 
 .. _`tn5gaps`:
 
@@ -284,15 +280,11 @@ The Tn5Gaps method takes on the order of 10 minutes.
 Other notes: Tn5Gaps can be run on multiple replicates; replicate
 datasets will be automatically merged.
 
-
-
-
-
-
-
 |
 
-`----------------------------------------------------------------------------------------------------------------------------------------------`
+
+.. rst-class:: transit_sectionend
+----
 
 HMM
 ---
@@ -420,11 +412,10 @@ Run-time
 | The HMM method takes less than 10 minutes to complete. The parameters
   of the method should not affect the running-time.
 
---------------
-
 |
 
-`----------------------------------------------------------------------------------------------------------------------------------------------`
+.. rst-class:: transit_sectionend
+----
 
 .. _resampling:
 
@@ -569,15 +560,10 @@ around 45 minutes (with the histogram option ON). Using the adaptive
 resampling option, the run-time is reduced to around 10 minutes.
 
 
-
---------------
-
-
-
-
 |
-`--------------------------------------------------------------------------------------------------------------------------------------------------`
 
+.. rst-class:: transit_sectionend
+----
 
 .. _genetic-interactions:
 
@@ -705,16 +691,16 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 | Type of Interaction                     | Final classification.                              |
 +-----------------------------------------+----------------------------------------------------+
 
-
---------------
-
 |
 
-`--------------------------------------------------------------------------------------------------------------------------------------------------`
+
+.. rst-class:: transit_sectionend
+----
 
 .. _anova:
 
-ANOVA (command line only)
+.. rst-class:: transit_clionly
+ANOVA
 --------------
 
 The Anova (Analysis of variance) method is used to determine which genes
@@ -814,7 +800,9 @@ Takes in the order of 30 seconds for a combined wig file with 10 conditions, wit
 
 |
 
-`------------------------------------------------------------------------------------------------------------------------------------------------`
+
+.. rst-class:: transit_sectionend
+----
 
 .. _normalization:
 
@@ -866,7 +854,6 @@ as real differences in datasets. TRANSIT provides various normalization methods,
 - **nonorm:**
     No normalization is performed.
 
-
 Command-line
 ~~~~~~~~~~~~
 
@@ -908,13 +895,13 @@ TTR is the default, but other relevant normalization options would be 'nonorm'
 
   > python ../transit/src/transit.py export combined_wig Rv_1_H37RvRef.wig,Rv_2_H37RvRef.wig,Rv_3_H37RvRef.wig H37Rv.prot_table clinicals_combined_TTR.wig -n TTR
 
-
-`----------------------------------------------------------------------------------------------------------------------------------------------`
-
+.. rst-class:: transit_sectionend
+----
 
 .. _GSEA:
 
-Pathway Enrichment Analysis (command-line only)
+.. rst-class:: transit_clionly
+Pathway Enrichment Analysis
 ---------------------------
 
 How does it work?
@@ -1038,8 +1025,9 @@ The output file is a tab separated file and according to the method, the file ha
       - Rank of Genes, list of genes in the pathway and their position in the resampling file (LFC order).
 
 
-`----------------------------------------------------------------------------------------------------------------------------------------------`
 
+.. rst-class:: transit_sectionend
+----
 
 .. _QC:
 
