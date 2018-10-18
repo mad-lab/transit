@@ -40,8 +40,8 @@ The following libraries/modules are required to run TRANSIT:
 + `Statsmodels <https://pypi.org/project/statsmodels/>`_ (tested on 0.9.0)
 + `Scipy <http://www.scipy.org/>`_ (tested on 1.1)
 + `matplotlib <http://matplotlib.org/users/installing.html>`_ (tested on 2.2)
-+ `wxpython 4+ <http://www.wxpython.org/>`_
 + `Pillow 5.0 <https://github.com/python-pillow/Pillow>`_
++ `wxpython 4+ <http://www.wxpython.org/>`_
 + `PyPubSub 3.3 <https://pypi.org/project/PyPubSub/>`_ (Version 4.0 does not support python2 `Github Issue <https://github.com/schollii/pypubsub/issues/9>`_)
 
 All of these dependencies can be installed using the following command.

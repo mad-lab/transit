@@ -9,7 +9,6 @@ try:
 except Exception as e:
     hasWx = False
     WX_VERSION = 0
-    print "EXCEPTION:", str(e)
 
 if hasWx:
     import wx.xrc
