@@ -6,8 +6,8 @@ matrix:
       dist: trusty
       sudo: required
       python: 2.7
-      before_install: "sudo apt-get install -y -f python python-dev python-pip pkg-config python-wxgtk2.8 libpng-dev libjpeg8-dev libfreetype6-dev"
-      install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib pytest"
+      before_install: "sudo apt-get install -y -f python python-dev python-pip pkg-config libpng-dev libjpeg8-dev libfreetype6-dev"
+      install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib pytest statsmodels"
 
 DISPLAY: 0.0
 notifications:
