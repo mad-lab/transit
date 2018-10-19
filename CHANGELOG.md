@@ -1,10 +1,15 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+## Version 2.3.1 2018-10-19
+- TRANSIT:	
+  - Removed dependence on PyPubSub (can run Transit in command-line mode without it, but needed for GUI)
+
+	
 ## Version 2.3.0 2018-10-10
 - TRANSIT:	
   - Added calculation of Pathway Enrichment as post-processing for resampling, to determine if conditionally essential genes over-represent a particular functional category or pathway (such as for GO terms)
-  - Added ANOVA analysis for identifying genes with significant variability of counts across multiple conditions
+- Added ANOVA analysis for identifying genes with significant variability of counts across multiple conditions
   - Updated Documentation - especially for "Quality Control/TnSeq Statistics"; also added more command-line examples under "Analysis Methods"
   - Fixed bugs (including TrackView in the GUI)
   - Upgraded dependencies, including wxPython 4.0 (required)
