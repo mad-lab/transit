@@ -1070,7 +1070,7 @@ Transit (TRI, 10/10/18).
 
 If you have a "bad" or poorly-behaving or "skewed" dataset (e.g. with mostly low
 counts, dominated by a few high counts), right now the only remedy you
-can try in applying the Beta-Geometric correction, which is a
+can try is applying the Beta-Geometric correction, which is a
 non-linear adjustment to the insertion counts in a wig file to make
 them more like an ideal Geometric distribution (`DeJesus & Ioerger, 2016 <https://www.ncbi.nlm.nih.gov/pubmed/26932272>`_). (Note, all the
 other normalizations, like TTR, are linear adjustments, and so they
