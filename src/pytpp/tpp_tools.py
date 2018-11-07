@@ -233,7 +233,8 @@ def extract_staggered(infile,outfile,vars):
   lenADAP = len(ADAPTER2)
 
   #P,Q = 5,10 # 1-based inclusive positions to look for start of Tn prefix
-  P,Q = 0,15
+  #P,Q = 0,15
+  P,Q = 0,50 # relax this, because it has caused problems for various users; shouldn't matter, if prefix is long enough to make random occurences unlikely
   if vars.barseq_catalog_out!=None: Q = 100 # relax for barseq
 
   vars.tot_tgtta = 0
@@ -424,7 +425,9 @@ def template_counts(ref,sam,bcfile,vars):
 
   sites = []
   for i in range(len(genome)-1):
-    if genome[i:i+2].upper()=="TA":
+    #if genome[i:i+2].upper()=="TA":
+    if vars.transposon=="Himar1" and genome[i:i+2].upper()!="TA": continue
+    else:
       pos = i+1
       h = hits.get(pos,[])
       f = filter(lambda x: x[0]=='F',h)
@@ -460,9 +463,10 @@ def read_counts(ref,sam,vars):
     genome = read_genome(ref)
     sites = {}
     for i in range(len(genome)-1):
-        if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
-          pos = i+1
-          sites[pos] = [pos,0,0,0,0,0,0]
+        #if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
+        if vars.transposon=='Himar1' and genome[i:i+2]!="TA": continue
+        pos = i+1
+        sites[pos] = [pos,0,0,0,0,0,0]
 
     hits = {}
     vars.tot_tgtta,vars.mapped = 0,0
