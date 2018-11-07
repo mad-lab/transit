@@ -30,20 +30,16 @@ TRANSIT offers a variety of features including:
 
 
 
+## Support
 
-
-## Mailing List
-
-You can join our mailing list to get announcements of new versions, discuss any bugs, or request features! Just head over to the following site and enter your email address:
-
-https://groups.google.com/forum/#!forum/tnseq-transit/join
+For any questions or comments, please contact Dr. Thomas Ioerger, ioerger@cs.tamu.edu.
 
 
 
 
 ## Instructions
 
-For full instructions on how to install and run TRANSIT (and the optional pre-processor, TPP), please see the documentation included in this distribution ("doc" folder) or visit the following web page:
+For full instructions on how to install and run TRANSIT (and the optional pre-processor, TPP), please see the documentation included in this distribution ("src/pytransit/doc" folder) or visit the following web page:
 
 
 http://saclab.tamu.edu/essentiality/transit/transit.html

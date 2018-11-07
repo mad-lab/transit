@@ -306,7 +306,8 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
 #
 
         def OnChangePrimerPrefix(self, event):
-            self.transposon.SetValue("[Custom]")
+            #self.transposon.SetValue("[Custom]")
+            pass
 
 #
 

@@ -214,7 +214,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, 
                 ctrl_lib_str="",
-                exp_lib_str="",
+                exp_lib_str="", # should add Z
                 wxobj=None):
 
         base.DualConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
@@ -315,7 +315,9 @@ class ResamplingMethod(base.DualConditionMethod):
         excludeZeros = kwargs.get("ez", False)
         includeZeros = not excludeZeros
         pseudocount = float(kwargs.get("pc", 0.00))
-    
+
+        self.Z = False
+        if "Z" in kwargs: self.Z = True    
         
         LOESS = kwargs.get("l", False)
         ignoreCodon = True
@@ -341,7 +343,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 NTerminus,
                 CTerminus,
                 ctrl_lib_str,
-                exp_lib_str)
+                exp_lib_str) # should add Z
 
     def Run(self):
 
@@ -486,14 +488,14 @@ class ResamplingMethod(base.DualConditionMethod):
         self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata).encode('utf-8'))) 
         self.output.write("#Annotation path: %s\n" % (self.annotation_path.encode('utf-8')))
         self.output.write("#Time: %s\n" % (time.time() - start_time))
-        Z = False # include Z-score column in resampling output? 
+        #Z = True # include Z-score column in resampling output? 
         global columns # consider redefining columns above (for GUI)
-        if Z==True: columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "Sum Ctrl", "Sum Exp", "Delta Mean","p-value","Z-score","Adj. p-value"]
+        if self.Z==True: columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "Sum Ctrl", "Sum Exp", "Delta Mean","p-value","Z-score","Adj. p-value"]
         self.output.write("#%s\n" % "\t".join(columns))
 
         for i,row in enumerate(data):
             (orf, name, desc, n, mean1, mean2, sum1, sum2, test_obs, log2FC, pval_2tail) = row
-            if Z==True:
+            if self.Z==True:
               p = pval_2tail/2 # convert from 2-sided back to 1-sided
               if p==0: p = 1e-5 # or 1 level deeper the num of iterations of resampling, which is 1e-4=1/10000, by default
               if p==1: p = 1-1e-5
