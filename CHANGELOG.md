@@ -1,6 +1,10 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+## Version 2.3.2 2018-11-09
+- TRANSIT:	
+  - Minor bug fixes related to changing parameters in TPP GUI
+
 ## Version 2.3.1 2018-10-19
 - TRANSIT:	
   - Removed dependence on PyPubSub (can run Transit in command-line mode without it, but needed for GUI)
