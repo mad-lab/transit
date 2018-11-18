@@ -101,6 +101,7 @@ class NormalizeMethod(base.SingleConditionMethod):
         self.infile = args[0] # only 1 input wig file
         self.outfile = args[1] # if no arg give, could print to screen
         self.normalization = kwargs.get("n", "TTR") # check if it is a legal method name
+        self.combined_wig = kwargs.get("c",False)
 
         return self(self.infile,self.outfile,self.normalization)
 
@@ -117,15 +118,20 @@ class NormalizeMethod(base.SingleConditionMethod):
         for line in open(infile):
           if line.startswith("variableStep"): line2 = line.rstrip(); break
 
-        (data, sites) = tnseq_tools.get_data(self.ctrldata)
+        if self.combined_wig==True: (sites,data,files) = tnseq_tools.read_combined_wig(self.ctrldata[0])
+        else: (data, sites) = tnseq_tools.get_data(self.ctrldata)
         (data,factors) = norm_tools.normalize_data(data,self.normalization)
 
         print "writing",outputPath
         file = open(outputPath,"w")
         file.write("# %s normalization of %s\n" % (self.normalization,infile))
-        file.write(line2+"\n")
-        for j in range(len(sites)):
-          file.write("%s %s\n" % (sites[j],int(data[0,j])))
+        if self.combined_wig==True:
+          for f in files: file.write("#File: %s\n" % f)
+          for i in range(len(sites)): file.write('\t'.join([str(sites[i])]+["%0.1f" % x for x in list(data[...,i])])+"\n")
+        else:
+          file.write(line2+"\n")
+          for j in range(len(sites)):
+            file.write("%s %s\n" % (sites[j],int(data[0,j])))
         file.close()
 
         self.finish()
@@ -134,9 +140,10 @@ class NormalizeMethod(base.SingleConditionMethod):
     @classmethod
     def usage_string(self):
         return """
-python %s normalize <input.wig> <output.wig> [-n TTR|betageom]
+python %s normalize <input.wig> <output.wig> [-c] [-n TTR|betageom]
     
         Optional Arguments:
+        -c              := the input file is a combined_wig file
         -n <string>     :=  Normalization method. Default: -n TTR
         """ % (sys.argv[0])
 

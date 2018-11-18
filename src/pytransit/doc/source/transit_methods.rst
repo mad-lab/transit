@@ -868,11 +868,14 @@ Example
 
   > python src/transit.py normalize --help
 
-  usage: python src/transit.py normalize <input.wig> <output.wig> [-n TTR|betageom]
+  usage: python src/transit.py normalize <input.wig> <output.wig> [-c] [-n TTR|betageom]
 
   > python src/transit.py normalize Rv_1_H37RvRef.wig Rv_1_H37RvRef_TTR.wig -n TTR
 
   > python src/transit.py normalize Rv_1_H37RvRef.wig Rv_1_H37RvRef_BG.wig -n betageom
+
+The normalize command now also works on combined_wig files too.  
+If the input file is a combined_wig file, add the '-c' flag at the end.
 
 .. _combined_wig:
 
