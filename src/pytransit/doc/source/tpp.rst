@@ -1,7 +1,7 @@
 
 
-Overview
-========
+TPP Overview
+============
 
 TPP is a software tool for processing raw reads (e.g. .fastq files,
 *untrimmed*) from an Tn-Seq experiment, extracting counts of transposon

@@ -2,8 +2,8 @@
 
 
 
-Overview
-========
+TRANSIT Overview
+================
 
 
 + This is a software that can be used to analyze Tn-Seq datasets. It includes various statistical calculations of essentiality of genes or genomic regions (including conditional essentiality between 2 conditions). These methods were developed and tested as a collaboration between the Sassetti lab (UMass) and the Ioerger lab (Texas A&M) [DeJesus2015TRANSIT]_.
@@ -108,14 +108,15 @@ own primer sequences, if they use a different sample prep protocol.
 Developers
 ----------
 
-==================  ============  ==============================================================================
- Name                Time Active          Contact Information
-==================  ============  ==============================================================================
-Michael A. DeJesus  2015-Present  `http://mad-lab.org <http://mad-lab.org>`_
-Thomas R. Ioerger   2015-Present  `http://faculty.cs.tamu.edu/ioerger/ <http://faculty.cs.tamu.edu/ioerger/>`_
-Chaitra Ambadipudi  2015
-Eric Nelson         2016
-==================  ============  ==============================================================================
+=======================  ============  ==============================================================================
+ Name                    Time Active          Contact Information
+=======================  ============  ==============================================================================
+Thomas R. Ioerger        2015-Present  `http://faculty.cs.tamu.edu/ioerger/ <http://faculty.cs.tamu.edu/ioerger/>`_
+Michael A. DeJesus       2015-2018     `http://mad-lab.org <http://mad-lab.org>`_
+Chaitra Ambadipudi       2015
+Eric Nelson              2016
+Siddharth Subramaniyam   2018
+=======================  ============  ==============================================================================
 
 
 

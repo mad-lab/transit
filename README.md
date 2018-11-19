@@ -4,9 +4,14 @@
 [![Build Status](https://travis-ci.org/mad-lab/transit.svg?branch=master)](https://travis-ci.org/mad-lab/transit)   [![Documentation Status](https://readthedocs.org/projects/transit/badge/?version=latest)](http://transit.readthedocs.io/en/latest/?badge=latest) 
 
 
-Welcome! This is the distribution for the TRANSIT and TPP tools developed by the Ioerger Lab.
+Welcome! This is the distribution for the TRANSIT and TPP tools developed by the Ioerger Lab at Texas A&M University.
 
-TRANSIT is a tool for the analysis of Tn-Seq data. It provides an easy to use graphical interface and access to three different analysis methods that allow the user to determine essentiality in a single condition as well as between conditions.
+TRANSIT is a tool for processing and statistical analysis of Tn-Seq data. 
+It provides an easy to use graphical interface and access to three different analysis methods that allow the user to determine essentiality in a single condition as well as between conditions.
+
+Home page: http://saclab.tamu.edu/essentiality/transit/index.html
+
+Documentation: https://transit.readthedocs.io/en/latest/transit_overview.html
 
 [Changelog](https://github.com/mad-lab/transit/blob/master/CHANGELOG.md)
 
