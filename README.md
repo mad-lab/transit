@@ -9,9 +9,9 @@ Welcome! This is the distribution for the TRANSIT and TPP tools developed by the
 TRANSIT is a tool for processing and statistical analysis of Tn-Seq data. 
 It provides an easy to use graphical interface and access to three different analysis methods that allow the user to determine essentiality in a single condition as well as between conditions.
 
-Home page: http://saclab.tamu.edu/essentiality/transit/index.html
+TRANSIT Home page: http://saclab.tamu.edu/essentiality/transit/index.html
 
-Documentation: https://transit.readthedocs.io/en/latest/transit_overview.html
+TRANSIT Documentation: https://transit.readthedocs.io/en/latest/transit_overview.html
 
 [Changelog](https://github.com/mad-lab/transit/blob/master/CHANGELOG.md)
 
@@ -47,7 +47,7 @@ For any questions or comments, please contact Dr. Thomas Ioerger, ioerger@cs.tam
 For full instructions on how to install and run TRANSIT (and the optional pre-processor, TPP), please see the documentation included in this distribution ("src/pytransit/doc" folder) or visit the following web page:
 
 
-http://saclab.tamu.edu/essentiality/transit/transit.html
+https://transit.readthedocs.io/en/latest/
 
 
 ## Datasets
