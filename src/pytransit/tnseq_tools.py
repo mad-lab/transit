@@ -49,7 +49,7 @@ def read_combined_wig(fname):
     countsByWig = [[] for _ in files]
     for line in lines:
         if line[0]=='#': continue
-        cols = line.split("\t")[0:-1]
+        cols = line.split("\t")[0:1+len(files)]
         cols = cols[:1+len(files)] # additional columns at end could contain gene info
         # Read in position as int, and readcounts as float
         cols = map(lambda (i, v): int(v) if i == 0 else float(v), enumerate(cols))

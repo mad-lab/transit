@@ -195,7 +195,7 @@ class CombinedWigMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s export combined_wig <comma-separated .wig files> <annotation .prot_table> <output file>""" % (sys.argv[0])
+        return """python %s export combined_wig <comma-separated .wig files> <annotation .prot_table> <output file> [-n normalization_method]\ndefault normalization_method=TTR""" % (sys.argv[0])
 
 
 if __name__ == "__main__":
