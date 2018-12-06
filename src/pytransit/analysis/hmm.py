@@ -257,7 +257,7 @@ class HMMMethod(base.SingleConditionMethod):
         output_file = open(outpath, "w")
 
         replicates = kwargs.get("r", "Mean")
-        normalization = kwargs.get("r", "TTR")
+        normalization = kwargs.get("n", "TTR")
         LOESS = kwargs.get("l", False)
         ignoreCodon = True
         NTerminus = float(kwargs.get("iN", 0.0))
@@ -430,6 +430,7 @@ class HMMMethod(base.SingleConditionMethod):
 
         Optional Arguments:
             -r <string>     :=  How to handle replicates. Sum, Mean. Default: -r Mean
+            -n <string>     :=  Normalization method. Default: -n TTR
             -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Off.
             -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
             -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
