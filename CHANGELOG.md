@@ -1,6 +1,10 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+## Version 2.3.3 2018-12-06
+- TRANSIT:	
+  - Minor bug fixes related to flags in HMM
+
 ## Version 2.3.2 2018-11-09
 - TRANSIT:	
   - Minor bug fixes related to changing parameters in TPP GUI

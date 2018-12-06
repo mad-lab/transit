@@ -6,10 +6,13 @@ https://github.com/pypa/sampleproject
 """
 
 # Always prefer setuptools over distutils
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Command
 # To use a consistent encoding
 from codecs import open
 from os import path
+from shutil import rmtree
+
+import os
 
 here = path.abspath(path.dirname(__file__))
 
@@ -22,7 +25,68 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 import sys
 sys.path.insert(1, "src/")
 import pytransit
-version =  pytransit.__version__[1:] #"2.0.3"
+version =  pytransit.__version__[1:]
+
+class UploadCommand(Command):
+    """Support setup.py upload."""
+
+    description = 'Build and publish the package.'
+    user_options = []
+
+    @staticmethod
+    def status(s):
+        """Prints things in bold."""
+        print('\033[1m{0}\033[0m'.format(s))
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def yes_or_no(self, question):
+        while True:
+            reply = str(raw_input(question +' (y/n): ')).lower().strip()
+            if reply == 'y':
+                return True
+            return False
+
+    def run(self):
+        try:
+            self.status('Removing previous builds...')
+            rmtree(os.path.join(here, 'dist'))
+        except OSError:
+            pass
+
+        if not self.yes_or_no("Have you done the following? \n" +
+                    "- Updated README/Documentation?\n"
+                    "- Have you updated CHANGELOG?\n"
+                    "- Have you updated Transit Essentiality page?\n"
+                    "- Is version v{0} correct".format(version)):
+            self.status("Exiting...")
+            sys.exit()
+
+        self.status('Building Source and Wheel (universal) distribution...')
+        os.system('{0} setup.py sdist bdist_wheel'.format(sys.executable))
+
+        if self.yes_or_no("Add tag and push to public github? tag:v{0}".format(version)):
+            self.status('Adding and pushing git tags to origin and public...')
+            os.system('git tag v{0}'.format(version))
+            os.system('git push origin --tags')
+            os.system('git push https://github.com/mad-lab/transit')
+            os.system('git push https://github.com/mad-lab/transit --tags')
+        else:
+            self.status("Exiting...")
+            sys.exit()
+
+        if self.yes_or_no("Proceed with publish to PyPI? version: v{0}, tag:v{0}".format(version)):
+            self.status('Uploading the package to PyPI via Twine...')
+            os.system('twine upload dist/*')
+        else:
+            self.status("Exiting...")
+            sys.exit()
+
+        sys.exit()
 
 setup(
     name='tnseq-transit',
@@ -116,6 +180,9 @@ setup(
             'transit=pytransit.__main__:run_main',
             'tpp=pytpp.__main__:run_main',
         ],
+    },
+    cmdclass={
+        'upload': UploadCommand,
     },
 )
 
