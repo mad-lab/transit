@@ -226,6 +226,7 @@ class HMMMethod(base.SingleConditionMethod):
         normalization = wxobj.hmmNormChoice.GetString(wxobj.hmmNormChoice.GetCurrentSelection())
 
         LOESS = False
+        LOESS = wxobj.hmmLoessCheck.GetValue()
 
         #Get output path
         name = transit_tools.basename(ctrldata[0])
@@ -377,6 +378,8 @@ class HMMMethod(base.SingleConditionMethod):
         self.output.write("# \n")
         self.output.write("# Mean:\t%2.2f\n" % (numpy.average(reads_nz)))
         self.output.write("# Median:\t%2.2f\n" % numpy.median(reads_nz))
+        self.output.write("# Normalization:\t%s\n" % self.normalization)
+        self.output.write("# LOESS Correction:\t%s\n" % str(self.LOESS))
         self.output.write("# pins (obs):\t%f\n" % pins_obs)
         self.output.write("# pins (est):\t%f\n" % pins)
         self.output.write("# Run length (r):\t%d\n" % r)
