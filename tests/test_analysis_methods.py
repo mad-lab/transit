@@ -19,6 +19,7 @@ from pytransit.analysis.binomial import BinomialMethod
 from pytransit.analysis.griffin import GriffinMethod
 from pytransit.analysis.hmm import HMMMethod
 from pytransit.analysis.anova import AnovaMethod
+from pytransit.analysis.zinb import ZinbMethod
 
 # Comparative methods
 from pytransit.analysis.resampling import ResamplingMethod
@@ -102,6 +103,22 @@ class TestMethods(TransitTestCase):
             len(sig_qvals),
             37,
             "sig_qvals expected: %d, actual: %d" % (37, len(sig_qvals)))
+
+    def test_zinb(self):
+        args = [combined_wig, annotation, samples_metadata, output, "--ignore-conditions", "Unknown"]
+        G = ZinbMethod.fromargs(args)
+        G.Run()
+        self.assertTrue(os.path.exists(output))
+        (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-2, qcol=-1))
+        sig_qvals.sort()
+        self.assertEqual(
+            len(sig_pvals),
+            372,
+            "sig_pvals expected: %d, actual: %d" % (372, len(sig_pvals)))
+        self.assertEqual(
+            len(sig_qvals),
+            97,
+            "sig_qvals expected: %d, actual: %d" % (97, len(sig_qvals)))
 
     #def test_resampling_histogram(self):
     #    args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000", "-h"]

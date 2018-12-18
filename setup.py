@@ -73,7 +73,7 @@ class UploadCommand(Command):
             self.status('Adding and pushing git tags to origin and public...')
             os.system('git tag v{0}'.format(version))
             os.system('git push origin --tags')
-            os.system('git push https://github.com/mad-lab/transit')
+            os.system('git push https://github.com/mad-lab/transit master')
             os.system('git push https://github.com/mad-lab/transit --tags')
         else:
             self.status("Exiting...")

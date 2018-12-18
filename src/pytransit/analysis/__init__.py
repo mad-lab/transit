@@ -20,6 +20,7 @@ import utest
 import normalize
 import pathway_enrichment #08/22/2018 by Ivan
 import anova
+import zinb
 import tnseq_stats
 
 methods = {}
@@ -34,6 +35,7 @@ methods["rankproduct"] = rankproduct.RankProductAnalysis()
 methods["utest"] = utest.UTestAnalysis()
 methods["GI"] = gi.GIAnalysis()
 methods["anova"] = anova.AnovaAnalysis()
+methods["zinb"] = zinb.ZinbAnalysis()
 #methods["mcce"] = mcce.MCCEAnalysis()
 #methods["mcce2"] = mcce2.MCCE2Analysis()
 #methods["motifhmm"] = motifhmm.MotifHMMAnalysis()
