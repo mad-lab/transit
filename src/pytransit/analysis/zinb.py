@@ -142,8 +142,14 @@ class ZinbMethod(base.MultiConditionMethod):
                  NzPercByRv[Rv]) = self.stats_by_condition_for_gene(RvSiteindexesMap[Rv], conditions, data)
         return [MeansByRv, NzMeansByRv, NzPercByRv]
 
-    def zero_perc_by_rep(self, data, files):
-        return [(wig.size - numpy.count_nonzero(wig))/float(wig.size) for wig in data]
+    def global_stats_for_rep(self, data):
+        logit_zero_perc = []
+        nz_mean = []
+        for wig in data:
+            zero_perc = (wig.size - numpy.count_nonzero(wig))/float(wig.size)
+            logit_zero_perc.append(numpy.log(zero_perc/(1 - zero_perc)))
+            nz_mean.append(numpy.mean(wig[numpy.nonzero(wig)]))
+        return [logit_zero_perc, nz_mean]
 
     def group_by_condition(self, wigList, conditions):
         """
@@ -191,11 +197,12 @@ class ZinbMethod(base.MultiConditionMethod):
         TASiteindexMap = {TA: i for i, TA in enumerate(sites)}
         RvSiteindexesMap = tnseq_tools.rv_siteindexes_map(genes, TASiteindexMap)
         [MeansByRv, NzMeansByRv, NzPercByRv] = self.stats_by_rv(data, RvSiteindexesMap, genes, conditions)
-        ZPercByRep = self.zero_perc_by_rep(data, filenamesInCombWig)
-        print(MeansByRv["Rv0003"])
-        print(NzMeansByRv["Rv0003"])
-        print(NzPercByRv["Rv0003"])
-        print(ZPercByRep)
+        LogZPercByRep, NZMeanByRep = self.global_stats_for_rep(data)
+        # print(MeansByRv["Rv0003"])
+        # print(NzMeansByRv["Rv0003"])
+        # print(NzPercByRv["Rv0003"])
+        # print(LogZPercByRep)
+        # print(NZMeanByRep)
 
         self.transit_message("Running ZINB")
         pvals,qvals = self.run_zinb(data, genes, MeansByRv, RvSiteindexesMap, conditions)
@@ -204,6 +211,8 @@ class ZinbMethod(base.MultiConditionMethod):
         file = open(self.output,"w")
         conditionsList = list(set(conditions))
         vals = "Rv Gene TAs".split() + conditionsList + "pval padj".split()
+
+        raise RuntimeError
         file.write('\t'.join(vals)+EOL)
         for gene in genes:
             Rv = gene["rv"]
