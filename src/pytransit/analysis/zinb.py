@@ -6,6 +6,10 @@ import time
 import sys
 import collections
 
+from rpy2.robjects.packages import importr
+from rpy2.robjects.numpy2ri import numpy2ri
+from rpy2.robjects import Formula, r
+
 import base
 import pytransit
 import pytransit.transit_tools as transit_tools
@@ -143,6 +147,11 @@ class ZinbMethod(base.MultiConditionMethod):
         return [MeansByRv, NzMeansByRv, NzPercByRv]
 
     def global_stats_for_rep(self, data):
+        """
+        Returns the logit zero percentage and nz_mean for each replicate.
+            [[WigData]] -> [[Number] ,[Number]]
+        """
+
         logit_zero_perc = []
         nz_mean = []
         for wig in data:
@@ -165,17 +174,66 @@ class ZinbMethod(base.MultiConditionMethod):
 
         return [numpy.array(v).flatten() for v in countsByCondition.values()]
 
-    def run_zinb(self, data, genes, MeansByRv, RvSiteindexesMap, conditions):
+    def melt_data(self, readCountsForRv, conditions, NZMeanByRep, LogZPercByRep):
+        rvSitesLength = len(readCountsForRv[0])
+        repeatAndFlatten = lambda xs: numpy.repeat(xs, rvSitesLength)
+        return [
+                numpy.concatenate(readCountsForRv).astype(int),
+                repeatAndFlatten(conditions),
+                repeatAndFlatten(NZMeanByRep),
+                repeatAndFlatten(LogZPercByRep)
+               ]
+
+    def run_zinb(self, data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions):
         """
-            Runs Zinb (grouping data by condition) and returns p and q values
-            ([[Wigdata]], [Gene], {Rv: {Condition: Mean}}, {Rv: [SiteIndex]}, [Condition]) -> Tuple([Number], [Number])
+            Runs Zinb for each gene across conditions and returns p and q values
+            ([[Wigdata]], [Gene], [[Number]], {Rv: [SiteIndex]}, [Condition]) -> Tuple([Number], [Number])
             Wigdata :: [Number]
             Gene :: {start, end, rv, gene, strand}
-            Mean :: Number
             SiteIndex: Integer
             Condition :: String
         """
-        raise NotImplementedError
+        pscl = importr('pscl')
+
+        count = 0
+        self.progress_range(len(genes))
+        pvals,Rvs = [],[]
+        for gene in genes:
+            count += 1
+            # Rv = gene["rv"]
+            Rv = "Rv0003"
+            ## TODO :: Option for sat adjustment?
+            formula0 = Formula('count~0+condition+offset(log(NZmean))|0+condition+offset(logitZPerc)')
+            # Independent of conditions
+            formula1 = Formula('count~1+offset(log(NZmean))|1+offset(logitZPerc)')
+            env0 = formula0.environment
+            env1 = formula1.environment
+            ([ readCounts,
+               condition,
+               NZmean,
+               logitZPerc]) = self.melt_data(
+                       map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data),
+                       conditions, NZMeanByRep, LogZPercByRep)
+            env0["count"] = numpy2ri(readCounts)
+            env0["condition"] = numpy2ri(condition)
+            env0["NZmean"] = numpy2ri(NZmean)
+            env0["logitZPerc"] = numpy2ri(logitZPerc)
+            env1["count"] = numpy2ri(readCounts)
+            env1["NZmean"] = numpy2ri(NZmean)
+            env1["logitZPerc"] = numpy2ri(logitZPerc)
+            mod0 = pscl.zeroinfl(formula0, dist="negbin")
+            mod1 = pscl.zeroinfl(formula1, dist="negbin")
+            base = importr("base")
+            stats = importr("stats")
+            if (base.is_null(mod0) or base.is_null(mod1)):
+                self.transit_message("zinb model is NULL for: " + Rv)
+            coeff0 = mod0.rx2('coefficients')
+            coeff1 = mod1.rx2('coefficients')
+            # print(coeff1)
+            raise NotImplementedError
+            # Update progress
+            text = "Running ZINB Method... %5.1f%%" % (100.0*count/len(genes))
+            self.progress_update(text, count)
 
     def Run(self):
         self.transit_message("Starting ZINB analysis")
@@ -205,7 +263,7 @@ class ZinbMethod(base.MultiConditionMethod):
         # print(NZMeanByRep)
 
         self.transit_message("Running ZINB")
-        pvals,qvals = self.run_zinb(data, genes, MeansByRv, RvSiteindexesMap, conditions)
+        pvals,qvals = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions)
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
