@@ -8,7 +8,7 @@ import collections
 
 from rpy2.robjects.packages import importr
 from rpy2.robjects.numpy2ri import numpy2ri
-from rpy2.robjects import Formula, r
+from rpy2.robjects import r, globalenv
 
 import base
 import pytransit
@@ -184,6 +184,39 @@ class ZinbMethod(base.MultiConditionMethod):
                 repeatAndFlatten(LogZPercByRep)
                ]
 
+    def def_r_zinb_signif(self):
+        r('''
+            zinb_signif = function(count, condition, NZmean, LogitZPerc, sat_adjust)
+                {
+                  melted = data.frame(count=count, condition=condition, NZmean=NZmean, logitZperc=LogitZPerc)
+                  require(pscl)
+                  mod1 = tryCatch(
+                     {
+                         if (sat_adjust) {
+                             zeroinfl(count~0+condition+offset(log(NZmean))|0+condition+offset(logitZperc), data=melted, dist="negbin")
+                         } else {
+                             zeroinfl(count~0+condition, data=melted, dist="negbin")
+                         }
+                     }, error=function(err) { return(NULL) } )
+                  mod0 = tryCatch( # null model, independent of conditions
+                     {
+                         if (sat_adjust) {
+                             zeroinfl(count~1+offset(log(NZmean))|1+offset(logitZperc), data=melted, dist="negbin")
+                         } else {
+                             zeroinfl(count~1, data=melted, dist="negbin")
+                         }
+                     }, error=function(err) { return(NULL) } )
+                  if (is.null(mod1) | is.null(mod0)) { return(1) }
+                  if (sum(is.na(coef(summary(mod1))$count[,4]))>0) { return(1) } # rare failure mode - has coefs, but pvals are NA
+                  df1 = attr(logLik(mod1),"df"); df0 = attr(logLik(mod0),"df") # should be (2*ngroups+1)-3
+                  pval = pchisq(2*(logLik(mod1)-logLik(mod0)),df=df1-df0,lower.tail=F) # alternatively, could use lrtest()
+
+                  return(pval)
+                }
+        ''')
+
+        return globalenv['zinb_signif']
+
     def run_zinb(self, data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions):
         """
             Runs Zinb for each gene across conditions and returns p and q values
@@ -193,47 +226,38 @@ class ZinbMethod(base.MultiConditionMethod):
             SiteIndex: Integer
             Condition :: String
         """
-        pscl = importr('pscl')
-
         count = 0
         self.progress_range(len(genes))
         pvals,Rvs = [],[]
+        r_zinb_signif = self.def_r_zinb_signif()
+
         for gene in genes:
             count += 1
-            # Rv = gene["rv"]
-            Rv = "Rv0003"
+            Rv = gene["rv"]
             ## TODO :: Option for sat adjustment?
-            formula0 = Formula('count~0+condition+offset(log(NZmean))|0+condition+offset(logitZPerc)')
-            # Independent of conditions
-            formula1 = Formula('count~1+offset(log(NZmean))|1+offset(logitZPerc)')
-            env0 = formula0.environment
-            env1 = formula1.environment
             ([ readCounts,
                condition,
                NZmean,
                logitZPerc]) = self.melt_data(
                        map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data),
                        conditions, NZMeanByRep, LogZPercByRep)
-            env0["count"] = numpy2ri(readCounts)
-            env0["condition"] = numpy2ri(condition)
-            env0["NZmean"] = numpy2ri(NZmean)
-            env0["logitZPerc"] = numpy2ri(logitZPerc)
-            env1["count"] = numpy2ri(readCounts)
-            env1["NZmean"] = numpy2ri(NZmean)
-            env1["logitZPerc"] = numpy2ri(logitZPerc)
-            mod0 = pscl.zeroinfl(formula0, dist="negbin")
-            mod1 = pscl.zeroinfl(formula1, dist="negbin")
-            base = importr("base")
-            stats = importr("stats")
-            if (base.is_null(mod0) or base.is_null(mod1)):
-                self.transit_message("zinb model is NULL for: " + Rv)
-            coeff0 = mod0.rx2('coefficients')
-            coeff1 = mod1.rx2('coefficients')
-            # print(coeff1)
-            raise NotImplementedError
+            r_args = map(numpy2ri, [readCounts, condition, NZmean, logitZPerc]) + [True]
+            pval = r_zinb_signif(*r_args)[0]
+            pvals.append(pval)
+            Rvs.append(Rv)
             # Update progress
             text = "Running ZINB Method... %5.1f%%" % (100.0*count/len(genes))
             self.progress_update(text, count)
+
+        pvals = numpy.array(pvals)
+        mask = numpy.isfinite(pvals)
+        qvals = numpy.full(pvals.shape, numpy.nan)
+        qvals[mask] = statsmodels.stats.multitest.fdrcorrection(pvals)[1] # BH, alpha=0.05
+
+        p,q = {},{}
+        for i,rv in enumerate(Rvs):
+            p[rv],q[rv] = pvals[i],qvals[i]
+        return (p, q)
 
     def Run(self):
         self.transit_message("Starting ZINB analysis")
@@ -270,7 +294,6 @@ class ZinbMethod(base.MultiConditionMethod):
         conditionsList = list(set(conditions))
         vals = "Rv Gene TAs".split() + conditionsList + "pval padj".split()
 
-        raise RuntimeError
         file.write('\t'.join(vals)+EOL)
         for gene in genes:
             Rv = gene["rv"]
