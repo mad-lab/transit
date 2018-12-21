@@ -87,8 +87,10 @@ class ZinbMethod(base.MultiConditionMethod):
         nz_percs = {}
         for (c, wigIndex) in wigsByConditions.items():
             arr = data[wigIndex][:, siteIndexes]
-            means[c] = numpy.mean(arr)
-            nz_means[c] = numpy.mean(nonzero(arr))
+            means[c] = numpy.mean(arr) if len(arr) > 0 else 0
+            nonzero_arr = nonzero(arr)
+            nz_means[c] = numpy.mean(nonzero_arr) if len(nonzero_arr) > 0 else 0
+
             nz_percs[c] = nzperc(arr)
         return [means, nz_means, nz_percs]
 
@@ -186,10 +188,10 @@ class ZinbMethod(base.MultiConditionMethod):
 
     def def_r_zinb_signif(self):
         r('''
-            zinb_signif = function(count, condition, NZmean, LogitZPerc, sat_adjust)
+            zinb_signif = function(count, condition, NZmean, LogitZPerc, sat_adjust=TRUE)
                 {
                   melted = data.frame(count=count, condition=condition, NZmean=NZmean, logitZperc=LogitZPerc)
-                  require(pscl)
+                  suppressMessages(require(pscl))
                   mod1 = tryCatch(
                      {
                          if (sat_adjust) {
@@ -280,11 +282,6 @@ class ZinbMethod(base.MultiConditionMethod):
         RvSiteindexesMap = tnseq_tools.rv_siteindexes_map(genes, TASiteindexMap)
         [MeansByRv, NzMeansByRv, NzPercByRv] = self.stats_by_rv(data, RvSiteindexesMap, genes, conditions)
         LogZPercByRep, NZMeanByRep = self.global_stats_for_rep(data)
-        # print(MeansByRv["Rv0003"])
-        # print(NzMeansByRv["Rv0003"])
-        # print(NzPercByRv["Rv0003"])
-        # print(LogZPercByRep)
-        # print(NZMeanByRep)
 
         self.transit_message("Running ZINB")
         pvals,qvals = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions)
@@ -292,7 +289,7 @@ class ZinbMethod(base.MultiConditionMethod):
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
         conditionsList = list(set(conditions))
-        vals = "Rv Gene TAs".split() + conditionsList + "pval padj".split()
+        vals = "Rv Gene TAs".split() + map(lambda v: "mean_" + v, conditionsList) + map(lambda v: "NZmean_" + v, conditionsList) + map(lambda v: "NZperc_" + v, conditionsList) + "pval padj".split()
 
         file.write('\t'.join(vals)+EOL)
         for gene in genes:
@@ -300,6 +297,8 @@ class ZinbMethod(base.MultiConditionMethod):
             if Rv in MeansByRv:
               vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
                       ["%0.1f" % MeansByRv[Rv][c] for c in conditionsList] +
+                      ["%0.1f" % NzMeansByRv[Rv][c] for c in conditionsList] +
+                      ["%0.1f" % NzPercByRv[Rv][c] for c in conditionsList] +
                       ["%f" % x for x in [pvals[Rv], qvals[Rv]]])
               file.write('\t'.join(vals)+EOL)
         file.close()

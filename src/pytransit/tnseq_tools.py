@@ -21,9 +21,11 @@ def rv_siteindexes_map(genes, TASiteindexMap):
     RvSiteindexesMap = {}
     for g, gene in enumerate(genes):
         siteindexes = []
-        ## TODO :: Coords off by one?
-        for i in range(gene["start"], gene["end"]): # end+1?
-            co = i+1
+        ## TODO :: Is this needed?
+        start = gene["start"] if gene["strand"] == "+" else gene["start"] + 3
+        end = gene["end"] - 3 if gene["strand"] == "+" else gene["end"]
+        for i in range(start, end): # end+1?
+            co = i + 1
             if co in TASiteindexMap: siteindexes.append(TASiteindexMap[co])
         RvSiteindexesMap[gene["rv"]] = siteindexes
     return RvSiteindexesMap
@@ -70,7 +72,6 @@ def read_genes(fname,descriptions=False):
     genes = []
     for line in open(fname):
         w = line.split('\t')
-        ## TODO ::  what is rv, strand?
         data = {
                 "start": int(w[1])-1,
                 "end": int(w[2])-1,
