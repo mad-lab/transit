@@ -142,7 +142,8 @@ class ZinbMethod(base.MultiConditionMethod):
         NzPercByRv = {}
         for gene in genes:
             Rv = gene["rv"]
-            if len(RvSiteindexesMap[gene["rv"]]) > 0: # skip genes with no TA sites
+
+            if len(RvSiteindexesMap[gene["rv"]]) > 1: # skip genes with no or 1 TA site
                 (MeansByRv[Rv],
                  NzMeansByRv[Rv],
                  NzPercByRv[Rv]) = self.stats_by_condition_for_gene(RvSiteindexesMap[Rv], conditions, data)
@@ -160,7 +161,7 @@ class ZinbMethod(base.MultiConditionMethod):
             zero_perc = (wig.size - numpy.count_nonzero(wig))/float(wig.size)
             logit_zero_perc.append(numpy.log(zero_perc/(1 - zero_perc)))
             nz_mean.append(numpy.mean(wig[numpy.nonzero(wig)]))
-        return [logit_zero_perc, nz_mean]
+        return [numpy.array(logit_zero_perc), numpy.array(nz_mean)]
 
     def group_by_condition(self, wigList, conditions):
         """
@@ -188,24 +189,23 @@ class ZinbMethod(base.MultiConditionMethod):
 
     def def_r_zinb_signif(self):
         r('''
-            zinb_signif = function(count, condition, NZmean, LogitZPerc, sat_adjust=TRUE)
+            zinb_signif = function(count, condition, NZmean, logitZPerc, sat_adjust=TRUE)
                 {
-                  melted = data.frame(count=count, condition=condition, NZmean=NZmean, logitZperc=LogitZPerc)
                   suppressMessages(require(pscl))
                   mod1 = tryCatch(
                      {
                          if (sat_adjust) {
-                             zeroinfl(count~0+condition+offset(log(NZmean))|0+condition+offset(logitZperc), data=melted, dist="negbin")
+                             zeroinfl(count~0+condition+offset(log(NZmean))|0+condition+offset(logitZPerc), dist="negbin")
                          } else {
-                             zeroinfl(count~0+condition, data=melted, dist="negbin")
+                             zeroinfl(count~0+condition, dist="negbin")
                          }
                      }, error=function(err) { return(NULL) } )
                   mod0 = tryCatch( # null model, independent of conditions
                      {
                          if (sat_adjust) {
-                             zeroinfl(count~1+offset(log(NZmean))|1+offset(logitZperc), data=melted, dist="negbin")
+                             zeroinfl(count~1+offset(log(NZmean))|1+offset(logitZPerc), dist="negbin")
                          } else {
-                             zeroinfl(count~1, data=melted, dist="negbin")
+                             zeroinfl(count~1, dist="negbin")
                          }
                      }, error=function(err) { return(NULL) } )
                   if (is.null(mod1) | is.null(mod0)) { return(1) }

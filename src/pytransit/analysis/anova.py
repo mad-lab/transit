@@ -121,7 +121,7 @@ class AnovaMethod(base.MultiConditionMethod):
         MeansByRv = {}
         for gene in genes:
             Rv = gene["rv"]
-            if len(RvSiteindexesMap[gene["rv"]]) > 0: # skip genes with no TA sites
+            if len(RvSiteindexesMap[gene["rv"]]) > 1: # skip genes with no or 1 TA site
                 MeansByRv[Rv] = self.means_by_condition_for_gene(RvSiteindexesMap[Rv], conditions, data)
         return MeansByRv
 
