@@ -24,7 +24,7 @@ def rv_siteindexes_map(genes, TASiteindexMap):
         ## TODO :: Is this needed?
         start = gene["start"] if gene["strand"] == "+" else gene["start"] + 3
         end = gene["end"] - 3 if gene["strand"] == "+" else gene["end"]
-        for i in range(start, end + 1): # end+1?
+        for i in range(start, end + 1):
             co = i
             if co in TASiteindexMap: siteindexes.append(TASiteindexMap[co])
         RvSiteindexesMap[gene["rv"]] = siteindexes

@@ -6,9 +6,7 @@ import time
 import sys
 import collections
 
-from rpy2.robjects.packages import importr
-from rpy2.robjects.numpy2ri import numpy2ri
-from rpy2.robjects import r, globalenv
+from rpy2.robjects import r, globalenv, IntVector, FloatVector, StrVector
 
 import base
 import pytransit
@@ -86,12 +84,16 @@ class ZinbMethod(base.MultiConditionMethod):
         nz_means = {}
         nz_percs = {}
         for (c, wigIndex) in wigsByConditions.items():
-            arr = data[wigIndex][:, siteIndexes]
-            means[c] = numpy.mean(arr) if len(arr) > 0 else 0
-            nonzero_arr = nonzero(arr)
-            nz_means[c] = numpy.mean(nonzero_arr) if len(nonzero_arr) > 0 else 0
-
-            nz_percs[c] = nzperc(arr)
+            if (len(siteIndexes) == 0): # If no TA sites, write 0
+                means[c] = 0
+                nz_means[c] = 0
+                nz_percs[c] = 0
+            else:
+                arr = data[wigIndex][:, siteIndexes]
+                means[c] = numpy.mean(arr) if len(arr) > 0 else 0
+                nonzero_arr = nonzero(arr)
+                nz_means[c] = numpy.mean(nonzero_arr) if len(nonzero_arr) > 0 else 0
+                nz_percs[c] = nzperc(arr)
         return [means, nz_means, nz_percs]
 
     def filter_by_conditions_blacklist(self, data, conditions, ignored_conditions):
@@ -143,10 +145,9 @@ class ZinbMethod(base.MultiConditionMethod):
         for gene in genes:
             Rv = gene["rv"]
 
-            if len(RvSiteindexesMap[gene["rv"]]) > 1: # skip genes with no or 1 TA site
-                (MeansByRv[Rv],
-                 NzMeansByRv[Rv],
-                 NzPercByRv[Rv]) = self.stats_by_condition_for_gene(RvSiteindexesMap[Rv], conditions, data)
+            (MeansByRv[Rv],
+             NzMeansByRv[Rv],
+             NzPercByRv[Rv]) = self.stats_by_condition_for_gene(RvSiteindexesMap[Rv], conditions, data)
         return [MeansByRv, NzMeansByRv, NzPercByRv]
 
     def global_stats_for_rep(self, data):
@@ -189,32 +190,58 @@ class ZinbMethod(base.MultiConditionMethod):
 
     def def_r_zinb_signif(self):
         r('''
-            zinb_signif = function(count, condition, NZmean, logitZPerc, sat_adjust=TRUE)
-                {
-                  suppressMessages(require(pscl))
-                  mod1 = tryCatch(
-                     {
-                         if (sat_adjust) {
-                             zeroinfl(count~0+condition+offset(log(NZmean))|0+condition+offset(logitZPerc), dist="negbin")
-                         } else {
-                             zeroinfl(count~0+condition, dist="negbin")
-                         }
-                     }, error=function(err) { return(NULL) } )
-                  mod0 = tryCatch( # null model, independent of conditions
-                     {
-                         if (sat_adjust) {
-                             zeroinfl(count~1+offset(log(NZmean))|1+offset(logitZPerc), dist="negbin")
-                         } else {
-                             zeroinfl(count~1, dist="negbin")
-                         }
-                     }, error=function(err) { return(NULL) } )
-                  if (is.null(mod1) | is.null(mod0)) { return(1) }
-                  if (sum(is.na(coef(summary(mod1))$count[,4]))>0) { return(1) } # rare failure mode - has coefs, but pvals are NA
-                  df1 = attr(logLik(mod1),"df"); df0 = attr(logLik(mod0),"df") # should be (2*ngroups+1)-3
-                  pval = pchisq(2*(logLik(mod1)-logLik(mod0)),df=df1-df0,lower.tail=F) # alternatively, could use lrtest()
-
-                  return(pval)
+            zinb_signif = function(count, condition, NZmean, logitZPerc, sat_adjust=TRUE) {
+              suppressMessages(require(pscl))
+              suppressMessages(require(MASS))
+              melted = data.frame(cnt=count, cond=condition, NZmean = NZmean, logitZperc = logitZPerc)
+              sums = aggregate(melted$cnt,by=list(melted$cond),FUN=sum)
+              # to avoid model failing due to singular condition, add fake counts of 1 to all conds if any cond is all 0s
+              if (0 %in% sums[,2]) {
+                # print("adding pseudocounts")
+                for (i in 1:length(sums[,1])) {
+                  subset = melted[melted$cond==sums[i,1],]
+                  newvec = subset[1,]
+                  newvec$cnt = 1
+                  melted = rbind(melted,newvec) }
+              }
+              status = "-"
+              minCount = min(melted$cnt)
+              mod1 = tryCatch(
+                { if (minCount == 0) {
+                  if (sat_adjust) {
+                    zeroinfl(cnt~0+cond+offset(log(NZmean))|0+cond+offset(logitZperc),data=melted,dist="negbin")
+                  } else {
+                    zeroinfl(cnt~0+cond+offset(log(NZmean)),data=melted,dist="negbin")
+                  }
+                } else {
+                  glm.nb(cnt~0+cond,data=melted)
                 }
+                },
+                error=function(err) {
+                  status <<- err$message
+                  return(NULL)
+                })
+              mod0 = tryCatch( # null model, independent of conditions
+                { if (minCount == 0) {
+                  if (sat_adjust) { zeroinfl(cnt~1+offset(log(NZmean))|1+offset(logitZperc),data=melted,dist="negbin") }
+                  else { zeroinfl(cnt~1,data=melted,dist="negbin") }
+                } else {
+                  glm.nb(cnt~1,data=melted)
+                }
+                },
+                error=function(err) {
+                  status <<- err$message
+                  return(NULL)
+                })
+              if (is.null(mod1) | is.null(mod0)) { return (c(1, paste0("Model Error. ", status))) }
+              if ((minCount == 0) && (sum(is.na(coef(summary(mod1))$count[,4]))>0)) { return(c(1, "Has Coefs, pvals are NAs")) } # rare failure mode - has coefs, but pvals are NA
+              df1 = attr(logLik(mod1),"df"); df0 = attr(logLik(mod0),"df") # should be (2*ngroups+1)-3
+              pval = pchisq(2*(logLik(mod1)-logLik(mod0)),df=df1-df0,lower.tail=F) # alternatively, could use lrtest()
+              # this gives same answer, but I would need to extract the Pvalue...
+              #require(lmtest)
+              #print(lrtest(mod1,mod0))
+              return (c(pval, "-"))
+            }
         ''')
 
         return globalenv['zinb_signif']
@@ -230,22 +257,32 @@ class ZinbMethod(base.MultiConditionMethod):
         """
         count = 0
         self.progress_range(len(genes))
-        pvals,Rvs = [],[]
+        pvals,Rvs, status = [],[], []
         r_zinb_signif = self.def_r_zinb_signif()
 
         for gene in genes:
             count += 1
             Rv = gene["rv"]
-            ## TODO :: Option for sat adjustment?
-            ([ readCounts,
-               condition,
-               NZmean,
-               logitZPerc]) = self.melt_data(
-                       map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data),
-                       conditions, NZMeanByRep, LogZPercByRep)
-            r_args = map(numpy2ri, [readCounts, condition, NZmean, logitZPerc]) + [True]
-            pval = r_zinb_signif(*r_args)[0]
-            pvals.append(pval)
+            if (len(RvSiteindexesMap[Rv]) <= 1):
+                status.append("TA sites <= 1")
+                pvals.append(1)
+            else:
+                ## TODO :: Option for sat adjustment?
+                ([ readCounts,
+                   condition,
+                   NZmean,
+                   logitZPerc]) = self.melt_data(
+                           map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data),
+                           conditions, NZMeanByRep, LogZPercByRep)
+                if (numpy.sum(readCounts) == 0):
+                    status.append("No counts in all conditions")
+                    pvals.append(1)
+                else:
+                    r_args = [IntVector(readCounts), StrVector(condition), FloatVector(NZmean), FloatVector(logitZPerc)] + [True]
+                    pval, msg = r_zinb_signif(*r_args)
+                    status.append(msg)
+                    pvals.append(float(pval))
+
             Rvs.append(Rv)
             # Update progress
             text = "Running ZINB Method... %5.1f%%" % (100.0*count/len(genes))
@@ -256,10 +293,10 @@ class ZinbMethod(base.MultiConditionMethod):
         qvals = numpy.full(pvals.shape, numpy.nan)
         qvals[mask] = statsmodels.stats.multitest.fdrcorrection(pvals)[1] # BH, alpha=0.05
 
-        p,q = {},{}
+        p,q,statusMap = {},{},{}
         for i,rv in enumerate(Rvs):
-            p[rv],q[rv] = pvals[i],qvals[i]
-        return (p, q)
+            p[rv],q[rv],statusMap[rv] = pvals[i],qvals[i],status[i]
+        return (p, q, statusMap)
 
     def Run(self):
         self.transit_message("Starting ZINB analysis")
@@ -284,23 +321,26 @@ class ZinbMethod(base.MultiConditionMethod):
         LogZPercByRep, NZMeanByRep = self.global_stats_for_rep(data)
 
         self.transit_message("Running ZINB")
-        pvals,qvals = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions)
+        pvals,qvals,status = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions)
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
         conditionsList = list(set(conditions))
-        vals = "Rv Gene TAs".split() + map(lambda v: "mean_" + v, conditionsList) + map(lambda v: "NZmean_" + v, conditionsList) + map(lambda v: "NZperc_" + v, conditionsList) + "pval padj".split()
+        head = ("Rv Gene TAs".split() +
+                map(lambda v: "mean_" + v, conditionsList) +
+                map(lambda v: "NZmean_" + v, conditionsList) +
+                map(lambda v: "NZperc_" + v, conditionsList) +
+                "pval padj".split() + ["status"])
 
-        file.write('\t'.join(vals)+EOL)
+        file.write('\t'.join(head)+EOL)
         for gene in genes:
             Rv = gene["rv"]
-            if Rv in MeansByRv:
-              vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
-                      ["%0.1f" % MeansByRv[Rv][c] for c in conditionsList] +
-                      ["%0.1f" % NzMeansByRv[Rv][c] for c in conditionsList] +
-                      ["%0.1f" % NzPercByRv[Rv][c] for c in conditionsList] +
-                      ["%f" % x for x in [pvals[Rv], qvals[Rv]]])
-              file.write('\t'.join(vals)+EOL)
+            vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
+                    ["%0.1f" % MeansByRv[Rv][c] for c in conditionsList] +
+                    ["%0.1f" % NzMeansByRv[Rv][c] for c in conditionsList] +
+                    ["%0.1f" % NzPercByRv[Rv][c] for c in conditionsList] +
+                    ["%f" % x for x in [pvals[Rv], qvals[Rv]]]) + [status[Rv]]
+            file.write('\t'.join(vals)+EOL)
         file.close()
         self.transit_message("Finished Zinb analysis")
 
