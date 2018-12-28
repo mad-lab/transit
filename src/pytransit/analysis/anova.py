@@ -69,11 +69,12 @@ class AnovaMethod(base.MultiConditionMethod):
             Site :: Number
             Condition :: String
         """
+        nTASites = len(sites)
         wigsByConditions = collections.defaultdict(lambda: [])
         for i, c in enumerate(conditions):
             wigsByConditions[c].append(i)
 
-        return { c: numpy.mean(data[wigIndex][:, sites]) for (c, wigIndex) in wigsByConditions.items() }
+        return { c: numpy.mean(data[wigIndex][:, sites]) if nTASites > 0 else 0 for (c, wigIndex) in wigsByConditions.items() }
 
     def filter_by_conditions_blacklist(self, data, conditions, ignored_conditions):
         """
@@ -121,8 +122,7 @@ class AnovaMethod(base.MultiConditionMethod):
         MeansByRv = {}
         for gene in genes:
             Rv = gene["rv"]
-            if len(RvSiteindexesMap[gene["rv"]]) > 1: # skip genes with no or 1 TA site
-                MeansByRv[Rv] = self.means_by_condition_for_gene(RvSiteindexesMap[Rv], conditions, data)
+            MeansByRv[Rv] = self.means_by_condition_for_gene(RvSiteindexesMap[Rv], conditions, data)
         return MeansByRv
 
     def group_by_condition(self, wigList, conditions):
@@ -134,10 +134,12 @@ class AnovaMethod(base.MultiConditionMethod):
             DataForCondition :: [Number]
         """
         countsByCondition = collections.defaultdict(lambda: [])
+        countSum = 0
         for i, c in enumerate(conditions):
+          countSum += numpy.sum(wigList[i])
           countsByCondition[c].append(wigList[i])
 
-        return [numpy.array(v).flatten() for v in countsByCondition.values()]
+        return (countSum, [numpy.array(v).flatten() for v in countsByCondition.values()])
 
     def run_anova(self, data, genes, MeansByRv, RvSiteindexesMap, conditions):
         """
@@ -152,15 +154,25 @@ class AnovaMethod(base.MultiConditionMethod):
         count = 0
         self.progress_range(len(genes))
 
-        pvals,Rvs = [],[]
+        pvals,Rvs,status = [],[],[]
         for gene in genes:
             count += 1
             Rv = gene["rv"]
-            if Rv in MeansByRv:
-                countsvec = self.group_by_condition(map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data), conditions)
-                stat,pval = scipy.stats.f_oneway(*countsvec)
-                pvals.append(pval)
-                Rvs.append(Rv)
+            if (len(RvSiteindexesMap[Rv]) <= 1):
+                status.append("TA sites <= 1")
+                pvals.append(1)
+            else:
+                countSum, countsVec = self.group_by_condition(map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data), conditions)
+
+                if (countSum == 0):
+                    pval = 1
+                    status.append("No counts in all conditions")
+                    pvals.append(pval)
+                else:
+                    stat,pval = scipy.stats.f_oneway(*countsVec)
+                    status.append("-")
+                    pvals.append(pval)
+            Rvs.append(Rv)
 
             # Update progress
             text = "Running Anova Method... %5.1f%%" % (100.0*count/len(genes))
@@ -171,10 +183,10 @@ class AnovaMethod(base.MultiConditionMethod):
         qvals = numpy.full(pvals.shape, numpy.nan)
         qvals[mask] = statsmodels.stats.multitest.fdrcorrection(pvals[mask])[1] # BH, alpha=0.05
 
-        p,q = {},{}
+        p,q,statusMap = {},{},{}
         for i,rv in enumerate(Rvs):
-            p[rv],q[rv] = pvals[i],qvals[i]
-        return (p, q)
+            p[rv],q[rv],statusMap[rv] = pvals[i],qvals[i],status[i]
+        return (p, q, statusMap)
 
     def Run(self):
         self.transit_message("Starting Anova analysis")
@@ -198,19 +210,21 @@ class AnovaMethod(base.MultiConditionMethod):
         MeansByRv = self.means_by_rv(data, RvSiteindexesMap, genes, conditions)
 
         self.transit_message("Running Anova")
-        pvals,qvals = self.run_anova(data, genes, MeansByRv, RvSiteindexesMap, conditions)
+        pvals,qvals,run_status = self.run_anova(data, genes, MeansByRv, RvSiteindexesMap, conditions)
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
         conditionsList = list(set(conditions))
-        vals = "Rv Gene TAs".split() + conditionsList + "pval padj".split()
-        file.write('\t'.join(vals)+EOL)
+        heads = ("Rv Gene TAs".split() +
+                conditionsList +
+                "pval padj".split() + ["status"])
+        file.write('\t'.join(heads)+EOL)
         for gene in genes:
             Rv = gene["rv"]
             if Rv in MeansByRv:
               vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
                       ["%0.1f" % MeansByRv[Rv][c] for c in conditionsList] +
-                      ["%f" % x for x in [pvals[Rv], qvals[Rv]]])
+                      ["%f" % x for x in [pvals[Rv], qvals[Rv]]] + [run_status[Rv]])
               file.write('\t'.join(vals)+EOL)
         file.close()
         self.transit_message("Finished Anova analysis")

@@ -282,7 +282,6 @@ class ZinbMethod(base.MultiConditionMethod):
                     pval, msg = r_zinb_signif(*r_args)
                     status.append(msg)
                     pvals.append(float(pval))
-
             Rvs.append(Rv)
             # Update progress
             text = "Running ZINB Method... %5.1f%%" % (100.0*count/len(genes))
@@ -321,7 +320,7 @@ class ZinbMethod(base.MultiConditionMethod):
         LogZPercByRep, NZMeanByRep = self.global_stats_for_rep(data)
 
         self.transit_message("Running ZINB")
-        pvals,qvals,status = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions)
+        pvals,qvals,run_status = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions)
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
@@ -339,7 +338,7 @@ class ZinbMethod(base.MultiConditionMethod):
                     ["%0.1f" % MeansByRv[Rv][c] for c in conditionsList] +
                     ["%0.1f" % NzMeansByRv[Rv][c] for c in conditionsList] +
                     ["%0.1f" % NzPercByRv[Rv][c] for c in conditionsList] +
-                    ["%f" % x for x in [pvals[Rv], qvals[Rv]]]) + [status[Rv]]
+                    ["%f" % x for x in [pvals[Rv], qvals[Rv]]]) + [run_status[Rv]]
             file.write('\t'.join(vals)+EOL)
         file.close()
         self.transit_message("Finished Zinb analysis")
