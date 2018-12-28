@@ -228,6 +228,7 @@ class AnovaMethod(base.MultiConditionMethod):
               file.write('\t'.join(vals)+EOL)
         file.close()
         self.transit_message("Finished Anova analysis")
+        self.transit_message("Time: %0.1fs\n" % (time.time() - start_time))
 
     @classmethod
     def usage_string(self):

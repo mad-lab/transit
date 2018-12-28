@@ -6,7 +6,7 @@ import time
 import sys
 import collections
 
-from rpy2.robjects import r, globalenv, IntVector, FloatVector, StrVector
+from rpy2.robjects import r, globalenv, IntVector, FloatVector, StrVector, packages as rpackages
 
 import base
 import pytransit
@@ -255,6 +255,7 @@ class ZinbMethod(base.MultiConditionMethod):
             SiteIndex: Integer
             Condition :: String
         """
+
         count = 0
         self.progress_range(len(genes))
         pvals,Rvs, status = [],[], []
@@ -300,6 +301,14 @@ class ZinbMethod(base.MultiConditionMethod):
     def Run(self):
         self.transit_message("Starting ZINB analysis")
         start_time = time.time()
+        packnames = ("MASS", "pscl")
+        r_packages_needed = [x for x in packnames if not rpackages.isinstalled(x)]
+        if (len(r_packages_needed) > 0):
+            self.transit_error(
+                    "Error: Following R packages are required: %(0)s. From R console, You can install them using install.packages(c(%(0)s))"
+                    % ({'0': '"{0}"'.format('", "'.join(r_packages_needed))}))
+            sys.exit(1)
+
 
         self.transit_message("Getting Data")
         (sites, data, filenamesInCombWig) = tnseq_tools.read_combined_wig(self.combined_wig)
@@ -342,6 +351,7 @@ class ZinbMethod(base.MultiConditionMethod):
             file.write('\t'.join(vals)+EOL)
         file.close()
         self.transit_message("Finished Zinb analysis")
+        self.transit_message("Time: %0.1fs\n" % (time.time() - start_time))
 
     @classmethod
     def usage_string(self):
