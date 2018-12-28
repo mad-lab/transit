@@ -142,7 +142,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['setuptools', 'numpy~=1.15', 'scipy~=1.1', 'matplotlib~=2.2', 'pillow~=5.0', 'statsmodels~=0.9', 'rpy2<2.9.0'],
+    install_requires=['setuptools', 'numpy~=1.15', 'scipy~=1.2', 'matplotlib~=2.2', 'pillow~=5.0', 'statsmodels~=0.9', 'rpy2<2.9.0'],
 
     #dependency_links = [
     #	"git+https://github.com/wxWidgets/wxPython.git#egg=wxPython"
