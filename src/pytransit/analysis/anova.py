@@ -52,8 +52,8 @@ class AnovaMethod(base.MultiConditionMethod):
         metadata = args[2]
         output_file = args[3]
         normalization = kwargs.get("n", "TTR")
-        ignored_conditions = set(map(lambda s: s.strip(), filter(None, kwargs.get("-ignore-conditions", "").split(","))))
-        included_conditions = set(map(lambda s: s.strip(), filter(None, kwargs.get("-include-conditions", "").split(","))))
+        ignored_conditions = set(filter(None, kwargs.get("-ignore-conditions", "").split(",")))
+        included_conditions = set(filter(None, kwargs.get("-include-conditions", "").split(",")))
 
         if len(included_conditions) > 0 and len(ignored_conditions) > 0:
             print(self.transit_error("Cannot use both include-conditions and ignore-conditions flags"))
@@ -94,11 +94,13 @@ class AnovaMethod(base.MultiConditionMethod):
             self.transit_error("Both ignored and included conditions have len > 0", ignored_conditions, included_conditions)
             sys.exit(0)
         elif (len(ignored_conditions) > 0):
+            self.transit_message("conditions ignored: {0}".format(ignored_conditions))
             for i, c in enumerate(conditions):
               if (c != self.unknown_cond_flag) and (c not in ignored_conditions):
                 d_filtered.append(data[i])
                 cond_filtered.append(conditions[i])
         elif (len(included_conditions) > 0):
+            self.transit_message("conditions included: {0}".format(included_conditions))
             d_filtered, cond_filtered = [], [];
             for i, c in enumerate(conditions):
               if (c != self.unknown_cond_flag) and (c in included_conditions):
