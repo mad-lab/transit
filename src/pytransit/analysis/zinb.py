@@ -35,9 +35,11 @@ class ZinbMethod(base.MultiConditionMethod):
     """
     Zinb
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=set()):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=set(), included_conditions=set()):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file, normalization=normalization)
         self.ignored_conditions = ignored_conditions
+        self.included_conditions = included_conditions
+        self.unknown_cond_flag = "FLAG-UNMAPPED-CONDITION-IN-WIG"
 
     @classmethod
     def fromargs(self, rawargs):
@@ -47,14 +49,20 @@ class ZinbMethod(base.MultiConditionMethod):
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
+
         combined_wig = args[0]
         annotation = args[1]
         metadata = args[2]
         output_file = args[3]
         normalization = kwargs.get("n", "TTR")
-        ignored_conditions = set(kwargs.get("-ignore-conditions", "Unknown").split(","))
+        ignored_conditions = set(map(lambda s: s.strip(), filter(None, kwargs.get("-ignore-conditions", "").split(","))))
+        included_conditions = set(map(lambda s: s.strip(), filter(None, kwargs.get("-include-conditions", "").split(","))))
+        if len(included_conditions) > 0 and len(ignored_conditions) > 0:
+            print(self.transit_error("Cannot use both include-conditions and ignore-conditions flags"))
+            print(ZinbMethod.usage_string())
+            sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions)
+        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -62,7 +70,7 @@ class ZinbMethod(base.MultiConditionMethod):
             ({FileName: Condition}, [FileName]) -> [Condition]
             Condition :: [String]
         """
-        return [conditionsByFile.get(f, "Unknown") for f in filenamesInCombWig]
+        return [conditionsByFile.get(f, self.unknown_cond_flag) for f in filenamesInCombWig]
 
     def stats_by_condition_for_gene(self, siteIndexes, conditions, data):
         """
@@ -96,16 +104,31 @@ class ZinbMethod(base.MultiConditionMethod):
                 nz_percs[c] = nzperc(arr)
         return [means, nz_means, nz_percs]
 
-    def filter_by_conditions_blacklist(self, data, conditions, ignored_conditions):
+    def filter_wigs_by_conditions(self, data, conditions, ignored_conditions, included_conditions):
         """
-            Filters out wigfiles, with ignored conditions.
-            ([[Wigdata]], [Condition]) -> Tuple([[Wigdata]], [Condition])
+            Filters conditions that are ignored/included.
+            ([[Wigdata]], [Condition], [Condition], [Condition]) -> Tuple([[Wigdata]], [Condition])
         """
         d_filtered, cond_filtered = [], [];
-        for i, c in enumerate(conditions):
-          if c not in ignored_conditions:
-            d_filtered.append(data[i])
-            cond_filtered.append(conditions[i])
+        if len(ignored_conditions) > 0 and len(included_conditions) > 0:
+            self.transit_error("Both ignored and included conditions have len > 0", ignored_conditions, included_conditions)
+            sys.exit(0)
+        elif (len(ignored_conditions) > 0):
+            for i, c in enumerate(conditions):
+              if (c != self.unknown_cond_flag) and (c not in ignored_conditions):
+                d_filtered.append(data[i])
+                cond_filtered.append(conditions[i])
+        elif (len(included_conditions) > 0):
+            d_filtered, cond_filtered = [], [];
+            for i, c in enumerate(conditions):
+              if (c != self.unknown_cond_flag) and (c in included_conditions):
+                d_filtered.append(data[i])
+                cond_filtered.append(conditions[i])
+        else:
+            for i, c in enumerate(conditions):
+              if (c != self.unknown_cond_flag):
+                d_filtered.append(data[i])
+                cond_filtered.append(conditions[i])
 
         return (numpy.array(d_filtered), numpy.array(cond_filtered))
 
@@ -319,7 +342,7 @@ class ZinbMethod(base.MultiConditionMethod):
         conditions = self.wigs_to_conditions(
             self.read_samples_metadata(self.metadata),
             filenamesInCombWig)
-        data, conditions = self.filter_by_conditions_blacklist(data, conditions, self.ignored_conditions)
+        data, conditions = self.filter_wigs_by_conditions(data, conditions, self.ignored_conditions, self.included_conditions)
 
         genes = tnseq_tools.read_genes(self.annotation_path)
 
@@ -359,7 +382,8 @@ class ZinbMethod(base.MultiConditionMethod):
 
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
-        --ignore-conditions <cond1,cond2> :=  Comma seperated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
+        --ignore-conditions <cond1,cond2> :=  Comma seperated list of conditions to ignore, for the analysis.
+        --include-conditions <cond1,cond2> :=  Comma seperated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
 
         """ % (sys.argv[0])
 
