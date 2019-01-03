@@ -35,7 +35,7 @@ class ZinbMethod(base.MultiConditionMethod):
     """
     Zinb
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=set(), included_conditions=set()):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[]):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file, normalization=normalization)
         self.ignored_conditions = ignored_conditions
         self.included_conditions = included_conditions
@@ -55,8 +55,8 @@ class ZinbMethod(base.MultiConditionMethod):
         metadata = args[2]
         output_file = args[3]
         normalization = kwargs.get("n", "TTR")
-        ignored_conditions = set(filter(None, kwargs.get("-ignore-conditions", "").split(",")))
-        included_conditions = set(filter(None, kwargs.get("-include-conditions", "").split(",")))
+        ignored_conditions = filter(None, kwargs.get("-ignore-conditions", "").split(","))
+        included_conditions = filter(None, kwargs.get("-include-conditions", "").split(","))
         if len(included_conditions) > 0 and len(ignored_conditions) > 0:
             print("Cannot use both include-conditions and ignore-conditions flags")
             print(ZinbMethod.usage_string())
@@ -109,6 +109,7 @@ class ZinbMethod(base.MultiConditionMethod):
             Filters conditions that are ignored/included.
             ([[Wigdata]], [Condition], [Condition], [Condition]) -> Tuple([[Wigdata]], [Condition])
         """
+        ignored_conditions, included_conditions = (set(ignored_conditions), set(included_conditions))
         d_filtered, cond_filtered = [], [];
         if len(ignored_conditions) > 0 and len(included_conditions) > 0:
             self.transit_error("Both ignored and included conditions have len > 0", ignored_conditions, included_conditions)
@@ -358,7 +359,7 @@ class ZinbMethod(base.MultiConditionMethod):
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
-        conditionsList = list(set(conditions))
+        conditionsList = self.included_conditions if len(self.included_conditions) > 0 else list(set(conditions))
         head = ("Rv Gene TAs".split() +
                 map(lambda v: "mean_" + v, conditionsList) +
                 map(lambda v: "NZmean_" + v, conditionsList) +
