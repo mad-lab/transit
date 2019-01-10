@@ -1,6 +1,8 @@
 import sys
+import os
 
-sys.path.insert(0, '../src/')
+basedir = os.path.dirname(__file__)
+sys.path.insert(0, basedir + '/../src/')
 
 import shutil
 import unittest
@@ -60,7 +62,7 @@ class TestNormMethods(TransitTestCase):
 #    """
 
     def test_resampling_nonorm(self):
-        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "nonorm"]
+        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "nonorm", "-a"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -69,7 +71,7 @@ class TestNormMethods(TransitTestCase):
 #
 
     def test_resampling_TTR(self):
-        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "TTR"]
+        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "TTR", "-a"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -79,7 +81,7 @@ class TestNormMethods(TransitTestCase):
 #
 
     def test_resampling_NZMean(self):
-        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "nzmean"]
+        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "nzmean", "-a"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -89,7 +91,7 @@ class TestNormMethods(TransitTestCase):
 #
 
     def test_resampling_TotReads(self):
-        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "totreads"]
+        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "totreads", "-a"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -99,7 +101,7 @@ class TestNormMethods(TransitTestCase):
 #
 
     def test_resampling_Quantile(self):
-        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "quantile"]
+        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "quantile", "-a"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -109,7 +111,7 @@ class TestNormMethods(TransitTestCase):
 #
     
     def test_resampling_ZINFNB(self):
-        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "zinfnb"]
+        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "zinfnb", "-a"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))

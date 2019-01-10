@@ -11,6 +11,7 @@ from transit_test import *
 
 import pytransit
 import pytransit.norm_tools as norm_tools
+import pytransit.tnseq_tools as tnseq_tools
 
 # Single condition methods
 from pytransit.analysis.gumbel import GumbelMethod
@@ -19,6 +20,7 @@ from pytransit.analysis.griffin import GriffinMethod
 from pytransit.analysis.hmm import HMMMethod
 from pytransit.analysis.anova import AnovaMethod
 from pytransit.analysis.zinb import ZinbMethod
+from pytransit.analysis.winsorize import WinsorizeMethod
 
 # Comparative methods
 from pytransit.analysis.resampling import ResamplingMethod
@@ -148,6 +150,22 @@ class TestMethods(TransitTestCase):
         G = GIMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
+
+    def test_winsorize(self):
+        expected = [
+                [10, 20, 100, 20, 10, 20, 150, 10],
+                [10, 20, 100, 20, 10, 20, 150, 10],
+                [10, 20, 80, 20, 10, 20, 150, 10],
+                [10, 20, 90, 20, 10, 20, 20, 10]]
+
+        args = [basedir + "/data/test_combined_wig.txt", basedir + '/data/test.prot_table', output]
+        W = WinsorizeMethod.fromargs(args)
+        W.Run()
+        self.assertTrue(os.path.exists(output))
+        (_, data, _) = tnseq_tools.read_combined_wig(output)
+        for i, wigData in enumerate(data):
+            self.assertItemsEqual(wigData, expected[i])
+
 
 
 
