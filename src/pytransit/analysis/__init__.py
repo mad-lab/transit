@@ -21,6 +21,7 @@ import normalize
 import pathway_enrichment #08/22/2018 by Ivan
 import anova
 import tnseq_stats
+import winsorize
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -40,6 +41,7 @@ methods["anova"] = anova.AnovaAnalysis()
 methods["normalize"] = normalize.Normalize()
 methods["pathway_enrichment"]=pathway_enrichment.GSEAAnalysis()
 methods["tnseq_stats"]=tnseq_stats.TnseqStats()
+methods["winsorize"] = winsorize.Winsorize()
 
 # EXPORT METHODS
 import norm
