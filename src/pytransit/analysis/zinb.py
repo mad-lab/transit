@@ -1,5 +1,6 @@
 import scipy
 import numpy
+import heapq
 import statsmodels.stats.multitest
 
 import time
@@ -35,11 +36,12 @@ class ZinbMethod(base.MultiConditionMethod):
     """
     Zinb
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[]):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file, normalization=normalization)
         self.ignored_conditions = ignored_conditions
         self.included_conditions = included_conditions
         self.unknown_cond_flag = "FLAG-UNMAPPED-CONDITION-IN-WIG"
+        self.winz = winz
 
     @classmethod
     def fromargs(self, rawargs):
@@ -55,6 +57,7 @@ class ZinbMethod(base.MultiConditionMethod):
         metadata = args[2]
         output_file = args[3]
         normalization = kwargs.get("n", "TTR")
+        winz = True if kwargs.has_key("w") else False
         ignored_conditions = filter(None, kwargs.get("-ignore-conditions", "").split(","))
         included_conditions = filter(None, kwargs.get("-include-conditions", "").split(","))
         if len(included_conditions) > 0 and len(ignored_conditions) > 0:
@@ -62,7 +65,7 @@ class ZinbMethod(base.MultiConditionMethod):
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions)
+        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -272,6 +275,16 @@ class ZinbMethod(base.MultiConditionMethod):
 
         return globalenv['zinb_signif']
 
+    def winsorize(self, data):
+        unique_counts = numpy.unique(numpy.concatenate(data))
+        if (len(unique_counts) < 2):
+            return data
+        else:
+            n, n_minus_1 = unique_counts[heapq.nlargest(2, xrange(len(unique_counts)), unique_counts.take)]
+            result = [[ n_minus_1 if count == n else count
+                        for count in wig] for wig in data]
+        return numpy.array(result)
+
     def run_zinb(self, data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions):
         """
             Runs Zinb for each gene across conditions and returns p and q values
@@ -286,20 +299,25 @@ class ZinbMethod(base.MultiConditionMethod):
         self.progress_range(len(genes))
         pvals,Rvs, status = [],[], []
         r_zinb_signif = self.def_r_zinb_signif()
+        if (self.winz):
+            self.transit_message("Winsorizing and running analysis...")
 
         for gene in genes:
             count += 1
-            Rv = gene["rv"]
+            # Rv = gene["rv"]
+            Rv = "Rv3915"
             if (len(RvSiteindexesMap[Rv]) <= 1):
                 status.append("TA sites <= 1")
                 pvals.append(1)
             else:
                 ## TODO :: Option for sat adjustment?
+                norm_data = self.winsorize(map(
+                    lambda wigData: wigData[RvSiteindexesMap[Rv]], data)) if self.winz else map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data)
                 ([ readCounts,
                    condition,
                    NZmean,
                    logitZPerc]) = self.melt_data(
-                           map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data),
+                           norm_data,
                            conditions, NZMeanByRep, LogZPercByRep)
                 if (numpy.sum(readCounts) == 0):
                     status.append("No counts in all conditions")
@@ -385,6 +403,7 @@ class ZinbMethod(base.MultiConditionMethod):
 
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
+        -w                  :=  If set, Winsorize data.
         --ignore-conditions <cond1,cond2> :=  Comma seperated list of conditions to ignore, for the analysis.
         --include-conditions <cond1,cond2> :=  Comma seperated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
 
