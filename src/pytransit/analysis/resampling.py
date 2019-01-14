@@ -219,6 +219,7 @@ class ResamplingMethod(base.DualConditionMethod):
 
         base.DualConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
+        self.Z = False
         self.samples = samples
         self.adaptive = adaptive
         self.doHistogram = doHistogram
@@ -316,7 +317,6 @@ class ResamplingMethod(base.DualConditionMethod):
         includeZeros = not excludeZeros
         pseudocount = float(kwargs.get("pc", 0.00))
 
-        self.Z = False
         if "Z" in kwargs: self.Z = True    
         
         LOESS = kwargs.get("l", False)

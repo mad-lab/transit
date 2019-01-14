@@ -1,6 +1,10 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+## Version 2.3.4 2019-01-14
+- TRANSIT:	
+  - Minor bug fixes related to flags in Resampling and HMM
+
 ## Version 2.3.3 2018-12-06
 - TRANSIT:	
   - Minor bug fixes related to flags in HMM
