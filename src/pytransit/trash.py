@@ -406,7 +406,7 @@ class TrashFrame(view_trash.MainFrame):
         dlg = wx.FileDialog(
             self, message="Save file as ...",
             defaultDir=DIR,
-            defaultFile=FILE, wildcard=WC, style=wx.SAVE|wx.OVERWRITE_PROMPT
+            defaultFile=FILE, wildcard=WC, style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT
             )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
