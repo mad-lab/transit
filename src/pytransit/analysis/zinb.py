@@ -304,8 +304,7 @@ class ZinbMethod(base.MultiConditionMethod):
 
         for gene in genes:
             count += 1
-            # Rv = gene["rv"]
-            Rv = "Rv3915"
+            Rv = gene["rv"]
             if (len(RvSiteindexesMap[Rv]) <= 1):
                 status.append("TA sites <= 1")
                 pvals.append(1)
