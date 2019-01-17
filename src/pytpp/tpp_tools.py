@@ -33,7 +33,22 @@ def cleanargs(rawargs):
     kwargs = {}
     count = 0
     while count < len(rawargs):
-        if rawargs[count].startswith("-"): #and len(rawargs[count].split(" ")) == 1:
+        # Special case for handling multiple entries for "-ref" and "-replicon_id"
+        if rawargs[count] == "-ref" and count + 1 < len(rawargs) and not rawargs[count+1].startswith("-"):
+            kwargs['ref'] = []
+            
+            while not rawargs[count+1].startswith("-"):
+                kwargs['ref'].append(rawargs[count+1])
+                count += 1
+        elif rawargs[count] == "-replicon-id" and count + 1 < len(rawargs) and not rawargs[count+1].startswith("-"):
+            kwargs['replicon-id'] = []
+            
+            while not rawargs[count+1].startswith("-"):
+                kwargs['replicon-id'].append(rawargs[count+1])
+                count += 1
+
+        elif rawargs[count].startswith("-"): #and len(rawargs[count].split(" ")) == 1:
+        #if rawargs[count].startswith("-"): #and len(rawargs[count].split(" ")) == 1:
             if count + 1 < len(rawargs) and (not rawargs[count+1].startswith("-") or len(rawargs[count+1].split(" ")) > 1):
                 kwargs[rawargs[count][1:]] = rawargs[count+1]
                 count += 1
@@ -224,6 +239,11 @@ def mmfind(G,n,H,m,max): # lengths; assume n>m
   return -1
 '''
 
+def windowize(origin, window_size):                         # Generate P,Q values based on a window size (tolerance)
+    lower_bound = origin - ((window_size + 0)/2)            # Example, if we assume origin = 28:
+    upper_bound = origin + ((window_size + 1)/2)            # for window_size = 0: 28, 28
+                                                            #                   1: 28, 29
+    return lower_bound, upper_bound                         #                   2: 27, 29 etc.
 
 def extract_staggered(infile,outfile,vars):
   Tn = vars.prefix
@@ -232,14 +252,18 @@ def extract_staggered(infile,outfile,vars):
   ADAPTER2 = "TACCACGACCA"
   lenADAP = len(ADAPTER2)
 
-  #P,Q = 5,10 # 1-based inclusive positions to look for start of Tn prefix
   #P,Q = 0,15
-  P,Q = 0,50 # relax this, because it has caused problems for various users; shouldn't matter, if prefix is long enough to make random occurences unlikely
-  if vars.barseq_catalog_out!=None: Q = 100 # relax for barseq
+  #P,Q = 0,50 # relax this, because it has caused problems for various users; shouldn't matter, if prefix is long enough to make random occurences unlikely
+ 
+  origin = 28 - len(Tn)                                     # [RJ] Automatically set P,Q by tolerance
+  P,Q = windowize(origin, vars.window_size)
 
+  if vars.barseq_catalog_out!=None: P,Q = 0,100 # relax for barseq
   vars.tot_tgtta = 0
   vars.truncated_reads = 0
   output = open(outfile,"w")
+  output_failed = open(outfile+'_failed_trim',"w")                          # [WM] [add]
+  message("Looking for start of Tn prefix with P,Q = %d,%d (origin = %d, window size = %d)" % (P,Q,origin,vars.window_size)) # [RJ] Outputting P,Q values and origin/window size
   tot = 0
   #print infile
   if vars.barseq_catalog_out!=None:
@@ -265,6 +289,10 @@ def extract_staggered(infile,outfile,vars):
       output.write(header+"\n")
       output.write(line[gstart:gend]+"\n")
       vars.tot_tgtta += 1
+    else:                                               # [WM] [add]
+      #Output reads that failed to be trimmed.          # [WM] [add]
+      output_failed.write(header+"\n")                  # [WM] [add]
+      output_failed.write(line+"\n")                    # [WM] [add]
     if vars.barseq_catalog_out!=None:
       n = max(a,readlen)
       c = mmfind(line,n,barseq1,barseq1len,vars.mm1) # only have to search as far as Tn prefix
@@ -277,6 +305,7 @@ def extract_staggered(infile,outfile,vars):
       catalog.write(seq+"\n")
   if vars.barseq_catalog_out!=None: catalog.close()
   output.close()
+  output_failed.close()                                 # [WM] [add]
   if vars.tot_tgtta == 0:
     raise ValueError("Error: Input files did not contain any reads matching prefix sequence with %d mismatches" % vars.mm1)
 
@@ -340,14 +369,79 @@ def select_cycles(infile,i,j,outfile):
       output.write(line[i-1:j]+"\n")
   output.close()
 
-def read_genome(filename):
+def read_genome(filename, replicon_index):
   s = ""
+  cur_index = 0
+  first_iteration = True
   for line in open(filename):
-    if line[0]=='>': continue # skip fasta header
-    else: s += line[:-1]
+    if line[0]=='>': 
+      if first_iteration:
+        continue # skip fasta header
+      else:
+        cur_index += 1
+    else:
+      if cur_index == replicon_index:
+        s += line.strip()
+    first_iteration = False
   return s
 
-# convert to bistring (8 bits; bit 0 is low-order bit)
+
+def parse_sam_header(sam_filename):
+    parsed_header = {}
+    
+    f = open(sam_filename, "r")
+    for line in f:
+
+        # Stop parsing once end of SAM header is reached
+        if not line[0] == '@':
+            break
+        
+        header_line = line.split()
+        at_sign_sam_tag = header_line[0]
+        if at_sign_sam_tag not in parsed_header:
+            parsed_header[at_sign_sam_tag] = []
+
+        tag_line = {}
+        for tag_entry in header_line[1:]:
+            tag_pair = tag_entry.split(':')
+            tag_name = tag_pair[0]
+            tag_value = ':'.join(tag_pair[1:])  # in case the value of the tag contains ':', which we used as delimiter for split
+            tag_line[tag_name] = tag_value
+        parsed_header[at_sign_sam_tag].append(tag_line)
+    
+    f.close()
+
+    return parsed_header
+
+
+def get_replicon_names_from_sam_header(sam_header):
+    
+    if "@SQ" not in sam_header:
+        raise ValueError("No @SQ tags found in SAM header")
+
+    replicon_names = []
+    
+    for header_line in sam_header["@SQ"]:
+        if "SN" not in header_line:
+            raise ValueError("No SN tag found in an entry of the SAM header")
+        else:
+            replicon_names.append(header_line["SN"])
+    
+    return replicon_names
+
+
+def count_sam_header_lines(sam_header):
+    
+    num_sam_header_lines = 0
+
+    for at_sign_sam_tag in sam_header:
+        for line in sam_header[at_sign_sam_tag]:
+            num_sam_header_lines += 1
+
+    return num_sam_header_lines
+
+
+# convert to bistring (16 bits; bit 0 is low-order bit)
 #
 # Bit Description
 # 0 0x1 template having multiple segments in sequencing
@@ -362,34 +456,41 @@ def read_genome(filename):
 # code[6]=1 means read1
 # code[4]=1 means reverse strand
 
-def samcode(num): return bin(int(num))[2:].zfill(8)[::-1]
+def samcode(num): 
+    num = int(num)
+    binary_num = bin(num)
+    truncated_0b_binary_num = binary_num[2:]
+    zero_padded_binary_num = truncated_0b_binary_num.zfill(16)
+    rev = zero_padded_binary_num[::-1]
+    return rev
 
 def template_counts(ref,sam,bcfile,vars):
-  genome = read_genome(ref)
-  barcodes = {}
+  #barcodes = {}
 
 
   fil1 = open(bcfile)
   fil2 = open(sam)
-
-  idx=1
-  for line in fil1:
-    if idx==1: break
-    idx+=1
-
-  idx=1
-  for line in fil2:
-    if idx==2: break
-    idx+=1
-
   '''
   for line in open(bcfile):
     line = line.rstrip()
     if line[0]=='>': id = line[1:]
     else: barcodes[id] = line
   '''
+  
   hits = {}
-  vars.tot_tgtta,vars.mapped = 0,0
+  sam_header = parse_sam_header(sam)
+  replicon_names = get_replicon_names_from_sam_header(sam_header)
+  for replicon in replicon_names:
+    hits[replicon] = {}
+  
+  # Skip headers
+  fil1.next()
+  num_sam_header_lines = count_sam_header_lines(sam_header)
+  for i in range(num_sam_header_lines):
+    fil2.next()
+
+  #vars.tot_tgtta = 0
+  vars.mapped = 0
   vars.r1 = vars.r2 = 0
 
   #for line in open(sam):
@@ -405,13 +506,12 @@ def template_counts(ref,sam,bcfile,vars):
       w = line.split('\t')
       code = samcode(w[1])
       if 'S' in w[5]: continue #elimate softclipped reads
-      if code[6]=="1": # previously checked for for reads1's via w[1]<128
-        vars.tot_tgtta += 1
-        if code[2]=="0": vars.r1 += 1
-      if code[7]=="1" and code[2]=="0": vars.r2 += 1
+      if code[6]=="1" and code[2]=="0": vars.r1 += 1
+      if code[7]=="1" and code[2]=="0": vars.r2 += 1  # [WM] [COMMENT] Won't add to r2 when the mate doesn't match
       # include "improperly mapped reads, which might just be short frags
       #if w[1]=="99" or w[1]=="83" or w[1]=="97" or w[1]=="81":
-      if code[6]=="1" and code[2]=="0" and code[3]=="0": # both reads mapped (proper or not)
+      # if code[6]=="1" and code[2]=="0" and code[3]=="0": # both reads mapped (proper or not) # [ORIGINAL]
+      if code[6]=="1" and (code[2]=="0" and bc!="XXXXXXXXXX"): # [WM] r1 maps AND r2 has a properly formed barcode
         vars.mapped += 1
         readlen = len(w[9])
         pos,size = int(w[3]),int(w[8]) # note: size could be negative
@@ -420,31 +520,30 @@ def template_counts(ref,sam,bcfile,vars):
 
         pos += delta
         #bc = barcodes[w[0]]
-        if pos not in hits: hits[pos] = []
-        hits[pos].append((strand,size,bc))
+        replicon_name = w[2]
+        if pos not in hits[replicon_name]: hits[replicon_name][pos] = []
+        hits[replicon_name][pos].append((strand,size,bc))
 
-  sites = []
-  for i in range(len(genome)-1):
-    #if genome[i:i+2].upper()=="TA":
-    if vars.transposon=="Himar1" and genome[i:i+2].upper()!="TA": continue
-    else:
-      pos = i+1
-      h = hits.get(pos,[])
-      f = filter(lambda x: x[0]=='F',h)
-      r = filter(lambda x: x[0]=='R',h)
-      h.sort()
-      unique = {}
-      for (strand,size,bc) in h:
-        #print strand,bc,size
-        s = "%s-%s-%s" % (strand,bc,size)
-        unique[s] = 1
-      u = unique.keys()
-      uf = filter(lambda x: x[0]=='F',u)
-      ur = filter(lambda x: x[0]=='R',u)
-      data = [pos,len(f),len(uf),len(r),len(ur),len(f)+len(r),len(uf)+len(ur)]
-      sites.append(data)
+  sites_list = []
+  for replicon_index in range(vars.num_replicons):
+    sites = []
+    genome = read_genome(ref, replicon_index)
+    for i in range(len(genome)-1):
+      #if genome[i:i+2].upper()=="TA":
+      if vars.transposon=="Himar1" and genome[i:i+2].upper()!="TA": continue
+      else:
+        pos = i+1
+        h = hits[replicon_names[replicon_index]].get(pos,[])
+        f = filter(lambda x: x[0]=='F',h)
+        r = filter(lambda x: x[0]=='R',h)
+        u = list(set(h))
+        uf = filter(lambda x: x[0]=='F',u)
+        ur = filter(lambda x: x[0]=='R',u)
+        data = [pos,len(f),len(uf),len(r),len(ur),len(f)+len(r),len(uf)+len(ur)]
+        sites.append(data)    
+    sites_list.append(sites)
 
-  return sites # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
+  return sites_list     # list of (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
 
 # pretend that all reads count as unique templates
 
@@ -460,16 +559,24 @@ def increase_counts(pos,sites, strand):
 
 
 def read_counts(ref,sam,vars):
-    genome = read_genome(ref)
-    sites = {}
-    for i in range(len(genome)-1):
-        #if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
-        if vars.transposon=='Himar1' and genome[i:i+2]!="TA": continue
-        pos = i+1
-        sites[pos] = [pos,0,0,0,0,0,0]
+    sites_dict = {}
+    sam_header = parse_sam_header(sam)
+    replicon_names = get_replicon_names_from_sam_header(sam_header)
+    
+    replicon_names_index = 0
+    for replicon_index in range(vars.num_replicons):
+        sites = {}
+        genome = read_genome(ref, replicon_index)
+        for i in range(len(genome)-1):
+            #if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
+            if vars.transposon=='Himar1' and genome[i:i+2]!="TA": continue
+            pos = i+1
+            sites[pos] = [pos,0,0,0,0,0,0]
+            sites_dict[replicon_names[replicon_names_index]] = sites
+            replicon_names_index += 1
 
-    hits = {}
-    vars.tot_tgtta,vars.mapped = 0,0
+    vars.tot_tgtta = 0
+    vars.mapped = 0
     vars.r1 = vars.r2 = 0
     for line in open(sam):
         if line[0]=='@': continue
@@ -482,55 +589,105 @@ def read_counts(ref,sam,vars):
                 vars.mapped += 1
                 readlen = len(w[9])
                 pos = int(w[3])
+                replicon_name = w[2]
+
                 if vars.protocol.lower() == "mme1":
                     strand,delta = 'F',readlen
                     if code[4]=="1": strand,delta = 'R',1
                     site1 = pos + delta - 2 #if on + strand, take column 3 position and add 1bp,
                     site2 = pos + delta - 1 #check one off just in case it enzyme chewed too much
-                    if site1 in sites:
-                        increase_counts(site1, sites, strand)
-                    if site2 in sites:
-                        increase_counts(site2, sites, strand)
+                    if site1 in sites_dict[replicon_name]:
+                        increase_counts(site1, sites_dict[replicon_name], strand)
+                    if site2 in sites_dict[replicon_name]:
+                        increase_counts(site2, sites_dict[replicon_name], strand)
                 else:
                     strand,delta = 'F',-2
                     if code[4]=="1": strand,delta = 'R',readlen
                     site1 = pos + delta #if on + strand, take column 3 position and add 1bp)
-                    if site1 in sites:
-                        increase_counts(site1, sites, strand)
+                    if site1 in sites_dict[replicon_name]:
+                        increase_counts(site1, sites_dict[replicon_name], strand)
 
-    results = []
-    for key in sorted(sites.keys()):
-        results.append(sites[key])
-    return results # (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
-
+    results_list = []
+    for replicon_name in sites_dict:
+        results = []
+        for key in sorted(sites_dict[replicon_name].keys()):
+            results.append(sites_dict[replicon_name][key])
+        results_list.append(results)
+    return results_list # list of (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
 
 
 def driver(vars):
+  # [RJ] These variables are for the extract_reads() step (no reference genome involved)
   vars.reads1 = vars.base+".reads1"
   vars.reads2 = vars.base+".reads2"
-  vars.trimmed1 = vars.base+".trimmed1"
+  vars.trimmed1 = vars.base+".trimmed1"         # Final fastq for read 1 is stored in this file
   vars.trimmed2 = vars.base+".trimmed2"
   vars.barcodes1 = vars.base+".barcodes1"
   vars.barcodes2 = vars.base+".barcodes2"
-  vars.genomic2 = vars.base+".genomic2"
-  vars.sai1 = vars.base+".sai1"
+  vars.genomic2 = vars.base+".genomic2"         # Final fastq for read 2 is stored in this file
+
+  # [RJ] These variables are for the run_bwa() step (reference genome involved)
+  vars.sai1 = vars.base+".sai1"                 # [RJ] SAI only used when using bwa_alg 'aln'
   vars.sai2 = vars.base+".sai2"
   vars.sam = vars.base+".sam"
-  vars.tc = vars.base+".counts"
-  vars.wig = vars.base+".wig"
+
+  # [RJ] These variables are for the generate_output() step
+  vars.tc = []
+  vars.wig = []
   vars.stats = vars.base+".tn_stats"
 
+  # [RJ] Handle multi-line fastas by making a multiline fasta out of all specified references
+  if len(vars.ref) > 1:
+    total_num_records = 0
+    fasta_names_combined = ""
+    contents_of_multiline_fasta = ""
+    # Create multi-line FASTA if more than one reference file is specified
+    for reference_genome in vars.ref:
+      fasta_names_combined += ("%s%s" % ("_", os.path.splitext(os.path.basename(reference_genome))[0])) 
+      with open(reference_genome, "r") as ref:
+        contents = ref.read()
+      if not contents.endswith('\n'):
+        contents += '\n'
+      contents_of_multiline_fasta += contents
+      num_records = contents.count('>')
+      total_num_records += num_records
+    fasta_names_combined = os.path.join(os.path.dirname(vars.ref[0]), fasta_names_combined[1:] + ".fa")    # Remove first _
+    with open(fasta_names_combined, "w") as multiline_fasta:
+      multiline_fasta.write(contents_of_multiline_fasta)
+    message("%d records from %s combined into single .fa file: %s" % (total_num_records, ", ".join(vars.ref), fasta_names_combined))
+    vars.ref = fasta_names_combined
+  else:
+    with open(vars.ref[0], "r") as ref:
+      contents = ref.read()
+    num_records = contents.count('>')
+    total_num_records = num_records
+    vars.ref = vars.ref[0]
+    message("One reference genome specified: %s, containing %d records." % (vars.ref, num_records))
+  vars.num_replicons = total_num_records
+
+  if vars.num_replicons != len(vars.replicon_id):
+    if vars.num_replicons is 1:
+      vars.replicon_id = ['']
+    else:
+      raise ValueError("%d replicons detected in reference genome, only %d replicon_id specified" % (vars.num_replicons, len(vars.replicon_id)))
+  
+  for name in vars.replicon_id:
+    ref_str = os.path.basename(vars.ref.split(".fasta")[0].split(".fa")[0])
+    vars.tc.append(vars.base+"_"+name+".counts")
+    vars.wig.append(vars.base+"_"+name+".wig")
+  
   if not vars.prefix:
     if vars.transposon=="Tn5": vars.prefix = "TAAGAGACAG"
-    elif vars.transposon=="Himar1": vars.prefix = "ACTTATCAGCCAACCTGTTA"
+    # elif vars.transposon=="Himar1": vars.prefix = "ACTTATCAGCCAACCTGTTA" # [ORIGINAL]
+    elif vars.transposon=="Himar1": vars.prefix = "TGTTA" # [WM]
     else: vars.prefix = ""
 
   try:
-     extract_reads(vars)
-
-     run_bwa(vars)
-
-     generate_output(vars)
+    extract_reads(vars)
+    
+    run_bwa(vars)
+    
+    generate_output(vars)
 
   except ValueError as err:
     message("")
@@ -540,7 +697,8 @@ def driver(vars):
 
   except IOError as err:
     message("")
-    message("%s" % " ".join(err.args))
+    #message("%s" % " ".join(err.args)                     # [ORIGINAL]
+    message("%s" % " ".join(str(v) for v in err.args))     # [RJ] Fixed to prevent erroring out on numeric arguments
     message("Make sure you have read/write access in the directories containing the necessary files.")
     message("Note: If TPP cannot find index files for the FASTA sequence (i.e. *.fna.bwt, *.fna.pac, *.fna.ann, *.fna.sa), it will attempt to create them.")
     message("Exiting.")
@@ -655,6 +813,8 @@ def extract_barcodes(fn_tgtta2,fn_barcodes2,fn_genomic2,mm1):
         gstart,gend = 0,20
         barcode,genomic = "XXXXXXXXXX","XXXXXXXXXX"
       else: barcode,genomic = line[bstart:bend],line[gstart:gend]
+      if len(genomic)==0:
+          genomic = "XXX" #Necessary to avoid a bizarre error with bwa when there is an empty line.
       if DEBUG==1:
         fl_barcodes2.write(header+"\n")
         fl_barcodes2.write(line+"\n")
@@ -683,6 +843,7 @@ def bwa_subprocess(command, outfile):
         commandstr += " > %s" % outfile.name
     message(commandstr)
     process = subprocess.Popen(command, stdout=outfile, stderr=subprocess.PIPE)
+    process.wait()
     for line in iter(process.stderr.readline, ''):
         if "Permission denied" in line:
             raise IOError("Error: BWA encountered a permissions error: \n\n%s" % line)
@@ -692,41 +853,55 @@ def bwa_subprocess(command, outfile):
 
 
 
-
 def run_bwa(vars):
     message("mapping reads using BWA...(this takes a couple of minutes)")
 
+    # Create index if it doesn't already exist (.amb file is created)
     if not os.path.exists(vars.ref+".amb"):
       cmd = [vars.bwa, "index", vars.ref]
       bwa_subprocess(cmd, sys.stdout)
-
-
-    cmd = [vars.bwa, "aln"]
+    
+    
+    cmd = [vars.bwa, vars.bwa_alg]
     if vars.flags.strip():
-        cmd.extend( vars.flags.split(" "))
+        cmd.extend(vars.flags.split(" "))
     cmd.extend([vars.ref, vars.trimmed1])
-    outfile = open(vars.sai1, "w")
-    bwa_subprocess(cmd, outfile)
+    
 
-
-    if vars.single_end==True:
-        cmd = [vars.bwa, "samse", vars.ref, vars.sai1, vars.trimmed1]
+    if vars.bwa_alg == "mem":
+        if vars.single_end == False:
+            cmd.extend([vars.genomic2])
         outfile = open(vars.sam, "w")
         bwa_subprocess(cmd, outfile)
+        outfile.close()
 
+    elif vars.bwa_alg == "aln":
+        outfile = open(vars.sai1, "w")
+        bwa_subprocess(cmd, outfile)
+        outfile.close()
+
+        if vars.single_end==True:
+            cmd = [vars.bwa, "samse", vars.ref, vars.sai1, vars.trimmed1]
+            outfile = open(vars.sam, "w")
+            bwa_subprocess(cmd, outfile)
+            outfile.close()
+
+        else:
+            cmd = [vars.bwa, vars.bwa_alg]
+            if vars.flags.strip():
+                cmd.extend(vars.flags.split(" "))
+            
+            cmd.extend([vars.ref, vars.genomic2])
+            outfile = open(vars.sai2, "w")
+            bwa_subprocess(cmd, outfile)
+            outfile.close()
+            
+            cmd = [vars.bwa, "sampe", vars.ref, vars.sai1, vars.sai2, vars.trimmed1, vars.genomic2]
+            outfile = open(vars.sam, "w")
+            bwa_subprocess(cmd, outfile)
+            outfile.close()
     else:
-
-        cmd = [vars.bwa, "aln"]
-        if vars.flags.strip():
-            cmd.extend(vars.flags.split(" "))
-        cmd.extend([vars.ref, vars.genomic2])
-        outfile = open(vars.sai2, "w")
-        bwa_subprocess(cmd, outfile)
-
-        cmd = [vars.bwa, "sampe", vars.ref, vars.sai1, vars.sai2, vars.trimmed1, vars.genomic2]
-        outfile = open(vars.sam, "w")
-        bwa_subprocess(cmd, outfile)
-
+        raise ValueError("Error: Invalid BWA algorithm '%s' specified, acceptable algorithms are 'aln' and 'mem'" % vars.bwa_alg)
 
 
 def stats(vals):
@@ -784,8 +959,8 @@ def popularity(lst):
   data = [(y,x) for (x,y) in data]
   return data
 
-
-def create_barseq_catalog(vars):
+#TODO: fix this...?
+def create_barseq_catalog(vars, replicon_index):
   barcodes = {} # headers->barcodes
   for line in open(vars.base+".barseq"):
     if line[0]=='>': 
@@ -811,7 +986,7 @@ def create_barseq_catalog(vars):
 
   mapsto = {} # barcodes->sites
   totbc,maptoTAs = 0,0
-  genome = read_genome(vars.ref)
+  genome = read_genome(vars.ref, replicon_index)
   for site,bclist in sites.items():
     for bc in bclist:
       if bc not in mapsto: mapsto[bc] = []
@@ -830,7 +1005,7 @@ def create_barseq_catalog(vars):
     if len(pop)==1: goodbc[bc] = 1
   #for x in sorted(sites.items()): print x[0],genome[x[0]-1:x[0]+1],popularity(x[1])
 
-  file = open(vars.barseq_catalog_out,"w")  
+  file = open(vars.barseq_catalog_out[replicon_index],"w")  
   file.write("# Barseq (stats are at the bottom): reads = %s, ref = %s\n" % (vars.fq1,vars.ref))
   n = len(genome)
   a,b = 0,0
@@ -852,36 +1027,78 @@ def create_barseq_catalog(vars):
 
 def generate_output(vars):
   if vars.barseq_catalog_out!=None: 
-    message("creating Barseq catalog file: "+vars.barseq_catalog_out)
+    message("creating Barseq catalog file: "+vars.barseq_catalog_out) # [RJ] TODO: This should be indexed by replicon_index too... maybe
     create_barseq_catalog(vars)
+  
+  rcounts,tcounts,rc,tc,ratio,ta_sites,tas_hit,density,max_tc,max_coord,NZmean,FR_corr,BC_corr = [],[],[],[],[],[],[],[],[],[],[],[],[]
 
-  message("tabulating template counts and statistics...")
+  message("tabulating template counts and statistics for reference genome %s" % vars.ref)
+  # message("tabulating template counts and statistics...")
   if vars.single_end==True: counts = read_counts(vars.ref,vars.sam,vars) # return read counts copied as template counts
   else: counts = template_counts(vars.ref,vars.sam,vars.barcodes1,vars)
-  tcfile = open(vars.tc,"w")
-  tcfile.write('\t'.join("coord Fwd_Rd_Ct Fwd_Templ_Ct Rev_Rd_Ct Rev_Templ_Ct Tot_Rd_Ct Tot_Templ_Ct".split())+"\n")
-  for data in counts: tcfile.write('\t'.join([str(x) for x in data])+"\n")
-  tcfile.close()
+  for replicon_index in range(vars.num_replicons):
+    tcfile = open(vars.tc[replicon_index],"w")
+    tcfile.write('\t'.join("coord Fwd_Rd_Ct Fwd_Templ_Ct Rev_Rd_Ct Rev_Templ_Ct Tot_Rd_Ct Tot_Templ_Ct".split())+"\n")
+    for data in counts[replicon_index]: tcfile.write('\t'.join([str(x) for x in data])+"\n")
+    tcfile.close()
 
-  if vars.mapped == 0:
-    raise ValueError('Error: BWA was unable to map any reads to the genome.')
+    if vars.mapped == 0:
+      raise ValueError('Error: BWA was unable to map any reads to the genome.')
 
-  message("writing %s" % vars.wig)
-  output = open(vars.wig,"w")
+    message("writing %s" % vars.wig[replicon_index])
+    output = open(vars.wig[replicon_index],"w")
 
-  read1 = os.path.basename(vars.fq1)
-  read2 = os.path.basename(vars.fq2)
-  fi = re.split(r'\.', os.path.basename(vars.ref))[0]
-  output.write("# Generated by tpp from " + read1 + " and " + read2 + "\n")
-  output.write("variableStep chrom="+ fi + "\n")
-  for data in counts: output.write("%s %s\n" % (data[0],data[-1]))
-  output.close()
+    read1 = os.path.basename(vars.fq1)
+    read2 = os.path.basename(vars.fq2)
+    fi = re.split(r'\.', os.path.basename(vars.ref))[0]
+    output.write("# Generated by tpp from " + read1 + " and " + read2 + "\n")
+    output.write("variableStep chrom="+ fi)
+    if vars.num_replicons > 1:
+      output.write(", replicon=%d" % replicon_index)
+    output.write("\n")
+    for data in counts[replicon_index]: output.write("%s %s\n" % (data[0],data[-1]))    # This is where the wig is actually written
+    output.close()
+
+    cur_rcounts = [x[5] for x in counts[replicon_index]]
+    cur_tcounts = [x[6] for x in counts[replicon_index]]
+    cur_rc = sum(cur_rcounts)
+    cur_tc = sum(cur_tcounts)
+    cur_ratio = cur_rc/float(cur_tc) if (cur_rc != 0 and cur_tc !=0) else 0
+    cur_ta_sites = len(cur_rcounts)
+    cur_tas_hit = len(filter(lambda x: x>0,cur_rcounts))
+    cur_density = cur_tas_hit/float(cur_ta_sites)
+    counts[replicon_index].sort(key=lambda x: x[-1])
+    cur_max_tc = counts[replicon_index][-1][6]
+    cur_max_coord = counts[replicon_index][-1][0]
+    cur_NZmean = cur_tc/float(cur_tas_hit)
+
+    try:
+      cur_FR_corr = corr([x[1] for x in counts[replicon_index]],[x[3] for x in counts[replicon_index]])
+    except ValueError:
+      cur_FR_corr = float("nan")
+    try:
+      cur_BC_corr = corr([x for x in cur_rcounts if x!=0],[x for x in cur_tcounts if x!=0])
+    except ValueError:
+      cur_BC_corr = float("nan")
+    
+    rcounts.append(cur_rcounts)
+    tcounts.append(cur_tcounts)
+    rc.append(cur_rc)
+    tc.append(cur_tc)
+    ratio.append(cur_ratio)
+    ta_sites.append(cur_ta_sites)
+    tas_hit.append(cur_tas_hit)
+    density.append(cur_density)
+    max_tc.append(cur_max_tc)
+    max_coord.append(cur_max_coord)
+    NZmean.append(cur_NZmean)
+    FR_corr.append(cur_FR_corr)
+    BC_corr.append(cur_BC_corr)
 
   primer = "CTAGAGGGCCCAATTCGCCCTATAGTGAGT"
   vector = "CTAGACCGTCCAGTCTGGCAGGCCGGAAAC"
   adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
   Himar1 = "ACTTATCAGCCAACCTGTTA"
-
   tot_reads,nprimer,nvector,nadapter,misprimed = 0,0,0,0,0
   for line in open(vars.reads1):
     if line[0]=='>': tot_reads += 1; continue
@@ -889,31 +1106,6 @@ def generate_output(vars):
     if vector in line: nvector += 1
     if adapter in line: nadapter += 1
     if Himar1[:-5] in line and Himar1 not in line: misprimed += 1
-
-
-
-
-  rcounts = [x[5] for x in counts]
-  tcounts = [x[6] for x in counts]
-  rc,tc = sum(rcounts),sum(tcounts)
-  ratio = rc/float(tc) if (rc != 0 and tc !=0) else 0
-  ta_sites = len(rcounts)
-  tas_hit = len(filter(lambda x: x>0,rcounts))
-  density = tas_hit/float(ta_sites)
-  counts.sort(key=lambda x: x[-1])
-  max_tc = counts[-1][6]
-  max_coord = counts[-1][0]
-  NZmean = tc/float(tas_hit)
-
-  try:
-    FR_corr = corr([x[1] for x in counts],[x[3] for x in counts])
-  except ValueError:
-    FR_corr = float("nan")
-  try:
-    BC_corr = corr([x for x in rcounts if x!=0],[x for x in tcounts if x!=0])
-  except ValueError:
-    BC_corr = float("nan")
-
 
   read_length = get_read_length(vars.base + ".reads1")
   mean_r1_genomic = get_genomic_portion(vars.base + ".trimmed1")
@@ -932,23 +1124,47 @@ def generate_output(vars):
   output.write('# read1: %s\n' % vars.fq1)
   output.write('# read2: %s\n' % vars.fq2)
   output.write('# ref_genome: %s\n' % vars.ref)
+  output.write('# replicon_ids: %s\n' % ','.join(vars.replicon_id))
   output.write("# total_reads %s (or read pairs)\n" % tot_reads)
   #output.write("# truncated_reads %s (fragments shorter than the read length; ADAP2 appears in read1)\n" % vars.truncated_reads)
   output.write("# trimmed_reads %s (reads with valid Tn prefix, and insert size>20bp)\n" % vars.tot_tgtta)
   output.write("# reads1_mapped %s\n" % vars.r1)
   output.write("# reads2_mapped %s\n" % vars.r2)
-  output.write("# mapped_reads %s (both R1 and R2 map into genome)\n" % vars.mapped)
-  output.write("# read_count %s (TA sites only, for Himar1)\n" % rc)
-  output.write("# template_count %s\n" % tc)
-  output.write("# template_ratio %0.2f (reads per template)\n" % ratio)
-  output.write("# TA_sites %s\n" % ta_sites)
-  output.write("# TAs_hit %s\n" % tas_hit)
-  output.write("# density %0.3f\n" % density)
-  output.write("# max_count %s (among templates)\n" % max_tc)
-  output.write("# max_site %s (coordinate)\n" % max_coord)
-  output.write("# NZ_mean %0.1f (among templates)\n" % NZmean)
-  output.write("# FR_corr %0.3f (Fwd templates vs. Rev templates)\n" % FR_corr)
-  output.write("# BC_corr %0.3f (reads vs. templates, summed over both strands)\n" % BC_corr)
+  # output.write("# mapped_reads %s (both R1 and R2 map into genome)\n" % vars.mapped) # [ORIGINAL]
+  output.write("# mapped_reads %s (R1 maps to genome and R2 has proper barcode)\n" % vars.mapped) # [WM]
+  output.write("# read_count (TA sites only, for Himar1):\n")
+  for replicon_id,read_count in zip(vars.replicon_id, rc):
+    output.write("#   %s: %s\n" % (replicon_id, read_count))
+  output.write("# template_count:\n")
+  for replicon_id,template_count in zip(vars.replicon_id, tc):
+    output.write("#   %s: %s\n" % (replicon_id, template_count))
+  output.write("# template_ratio (reads per template):\n")
+  for replicon_id,template_ratio in zip(vars.replicon_id, ratio):
+    output.write("#   %s: %0.2f\n" % (replicon_id, template_ratio))
+  output.write("# TA_sites:\n")
+  for replicon_id,num_ta_sites in zip(vars.replicon_id, ta_sites):
+    output.write("#   %s: %s\n" % (replicon_id, num_ta_sites))
+  output.write("# TAs_hit:\n")
+  for replicon_id,num_tas_hit in zip(vars.replicon_id, tas_hit):
+    output.write("#   %s: %s\n" % (replicon_id, num_tas_hit))
+  output.write("# density:\n")
+  for replicon_id,dens in zip(vars.replicon_id, density):
+    output.write("#   %s: %0.3f\n" % (replicon_id, dens))
+  output.write("# max_count (among templates):\n")
+  for replicon_id,max_template_counts in zip(vars.replicon_id, max_tc):
+    output.write("#   %s: %s\n" % (replicon_id, max_template_counts))
+  output.write("# max_site (coordinate):\n")
+  for replicon_id,max_site in zip(vars.replicon_id, max_coord):
+    output.write("#   %s: %s\n" % (replicon_id, max_site))
+  output.write("# NZ_mean (among templates):\n")
+  for replicon_id,nzmean in zip(vars.replicon_id, NZmean):
+    output.write("#   %s: %0.1f\n" % (replicon_id, nzmean))
+  output.write("# FR_corr (Fwd templates vs. Rev templates):\n")
+  for replicon_id,frcorr in zip(vars.replicon_id, FR_corr):
+    output.write("#   %s: %0.3f\n" % (replicon_id, frcorr))
+  output.write("# BC_corr (reads vs. templates, summed over both strands):\n")
+  for replicon_id,bccorr in zip(vars.replicon_id, BC_corr):
+    output.write("#   %s: %0.3f\n" % (replicon_id, bccorr))
   output.write("# primer_matches: %s reads (%0.1f%%) contain %s (Himar1)\n" % (nprimer,nprimer*100/float(tot_reads),primer))
   output.write("# vector_matches: %s reads (%0.1f%%) contain %s (phiMycoMarT7)\n" % (nvector,nvector*100/float(tot_reads),vector))
   output.write("# adapter_matches: %s reads (%0.1f%%) contain %s (Illumina/TruSeq index)\n" % (nadapter,nadapter*100/float(tot_reads),adapter))
@@ -964,7 +1180,7 @@ def generate_output(vars):
   output.close()
 
   message("writing %s" % vars.stats)
-  #os.system("grep '#' %s" % vars.stats)
+  #os.system("grep '#' %s" % vars.stats[replicon_index])
   infile = open(vars.stats)
   for line in infile:
       if '#' in line:
@@ -1042,7 +1258,11 @@ def verify_inputs(vars):
     vars.single_end = False
     if vars.fq2=="": vars.single_end = True
     elif not os.path.exists(vars.fq2): error("reads2 file not found: "+vars.fq2)
-    if not os.path.exists(vars.ref): error("reference file not found: "+vars.ref)
+    
+    if not vars.ref.__class__.__name__ == "list":
+        vars.ref = [vars.ref]
+    for ref_genome in vars.ref:
+        if not os.path.exists(ref_genome): error("reference file not found: "+ref_genome)
     if vars.base == '': error("prefix cannot be empty")
     if vars.fq1 == vars.fq2: error('fastq files cannot be identical')
     if vars.barseq_catalog_in!=None and vars.barseq_catalog_out!=None: error('barseq catalog input and output files cannot both be defined at the same time')
@@ -1068,13 +1288,16 @@ def verify_inputs(vars):
         error('cannot find BWA executable. Please include the full executable name as well as its directory.')
 
 def initialize_globals(vars, args=[], kwargs={}):
-    vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.base,vars.maxreads = "","","","","temp",-1
-    vars.mm1 = 1 # mismatches allowed in Tn prefix
+    vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.bwa_alg,vars.replicon_id,vars.base,vars.maxreads = "","","","","","","temp",-1
+    vars.mm1 = 1 # [COMMENT] [ORIGINAL] mismatches allowed in Tn prefix # [WM] mismatches allowed in Tn prefix AND adapter prefix on read2
     vars.transposon = 'Himar1'
     vars.protocol = "Sassetti"
-    vars.prefix = "ACTTATCAGCCAACCTGTTA"
+    # vars.prefix = "ACTTATCAGCCAACCTGTTA"        # [ORIGINAL]
+    vars.prefix = "AACCTGTTA"                     # [WM]
     vars.flags = ""
     vars.barseq_catalog_in = vars.barseq_catalog_out = None
+    vars.window_size = 6
+    vars.bwa_alg = "aln"
     
     # Update defaults
     protocol = kwargs.get("protocol", "").lower()
@@ -1114,8 +1337,22 @@ def initialize_globals(vars, args=[], kwargs={}):
         vars.barseq_catalog_out = kwargs["barseq_catalog_out"]
     if "flags" in kwargs:
         vars.flags = kwargs["flags"]
-    # note: if last flag expected an arg but was end of list, it gets value True ; check for this and report as missing # TRU, 10/28/17
 
+    if "window-size" in kwargs:                             # [RJ] Adding support for window-size, which is the tolerance of positions for the Tn prefix
+        vars.window_size = int(kwargs["window-size"])
+        if vars.window_size < 6:
+            raise ValueError("Error: window-size cannot be less than 6")
+
+    if "bwa-alg" in kwargs:
+        if kwargs["bwa-alg"] not in [ "mem", "aln" ]:
+            raise ValueError("Error: bwa-alg can only be 'mem' or 'aln'")
+        else:
+            vars.bwa_alg = kwargs["bwa-alg"]
+   
+    if "replicon-id" in kwargs:
+        vars.replicon_id = kwargs["replicon-id"]
+
+    # note: if last flag expected an arg but was end of list, it gets value True ; check for this and report as missing # TRU, 10/28/17
 
 def read_config(vars):
   if not os.path.exists("tpp.cfg"): return
@@ -1123,7 +1360,8 @@ def read_config(vars):
     w = line.split()
     if len(w)>=2 and w[0]=='reads1': vars.fq1 = w[1]
     if len(w)>=2 and w[0]=='reads2': vars.fq2 = w[1]
-    if len(w)>=2 and w[0]=='ref': vars.ref = w[1]
+    if len(w)>=2 and w[0]=='ref': vars.ref = ' '.join(w[1:])
+    if len(w)>=2 and w[0]=='ids': vars.replicon_id = ' '.join(w[1:])
     if len(w)>=2 and w[0]=='bwa': vars.bwa = w[1]
     if len(w)>=2 and w[0]=='prefix': vars.base = w[1]
     if len(w)>=2 and w[0]=='mismatches1': vars.mm1 = int(w[1])
@@ -1139,7 +1377,8 @@ def save_config(vars):
   f = open("tpp.cfg","w")
   f.write("reads1 %s\n" % vars.fq1)
   f.write("reads2 %s\n" % vars.fq2)
-  f.write("ref %s\n" % vars.ref)
+  f.write("ref %s\n" % ' '.join(vars.ref))
+  f.write("ids %s\n" % ' '.join(vars.replicon_id))
   f.write("bwa %s\n" % vars.bwa)
   f.write("prefix %s\n" % vars.base)
   f.write("mismatches1 %s\n" % vars.mm1)

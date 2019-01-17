@@ -105,6 +105,16 @@ if hasWx:
             sizer3.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer3,0,wx.EXPAND,0)
        
+            # REPLICON ID NAMES
+            sizer_replicon_id = wx.BoxSizer(wx.HORIZONTAL)
+            label_replicon_id = wx.StaticText(panel, label='ID names for each replicon in reference genome:',size=(340,-1))
+            sizer_replicon_id.Add(label_replicon_id,0,wx.ALIGN_CENTER_VERTICAL,0)
+            self.replicon_id = wx.TextCtrl(panel,value=vars.replicon_id,size=(400,30))
+            sizer_replicon_id.Add(self.replicon_id, proportion=1.0, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer_replicon_id.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Specify names of each contig within the reference genome separated by spaces (if using wig_gb_to_csv.py you must use the contig names in the Genbank file)"), flag=wx.CENTER, border=0)
+            sizer_replicon_id.Add((10, 1), 0, wx.EXPAND) 
+            sizer.Add(sizer_replicon_id,0,wx.EXPAND,0)
+ 
             # READS 1  
             sizer1 = wx.BoxSizer(wx.HORIZONTAL)
             label1 = wx.StaticText(panel, label='Choose the Fastq file for read 1:',size=(330,-1))
@@ -202,10 +212,24 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer7.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer7,0,wx.EXPAND,0)    
 
+            # WINDOW SIZE                                 # [RJ] This block is to add the acceptance of a set window size for setting P,Q parameters
+            sizer_window_size = wx.BoxSizer(wx.HORIZONTAL)
+            label_window_size = wx.StaticText(panel, label='Window size for Tn prefix in read:', size=(340,-1))
+            sizer_window_size.Add(label_window_size,0,wx.ALIGN_CENTER_VERTICAL,0)
+            self.window_size = wx.TextCtrl(panel,value=str(vars.window_size),size=(150,30))
+            sizer_window_size.Add(self.window_size, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer_window_size.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Window size for extract_staggered() to look for start of Tn prefix."), flag=wx.CENTER, border=0)
+            sizer_window_size.Add((10, 1), 0, wx.EXPAND)
+            sizer.Add(sizer_window_size,0,wx.EXPAND,0)  
+
             # BWA
             sizer0 = wx.BoxSizer(wx.HORIZONTAL)
             label0 = wx.StaticText(panel, label='BWA executable:',size=(330,-1))
             sizer0.Add(label0,0,wx.ALIGN_CENTER_VERTICAL,0)
+
+            self.bwa_alg = wx.ComboBox(panel,choices=["use algorithm 'aln'", "use algorithm 'mem'"],size=(200,30))
+            self.bwa_alg.SetSelection(0)
+            sizer0.Add(self.bwa_alg, proportion=0.5, flag=wx.EXPAND|wx.ALL, border=5) ## 
 
             self.picker0 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id = wx.ID_ANY, size=(400,30), dialogTitle='Path to BWA', fileMode=wx.FD_OPEN, fileMask='bwa*', startDirectory=os.path.dirname(vars.bwa), initialValue=vars.bwa, labelText='')
 
@@ -214,6 +238,8 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer0.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Specify a path to the BWA executable (including the executable)."), flag=wx.CENTER, border=0)
             sizer0.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer0,0,wx.EXPAND,0)
+
+            self.bwa_alg.Bind(wx.EVT_COMBOBOX, self.OnBwaAlgSelection, id=self.bwa_alg.GetId())
 
             # BWA FLAGS
             sizer8 = wx.BoxSizer(wx.HORIZONTAL)
@@ -250,7 +276,15 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer.Add(sizer9,0,wx.EXPAND,0)
 
 
-
+#
+        
+        def OnBwaAlgSelection(self, event):
+            if 'aln' in self.bwa_alg.GetValue():
+                self.vars.bwa_alg = "aln"
+            elif 'mem' in self.bwa_alg.GetValue():
+                self.vars.bwa_alg = "mem"
+            else:
+                self.vars.bwa_alg = "[Custom]"
 
 #
         
@@ -430,6 +464,13 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             self.vars.base = base  
             self.vars.mm1 = mm1
             self.vars.prefix = prefix
+
+            self.vars.window_size = int(self.window_size.GetValue())
+            if 'aln' in self.bwa_alg.GetValue():
+                self.vars.bwa_alg = 'aln'
+            elif 'mem' in self.bwa_alg.GetValue():
+                self.vars.bwa_alg = 'mem'
+            self.vars.replicon_id = self.replicon_id.GetValue().split()
         
             if maxreads == '': self.vars.maxreads = -1
             else: self.vars.maxreads = int(maxreads)
