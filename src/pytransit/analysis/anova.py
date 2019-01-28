@@ -249,7 +249,7 @@ class AnovaMethod(base.MultiConditionMethod):
             Rv = gene["rv"]
             if Rv in MeansByRv:
               vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
-                      ["%0.1f" % MeansByRv[Rv][c] for c in conditionsList] +
+                      ["%0.2f" % MeansByRv[Rv][c] for c in conditionsList] +
                       ["%f" % x for x in [pvals[Rv], qvals[Rv]]] + [run_status[Rv]])
               file.write('\t'.join(vals)+EOL)
         file.close()

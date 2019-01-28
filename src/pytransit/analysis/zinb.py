@@ -387,9 +387,9 @@ class ZinbMethod(base.MultiConditionMethod):
         for gene in genes:
             Rv = gene["rv"]
             vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
-                    ["%0.1f" % MeansByRv[Rv][c] for c in conditionsList] +
-                    ["%0.1f" % NzMeansByRv[Rv][c] for c in conditionsList] +
-                    ["%0.1f" % NzPercByRv[Rv][c] for c in conditionsList] +
+                    ["%0.2f" % MeansByRv[Rv][c] for c in conditionsList] +
+                    ["%0.2f" % NzMeansByRv[Rv][c] for c in conditionsList] +
+                    ["%0.2f" % NzPercByRv[Rv][c] for c in conditionsList] +
                     ["%f" % x for x in [pvals[Rv], qvals[Rv]]]) + [run_status[Rv]]
             file.write('\t'.join(vals)+EOL)
         file.close()
