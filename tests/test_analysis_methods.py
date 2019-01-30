@@ -92,16 +92,16 @@ class TestMethods(TransitTestCase):
         G = AnovaMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
-        (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-2, qcol=-1))
+        (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-3, qcol=-2))
         sig_qvals.sort()
         self.assertEqual(
             len(sig_pvals),
-            197,
-            "sig_pvals expected: %d, actual: %d" % (197, len(sig_pvals)))
+            196,
+            "sig_pvals expected: %d, actual: %d" % (196, len(sig_pvals)))
         self.assertEqual(
             len(sig_qvals),
-            44,
-            "sig_qvals expected: %d, actual: %d" % (44, len(sig_qvals)))
+            36,
+            "sig_qvals expected: %d, actual: %d" % (36, len(sig_qvals)))
 
     #def test_resampling_histogram(self):
     #    args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000", "-h"]
