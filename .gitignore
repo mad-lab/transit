@@ -1,6 +1,6 @@
-# Mac
-.env
+# # Mac
 .DS_STORE
+.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -14,18 +14,21 @@ except ImportError:
     noNorm = True
     warnings.warn("Problem importing the norm_tools.py module. Read-counts will not be normalized. Some functions may not work.")
 
-def rv_siteindexes_map(genes, TASiteindexMap):
+def rv_siteindexes_map(genes, TASiteindexMap, nterm=0.0, cterm=0.0):
     """
     ([Gene], {TAsite: Siteindex}) -> {Rv: Siteindex}
     """
     RvSiteindexesMap = {}
     for g, gene in enumerate(genes):
         siteindexes = []
-        ## TODO :: Is this needed?
         start = gene["start"] if gene["strand"] == "+" else gene["start"] + 3
         end = gene["end"] - 3 if gene["strand"] == "+" else gene["end"]
         for i in range(start, end + 1):
             co = i
+            if (co - start)/float(end-start) < (nterm/100.0):
+                continue
+            if (co - start)/float(end-start) > ((100 - cterm)/100.0):
+                continue
             if co in TASiteindexMap: siteindexes.append(TASiteindexMap[co])
         RvSiteindexesMap[gene["rv"]] = siteindexes
     return RvSiteindexesMap

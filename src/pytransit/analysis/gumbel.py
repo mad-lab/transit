@@ -477,8 +477,8 @@ class GumbelMethod(base.SingleConditionMethod):
         -m <integer>    :=  Smallest read-count to consider. Default: -m 1
         -t <integer>    :=  Trims all but every t-th value. Default: -t 1
         -r <string>     :=  How to handle replicates. Sum or Mean. Default: -r Sum
-        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 0.0
+        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 0.0
         """ % (sys.argv[0])
 
     def good_orf(self, gene):

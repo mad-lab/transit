@@ -435,8 +435,8 @@ class HMMMethod(base.SingleConditionMethod):
             -r <string>     :=  How to handle replicates. Sum, Mean. Default: -r Mean
             -n <string>     :=  Normalization method. Default: -n TTR
             -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Off.
-            -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-            -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+            -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 0.0
+            -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 0.0
         """ % (sys.argv[0])
 
 
@@ -560,7 +560,7 @@ class HMMMethod(base.SingleConditionMethod):
         output = open(output_path, "w")
         pos2state = dict([(position[t],states[t]) for t in range(len(states))])
         theta = numpy.mean(data > 0)
-        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, data=data, position=position, ignoreCodon=False)
+        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, data=data, position=position, ignoreCodon=False, nterm=self.NTerminus, cterm=self.CTerminus)
 
         num2label = {0:"ES", 1:"GD", 2:"NE", 3:"GA"}
         output.write("#HMM - Genes\n")        

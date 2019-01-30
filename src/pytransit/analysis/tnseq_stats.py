@@ -122,7 +122,7 @@ class TnseqStatsMethod(base.SingleConditionMethod):
         for i in range(data.shape[0]):
           density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis = tnseq_tools.get_data_stats(data[i,:])
           nzmedianrd = int(nzmedianrd) if numpy.isnan(nzmedianrd)==False else 0
-          vals = [datasets[i], "%0.2f" % density, "%0.1f" % meanrd, "%0.1f" % nzmeanrd, "%d" % nzmedianrd, maxrd, int(totalrd), "%0.1f" % skew, "%0.1f" % kurtosis]
+          vals = [datasets[i], "%0.3f" % density, "%0.1f" % meanrd, "%0.1f" % nzmeanrd, "%d" % nzmedianrd, maxrd, int(totalrd), "%0.1f" % skew, "%0.1f" % kurtosis]
           file.write('\t'.join([str(x) for x in vals])+'\n')
         if self.outfile!=None: file.close()
 

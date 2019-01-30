@@ -219,6 +219,7 @@ class ResamplingMethod(base.DualConditionMethod):
 
         base.DualConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
+        self.Z = False
         self.samples = samples
         self.adaptive = adaptive
         self.doHistogram = doHistogram
@@ -316,7 +317,6 @@ class ResamplingMethod(base.DualConditionMethod):
         includeZeros = not excludeZeros
         pseudocount = float(kwargs.get("pc", 0.00))
 
-        self.Z = False
         if "Z" in kwargs: self.Z = True    
         
         LOESS = kwargs.get("l", False)
@@ -526,8 +526,8 @@ class ResamplingMethod(base.DualConditionMethod):
         -pc             :=  Pseudocounts to be added at each site.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias.
                             Default: Turned Off.
-        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 0.0
+        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 0.0
         --ctrl_lib      :=  String of letters representing library of control files in order
                             e.g. 'AABB'. Default empty. Letters used must also be used in --exp_lib
                             If non-empty, resampling will limit permutations to within-libraries.

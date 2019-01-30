@@ -96,10 +96,10 @@ class TestMethods(TransitTestCase):
         self.assertTrue(os.path.exists(output))
         (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-3, qcol=-2))
         sig_qvals.sort()
-        # self.assertEqual(
-        #     len(sig_pvals),
-        #     196,
-        #     "sig_pvals expected: %d, actual: %d" % (196, len(sig_pvals)))
+        self.assertEqual(
+            len(sig_pvals),
+            196,
+            "sig_pvals expected: %d, actual: %d" % (196, len(sig_pvals)))
         self.assertEqual(
             len(sig_qvals),
             36,

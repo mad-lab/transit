@@ -85,7 +85,7 @@ class TrashFrame(view_trash.MainFrame):
 
         self.orf2data = transit_tools.get_gene_info(annotation)
         self.hash = transit_tools.get_pos_hash(annotation)
-        
+
         self.features = []
 
         #Data to facilitate search
@@ -96,7 +96,7 @@ class TrashFrame(view_trash.MainFrame):
             self.name2id[name].append(orf)
 
         self.lowerid2id = dict([(x.lower(), x) for x in self.orf2data.keys()])
-        self.labels = [fetch_name(d) for d in dataset_list]
+        self.labels = [fetch_name(d) for d in dataset_list] + ["All"]
         (self.fulldata, self.position) = tnseq_tools.get_data(dataset_list)
 
         #Save normalized data
@@ -113,17 +113,18 @@ class TrashFrame(view_trash.MainFrame):
         self.scale = scale
         self.globalScale = False
 
-   
+
 
         self.datasetChoice.SetItems(self.labels)
         self.datasetChoice.SetSelection(0)
- 
+
         if gene:
             self.searchText.SetValue(gene)
             self.searchFunc(gene)
 
         self.updateFunc(parent)
         self.Fit()
+        self.datasetChoice.SetSelection(len(self.labels) - 1)
 
 
     def track_message(self, text, time=3000):
@@ -131,7 +132,7 @@ class TrashFrame(view_trash.MainFrame):
         self.statusBar.SetStatusText(text)
         if time > 0:
             self.timer.Start(time)
- 
+
     def updateFunc(self,event):
         try:
             self.DrawCanvas()
@@ -150,12 +151,12 @@ class TrashFrame(view_trash.MainFrame):
         delta = end-start
         new_start = int(start - delta*0.10)
         new_end = int(end - delta*0.10)
-        
+
         self.startText.SetValue(str(new_start))
         self.endText.SetValue(str(new_end))
         self.end = new_end
         self.start = new_start
-        self.updateFunc(event) 
+        self.updateFunc(event)
 
 
     def rightFunc(self, event):
@@ -171,7 +172,7 @@ class TrashFrame(view_trash.MainFrame):
         self.endText.SetValue(str(new_end))
         self.updateFunc(event)
 
-    
+
     def zoomInFunc(self, event):
         start = int(self.startText.GetValue())
         end = int(self.endText.GetValue())
@@ -182,7 +183,7 @@ class TrashFrame(view_trash.MainFrame):
         self.startText.SetValue(str(new_start))
         self.endText.SetValue(str(new_end))
         self.end = new_end
-        self.start = new_start        
+        self.start = new_start
         self.updateFunc(event)
 
 
@@ -197,14 +198,19 @@ class TrashFrame(view_trash.MainFrame):
         self.endText.SetValue(str(new_end))
         self.end = new_end
         self.start = new_start
-        self.updateFunc(event)    
+        self.updateFunc(event)
 
     def changedMaxFunc(self, event):
         start = int(self.startText.GetValue())
         if self.maxText.GetValue() and self.maxText.GetValue() != "-":
             dataset_ii = self.datasetChoice.GetCurrentSelection()
-            self.scale[dataset_ii] = int(self.maxText.GetValue())
-            self.track_message("Dataset '%s' scaled to %s" % (self.datasetChoice.GetString(dataset_ii), self.scale[dataset_ii]))
+            if dataset_ii == (len(self.labels) - 1):
+                maxVal = int(self.maxText.GetValue())
+                self.scale = [maxVal for _ in self.scale]
+                self.track_message("All Datasets scaled to %s" % (maxVal))
+            else:
+                self.scale[dataset_ii] = int(self.maxText.GetValue())
+                self.track_message("Dataset '%s' scaled to %s" % (self.datasetChoice.GetString(dataset_ii), self.scale[dataset_ii]))
         self.updateFunc(event)
 
 
@@ -219,20 +225,20 @@ class TrashFrame(view_trash.MainFrame):
             self.datasetChoice.Enable(True)
             self.globalScale = False
             self.track_message("Scaling read-counts tracks individually.")
-        self.updateFunc(event) 
+        self.updateFunc(event)
 
 
     def datasetSelectFunc(self, event):
         dataset_ii = self.datasetChoice.GetCurrentSelection()
         self.maxText.SetValue(str(self.scale[dataset_ii]))
-        
+
 
 
     def resetFunc(self, event):
         self.startText.SetValue("1")
         self.endText.SetValue("10000")
         self.scale = [150]*len(self.labels)
-        self.datasetChoice.SetSelection(0)
+        self.datasetChoice.SetSelection(len(self.labels) - 1)
         self.maxText.SetValue(str(self.scale[0]))
 
         self.updateFunc(event)
@@ -244,7 +250,7 @@ class TrashFrame(view_trash.MainFrame):
         if output_path:
             finished_image.SaveFile(output_path, wx.BITMAP_TYPE_PNG)
             self.track_message("Image saved to the following path: %s" % output_path)
-    
+
 
     def addFeatureFunc(self, event):
         wc = u"Known Annotation Formats (*.prot_table,*.gff3,*.gff)|*.prot_table;*.gff3;*.gff;|\nProt Table (*.prot_table)|*.prot_table;|\nGFF3 (*.gff,*.gff3)|*.gff;*.gff3;|\nAll files (*.*)|*.*"
@@ -265,8 +271,8 @@ class TrashFrame(view_trash.MainFrame):
         except Exception as e:
             self.track_message("ERROR: %s" % e)
             traceback.print_exc()
-    
-    
+
+
     def checkHMMFeature(self, path):
         try:
             if open(path).readline().startswith("#HMM - Sites"):
@@ -275,7 +281,7 @@ class TrashFrame(view_trash.MainFrame):
             self.track_message("ERROR: %s" % e)
             return False
         return False
-        
+
 
     def getHMMHash(self, path):
         hash = {}
@@ -293,7 +299,7 @@ class TrashFrame(view_trash.MainFrame):
                 line = fi.readline()
                 tmp = line.split("\t")
                 continue
-            
+
             current_pos, current_state = tmp[0], tmp[-2]
             if last_state != current_state:
                 if last_state:
@@ -307,13 +313,13 @@ class TrashFrame(view_trash.MainFrame):
                 last_state = current_state
             else:
                 end = int(current_pos)
- 
-            line = fi.readline() 
+
+            line = fi.readline()
             tmp = line.split("\t")
         return hash,states2info
- 
 
- 
+
+
     def OpenFile(self, DIR=".", FILE="", WC=""):
         """
         Create and show the Open FileDialog
@@ -339,7 +345,7 @@ class TrashFrame(view_trash.MainFrame):
         gene_match_orf = self.lowerid2id.get(query.lower(), None)
         gene_match_orf_w_c = self.lowerid2id.get(query.lower()+"c", None)
 
-        
+
         combined_match = genes_match_name
         if gene_match_orf:
             combined_match += [gene_match_orf]
@@ -350,8 +356,8 @@ class TrashFrame(view_trash.MainFrame):
             self.track_message("Genes matching query: %s" % ", ".join(combined_match))
         else:
             self.track_message("No genes matching query!")
-            
-        
+
+
         if len(genes_match_name) == 1:      # Check if query is a name
             orf_match = genes_match_name[0]
         elif gene_match_orf:                # Check if query is an orf id
@@ -373,11 +379,11 @@ class TrashFrame(view_trash.MainFrame):
             self.start = start
             self.end = end
             self.DrawCanvas()
-            
+
         except Exception as e:
             self.track_message("ERROR: %s" % e)
-            traceback.print_exc() 
-        
+            traceback.print_exc()
+
 
     def DrawCanvas(self):
 
@@ -406,7 +412,7 @@ class TrashFrame(view_trash.MainFrame):
         dlg = wx.FileDialog(
             self, message="Save file as ...",
             defaultDir=DIR,
-            defaultFile=FILE, wildcard=WC, style=wx.SAVE|wx.OVERWRITE_PROMPT
+            defaultFile=FILE, wildcard=WC, style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT
             )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -417,7 +423,7 @@ class TrashFrame(view_trash.MainFrame):
 
 if __name__ == "__main__":
     app = wx.App(False)
-     
+
     frame = TrashFrame(None)
     frame.Show(True)
     app.MainLoop()
