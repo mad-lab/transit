@@ -36,12 +36,14 @@ class ZinbMethod(base.MultiConditionMethod):
     """
     Zinb
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file, normalization=normalization)
         self.ignored_conditions = ignored_conditions
         self.included_conditions = included_conditions
         self.unknown_cond_flag = "FLAG-UNMAPPED-CONDITION-IN-WIG"
         self.winz = winz
+        self.NTerminus = nterm
+        self.CTerminus = cterm
 
     @classmethod
     def fromargs(self, rawargs):
@@ -57,6 +59,8 @@ class ZinbMethod(base.MultiConditionMethod):
         metadata = args[2]
         output_file = args[3]
         normalization = kwargs.get("n", "TTR")
+        NTerminus = float(kwargs.get("iN", 5.0))
+        CTerminus = float(kwargs.get("iC", 5.0))
         winz = True if kwargs.has_key("w") else False
         ignored_conditions = filter(None, kwargs.get("-ignore-conditions", "").split(","))
         included_conditions = filter(None, kwargs.get("-include-conditions", "").split(","))
@@ -65,7 +69,7 @@ class ZinbMethod(base.MultiConditionMethod):
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz)
+        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, NTerminus, CTerminus)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -367,7 +371,7 @@ class ZinbMethod(base.MultiConditionMethod):
         genes = tnseq_tools.read_genes(self.annotation_path)
 
         TASiteindexMap = {TA: i for i, TA in enumerate(sites)}
-        RvSiteindexesMap = tnseq_tools.rv_siteindexes_map(genes, TASiteindexMap)
+        RvSiteindexesMap = tnseq_tools.rv_siteindexes_map(genes, TASiteindexMap, nterm=self.NTerminus, cterm=self.CTerminus)
         [MeansByRv, NzMeansByRv, NzPercByRv] = self.stats_by_rv(data, RvSiteindexesMap, genes, conditions)
         LogZPercByRep, NZMeanByRep = self.global_stats_for_rep(data)
 
@@ -405,7 +409,8 @@ class ZinbMethod(base.MultiConditionMethod):
         -w                  :=  If set, Winsorize data.
         --ignore-conditions <cond1,cond2> :=  Comma seperated list of conditions to ignore, for the analysis.
         --include-conditions <cond1,cond2> :=  Comma seperated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
-
+        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5.0
+        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5.0
         """ % (sys.argv[0])
 
 if __name__ == "__main__":

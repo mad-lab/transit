@@ -112,15 +112,14 @@ class TestMethods(TransitTestCase):
         self.assertTrue(os.path.exists(output))
         (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-3, qcol=-2))
         sig_qvals.sort()
-        self.assertLessEqual(abs(len(sig_pvals) - 396), 2)
         self.assertLessEqual(
-            abs(len(sig_pvals) - 397),
+            abs(len(sig_pvals) - 368),
             2,
-            "sig_pvals expected in range: %s, actual: %d" % ("[395, 397]", len(sig_pvals)))
+            "sig_pvals expected in range: %s, actual: %d" % ("[367, 369]", len(sig_pvals)))
         self.assertEqual(
             len(sig_qvals),
-            106,
-            "sig_qvals expected: %d, actual: %d" % (106, len(sig_qvals)))
+            84,
+            "sig_qvals expected: %d, actual: %d" % (84, len(sig_qvals)))
 
     #def test_resampling_histogram(self):
     #    args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000", "-h"]
