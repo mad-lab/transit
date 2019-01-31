@@ -33,11 +33,13 @@ class AnovaMethod(base.MultiConditionMethod):
     """
     anova
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[]):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], nterm=0.0, cterm=0.0):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file, normalization=normalization)
         self.ignored_conditions = ignored_conditions
         self.included_conditions = included_conditions
         self.unknown_cond_flag = "FLAG-UNMAPPED-CONDITION-IN-WIG"
+        self.NTerminus = nterm
+        self.CTerminus = cterm
 
     @classmethod
     def fromargs(self, rawargs):
@@ -52,6 +54,8 @@ class AnovaMethod(base.MultiConditionMethod):
         metadata = args[2]
         output_file = args[3]
         normalization = kwargs.get("n", "TTR")
+        NTerminus = float(kwargs.get("iN", 0.0))
+        CTerminus = float(kwargs.get("iC", 0.0))
         ignored_conditions = filter(None, kwargs.get("-ignore-conditions", "").split(","))
         included_conditions = filter(None, kwargs.get("-include-conditions", "").split(","))
 
@@ -60,7 +64,7 @@ class AnovaMethod(base.MultiConditionMethod):
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions)
+        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, NTerminus, CTerminus)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -232,7 +236,7 @@ class AnovaMethod(base.MultiConditionMethod):
         genes = tnseq_tools.read_genes(self.annotation_path)
 
         TASiteindexMap = {TA: i for i, TA in enumerate(sites)}
-        RvSiteindexesMap = tnseq_tools.rv_siteindexes_map(genes, TASiteindexMap)
+        RvSiteindexesMap = tnseq_tools.rv_siteindexes_map(genes, TASiteindexMap, nterm=self.NTerminus, cterm=self.CTerminus)
         MeansByRv = self.means_by_rv(data, RvSiteindexesMap, genes, conditions)
 
         self.transit_message("Running Anova")
@@ -244,6 +248,7 @@ class AnovaMethod(base.MultiConditionMethod):
         heads = ("Rv Gene TAs".split() +
                 conditionsList +
                 "pval padj".split() + ["status"])
+        file.write("#Console: python %s\n" % " ".join(sys.argv))
         file.write('\t'.join(heads)+EOL)
         for gene in genes:
             Rv = gene["rv"]
@@ -264,7 +269,8 @@ class AnovaMethod(base.MultiConditionMethod):
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma seperated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
         --include-conditions <cond1,cond2> :=  Comma seperated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
-
+        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 0.0
+        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 0.0
         """ % (sys.argv[0])
 
 
