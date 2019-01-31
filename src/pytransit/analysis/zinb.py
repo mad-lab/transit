@@ -387,6 +387,7 @@ class ZinbMethod(base.MultiConditionMethod):
                 map(lambda v: "NZperc_" + v, conditionsList) +
                 "pval padj".split() + ["status"])
 
+        file.write("#Console: python %s\n" % " ".join(sys.argv))
         file.write('\t'.join(head)+EOL)
         for gene in genes:
             Rv = gene["rv"]
