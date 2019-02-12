@@ -427,8 +427,10 @@ class Genes:
                 (data, position) = get_data_w_genome(self.wigList, genome)
             else:
                 (data, position) = get_data_zero_fill(self.wigList)
-            ii_min = data < self.minread
-            data[ii_min] = 0
+
+        ii_min = data < self.minread
+        data[ii_min] = 0
+
         hash = get_pos_hash(self.annotation)
 
         if not noNorm:
