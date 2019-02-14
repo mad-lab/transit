@@ -1294,16 +1294,15 @@ def verify_inputs(vars):
 
 def initialize_globals(vars, args=[], kwargs={}):
     vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.bwa_alg,vars.replicon_id,vars.base,vars.maxreads = "","","","","","","temp",-1
-    vars.mm1 = 1 # [COMMENT] [ORIGINAL] mismatches allowed in Tn prefix # [WM] mismatches allowed in Tn prefix AND adapter prefix on read2
+    vars.mm1 = 1 # mismatches allowed in Tn prefix AND adapter prefix on read2
     vars.transposon = 'Himar1'
     vars.protocol = "Sassetti"
-    # vars.prefix = "ACTTATCAGCCAACCTGTTA"        # [ORIGINAL]
-    vars.prefix = "AACCTGTTA"                     # [WM]
+    vars.prefix = "ACTTATCAGCCAACCTGTTA"
     vars.flags = ""
     vars.barseq_catalog_in = vars.barseq_catalog_out = None
     vars.window_size = -1
     vars.window = None
-    vars.bwa_alg = "aln"
+    vars.bwa_alg = "mem"
     
     # Update defaults
     protocol = kwargs.get("protocol", "").lower()
