@@ -253,17 +253,22 @@ def extract_staggered(infile,outfile,vars):
   lenADAP = len(ADAPTER2)
 
   #P,Q = 0,15
-  #P,Q = 0,50 # relax this, because it has caused problems for various users; shouldn't matter, if prefix is long enough to make random occurences unlikely
+  P,Q = 0,50 # relax this, because it has caused problems for various users; shouldn't matter, if prefix is long enough to make random occurences unlikely
+
+  if vars.window!=None: P,Q = vars.window[0],vars.window[1]
  
-  origin = 28 - len(Tn)                                     # [RJ] Automatically set P,Q by tolerance
-  P,Q = windowize(origin, vars.window_size)
+  # if -window-size specified, automatically set P,Q by tolerance [RJ]
+  if vars.window_size!=-1:
+    origin = 28 - len(Tn)                                     
+    P,Q = windowize(origin, vars.window_size)
 
   if vars.barseq_catalog_out!=None: P,Q = 0,100 # relax for barseq
   vars.tot_tgtta = 0
   vars.truncated_reads = 0
   output = open(outfile,"w")
   output_failed = open(outfile+'_failed_trim',"w")                          # [WM] [add]
-  message("Looking for start of Tn prefix with P,Q = %d,%d (origin = %d, window size = %d)" % (P,Q,origin,vars.window_size)) # [RJ] Outputting P,Q values and origin/window size
+  if vars.window_size!=-1: message("Looking for start of Tn prefix with P,Q = %d,%d (origin = %d, window size = %d)" % (P,Q,origin,vars.window_size)) # [RJ] Outputting P,Q values and origin/window size
+  else: message("Looking for start of Tn prefix within P,Q = [%d,%d]" % (P,Q))
   tot = 0
   #print infile
   if vars.barseq_catalog_out!=None:
@@ -1105,7 +1110,7 @@ def generate_output(vars):
     if primer in line: nprimer += 1
     if vector in line: nvector += 1
     if adapter in line: nadapter += 1
-    if Himar1[:-5] in line and Himar1 not in line: misprimed += 1
+    if "TGTTA" in line and Himar1 not in line: misprimed += 1
 
   read_length = get_read_length(vars.base + ".reads1")
   mean_r1_genomic = get_genomic_portion(vars.base + ".trimmed1")
@@ -1296,7 +1301,8 @@ def initialize_globals(vars, args=[], kwargs={}):
     vars.prefix = "AACCTGTTA"                     # [WM]
     vars.flags = ""
     vars.barseq_catalog_in = vars.barseq_catalog_out = None
-    vars.window_size = 6
+    vars.window_size = -1
+    vars.window = None
     vars.bwa_alg = "aln"
     
     # Update defaults
@@ -1343,6 +1349,11 @@ def initialize_globals(vars, args=[], kwargs={}):
         if vars.window_size < 6:
             raise ValueError("Error: window-size cannot be less than 6")
 
+    if "primer-start-window" in kwargs:
+        w = kwargs["primer-start-window"]
+        w = w.split(',')
+        vars.window = (int(w[0]),int(w[1]))
+
     if "bwa-alg" in kwargs:
         if kwargs["bwa-alg"] not in [ "mem", "aln" ]:
             raise ValueError("Error: bwa-alg can only be 'mem' or 'aln'")
@@ -1352,7 +1363,7 @@ def initialize_globals(vars, args=[], kwargs={}):
     if "replicon-id" in kwargs:
         vars.replicon_id = kwargs["replicon-id"]
 
-    # note: if last flag expected an arg but was end of list, it gets value True ; check for this and report as missing # TRU, 10/28/17
+    # note: if last flag expected an arg but was end of list, it gets value True ; check for this and report as missing # TRI, 10/28/17
 
 def read_config(vars):
   if not os.path.exists("tpp.cfg"): return
