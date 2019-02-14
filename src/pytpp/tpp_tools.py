@@ -34,21 +34,15 @@ def cleanargs(rawargs):
     count = 0
     while count < len(rawargs):
         # Special case for handling multiple entries for "-ref" and "-replicon_id"
-        if rawargs[count] == "-ref" and count + 1 < len(rawargs) and not rawargs[count+1].startswith("-"):
-            kwargs['ref'] = []
-            
-            while not rawargs[count+1].startswith("-"):
-                kwargs['ref'].append(rawargs[count+1])
-                count += 1
-        elif rawargs[count] == "-replicon-id" and count + 1 < len(rawargs) and not rawargs[count+1].startswith("-"):
-            kwargs['replicon-id'] = []
-            
-            while not rawargs[count+1].startswith("-"):
-                kwargs['replicon-id'].append(rawargs[count+1])
-                count += 1
-
+        if rawargs[count] == "-ref":
+          if count+1>=len(rawargs): error("must give comma-separated list as arg for -ref")
+          kwargs['ref'] = rawargs[count+1].split(',')
+          count += 1
+        elif rawargs[count] == "-replicon-id":
+          if count+1>=len(rawargs): error("must give comma-separated list as arg for -replicon-id")
+          kwargs['replicon-id'] = rawargs[count+1].split(',')
+          count += 1
         elif rawargs[count].startswith("-"): #and len(rawargs[count].split(" ")) == 1:
-        #if rawargs[count].startswith("-"): #and len(rawargs[count].split(" ")) == 1:
             if count + 1 < len(rawargs) and (not rawargs[count+1].startswith("-") or len(rawargs[count+1].split(" ")) > 1):
                 kwargs[rawargs[count][1:]] = rawargs[count+1]
                 count += 1
@@ -674,7 +668,7 @@ def driver(vars):
     if vars.num_replicons is 1:
       vars.replicon_id = ['']
     else:
-      raise ValueError("%d replicons detected in reference genome, only %d replicon_id specified" % (vars.num_replicons, len(vars.replicon_id)))
+      raise error("%d replicons detected in reference genome, but only %d replicon_id specified" % (vars.num_replicons, len(vars.replicon_id)))
   
   for name in vars.replicon_id:
     ref_str = os.path.basename(vars.ref.split(".fasta")[0].split(".fa")[0])
