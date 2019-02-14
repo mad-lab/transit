@@ -683,8 +683,7 @@ def driver(vars):
   
   if not vars.prefix:
     if vars.transposon=="Tn5": vars.prefix = "TAAGAGACAG"
-    # elif vars.transposon=="Himar1": vars.prefix = "ACTTATCAGCCAACCTGTTA" # [ORIGINAL]
-    elif vars.transposon=="Himar1": vars.prefix = "TGTTA" # [WM]
+    elif vars.transposon=="Himar1": vars.prefix = "ACTTATCAGCCAACCTGTTA" # [ORIGINAL]
     else: vars.prefix = ""
 
   try:
@@ -702,13 +701,11 @@ def driver(vars):
 
   except IOError as err:
     message("")
-    #message("%s" % " ".join(err.args)                     # [ORIGINAL]
     message("%s" % " ".join(str(v) for v in err.args))     # [RJ] Fixed to prevent erroring out on numeric arguments
     message("Make sure you have read/write access in the directories containing the necessary files.")
     message("Note: If TPP cannot find index files for the FASTA sequence (i.e. *.fna.bwt, *.fna.pac, *.fna.ann, *.fna.sa), it will attempt to create them.")
     message("Exiting.")
     sys.exit()
-
 
   message("Done.")
 
@@ -1137,39 +1134,55 @@ def generate_output(vars):
   output.write("# reads2_mapped %s\n" % vars.r2)
   # output.write("# mapped_reads %s (both R1 and R2 map into genome)\n" % vars.mapped) # [ORIGINAL]
   output.write("# mapped_reads %s (R1 maps to genome and R2 has proper barcode)\n" % vars.mapped) # [WM]
-  output.write("# read_count (TA sites only, for Himar1):\n")
-  for replicon_id,read_count in zip(vars.replicon_id, rc):
-    output.write("#   %s: %s\n" % (replicon_id, read_count))
-  output.write("# template_count:\n")
-  for replicon_id,template_count in zip(vars.replicon_id, tc):
-    output.write("#   %s: %s\n" % (replicon_id, template_count))
-  output.write("# template_ratio (reads per template):\n")
-  for replicon_id,template_ratio in zip(vars.replicon_id, ratio):
-    output.write("#   %s: %0.2f\n" % (replicon_id, template_ratio))
-  output.write("# TA_sites:\n")
-  for replicon_id,num_ta_sites in zip(vars.replicon_id, ta_sites):
-    output.write("#   %s: %s\n" % (replicon_id, num_ta_sites))
-  output.write("# TAs_hit:\n")
-  for replicon_id,num_tas_hit in zip(vars.replicon_id, tas_hit):
-    output.write("#   %s: %s\n" % (replicon_id, num_tas_hit))
-  output.write("# density:\n")
-  for replicon_id,dens in zip(vars.replicon_id, density):
-    output.write("#   %s: %0.3f\n" % (replicon_id, dens))
-  output.write("# max_count (among templates):\n")
-  for replicon_id,max_template_counts in zip(vars.replicon_id, max_tc):
-    output.write("#   %s: %s\n" % (replicon_id, max_template_counts))
-  output.write("# max_site (coordinate):\n")
-  for replicon_id,max_site in zip(vars.replicon_id, max_coord):
-    output.write("#   %s: %s\n" % (replicon_id, max_site))
-  output.write("# NZ_mean (among templates):\n")
-  for replicon_id,nzmean in zip(vars.replicon_id, NZmean):
-    output.write("#   %s: %0.1f\n" % (replicon_id, nzmean))
-  output.write("# FR_corr (Fwd templates vs. Rev templates):\n")
-  for replicon_id,frcorr in zip(vars.replicon_id, FR_corr):
-    output.write("#   %s: %0.3f\n" % (replicon_id, frcorr))
-  output.write("# BC_corr (reads vs. templates, summed over both strands):\n")
-  for replicon_id,bccorr in zip(vars.replicon_id, BC_corr):
-    output.write("#   %s: %0.3f\n" % (replicon_id, bccorr))
+
+  if vars.num_replicons>1:
+    output.write("# read_count (TA sites only, for Himar1):\n")
+    for replicon_id,read_count in zip(vars.replicon_id, rc):
+      output.write("#   %s: %s\n" % (replicon_id, read_count))
+    output.write("# template_count:\n")
+    for replicon_id,template_count in zip(vars.replicon_id, tc):
+      output.write("#   %s: %s\n" % (replicon_id, template_count))
+    output.write("# template_ratio (reads per template):\n")
+    for replicon_id,template_ratio in zip(vars.replicon_id, ratio):
+      output.write("#   %s: %0.2f\n" % (replicon_id, template_ratio))
+    output.write("# TA_sites:\n")
+    for replicon_id,num_ta_sites in zip(vars.replicon_id, ta_sites):
+      output.write("#   %s: %s\n" % (replicon_id, num_ta_sites))
+    output.write("# TAs_hit:\n")
+    for replicon_id,num_tas_hit in zip(vars.replicon_id, tas_hit):
+      output.write("#   %s: %s\n" % (replicon_id, num_tas_hit))
+    output.write("# density:\n")
+    for replicon_id,dens in zip(vars.replicon_id, density):
+      output.write("#   %s: %0.3f\n" % (replicon_id, dens))
+    output.write("# max_count (among templates):\n")
+    for replicon_id,max_template_counts in zip(vars.replicon_id, max_tc):
+      output.write("#   %s: %s\n" % (replicon_id, max_template_counts))
+      output.write("# max_site (coordinate):\n")
+    for replicon_id,max_site in zip(vars.replicon_id, max_coord):
+      output.write("#   %s: %s\n" % (replicon_id, max_site))
+    output.write("# NZ_mean (among templates):\n")
+    for replicon_id,nzmean in zip(vars.replicon_id, NZmean):
+      output.write("#   %s: %0.1f\n" % (replicon_id, nzmean))
+    output.write("# FR_corr (Fwd templates vs. Rev templates):\n")
+    for replicon_id,frcorr in zip(vars.replicon_id, FR_corr):
+      output.write("#   %s: %0.3f\n" % (replicon_id, frcorr))
+    output.write("# BC_corr (reads vs. templates, summed over both strands):\n")
+    for replicon_id,bccorr in zip(vars.replicon_id, BC_corr):
+      output.write("#   %s: %0.3f\n" % (replicon_id, bccorr))
+
+  else: # just one replicon (contig); this format is read to populate table of stats for datasets in TPP GUI ("# <var> <val>")
+    output.write("# read_count %s (TA sites only, for Himar1)\n" % rc[0])
+    output.write("# template_count %s\n" % tc[0])
+    output.write("# template_ratio %0.2f (reads per template)\n" % ratio[0])
+    output.write("# TA_sites %s\n" % ta_sites[0])
+    output.write("# TAs_hit %s\n" % tas_hit[0])
+    output.write("# density %0.3f\n" % density[0])
+    output.write("# max_count %s (among templates)\n" % max_tc[0])
+    output.write("# max_site %s (coordinate)\n" % max_coord[0])
+    output.write("# NZ_mean %0.1f (among templates)\n" % NZmean[0])
+    output.write("# FR_corr %0.3f (Fwd templates vs. Rev templates)\n" % FR_corr[0])
+    output.write("# BC_corr %0.3f (reads vs. templates, summed over both strands)\n" % BC_corr[0])
+
   output.write("# primer_matches: %s reads (%0.1f%%) contain %s (Himar1)\n" % (nprimer,nprimer*100/float(tot_reads),primer))
   output.write("# vector_matches: %s reads (%0.1f%%) contain %s (phiMycoMarT7)\n" % (nvector,nvector*100/float(tot_reads),vector))
   output.write("# adapter_matches: %s reads (%0.1f%%) contain %s (Illumina/TruSeq index)\n" % (nadapter,nadapter*100/float(tot_reads),adapter))
