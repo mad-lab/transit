@@ -234,7 +234,8 @@ class ZinbMethod(base.MultiConditionMethod):
                 for (i in 1:length(sums[,1])) {
                   subset = melted[melted$cond==sums[i,1],]
                   newvec = subset[1,]
-                  newvec$cnt = 1
+                  newvec$cnt = 1 # note: NZmean and NZperc are copied from last dataset in condition
+                  #newvec$cnt = as.integer(mean(subset$cnt))+1 # add the mean for each condition as a pseudocount
                   melted = rbind(melted,newvec) }
               }
               status = "-"
