@@ -1151,7 +1151,7 @@ def generate_output(vars):
     output.write("# max_count (among templates):\n")
     for replicon_id,max_template_counts in zip(vars.replicon_id, max_tc):
       output.write("#   %s: %s\n" % (replicon_id, max_template_counts))
-      output.write("# max_site (coordinate):\n")
+    output.write("# max_site (coordinate):\n")
     for replicon_id,max_site in zip(vars.replicon_id, max_coord):
       output.write("#   %s: %s\n" % (replicon_id, max_site))
     output.write("# NZ_mean (among templates):\n")
@@ -1408,7 +1408,19 @@ def save_config(vars):
   f.close()
 
 def show_help():
-  print 'usage: python PATH/src/tpp.py -bwa <EXECUTABLE_WITH_PATH> -ref <REF_SEQ> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-flags "<STRING>"] [-tn5|-himar1] [-primer <seq>] [-barseq_catalog_in|_out <file>]'
+  #print 'usage: python PATH/src/tpp.py -bwa <EXECUTABLE_WITH_PATH> -ref <fasta-file|comma_separated_list> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-flags "<STRING>"] [-tn5|-himar1] [-primer <seq>] [-primer-start-window INT,INT] [-window-size INT] [-barseq_catalog_in|_out <file>] [-replicon-id <comma_separated_list_of_names>]'
+
+  print 'usage: python PATH/src/tpp.py -bwa <EXECUTABLE_WITH_PATH> -ref <fasta-file|comma_separated_list> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [OPTIONAL ARGS]'
+  print '  OPTIONAL ARGS:'
+  print '    -maxreads <INT>'
+  print '    -flags "<STRING>"  # args to pass to BWA'
+  print '    -himar1 or -tn5    # which transposon was used?; default is -himar1'
+  print '    -primer <seq>      # prefix of reads corresponding to end of transposon at junction with genomic sequence' 
+  print '    -mismatches <INT>  # when searching for constant regions in reads 1 and 2; default is 1'
+  print '    -primer-start-window INT,INT # position in read to search for start of primer; default is [0,50]'
+  print '    -window-size INT   # automatic method to set window'
+  print '    -barseq_catalog_in|-barseq_catalog_out <file>'
+  print '    -replicon-id <comma_separated_list_of_names> # if multiple replicons/genomes/contigs/sequences were provided in -ref, give them names'
 
 class Globals:
   pass
