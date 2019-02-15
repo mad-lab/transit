@@ -464,17 +464,13 @@ def samcode(num):
     return rev
 
 def template_counts(ref,sam,bcfile,vars):
-  #barcodes = {}
+  vars.mapped = vars.r1 = vars.r2 = 0
 
-
-  fil1 = open(bcfile)
-  fil2 = open(sam)
-  '''
+  barcodes = {}
   for line in open(bcfile):
     line = line.rstrip()
     if line[0]=='>': id = line[1:]
     else: barcodes[id] = line
-  '''
   
   hits = {}
   sam_header = parse_sam_header(sam)
@@ -482,35 +478,19 @@ def template_counts(ref,sam,bcfile,vars):
   for replicon in replicon_names:
     hits[replicon] = {}
   
-  # Skip headers
-  fil1.next()
-  num_sam_header_lines = count_sam_header_lines(sam_header)
-  for i in range(num_sam_header_lines):
-    fil2.next()
-
-  #vars.tot_tgtta = 0
-  vars.mapped = 0
-  vars.r1 = vars.r2 = 0
-
-  #for line in open(sam):
-  bcline=''
-  for line in fil2:
-    try:
-      bcline = fil1.next().rstrip()
-      if bcline[0] !='>': bc = bcline
-    except StopIteration:
-      pass
-    if line[0]=='@': continue
+  skip = count_sam_header_lines(sam_header)
+  for line in open(sam):
+    #if line[0]=='@': continue
+    if skip>0: skip -= 1; continue
     else:
       w = line.split('\t')
+      bc = barcodes[w[0]]
       code = samcode(w[1])
-      if 'S' in w[5]: continue #elimate softclipped reads
+      if 'S' in w[5]: continue # eliminate softclipped reads
       if code[6]=="1" and code[2]=="0": vars.r1 += 1
-      if code[7]=="1" and code[2]=="0": vars.r2 += 1  # [WM] [COMMENT] Won't add to r2 when the mate doesn't match
-      # include "improperly mapped reads, which might just be short frags
-      #if w[1]=="99" or w[1]=="83" or w[1]=="97" or w[1]=="81":
-      # if code[6]=="1" and code[2]=="0" and code[3]=="0": # both reads mapped (proper or not) # [ORIGINAL]
-      if code[6]=="1" and (code[2]=="0" and bc!="XXXXXXXXXX"): # [WM] r1 maps AND r2 has a properly formed barcode
+      if code[6]=="1" and code[3]=="0": vars.r2 += 1
+      if bc=="XXXXXXXXXX": continue
+      if code[6]=="1" and code[1]=="1": # both reads map properly (83 or 99) and has legit barcode
         vars.mapped += 1
         readlen = len(w[9])
         pos,size = int(w[3]),int(w[8]) # note: size could be negative
@@ -518,7 +498,6 @@ def template_counts(ref,sam,bcfile,vars):
         if code[4]=="1": strand,delta = 'R',readlen
 
         pos += delta
-        #bc = barcodes[w[0]]
         replicon_name = w[2]
         if pos not in hits[replicon_name]: hits[replicon_name][pos] = []
         hits[replicon_name][pos].append((strand,size,bc))
@@ -1101,7 +1080,9 @@ def generate_output(vars):
     if primer in line: nprimer += 1
     if vector in line: nvector += 1
     if adapter in line: nadapter += 1
-    if "TGTTA" in line and Himar1 not in line: misprimed += 1
+    #if "TGTTA" in line and Himar1 not in line: misprimed += 1
+    # basically, these should correspond to insertions at non-TA sites (so the terminal TA of ...TGTTA will be different)
+    if Himar1[:-5] in line and Himar1 not in line: misprimed += 1 
 
   read_length = get_read_length(vars.base + ".reads1")
   mean_r1_genomic = get_genomic_portion(vars.base + ".trimmed1")
@@ -1126,8 +1107,7 @@ def generate_output(vars):
   output.write("# trimmed_reads %s (reads with valid Tn prefix, and insert size>20bp)\n" % vars.tot_tgtta)
   output.write("# reads1_mapped %s\n" % vars.r1)
   output.write("# reads2_mapped %s\n" % vars.r2)
-  # output.write("# mapped_reads %s (both R1 and R2 map into genome)\n" % vars.mapped) # [ORIGINAL]
-  output.write("# mapped_reads %s (R1 maps to genome and R2 has proper barcode)\n" % vars.mapped) # [WM]
+  output.write("# mapped_reads %s (both R1 and R2 map into genome, and R2 has a proper barcode)\n" % vars.mapped)
 
   if vars.num_replicons>1:
     output.write("# read_count (TA sites only, for Himar1):\n")
