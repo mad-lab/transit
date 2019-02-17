@@ -1,16 +1,12 @@
 
 
-Features
-========
+Quality Control
+===============
 
 
 TRANSIT has several useful features to help inspect the quality of datasets as
-and export them to different formats.
+and export them to different formats. (see also TPP Statistics)
 
-|
-
-Quality Control
----------------
 
 As you add datasets to the control or experimental sections, TRANSIT
 automatically provides some metrics like density, average, read-counts and
@@ -54,16 +50,16 @@ Kurtosis       Kurtosis of the read-counts in the dataset.
 
 
 
-QC Figures
-~~~~~~~~~~
+QC Plots
+~~~~~~~~
 
 The Quality Control window also contains several plots that are helpful to
 visualize the quality of the datasets. These plots are unique to the dataset
 selected in the Metrics Table (below the figures). They will update depending
 on which row in the Metrics Table is selected:
 
-Figure 1: Histogram of Reads
-````````````````````````````
+Figure 1: Read-Count Distribution
+`````````````````````````````````
 
 
 .. image:: _images/transit_quality_control_histogram.png
@@ -75,8 +71,8 @@ The first plot in the Quality Control window is a histogram of the non-zero read
 
 
 
-Figure 2: QQ Plot of Reads vs Geometric Distribution
-````````````````````````````````````````````````````
+Figure 2: QQ-Plot of Read-Counts vs Geometric Distribution
+``````````````````````````````````````````````````````````
 
 
 .. image:: _images/transit_quality_control_qqplot.png
