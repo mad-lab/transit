@@ -247,7 +247,8 @@ def extract_staggered(infile,outfile,vars):
   lenADAP = len(ADAPTER2)
 
   #P,Q = 0,15
-  P,Q = 0,50 # relax this, because it has caused problems for various users; shouldn't matter, if prefix is long enough to make random occurences unlikely
+  #P,Q = 0,50 # relax this, because it has caused problems for various users; shouldn't matter, if prefix is long enough to make random occurences unlikely
+  P,Q = vars.prefix_start_window
 
   if vars.window!=None: P,Q = vars.window[0],vars.window[1]
  
@@ -1288,6 +1289,7 @@ def initialize_globals(vars, args=[], kwargs={}):
     vars.flags = ""
     vars.barseq_catalog_in = vars.barseq_catalog_out = None
     vars.window_size = -1
+    vars.prefix_start_window = 0,20
     vars.window = None
     vars.bwa_alg = "mem"
     
@@ -1358,14 +1360,18 @@ def read_config(vars):
     if len(w)>=2 and w[0]=='reads1': vars.fq1 = w[1]
     if len(w)>=2 and w[0]=='reads2': vars.fq2 = w[1]
     if len(w)>=2 and w[0]=='ref': vars.ref = ' '.join(w[1:])
-    if len(w)>=2 and w[0]=='ids': vars.replicon_id = ' '.join(w[1:])
+    if len(w)>=2 and w[0]=='ids': vars.replicon_id = ','.join(w[1:])
     if len(w)>=2 and w[0]=='bwa': vars.bwa = w[1]
+    if len(w)>=2 and w[0]=='bwa-alg': vars.bwa_alg = w[1]
+    if len(w)>=2 and w[0]=='flags': vars.flags = " ".join(w[1:])
     if len(w)>=2 and w[0]=='prefix': vars.base = w[1]
     if len(w)>=2 and w[0]=='mismatches1': vars.mm1 = int(w[1])
+    if len(w)>=2 and w[0]=='maxreads': vars.maxreads = int(w[1])
+    if len(w)>=2 and w[0]=='window_size': vars.window_size = int(w[1])
+    if len(w)>=2 and w[0]=='prefix_start_window': v = w[1].split(','); vars.prefix_start_window = (int(v[0]),int(v[1]))
     if len(w)>=2 and w[0]=='transposon': vars.transposon = w[1]
     if len(w)>=2 and w[0]=='protocol': vars.protocol = " ".join(w[1:])
     if len(w)>=2 and w[0]=='primer': vars.prefix = w[1]
-    if len(w)>=2 and w[0]=='flags': vars.flags = " ".join(w[1:])
     if len(w)>=2 and w[0]=='barseq_catalog_in': vars.barseq_catalog_in = w[1]
     if len(w)>=2 and w[0]=='barseq_catalog_out': vars.barseq_catalog_out = w[1]
 
@@ -1377,12 +1383,16 @@ def save_config(vars):
   f.write("ref %s\n" % ' '.join(vars.ref))
   f.write("ids %s\n" % ' '.join(vars.replicon_id))
   f.write("bwa %s\n" % vars.bwa)
+  f.write("bwa_alg %s\n" % vars.bwa_alg)
+  f.write("flags %s\n" % vars.flags)
   f.write("prefix %s\n" % vars.base)
   f.write("mismatches1 %s\n" % vars.mm1)
+  f.write("prefix_start_window %s,%s\n" % (vars.prefix_start_window[0],vars.prefix_start_window[1]))
+  f.write("window_size %s\n" % vars.window_size)
+  f.write("maxreads %s\n" % vars.maxreads)
   f.write("transposon %s\n" % vars.transposon)
   f.write("protocol %s\n" % vars.protocol)
   f.write("primer %s\n" % vars.prefix)
-  f.write("flags %s\n" % vars.flags)
   if vars.barseq_catalog_in!=None: f.write("barseq_catalog_in %s\n" % vars.barseq_catalog_in)
   if vars.barseq_catalog_out!=None: f.write("barseq_catalog_out %s\n" % vars.barseq_catalog_out)
   f.close()
@@ -1397,7 +1407,7 @@ def show_help():
   print '    -himar1 or -tn5    # which transposon was used?; default is -himar1'
   print '    -primer <seq>      # prefix of reads corresponding to end of transposon at junction with genomic sequence' 
   print '    -mismatches <INT>  # when searching for constant regions in reads 1 and 2; default is 1'
-  print '    -primer-start-window INT,INT # position in read to search for start of primer; default is [0,50]'
+  print '    -primer-start-window INT,INT # position in read to search for start of primer; default is [0,20]'
   print '    -window-size INT   # automatic method to set window'
   print '    -barseq_catalog_in|-barseq_catalog_out <file>'
   print '    -replicon-id <comma_separated_list_of_names> # if multiple replicons/genomes/contigs/sequences were provided in -ref, give them names'

@@ -101,17 +101,17 @@ if hasWx:
             sizer3.Add(label3,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.picker3 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the reference genome', fileMode=wx.FD_OPEN, fileMask='*.fna;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.ref), initialValue=vars.ref, labelText='')
             sizer3.Add(self.picker3, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer3.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a reference genome in FASTA format."), flag=wx.CENTER, border=0)
+            sizer3.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a reference genome in FASTA format (can be a multi-contig fasta file)."), flag=wx.CENTER, border=0)
             sizer3.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer3,0,wx.EXPAND,0)
        
             # REPLICON ID NAMES
             sizer_replicon_id = wx.BoxSizer(wx.HORIZONTAL)
-            label_replicon_id = wx.StaticText(panel, label='ID names for each replicon in reference genome:',size=(340,-1))
+            label_replicon_id = wx.StaticText(panel, label='ID names for each replicon (if genome has multiple contigs):',size=(340,-1))
             sizer_replicon_id.Add(label_replicon_id,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.replicon_id = wx.TextCtrl(panel,value=vars.replicon_id,size=(400,30))
             sizer_replicon_id.Add(self.replicon_id, proportion=1.0, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer_replicon_id.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Specify names of each contig within the reference genome separated by spaces (if using wig_gb_to_csv.py you must use the contig names in the Genbank file)"), flag=wx.CENTER, border=0)
+            sizer_replicon_id.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Specify names of each contig within the reference genome separated by commas (if using wig_gb_to_csv.py you must use the contig names in the Genbank file).  Only required if there are multiple contigs; can leave blank if there is just one seq."), flag=wx.CENTER, border=0)
             sizer_replicon_id.Add((10, 1), 0, wx.EXPAND) 
             sizer.Add(sizer_replicon_id,0,wx.EXPAND,0)
  
@@ -196,7 +196,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer6 = wx.BoxSizer(wx.HORIZONTAL)
             label6 = wx.StaticText(panel, label='Max reads (leave blank to use all):',size=(340,-1))
             sizer6.Add(label6,0,wx.ALIGN_CENTER_VERTICAL,0)
-            self.maxreads = wx.TextCtrl(panel,size=(150,30))
+            self.maxreads = wx.TextCtrl(panel,value=str(vars.maxreads),size=(150,30)) # or "" if not defined? can't write to tpp.cfg
             sizer6.Add(self.maxreads, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer6.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Maximum reads to use from the reads files. Useful for running only a portion of very large number of reads. Leave blank to use all the reads."), flag=wx.CENTER, border=0)
             sizer6.Add((10, 1), 0, wx.EXPAND)
@@ -211,6 +211,17 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer7.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Number of mismatches allowed in the tn-prefix before discarding the read."), flag=wx.CENTER, border=0)
             sizer7.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer7,0,wx.EXPAND,0)    
+
+            # PREFIX_START_WINDOW
+            sizer_prefix_start = wx.BoxSizer(wx.HORIZONTAL)
+            label_prefix_start = wx.StaticText(panel, label='Start of window to look for prefix (Tn terminus):', size=(340,-1))
+            sizer_prefix_start.Add(label_prefix_start,0,wx.ALIGN_CENTER_VERTICAL,0)
+            prefix_start_window = "%s,%s" % (vars.prefix_start_window[0],vars.prefix_start_window[1])
+            self.prefix_start = wx.TextCtrl(panel,value=prefix_start_window,size=(150,30))
+            sizer_prefix_start.Add(self.prefix_start, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer_prefix_start.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Region in read 1 to search for start of prefix seq (i.e. end of transposon)."), flag=wx.CENTER, border=0)
+            sizer_prefix_start.Add((10, 1), 0, wx.EXPAND)
+            sizer.Add(sizer_prefix_start,0,wx.EXPAND,0)  
 
             # WINDOW SIZE                                 # [RJ] This block is to add the acceptance of a set window size for setting P,Q parameters
             sizer_window_size = wx.BoxSizer(wx.HORIZONTAL)
@@ -228,7 +239,8 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer0.Add(label0,0,wx.ALIGN_CENTER_VERTICAL,0)
 
             self.bwa_alg = wx.ComboBox(panel,choices=["use algorithm 'aln'", "use algorithm 'mem'"],size=(200,30))
-            self.bwa_alg.SetSelection(0)
+            if vars.bwa_alg=='aln': self.bwa_alg.SetSelection(0)
+            else: self.bwa_alg.SetSelection(1) # default
             sizer0.Add(self.bwa_alg, proportion=0.5, flag=wx.EXPAND|wx.ALL, border=5) ## 
 
             self.picker0 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id = wx.ID_ANY, size=(400,30), dialogTitle='Path to BWA', fileMode=wx.FD_OPEN, fileMask='bwa*', startDirectory=os.path.dirname(vars.bwa), initialValue=vars.bwa, labelText='')
@@ -470,7 +482,12 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
                 self.vars.bwa_alg = 'aln'
             elif 'mem' in self.bwa_alg.GetValue():
                 self.vars.bwa_alg = 'mem'
-            self.vars.replicon_id = self.replicon_id.GetValue().split()
+            self.vars.replicon_id = self.replicon_id.GetValue().split(',')
+        
+            v = self.prefix_start.GetValue()
+            if v!="":
+              v = v.split(',')
+              self.vars.prefix_start_window = (int(v[0]),int(v[1]))
         
             if maxreads == '': self.vars.maxreads = -1
             else: self.vars.maxreads = int(maxreads)
