@@ -48,6 +48,7 @@ def main(*args, **kwargs):
         form.update_dataset_list()
 
         form.Show()
+        form.Maximize(True)
         app.MainLoop()
 
         # vars.action not defined, quit...
