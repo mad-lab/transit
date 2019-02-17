@@ -81,3 +81,49 @@ Or if you installed it by downloading and extracting an archive with the source 
 |
 
 See example usages of supported methods in :ref:`Analysis Methods <analysis_methods>` section.
+
+|
+
+Prot_tables (Annotations)
+-------------------------
+
+Most of the methods in Transit use a custom format for genome annotations called a '.prot_table'.
+It is a simple tab-separated text file with specific columns, as originally defined for genomes
+in Genbank many years ago.
+
+The required columns are:
+
+1. gene function description
+2. start coordinate
+3. end coordinate
+4. strand
+5. length of protein product (in amino acids)
+6. don't care
+7. don't care
+8. gene name (like "dnaA")
+9. ORF id (like Rv0001)
+
+It is crucial to use the same .prot_table corresponding to the genome sequence that was
+used to generate the wig file (count insertions) by TPP.  This is because the
+coordinates of TA sites in the wig file and the coordinates of ORF boundaries
+must use the same coordinate system (which can be thrown out of register by indels).
+
+Suppose you have a .prot_table for genome A, and you want to map reads to 
+another genome B which is closely related, but for which you do not have an annotation.
+You can use the following web-app ( `Prot_table Adjustment Tool <http://saclab.tamu.edu/cgi-bin/iutils/app.cgi>`_ ) 
+to convert the annotation for A to B
+by adjusting all the coordinates of ORFs from A accoring to an alignment with B.
+For example, you could use this to map known ORFs in H37Rv to sequences of other strains, like HN878 or CDC1551.
+(even though they have their own annotations, it might be helpful to use the genes as defined in H37Rv)
+
+While some Transit methods can also work with .gff (or .gff3) files,
+the flexibility of the .gff format makes it difficult to anticipate all encoding schemes.
+Therefore, to simplify things, we recommend you convert your .gff file to .prot_table format,
+which can be done through the GUI, or on the command-line as follows:
+
+
+::
+
+  > python transit.py convert gff2prot_table <.gff> <.prot_table>
+
+|
