@@ -8,9 +8,10 @@ All notable changes to this project will be documented in this file.
 - TPP:
  - can now handle genomes with multiple contigs (thanks to modifications by Robert Jenquin and William Matern); it creates multiple .wig files as output
  - BWA: switched from using 'aln' to 'mem' by default
- - added flags to set the nucleotide window for searching for start of primer sequence (-primer-window-start and -window-TRANSIT)
- - fixed bug in counting misprimed reads
-- size:
+ - added flags to set the nucleotide window for searching for start of primer sequence (-primer-window-start)
+ - fixed bug in counting misprimed reads, and reads mapped to both R1 and R2
+ - adedd some fields to TPP GUI, and be more consistent about saving parameters in the tpp.cfg config file
+- Transit:	
  - fixed bug in handling '-minreads' flag in Gumbel analysis
  - updated support for converting .gff files to .prot_table format (in GUI and on command line)
 

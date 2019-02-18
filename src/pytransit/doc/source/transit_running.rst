@@ -112,9 +112,9 @@ Suppose you have a .prot_table for genome A, and you want to map reads to
 another genome B which is closely related, but for which you do not have an annotation.
 You can use the following web-app ( `Prot_table Adjustment Tool <http://saclab.tamu.edu/cgi-bin/iutils/app.cgi>`_ ) 
 to convert the annotation for A to B
-by adjusting all the coordinates of ORFs from A accoring to an alignment with B.
+by adjusting all the coordinates of ORFs from A to B according to a genome alignment.
 For example, you could use this to map known ORFs in H37Rv to sequences of other strains, like HN878 or CDC1551.
-(even though they have their own annotations, it might be helpful to use the genes as defined in H37Rv)
+(Even though they have their own annotations, it might be helpful to use the genes as defined in H37Rv)
 
 While some Transit methods can also work with .gff (or .gff3) files,
 the flexibility of the .gff format makes it difficult to anticipate all encoding schemes.
@@ -124,6 +124,6 @@ which can be done through the GUI, or on the command-line as follows:
 
 ::
 
-  > python transit.py convert gff2prot_table <.gff> <.prot_table>
+  > python transit.py convert gff_to_prot_table <.gff> <.prot_table>
 
 |
