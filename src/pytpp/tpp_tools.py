@@ -33,14 +33,14 @@ def cleanargs(rawargs):
     kwargs = {}
     count = 0
     while count < len(rawargs):
-        # Special case for handling multiple entries for "-ref" and "-replicon_id"
+        # Special case for handling multiple entries for "-ref" and "-replicon_ids"
         if rawargs[count] == "-ref":
           if count+1>=len(rawargs): error("must give comma-separated list as arg for -ref")
           kwargs['ref'] = rawargs[count+1].split(',')
           count += 1
-        elif rawargs[count] == "-replicon-id":
-          if count+1>=len(rawargs): error("must give comma-separated list as arg for -replicon-id")
-          kwargs['replicon-id'] = rawargs[count+1].split(',')
+        elif rawargs[count] == "-replicon-ids":
+          if count+1>=len(rawargs): error("must give comma-separated list as arg for -replicon-ids")
+          kwargs['replicon-ids'] = rawargs[count+1].split(',')
           count += 1
         elif rawargs[count].startswith("-"): #and len(rawargs[count].split(" ")) == 1:
             if count + 1 < len(rawargs) and (not rawargs[count+1].startswith("-") or len(rawargs[count+1].split(" ")) > 1):
@@ -542,8 +542,7 @@ def read_counts(ref,sam,vars):
     sam_header = parse_sam_header(sam)
     replicon_names = get_replicon_names_from_sam_header(sam_header)
     
-    replicon_names_index = 0
-    for replicon_index in range(vars.num_replicons):
+    for replicon_names_index,replicon_index in enumerate(vars.num_replicons):
         sites = {}
         genome = read_genome(ref, replicon_index)
         for i in range(len(genome)-1):
@@ -552,7 +551,6 @@ def read_counts(ref,sam,vars):
             pos = i+1
             sites[pos] = [pos,0,0,0,0,0,0]
             sites_dict[replicon_names[replicon_names_index]] = sites
-            replicon_names_index += 1
 
     vars.tot_tgtta = 0
     vars.mapped = 0
@@ -644,14 +642,14 @@ def driver(vars):
     message("One reference genome specified: %s, containing %d records." % (vars.ref, num_records))
   vars.num_replicons = total_num_records
 
-  if vars.num_replicons != len(vars.replicon_id):
+  if vars.num_replicons != len(vars.replicon_ids):
     if vars.num_replicons is 1:
-      vars.replicon_id = ['']
+      vars.replicon_ids = ['']
     else:
-      raise error("%d replicons detected in reference genome, but only %d replicon_id specified" % (vars.num_replicons, len(vars.replicon_id)))
+      raise error("%d replicons detected in reference genome, but only %d replicon_ids specified" % (vars.num_replicons, len(vars.replicon_ids)))
 
-  if len(vars.replicon_id)>1:
-   for name in vars.replicon_id:
+  if len(vars.replicon_ids)>1:
+   for name in vars.replicon_ids:
     vars.tc.append(vars.base+"_"+name+".counts")
     vars.wig.append(vars.base+"_"+name+".wig")
   else:
@@ -1105,7 +1103,7 @@ def generate_output(vars):
   output.write('# read1: %s\n' % vars.fq1)
   output.write('# read2: %s\n' % vars.fq2)
   output.write('# ref_genome: %s\n' % vars.ref)
-  output.write('# replicon_ids: %s\n' % ','.join(vars.replicon_id))
+  output.write('# replicon_ids: %s\n' % ','.join(vars.replicon_ids))
   output.write("# total_reads %s (or read pairs)\n" % tot_reads)
   #output.write("# truncated_reads %s (fragments shorter than the read length; ADAP2 appears in read1)\n" % vars.truncated_reads)
   output.write("# trimmed_reads %s (reads with valid Tn prefix, and insert size>20bp)\n" % vars.tot_tgtta)
@@ -1115,38 +1113,38 @@ def generate_output(vars):
 
   if vars.num_replicons>1:
     output.write("# read_count (TA sites only, for Himar1):\n")
-    for replicon_id,read_count in zip(vars.replicon_id, rc):
-      output.write("#   %s: %s\n" % (replicon_id, read_count))
+    for replicon_ids,read_count in zip(vars.replicon_ids, rc):
+      output.write("#   %s: %s\n" % (replicon_ids, read_count))
     output.write("# template_count:\n")
-    for replicon_id,template_count in zip(vars.replicon_id, tc):
-      output.write("#   %s: %s\n" % (replicon_id, template_count))
+    for replicon_ids,template_count in zip(vars.replicon_ids, tc):
+      output.write("#   %s: %s\n" % (replicon_ids, template_count))
     output.write("# template_ratio (reads per template):\n")
-    for replicon_id,template_ratio in zip(vars.replicon_id, ratio):
-      output.write("#   %s: %0.2f\n" % (replicon_id, template_ratio))
+    for replicon_ids,template_ratio in zip(vars.replicon_ids, ratio):
+      output.write("#   %s: %0.2f\n" % (replicon_ids, template_ratio))
     output.write("# TA_sites:\n")
-    for replicon_id,num_ta_sites in zip(vars.replicon_id, ta_sites):
-      output.write("#   %s: %s\n" % (replicon_id, num_ta_sites))
+    for replicon_ids,num_ta_sites in zip(vars.replicon_ids, ta_sites):
+      output.write("#   %s: %s\n" % (replicon_ids, num_ta_sites))
     output.write("# TAs_hit:\n")
-    for replicon_id,num_tas_hit in zip(vars.replicon_id, tas_hit):
-      output.write("#   %s: %s\n" % (replicon_id, num_tas_hit))
+    for replicon_ids,num_tas_hit in zip(vars.replicon_ids, tas_hit):
+      output.write("#   %s: %s\n" % (replicon_ids, num_tas_hit))
     output.write("# density:\n")
-    for replicon_id,dens in zip(vars.replicon_id, density):
-      output.write("#   %s: %0.3f\n" % (replicon_id, dens))
+    for replicon_ids,dens in zip(vars.replicon_ids, density):
+      output.write("#   %s: %0.3f\n" % (replicon_ids, dens))
     output.write("# max_count (among templates):\n")
-    for replicon_id,max_template_counts in zip(vars.replicon_id, max_tc):
-      output.write("#   %s: %s\n" % (replicon_id, max_template_counts))
+    for replicon_ids,max_template_counts in zip(vars.replicon_ids, max_tc):
+      output.write("#   %s: %s\n" % (replicon_ids, max_template_counts))
     output.write("# max_site (coordinate):\n")
-    for replicon_id,max_site in zip(vars.replicon_id, max_coord):
-      output.write("#   %s: %s\n" % (replicon_id, max_site))
+    for replicon_ids,max_site in zip(vars.replicon_ids, max_coord):
+      output.write("#   %s: %s\n" % (replicon_ids, max_site))
     output.write("# NZ_mean (among templates):\n")
-    for replicon_id,nzmean in zip(vars.replicon_id, NZmean):
-      output.write("#   %s: %0.1f\n" % (replicon_id, nzmean))
+    for replicon_ids,nzmean in zip(vars.replicon_ids, NZmean):
+      output.write("#   %s: %0.1f\n" % (replicon_ids, nzmean))
     output.write("# FR_corr (Fwd templates vs. Rev templates):\n")
-    for replicon_id,frcorr in zip(vars.replicon_id, FR_corr):
-      output.write("#   %s: %0.3f\n" % (replicon_id, frcorr))
+    for replicon_ids,frcorr in zip(vars.replicon_ids, FR_corr):
+      output.write("#   %s: %0.3f\n" % (replicon_ids, frcorr))
     output.write("# BC_corr (reads vs. templates, summed over both strands):\n")
-    for replicon_id,bccorr in zip(vars.replicon_id, BC_corr):
-      output.write("#   %s: %0.3f\n" % (replicon_id, bccorr))
+    for replicon_ids,bccorr in zip(vars.replicon_ids, BC_corr):
+      output.write("#   %s: %0.3f\n" % (replicon_ids, bccorr))
 
   else: # just one replicon (contig); this format is read to populate table of stats for datasets in TPP GUI ("# <var> <val>")
     output.write("# read_count %s (TA sites only, for Himar1)\n" % rc[0])
@@ -1284,7 +1282,7 @@ def verify_inputs(vars):
         error('cannot find BWA executable. Please include the full executable name as well as its directory.')
 
 def initialize_globals(vars, args=[], kwargs={}):
-    vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.bwa_alg,vars.replicon_id,vars.base,vars.maxreads = "","","","","","","temp",""
+    vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.bwa_alg,vars.replicon_ids,vars.base,vars.maxreads = "","","","","","","",""
     vars.mm1 = 1 # mismatches allowed in Tn prefix AND adapter prefix on read2
     vars.transposon = 'Himar1'
     vars.protocol = "Sassetti"
@@ -1351,8 +1349,8 @@ def initialize_globals(vars, args=[], kwargs={}):
         else:
             vars.bwa_alg = kwargs["bwa-alg"]
    
-    if "replicon-id" in kwargs:
-        vars.replicon_id = kwargs["replicon-id"]
+    if "replicon-ids" in kwargs:
+        vars.replicon_ids = kwargs["replicon-ids"]
 
     # note: if last flag expected an arg but was end of list, it gets value True ; check for this and report as missing # TRI, 10/28/17
 
@@ -1363,11 +1361,11 @@ def read_config(vars):
     if len(w)>=2 and w[0]=='reads1': vars.fq1 = w[1]
     if len(w)>=2 and w[0]=='reads2': vars.fq2 = w[1]
     if len(w)>=2 and w[0]=='ref': vars.ref = ' '.join(w[1:])
-    if len(w)>=2 and w[0]=='ids': vars.replicon_id = ','.join(w[1:])
+    if len(w)>=2 and w[0]=='ids': vars.replicon_ids = w[1] #vars.replicon_ids = ','.join(w[1:])
     if len(w)>=2 and w[0]=='bwa': vars.bwa = w[1]
     if len(w)>=2 and w[0]=='bwa-alg': vars.bwa_alg = w[1]
     if len(w)>=2 and w[0]=='flags': vars.flags = " ".join(w[1:])
-    if len(w)>=2 and w[0]=='prefix': vars.base = w[1]
+    #if len(w)>=2 and w[0]=='prefix': vars.base = w[1]
     if len(w)>=2 and w[0]=='mismatches1': vars.mm1 = int(w[1])
     if len(w)>=2 and w[0]=='maxreads': vars.maxreads = int(w[1])
     if len(w)>=2 and w[0]=='window_size': vars.window_size = int(w[1])
@@ -1384,11 +1382,11 @@ def save_config(vars):
   f.write("reads1 %s\n" % vars.fq1)
   f.write("reads2 %s\n" % vars.fq2)
   f.write("ref %s\n" % ' '.join(vars.ref))
-  f.write("ids %s\n" % ' '.join(vars.replicon_id))
+  f.write("ids %s\n" % ','.join(vars.replicon_ids))
   f.write("bwa %s\n" % vars.bwa)
   f.write("bwa_alg %s\n" % vars.bwa_alg)
   f.write("flags %s\n" % vars.flags)
-  f.write("prefix %s\n" % vars.base)
+  #f.write("prefix %s\n" % vars.base)
   f.write("mismatches1 %s\n" % vars.mm1)
   f.write("primer_start_window %s,%s\n" % (vars.primer_start_window[0],vars.primer_start_window[1]))
   f.write("window_size %s\n" % vars.window_size)
@@ -1401,7 +1399,7 @@ def save_config(vars):
   f.close()
 
 def show_help():
-  #print 'usage: python PATH/src/tpp.py -bwa <EXECUTABLE_WITH_PATH> -ref <fasta-file|comma_separated_list> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-flags "<STRING>"] [-tn5|-himar1] [-primer <seq>] [-primer-start-window INT,INT] [-window-size INT] [-barseq_catalog_in|_out <file>] [-replicon-id <comma_separated_list_of_names>]'
+  #print 'usage: python PATH/src/tpp.py -bwa <EXECUTABLE_WITH_PATH> -ref <fasta-file|comma_separated_list> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-flags "<STRING>"] [-tn5|-himar1] [-primer <seq>] [-primer-start-window INT,INT] [-window-size INT] [-barseq_catalog_in|_out <file>] [-replicon-ids <comma_separated_list_of_names>]'
 
   print 'usage: python PATH/src/tpp.py -bwa <EXECUTABLE_WITH_PATH> -ref <fasta-file|comma_separated_list> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [OPTIONAL ARGS]'
   print '  OPTIONAL ARGS:'
@@ -1413,7 +1411,7 @@ def show_help():
   print '    -primer-start-window INT,INT # position in read to search for start of primer; default is [0,20]'
   print '    -window-size INT   # automatic method to set window'
   print '    -barseq_catalog_in|-barseq_catalog_out <file>'
-  print '    -replicon-id <comma_separated_list_of_names> # if multiple replicons/genomes/contigs/sequences were provided in -ref, give them names'
+  print '    -replicon-ids <comma_separated_list_of_names> # if multiple replicons/genomes/contigs/sequences were provided in -ref, give them names'
 
 class Globals:
   pass

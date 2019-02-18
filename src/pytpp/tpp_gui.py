@@ -106,14 +106,14 @@ if hasWx:
             sizer.Add(sizer3,0,wx.EXPAND,0)
        
             # REPLICON ID NAMES
-            sizer_replicon_id = wx.BoxSizer(wx.HORIZONTAL)
-            label_replicon_id = wx.StaticText(panel, label='ID names for each replicon (if genome has multiple contigs):',size=(340,-1))
-            sizer_replicon_id.Add(label_replicon_id,0,wx.ALIGN_CENTER_VERTICAL,0)
-            self.replicon_id = wx.TextCtrl(panel,value=vars.replicon_id,size=(400,30))
-            sizer_replicon_id.Add(self.replicon_id, proportion=1.0, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer_replicon_id.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Specify names of each contig within the reference genome separated by commas (if using wig_gb_to_csv.py you must use the contig names in the Genbank file).  Only required if there are multiple contigs; can leave blank if there is just one seq."), flag=wx.CENTER, border=0)
-            sizer_replicon_id.Add((10, 1), 0, wx.EXPAND) 
-            sizer.Add(sizer_replicon_id,0,wx.EXPAND,0)
+            sizer_replicon_ids = wx.BoxSizer(wx.HORIZONTAL)
+            label_replicon_ids = wx.StaticText(panel, label='ID names for each replicon (if genome has multiple contigs):',size=(340,-1))
+            sizer_replicon_ids.Add(label_replicon_ids,0,wx.ALIGN_CENTER_VERTICAL,0)
+            self.replicon_ids = wx.TextCtrl(panel,value=vars.replicon_ids,size=(400,30))
+            sizer_replicon_ids.Add(self.replicon_ids, proportion=1.0, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer_replicon_ids.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Specify names of each contig within the reference genome separated by commas (if using wig_gb_to_csv.py you must use the contig names in the Genbank file).  Only required if there are multiple contigs; can leave blank if there is just one seq."), flag=wx.CENTER, border=0)
+            sizer_replicon_ids.Add((10, 1), 0, wx.EXPAND) 
+            sizer.Add(sizer_replicon_ids,0,wx.EXPAND,0)
  
             # READS 1  
             sizer1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -223,15 +223,15 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer_primer_start.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer_primer_start,0,wx.EXPAND,0)  
 
-            # WINDOW SIZE                                 # [RJ] This block is to add the acceptance of a set window size for setting P,Q parameters
-            sizer_window_size = wx.BoxSizer(wx.HORIZONTAL)
-            label_window_size = wx.StaticText(panel, label='Window size for Tn prefix in read:', size=(340,-1))
-            sizer_window_size.Add(label_window_size,0,wx.ALIGN_CENTER_VERTICAL,0)
-            self.window_size = wx.TextCtrl(panel,value=str(vars.window_size),size=(150,30))
-            sizer_window_size.Add(self.window_size, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer_window_size.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Window size for extract_staggered() to look for start of Tn prefix."), flag=wx.CENTER, border=0)
-            sizer_window_size.Add((10, 1), 0, wx.EXPAND)
-            sizer.Add(sizer_window_size,0,wx.EXPAND,0)  
+#            # WINDOW SIZE                                 # [RJ] This block is to add the acceptance of a set window size for setting P,Q parameters
+#            sizer_window_size = wx.BoxSizer(wx.HORIZONTAL)
+#            label_window_size = wx.StaticText(panel, label='Window size for Tn prefix in read:', size=(340,-1))
+#            sizer_window_size.Add(label_window_size,0,wx.ALIGN_CENTER_VERTICAL,0)
+#            self.window_size = wx.TextCtrl(panel,value=str(vars.window_size),size=(150,30))
+#            sizer_window_size.Add(self.window_size, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+#            sizer_window_size.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Window size for extract_staggered() to look for start of Tn prefix."), flag=wx.CENTER, border=0)
+#            sizer_window_size.Add((10, 1), 0, wx.EXPAND)
+#            sizer.Add(sizer_window_size,0,wx.EXPAND,0)  
 
             # BWA
             sizer0 = wx.BoxSizer(wx.HORIZONTAL)
@@ -335,7 +335,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             value = os.path.basename(str_path).split('.')[0]
             if '_R1' in value or '_R2':
                 value = value.split('_')[0]
-            self.base.SetValue(value)
+            #self.base.SetValue(value)
 
 #
 
@@ -343,8 +343,8 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             value2 = os.path.basename(self.picker2.GetValue()).split('.')[0]
             value1 = os.path.basename(self.picker1.GetValue()).split('.')[0]
             value = os.path.commonprefix([value1, value2])
-            self.base.SetValue(value)
-            self.base.Refresh()
+            #self.base.SetValue(value)
+            #self.base.Refresh()
 
 #
 
@@ -474,12 +474,12 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             self.vars.mm1 = mm1
             self.vars.prefix = prefix
 
-            self.vars.window_size = int(self.window_size.GetValue())
+            #self.vars.window_size = int(self.window_size.GetValue())
             if 'aln' in self.bwa_alg.GetValue():
                 self.vars.bwa_alg = 'aln'
             elif 'mem' in self.bwa_alg.GetValue():
                 self.vars.bwa_alg = 'mem'
-            self.vars.replicon_id = self.replicon_id.GetValue().split(',')
+            self.vars.replicon_ids = self.replicon_ids.GetValue().split(',')
         
             v = self.primer_start.GetValue()
             if v!="":
