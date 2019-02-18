@@ -97,7 +97,7 @@ if hasWx:
 
             # REFERENCE
             sizer3 = wx.BoxSizer(wx.HORIZONTAL)
-            label3 = wx.StaticText(panel, label='Choose a reference genome (FASTA):',size=(330,-1))
+            label3 = wx.StaticText(panel, label='Choose a reference genome (FASTA) (REQUIRED):',size=(330,-1))
             sizer3.Add(label3,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.picker3 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the reference genome', fileMode=wx.FD_OPEN, fileMask='*.fna;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.ref), initialValue=vars.ref, labelText='')
             sizer3.Add(self.picker3, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
@@ -117,7 +117,7 @@ if hasWx:
  
             # READS 1  
             sizer1 = wx.BoxSizer(wx.HORIZONTAL)
-            label1 = wx.StaticText(panel, label='Choose the Fastq file for read 1:',size=(330,-1))
+            label1 = wx.StaticText(panel, label='Choose the Fastq file for read 1 (REQUIRED):',size=(330,-1))
             sizer1.Add(label1,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.picker1 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 1', fileMode=wx.FD_OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa;*.fastq.gz', size=(400,30), startDirectory=os.path.dirname(vars.fq1), initialValue=vars.fq1, labelText='',changeCallback=self.OnChanged2)
             sizer1.Add(self.picker1, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
@@ -139,7 +139,7 @@ if hasWx:
 
             # OUTPUT PREFIX 
             sizer5 = wx.BoxSizer(wx.HORIZONTAL)
-            label5 = wx.StaticText(panel, label='Prefix to use for output filenames:',size=(340,-1))
+            label5 = wx.StaticText(panel, label='Prefix to use for output filenames (REQUIRED):',size=(340,-1))
             sizer5.Add(label5,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.base = wx.TextCtrl(panel,value=vars.base,size=(400,30))
             sizer5.Add(self.base, proportion=1.0, flag=wx.EXPAND|wx.ALL, border=5)
@@ -235,22 +235,19 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
 
             # BWA
             sizer0 = wx.BoxSizer(wx.HORIZONTAL)
-            label0 = wx.StaticText(panel, label='BWA executable:',size=(330,-1))
+            label0 = wx.StaticText(panel, label='BWA executable (REQUIRED):',size=(330,-1))
             sizer0.Add(label0,0,wx.ALIGN_CENTER_VERTICAL,0)
 
-            self.bwa_alg = wx.ComboBox(panel,choices=["use algorithm 'aln'", "use algorithm 'mem'"],size=(200,30))
-            if vars.bwa_alg=='aln': self.bwa_alg.SetSelection(0)
-            else: self.bwa_alg.SetSelection(1) # default
-            sizer0.Add(self.bwa_alg, proportion=0.5, flag=wx.EXPAND|wx.ALL, border=5) ## 
-
             self.picker0 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id = wx.ID_ANY, size=(400,30), dialogTitle='Path to BWA', fileMode=wx.FD_OPEN, fileMask='bwa*', startDirectory=os.path.dirname(vars.bwa), initialValue=vars.bwa, labelText='')
-
-             
             sizer0.Add(self.picker0, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer0.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Specify a path to the BWA executable (including the executable)."), flag=wx.CENTER, border=0)
             sizer0.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer0,0,wx.EXPAND,0)
 
+            self.bwa_alg = wx.ComboBox(panel,choices=["use algorithm 'aln'", "use algorithm 'mem'"],size=(200,30))
+            if vars.bwa_alg=='aln': self.bwa_alg.SetSelection(0)
+            else: self.bwa_alg.SetSelection(1) # default
+            sizer0.Add(self.bwa_alg, proportion=0.5, flag=wx.EXPAND|wx.ALL, border=5) ## 
             self.bwa_alg.Bind(wx.EVT_COMBOBOX, self.OnBwaAlgSelection, id=self.bwa_alg.GetId())
 
             # BWA FLAGS

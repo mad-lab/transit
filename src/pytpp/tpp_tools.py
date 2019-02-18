@@ -1284,7 +1284,7 @@ def verify_inputs(vars):
         error('cannot find BWA executable. Please include the full executable name as well as its directory.')
 
 def initialize_globals(vars, args=[], kwargs={}):
-    vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.bwa_alg,vars.replicon_id,vars.base,vars.maxreads = "","","","","","","temp",-1
+    vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.bwa_alg,vars.replicon_id,vars.base,vars.maxreads = "","","","","","","temp",""
     vars.mm1 = 1 # mismatches allowed in Tn prefix AND adapter prefix on read2
     vars.transposon = 'Himar1'
     vars.protocol = "Sassetti"
@@ -1392,7 +1392,7 @@ def save_config(vars):
   f.write("mismatches1 %s\n" % vars.mm1)
   f.write("primer_start_window %s,%s\n" % (vars.primer_start_window[0],vars.primer_start_window[1]))
   f.write("window_size %s\n" % vars.window_size)
-  f.write("maxreads %s\n" % vars.maxreads)
+  if vars.maxreads>-1: f.write("maxreads %s\n" % vars.maxreads)
   f.write("transposon %s\n" % vars.transposon)
   f.write("protocol %s\n" % vars.protocol)
   f.write("primer %s\n" % vars.prefix)
