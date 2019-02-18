@@ -117,9 +117,10 @@ For example, you could use this to map known ORFs in H37Rv to sequences of other
 (Even though they have their own annotations, it might be helpful to use the genes as defined in H37Rv)
 
 While some Transit methods can also work with .gff (or .gff3) files,
-the flexibility of the .gff format makes it difficult to anticipate all encoding schemes.
-Therefore, to simplify things, we recommend you convert your .gff file to .prot_table format,
-which can be done through the GUI, or on the command-line as follows:
+the flexibility of the .gff format makes it difficult to anticipate all possible encoding schemes.
+Therefore, to simplify things, we recommend you convert your .gff file to .prot_table format
+once at the beginning and then use that for all work with Transit,
+which can be done through the GUI (under 'Convert' in menu), or on the command-line as follows:
 
 
 ::
