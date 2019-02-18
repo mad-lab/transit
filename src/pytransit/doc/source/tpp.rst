@@ -197,10 +197,9 @@ filenames and parameters as command-line arguments.
     -himar1 or -tn5    # which transposon was used?; default is -himar1
     -primer <seq>      # prefix of reads corresponding to end of transposon at junction with genomic sequence
     -mismatches <INT>  # when searching for constant regions in reads 1 and 2; default is 1
-    -primer-start-window INT,INT # position in read to search for start of primer; default is [0,50]
-    -window-size INT   # automatic method to set window
+    -primer-start-window INT,INT # position in read to search for start of primer; default is [0,20]
     -barseq_catalog_in|-barseq_catalog_out <file>
-    -replicon-id <comma_separated_list_of_names> # if multiple replicons/genomes/contigs/sequences were provided in -ref, give them names
+    -replicon-ids <comma_separated_list_of_names> # if multiple replicons/genomes/contigs/sequences were provided in -ref, give them names
 
 
 The input arguments and file types are as follows:
@@ -217,7 +216,7 @@ The input arguments and file types are as follows:
 +----------------------+--------------------------------------------------+------------------------------------------------------+
 | -ref                 | reference genome sequence                        | FASTA file or comma-separated list of files          |
 +----------------------+--------------------------------------------------+------------------------------------------------------+
-| -replicon-id         | comma-separated list of names to use for contigs | necessary only if genome seq has multiple contigs    |
+| -replicon-ids        | comma-separated list of names to use for contigs | necessary only if genome seq has multiple contigs    |
 +----------------------+--------------------------------------------------+------------------------------------------------------+
 | -reads1              | file of read 1 of paired reads                   | FASTA or FASTQ format (or gzipped)                   |
 +----------------------+--------------------------------------------------+------------------------------------------------------+
@@ -238,12 +237,8 @@ The input arguments and file types are as follows:
 | -primer              | nucleotide sequence                              | Constant prefix of reads that TPP searches for.      |
 |                      |                                                  | default: ACTTATCAGCCAACCTGTTA (terminus of Himar1)   |
 +----------------------+--------------------------------------------------+------------------------------------------------------+
-| -primer-start-window | INT,INT (default is 0,50)                        | Start and end nucleotides in read 1                  |
+| -primer-start-window | INT,INT (default is 0,20)                        | Start and end nucleotides in read 1                  |
 |                      |                                                  | in which to search for start of Tn prefix.           |
-+----------------------+--------------------------------------------------+------------------------------------------------------+
-| -window-size         | INT (>=6)                                        | Automated method to compute the window in read1 in   |
-|                      |                                                  | in which to search for start of Tn prefix:           |
-|                      |                                                  |   28bp-len(prefix) +/- window_size                   |
 +----------------------+--------------------------------------------------+------------------------------------------------------+
 
 (Note: if you have already run TPP once, the you can leave out the
@@ -251,9 +246,12 @@ specification of the path for BWA, and it will automatically take the
 path stored in the config file, tpp.cfg. Same for ref, if you always use
 the same reference sequence.)
 
-(For -primer-start-window, it might be useful to narrow this down, such as to 0,20, 
-if the primer sequence is short (<10bp), to avoid spurious matches in reads not
-representing true transposon:genomic junctions.  Depending on the protocol and
+(The -primer-start-window flag specifies the range of nucleotide in read 1 
+to search for the start of the primer sequence (which is the end of the transposon).
+This is useful to narrow the down the region to search from the whole read 
+(especially if the primer sequence is short, e.g. <10bp),
+to avoid spurious matches in reads not representing true transposon:genomic junctions.
+Depending on the protocol and
 primer design, the constant sequence corresponding the the end of the transposon
 usually occurs near the beginning of the read, possibly at varying (shifted) positions.
 However, if your primer sequence is long enough (e.g >16bp), then the changes of
@@ -270,13 +268,13 @@ While TPP was originally designed for mapping reads to one sequence at a time, i
 extended to process multiple contigs in parallel (with help from Robert Jenquin and William Matern).
 
 You can provide either a single merged reference sequence (multi-fasta file, with several
-header lines and sequences), or a comma-separated list of input fasta files.
+header lines and sequences), or a comma-separated list of input fasta files (command-line only).
 If multiple sequences are provided to TPP, you will have to include an additional flag on the
-command line called '-replicon-ids' (again, a comma-separated list; the number of ids needs to match
+command line called *-replicon-ids* (again, a comma-separated list; the number of ids needs to match
 the number of input sequences).
 
 In the GUI, there is a new field for specifiying replicon-ids as well.
-If there is just one sequence or contig, you can leave replicon-id blank; you do not have to specify it
+If there is just one sequence or contig, you can leave replicon-ids blank; you do not have to specify it
 in the GUI or on the command line.
 
 In such situations, TPP will generate multiple .wig files, each with the base filename (arg of '-output' flag),
