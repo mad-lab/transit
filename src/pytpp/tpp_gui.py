@@ -212,16 +212,16 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer7.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer7,0,wx.EXPAND,0)    
 
-            # PREFIX_START_WINDOW
-            sizer_prefix_start = wx.BoxSizer(wx.HORIZONTAL)
-            label_prefix_start = wx.StaticText(panel, label='Start of window to look for prefix (Tn terminus):', size=(340,-1))
-            sizer_prefix_start.Add(label_prefix_start,0,wx.ALIGN_CENTER_VERTICAL,0)
-            prefix_start_window = "%s,%s" % (vars.prefix_start_window[0],vars.prefix_start_window[1])
-            self.prefix_start = wx.TextCtrl(panel,value=prefix_start_window,size=(150,30))
-            sizer_prefix_start.Add(self.prefix_start, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer_prefix_start.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Region in read 1 to search for start of prefix seq (i.e. end of transposon)."), flag=wx.CENTER, border=0)
-            sizer_prefix_start.Add((10, 1), 0, wx.EXPAND)
-            sizer.Add(sizer_prefix_start,0,wx.EXPAND,0)  
+            # PRIMER_START_WINDOW
+            sizer_primer_start = wx.BoxSizer(wx.HORIZONTAL)
+            label_primer_start = wx.StaticText(panel, label='Start of window to look for prefix (Tn terminus):', size=(340,-1))
+            sizer_primer_start.Add(label_primer_start,0,wx.ALIGN_CENTER_VERTICAL,0)
+            primer_start_window = "%s,%s" % (vars.primer_start_window[0],vars.primer_start_window[1])
+            self.primer_start = wx.TextCtrl(panel,value=primer_start_window,size=(150,30))
+            sizer_primer_start.Add(self.primer_start, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer_primer_start.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Region in read 1 to search for start of prefix seq (i.e. end of transposon)."), flag=wx.CENTER, border=0)
+            sizer_primer_start.Add((10, 1), 0, wx.EXPAND)
+            sizer.Add(sizer_primer_start,0,wx.EXPAND,0)  
 
             # WINDOW SIZE                                 # [RJ] This block is to add the acceptance of a set window size for setting P,Q parameters
             sizer_window_size = wx.BoxSizer(wx.HORIZONTAL)
@@ -484,10 +484,10 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
                 self.vars.bwa_alg = 'mem'
             self.vars.replicon_id = self.replicon_id.GetValue().split(',')
         
-            v = self.prefix_start.GetValue()
+            v = self.primer_start.GetValue()
             if v!="":
               v = v.split(',')
-              self.vars.prefix_start_window = (int(v[0]),int(v[1]))
+              self.vars.primer_start_window = (int(v[0]),int(v[1]))
         
             if maxreads == '': self.vars.maxreads = -1
             else: self.vars.maxreads = int(maxreads)
