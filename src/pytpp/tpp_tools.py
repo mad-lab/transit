@@ -248,7 +248,7 @@ def extract_staggered(infile,outfile,vars):
 
   #P,Q = 0,15
   #P,Q = 0,50 # relax this, because it has caused problems for various users; shouldn't matter, if prefix is long enough to make random occurences unlikely
-  P,Q = vars.prefix_start_window
+  P,Q = vars.primer_start_window
 
   if vars.window!=None: P,Q = vars.window[0],vars.window[1]
  
@@ -649,11 +649,14 @@ def driver(vars):
       vars.replicon_id = ['']
     else:
       raise error("%d replicons detected in reference genome, but only %d replicon_id specified" % (vars.num_replicons, len(vars.replicon_id)))
-  
-  for name in vars.replicon_id:
-    ref_str = os.path.basename(vars.ref.split(".fasta")[0].split(".fa")[0])
+
+  if len(vars.replicon_id)>1:
+   for name in vars.replicon_id:
     vars.tc.append(vars.base+"_"+name+".counts")
     vars.wig.append(vars.base+"_"+name+".wig")
+  else:
+    vars.tc.append(vars.base+".counts")
+    vars.wig.append(vars.base+".wig")
   
   if not vars.prefix:
     if vars.transposon=="Tn5": vars.prefix = "TAAGAGACAG"
@@ -1289,7 +1292,7 @@ def initialize_globals(vars, args=[], kwargs={}):
     vars.flags = ""
     vars.barseq_catalog_in = vars.barseq_catalog_out = None
     vars.window_size = -1
-    vars.prefix_start_window = 0,20
+    vars.primer_start_window = 0,20
     vars.window = None
     vars.bwa_alg = "mem"
     
@@ -1368,7 +1371,7 @@ def read_config(vars):
     if len(w)>=2 and w[0]=='mismatches1': vars.mm1 = int(w[1])
     if len(w)>=2 and w[0]=='maxreads': vars.maxreads = int(w[1])
     if len(w)>=2 and w[0]=='window_size': vars.window_size = int(w[1])
-    if len(w)>=2 and w[0]=='prefix_start_window': v = w[1].split(','); vars.prefix_start_window = (int(v[0]),int(v[1]))
+    if len(w)>=2 and w[0]=='primer_start_window': v = w[1].split(','); vars.primer_start_window = (int(v[0]),int(v[1]))
     if len(w)>=2 and w[0]=='transposon': vars.transposon = w[1]
     if len(w)>=2 and w[0]=='protocol': vars.protocol = " ".join(w[1:])
     if len(w)>=2 and w[0]=='primer': vars.prefix = w[1]
@@ -1387,7 +1390,7 @@ def save_config(vars):
   f.write("flags %s\n" % vars.flags)
   f.write("prefix %s\n" % vars.base)
   f.write("mismatches1 %s\n" % vars.mm1)
-  f.write("prefix_start_window %s,%s\n" % (vars.prefix_start_window[0],vars.prefix_start_window[1]))
+  f.write("primer_start_window %s,%s\n" % (vars.primer_start_window[0],vars.primer_start_window[1]))
   f.write("window_size %s\n" % vars.window_size)
   f.write("maxreads %s\n" % vars.maxreads)
   f.write("transposon %s\n" % vars.transposon)
