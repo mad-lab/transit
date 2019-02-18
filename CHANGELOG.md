@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Transit:	
  - fixed bug in handling '-minreads' flag in Gumbel analysis
  - updated support for converting .gff files to .prot_table format (in GUI and on command line)
+- updated documentation
 
 ## Pull Request 18 by Robert Jenquin and William Matern (Jan, 2019)
 
