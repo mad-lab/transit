@@ -1,11 +1,12 @@
 
+.. _transit_quality_control:
 
 Quality Control
 ===============
 
 
 TRANSIT has several useful features to help inspect the quality of datasets as
-and export them to different formats. (see also TPP Statistics)
+and export them to different formats. (see also :ref:`TPP Statistics <TPP_Statistics>` )
 
 
 As you add datasets to the control or experimental sections, TRANSIT
@@ -99,4 +100,68 @@ Figure 3: Ranked plot of Read-Counts
 
 
 The second plot in the Quality Control window is a plot of the read-counts in sorted order. This may be helpful in indentifying outliers that may exist in the dataset. Typically, some large counts are expected and some normalization methods, like TTR, are robust to such outliers. However, too many outliers, or one single outlier that is overhwelmingly different than the rest may indicate an issue like PCR amplification (especially in libraries constructed older protocols).
+
+
+Interpretation of Data Quality
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It is important to be able to evaluate the quality of datasets.
+In a nutshell, we look at statistics like saturation, and mean read count,
+but also things like max count and skewness.
+
+There are two ways to do QC in Transit - via the GUI and command-line.  
+In the GUI, one can load a set of
+wig files a select "View->Quality Control" in the menu; this will
+display some plots of read-count distribution.  Ideally, you want most of
+your datasets to fall along the diagonal on a QQ-plot.  Real data will
+often deviate somewhat (I will try to be more quantitative about this in the future),
+but if a dataset skews far off from the diagonal, it could cause problems
+with analytical methods like resampling or the HMM.  
+
+.. image:: http://saclab.tamu.edu/essentiality/transit/QC_example.png
+
+You can also generate the same table to statistics as on the QC panel
+from the command-line using the :ref:`tnseq_stats <tnseq_stats>` command.  
+
+Below the plots are a table of statistics.  While there are not
+rigorous criteria for defining "bad" datasets, rules of thumb I use
+for "good" datasets are: density>30% (ideally >50%) and NZmean>10 (ideally >50).  
+In addition, I look
+at MaxReadCount and Skewness as indicators.  Typically, MaxReadCount
+will be in the range of a few thousand to tens-of-thousands.  
+If you see individual sites with
+counts in the range of 10^5-10^6, it might mean you have some positive
+selection at a site (e.g. biological, or due to PCR jackpotting), and
+this can have the effect of reducing counts and influencing the
+distribution at all the other sites.  If MaxReadCount<100, that is also
+probably problematic (either not enough reads, or possibly skewing).
+Also, skewness>30 often (but not
+always) signals a problem.  Kurtosis doesn't seem to be very
+meaningful.  The reason it is not easy to boil all these down to a
+simple set of criteria is that some some of the metrics interact with
+each other.  I am working on new QC metrics for a future release of
+Transit (TRI, 10/10/18).
+
+.. _BGC:
+
+Beta-Geometric Correction
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have a "bad" or poorly-behaving or "skewed" dataset (e.g. with mostly low
+counts, dominated by a few high counts), right now the only remedy you
+can try is applying the **Beta-Geometric correction (BGC)**, which is a
+non-linear adjustment to the insertion counts in a wig file to make
+them more like an ideal Geometric distribution (`DeJesus & Ioerger, 2016 <https://www.ncbi.nlm.nih.gov/pubmed/26932272>`_). (Note, all the
+other normalizations, like TTR, are linear adjustments, and so they
+can't correct for skewing.)
+
+In the GUI, when you are looking, you can change
+the normalization (e.g. from TTR to betageom) using the drop-down.  Be aware that the Beta-Geometric
+normalization is compute-intensive and might take few minutes.
+
+If it looks like it might help (i.e. if the QQ-plot fits the diagonal better using BG
+normalization),
+you can created BG-corrected versions of individual wig files by
+exporting them using the :ref:`normalize command <normalization>` 
+on the command-line with '-n betageom' to specify normalization.
 

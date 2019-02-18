@@ -345,12 +345,12 @@ Here is a brief summary of the steps performed in converting raw reads
    the site with the max template count. Look for reads matching the
    primer or vector sequences.
 
-.. _Statistics:
+.. _TPP_Statistics:
 
 Statistics
 ==========
 
-See also: Transit Quality Control
+See also: :ref:`Transit Quality Control <transit_quality_control>`
 
 Here is an explanation of the statistics that are saved in the
 .tn\_stats file and displayed in the table in the GUI. For convenience,
