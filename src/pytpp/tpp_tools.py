@@ -542,9 +542,9 @@ def read_counts(ref,sam,vars):
     sam_header = parse_sam_header(sam)
     replicon_names = get_replicon_names_from_sam_header(sam_header)
     
-    for replicon_names_index,replicon_index in enumerate(vars.num_replicons):
+    for replicon_names_index in range(vars.num_replicons):
         sites = {}
-        genome = read_genome(ref, replicon_index)
+        genome = read_genome(ref, replicon_names_index)
         for i in range(len(genome)-1):
             #if genome[i:i+2]=="TA" or vars.transposon=='Tn5':
             if vars.transposon=='Himar1' and genome[i:i+2]!="TA": continue
