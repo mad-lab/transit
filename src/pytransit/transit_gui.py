@@ -50,6 +50,7 @@ import traceback
 import pytransit
 import pytransit.analysis
 import pytransit.export
+import pytransit.convert
 import pytransit.trash as trash
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
@@ -64,6 +65,7 @@ import pytransit.images as images
 method_wrap_width = 250
 methods = pytransit.analysis.methods
 export_methods = pytransit.export.methods
+convert_methods = pytransit.convert.methods
 normmethods = norm_tools.methods
 
 
@@ -430,8 +432,8 @@ class MainFrame ( wx.Frame ):
 
         self.convertMenuItem.Append( self.annotationConvertPTTToPT )
 
-        self.annotationConvertGFF3ToPT = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"GFF3 to prot_table", wx.EmptyString, wx.ITEM_NORMAL )
-        self.convertMenuItem.Append( self.annotationConvertGFF3ToPT )
+        # self.annotationConvertGFF3ToPT = wx.MenuItem( self.convertMenuItem, wx.ID_ANY, u"GFF3 to prot_table", wx.EmptyString, wx.ITEM_NORMAL )
+        # self.convertMenuItem.Append( self.annotationConvertGFF3ToPT )
         self.fileMenuItem.AppendSubMenu( self.convertMenuItem, u"Convert" )
 
         self.fileExitMenuItem = wx.MenuItem( self.fileMenuItem, wx.ID_ANY, u"&Exit", wx.EmptyString, wx.ITEM_NORMAL )
@@ -501,7 +503,7 @@ class MainFrame ( wx.Frame ):
         self.Bind( wx.EVT_MENU, self.annotationPT_to_PTT, id = self.annotationConvertPTToPTTMenu.GetId() )
         self.Bind( wx.EVT_MENU, self.annotationPT_to_GFF3, id = self.annotationConvertPTToGFF3Menu.GetId() )
         self.Bind( wx.EVT_MENU, self.annotationPTT_to_PT, id = self.annotationConvertPTTToPT.GetId() )
-        self.Bind( wx.EVT_MENU, self.annotationGFF3_to_PT, id = self.annotationConvertGFF3ToPT.GetId() )
+        # self.Bind( wx.EVT_MENU, self.annotationGFF3_to_PT, id = self.annotationConvertGFF3ToPT.GetId() )
         self.Bind( wx.EVT_MENU, self.Exit, id = self.fileExitMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.scatterFunc, id = self.scatterMenuItem.GetId() )
         self.Bind( wx.EVT_MENU, self.allViewFunc, id = self.trackMenuItem.GetId() )
@@ -705,7 +707,14 @@ class TnSeekFrame(MainFrame):
             self.Bind( wx.EVT_MENU, partial(self.ExportSelectFunc,  export_methods[name].label),
                 tempMenuItem )
 
+        # Convert Menu Items
+        for name in convert_methods:
+            convert_methods[name].gui.defineMenuItem(self, convert_methods[name].label)
+            tempMenuItem = convert_methods[name].gui.menuitem
+            self.convertMenuItem.Append( tempMenuItem )
 
+            self.Bind( wx.EVT_MENU, partial(self.ConvertSelectFunc,  convert_methods[name].label),
+                tempMenuItem )
 
 
         # Method Panels
@@ -1504,6 +1513,21 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
                     transit_tools.transit_message("Error: %s" % str(e))
                     traceback.print_exc()
 
+    def ConvertSelectFunc(self, selected_name, test=""):
+        annotationpath = self.annotation
+
+        for name in convert_methods:
+            if convert_methods[name].label == selected_name:
+                methodobj = convert_methods[name].method
+                try:
+                    M = methodobj.fromGUI(self)
+                    if M:
+                        thread = threading.Thread(target=M.Run())
+                        thread.setDaemon(True)
+                        thread.start()
+                except Exception as e:
+                    transit_tools.transit_message("Error: %s" % str(e))
+                    traceback.print_exc()
 #
 
     def displayFileFunc(self, event):

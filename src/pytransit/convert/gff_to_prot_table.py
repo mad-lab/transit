@@ -1,7 +1,25 @@
 import sys
+import os
+
+try:
+    import wx
+    WX_VERSION = int(wx.version()[0])
+    hasWx = True
+
+except Exception as e:
+    hasWx = False
+    WX_VERSION = 0
+
+if hasWx:
+    import wx.xrc
+    from wx.lib.buttons import GenBitmapTextButton
+    from pubsub import pub
+    import wx.adv
+
 import csv
 import traceback
 import pytransit.transit_tools as transit_tools
+import base
 
 class InvalidArgumentException(Exception):
     def __init__(self, message):
@@ -18,33 +36,50 @@ label = "GFF3 to Prot_table"
 
 ############# Analysis Method ##############
 
-class GffProtConvertor():
+class GffProtConverter(base.TransitConvert):
     def __init__(self):
-        self.method = GffProtMethod
+        base.TransitConvert.__init__(self, short_name, long_name, description, label, GffProtMethod, GffProtGUI)
+
 
 ################# GUI ##################
+class GffProtGUI(base.ConvertGUI):
 
+    def __init__(self):
+        base.ConvertGUI.__init__(self)
 
 ########## METHOD #######################
 
-class GffProtMethod():
+class GffProtMethod(base.ConvertMethod):
     """
     GffProtMethod
     """
     def __init__(self,
                 annotation_path,
-                output):
+                output, wxobj=None):
         self.short_name = short_name
         self.long_name = long_name
         self.description = description
         self.label = label
         self.output = output
         self.annotation_path = annotation_path
+        base.ConvertMethod.__init__(self, short_name, long_name, description, label, annotation_path, output, wxobj=wxobj)
 
     @classmethod
     def fromGUI(self, wxobj):
         """ """
-        pass
+        #Get Annotation file
+        annotationPath = wxobj.annotation
+        if not transit_tools.validate_annotation(annotationPath):
+            return None
+
+        #Get output path
+        defaultFileName = "{0}.prot_table".format(os.path.splitext(os.path.basename(annotationPath))[0])
+        defaultDir = os.getcwd()
+        output_path = wxobj.SaveFile(defaultDir, defaultFileName)
+        if not output_path: return None
+        output_file = open(output_path, "w")
+
+        return self(annotationPath, output_file, wxobj)
 
     @classmethod
     def fromargs(self, rawargs):
@@ -96,12 +131,12 @@ class GffProtMethod():
         return '-'
 
     def Run(self):
-        print("Running")
         gff_file = open(self.annotation_path)
         output_file = self.output
         writer = csv.writer(output_file, delimiter='\t')
         lines = gff_file.readlines()
         gff_file.close()
+        self.transit_message("Converting annotation file from GFF3 format to prot_table format")
 
         for i, line in enumerate(lines):
             lie = line.strip()
@@ -127,6 +162,7 @@ class GffProtMethod():
                 vals = [desc, start, end, strand, diff, '-', '-', gene, Rv, '-']
                 writer.writerow(vals)
         output_file.close()
+        self.transit_message("Finished conversion")
 
     @classmethod
     def usage_string(self):
