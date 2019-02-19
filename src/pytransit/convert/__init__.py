@@ -10,5 +10,5 @@ import gff_to_prot_table
 
 # EXPORT METHODS
 methods = {}
-methods["gff_to_prot_table"] = gff_to_prot_table.GffProtConvertor()
+methods["gff_to_prot_table"] = gff_to_prot_table.GffProtConverter()
 
