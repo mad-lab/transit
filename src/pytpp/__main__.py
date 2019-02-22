@@ -39,7 +39,6 @@ def run_main():
     main(*args, **kwargs)
 
 def main(*args, **kwargs):
-
     vars = Globals()
     # Check for arguements
     if not args and not kwargs and hasWx:        
@@ -73,7 +72,6 @@ def main(*args, **kwargs):
         show_help()
 
     else:
-
         # Show help if needed
         if "help" in kwargs or "-help" in kwargs:
             show_help()

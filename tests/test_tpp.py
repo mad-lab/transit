@@ -1,85 +1,106 @@
 import sys
+import os
+import inspect
 
-sys.path.insert(0, '../src/')
+basedir = os.path.dirname(__file__)
+sys.path.insert(0, basedir + '/../src/')
 #sys.path.insert(0, '/home/travis/build/mad-lab/transit/src/')
 
 import shutil
 import unittest
-import os
 
 from transit_test import *
+from pytpp.tpp_tools import cleanargs
 
-import pytpp
 import pytpp.__main__
 
 tppMain = pytpp.__main__.main
 
+def get_bwa():
+    if (os.path.exists("/usr/bin/bwa")):
+        return "/usr/bin/bwa"
+    elif (os.path.exists("/usr/local/bin/bwa")):
+        return "/usr/local/bin/bwa"
+    return ""
 
-NOFLAG_PRIMER = [float(x) for x in "1000    983 937 0   937 932 932 1.0 74605   907 2   0.0121573621071 4348593 1.02756339581   0.0190915393988 1.0 8   9   0   9".split()]
+bwa_path = get_bwa()
 
-FLAG_PRIMER = [float(x) for x in "1000  983 935 0   935 931 931 1.0 74605   906 2   0.0121439581797 4348593 1.02759381898   0.0191247691862 1.0 8   9   0   9".split()]
 
-NOFLAG_NOPRIMER = [float(x) for x in "".split()]
+NOFLAG_NOPRIMER = [
+        "# density: 0.000",
+        "# NZ_mean (among templates): 1.0",
+        "# FR_corr (Fwd templates vs. Rev templates): -0.000"
+        ]
 
-FLAG_NOPRIMER = [float(x) for x in "".split()]
+FLAG_NOPRIMER = [
+        "# density: 0.000",
+        "# NZ_mean (among templates): 1.0",
+        "# FR_corr (Fwd templates vs. Rev templates): -0.000",
+        "# bwa flags: -k 1"
+        ]
 
+NOFLAG_PRIMER = [
+        "# TA_sites: 74605",
+        "# TAs_hit: 914",
+        "# mapped_reads (both R1 and R2 map into genome, and R2 has a proper barcode): 967",
+        "# density: 0.012",
+        "# NZ_mean (among templates): 1.0",
+        "# FR_corr (Fwd templates vs. Rev templates): 0.019"
+        ]
+
+FLAG_PRIMER = [
+        "# TA_sites: 74605",
+        "# TAs_hit: 914",
+        "# bwa flags: -k 1",
+        "# mapped_reads (both R1 and R2 map into genome, and R2 has a proper barcode): 967",
+        "# density: 0.012",
+        "# NZ_mean (among templates): 1.0",
+        "# FR_corr (Fwd templates vs. Rev templates): 0.019"
+        ]
 
 def get_stats(path):
     for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.split("\t")
+        if line.startswith("#"):
+            print(line[1:].split(":"))
+            continue
         break
-    return [float(x) for x in tmp[2:]]
+    return [float(x) if (type(x) != list) else x for x in tmp[2:]]
 
+def verify_stats(stats_file, expected):
+    with open(stats_file) as f:
+        lines = set([line.strip() for line in f])
+        print(lines)
+        print(set(expected) - lines)
+        return len(set(expected) - lines) == 0
+    return False
 
 class TestTPP(TransitTestCase):
- 
-    @unittest.skipUnless(os.path.exists("/usr/bin/bwa"), "requires BWA")
+
+    @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_noflag_primer(self):
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-himar1"])
+        tppMain(*args, **kwargs)
+        self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), NOFLAG_PRIMER))
 
-        arguments = ["-bwa", "/usr/bin/bwa", "-ref", "H37Rv.fna", "-reads1", "test.fastq", "-output",
-                     "tpp_output_noflag_primer", "-himar1"]
-        tppMain(arguments)
-        stats = get_stats("tpp_output_noflag_primer.tn_stats")
-        self.assertTrue(NOFLAG_PRIMER == stats) 
-
-
-    @unittest.skipUnless(os.path.exists("/usr/bin/bwa"), "requires BWA")
+    @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_flag_primer(self):
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-himar1", "-flags", "-k 1"])
+        tppMain(*args, **kwargs)
+        self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), FLAG_PRIMER))
 
-        arguments = ["-bwa", "/usr/bin/bwa", "-ref", "H37Rv.fna", "-reads1", "test.fastq", "-output",
-                     "tpp_output_flag_primer", "-himar1", "-flags", "-k 1"]
-        tppMain(arguments)
-        stats = get_stats("tpp_output_flag_primer.tn_stats")
-        self.assertTrue(FLAG_PRIMER == stats)
-
-
-    @unittest.expectedFailure    
-    @unittest.skipUnless(os.path.exists("/usr/bin/bwa"), "requires BWA")
+    @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_noflag_noprimer(self):
+        # with self.assertRaises(SystemExit):
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-primer", " "])
+        tppMain(*args, **kwargs)
+        self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), NOFLAG_NOPRIMER))
 
-        with self.assertRaises(SystemExit):
-            arguments = ["-bwa", "/usr/bin/bwa", "-ref", "H37Rv.fna", "-reads1", "test.fastq", "-output",
-                         "tpp_output_noflag_noprimer", "-primer", " "]
-            tppMain(arguments)
-            stats = get_stats("tpp_output_noflag_noprimer.tn_stats")
-            self.assertTrue(NOFLAG_NOPRIMER == stats)
-
-
-    @unittest.expectedFailure
-    @unittest.skipUnless(os.path.exists("/usr/bin/bwa"), "requires BWA")
+    @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_flag_noprimer(self):
-        
-        with self.assertRaises(SystemExit):
-            arguments = ["-bwa", "/usr/bin/bwa", "-ref", "H37Rv.fna", "-reads1", "test.fastq", "-output",
-                         "tpp_output_flag_noprimer", "-flags", "-k 1", "-primer", " "]
-            tppMain(arguments)
-            stats = get_stats("tpp_output_flag_noprimer.tn_stats")
-            self.assertTrue(FLAG_PRIMER == stats)
-    
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-flags", "-k 1", "-primer", " "])
+        tppMain(*args, **kwargs)
+        self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), FLAG_NOPRIMER))
 
-
- 
 if __name__ == '__main__':
     unittest.main()
 
