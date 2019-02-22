@@ -97,17 +97,27 @@ if hasWx:
 
             # REFERENCE
             sizer3 = wx.BoxSizer(wx.HORIZONTAL)
-            label3 = wx.StaticText(panel, label='Choose a reference genome (FASTA):',size=(330,-1))
+            label3 = wx.StaticText(panel, label='Choose a reference genome (FASTA) (REQUIRED):',size=(330,-1))
             sizer3.Add(label3,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.picker3 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the reference genome', fileMode=wx.FD_OPEN, fileMask='*.fna;*.fasta;*.fa', size=(400,30), startDirectory=os.path.dirname(vars.ref), initialValue=vars.ref, labelText='')
             sizer3.Add(self.picker3, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer3.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a reference genome in FASTA format."), flag=wx.CENTER, border=0)
+            sizer3.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a reference genome in FASTA format (can be a multi-contig fasta file)."), flag=wx.CENTER, border=0)
             sizer3.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer3,0,wx.EXPAND,0)
        
+            # REPLICON ID NAMES
+            sizer_replicon_ids = wx.BoxSizer(wx.HORIZONTAL)
+            label_replicon_ids = wx.StaticText(panel, label='ID names for each replicon (if genome has multiple contigs):',size=(340,-1))
+            sizer_replicon_ids.Add(label_replicon_ids,0,wx.ALIGN_CENTER_VERTICAL,0)
+            self.replicon_ids = wx.TextCtrl(panel,value=vars.replicon_ids,size=(400,30))
+            sizer_replicon_ids.Add(self.replicon_ids, proportion=1.0, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer_replicon_ids.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Specify names of each contig within the reference genome separated by commas (if using wig_gb_to_csv.py you must use the contig names in the Genbank file).  Only required if there are multiple contigs; can leave blank if there is just one seq."), flag=wx.CENTER, border=0)
+            sizer_replicon_ids.Add((10, 1), 0, wx.EXPAND) 
+            sizer.Add(sizer_replicon_ids,0,wx.EXPAND,0)
+ 
             # READS 1  
             sizer1 = wx.BoxSizer(wx.HORIZONTAL)
-            label1 = wx.StaticText(panel, label='Choose the Fastq file for read 1:',size=(330,-1))
+            label1 = wx.StaticText(panel, label='Choose the Fastq file for read 1 (REQUIRED):',size=(330,-1))
             sizer1.Add(label1,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.picker1 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id=wx.ID_ANY, dialogTitle='Please select the .fastq file for read 1', fileMode=wx.FD_OPEN, fileMask='*.fastq;*.fq;*.reads;*.fasta;*.fa;*.fastq.gz', size=(400,30), startDirectory=os.path.dirname(vars.fq1), initialValue=vars.fq1, labelText='',changeCallback=self.OnChanged2)
             sizer1.Add(self.picker1, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
@@ -129,7 +139,7 @@ if hasWx:
 
             # OUTPUT PREFIX 
             sizer5 = wx.BoxSizer(wx.HORIZONTAL)
-            label5 = wx.StaticText(panel, label='Prefix to use for output filenames:',size=(340,-1))
+            label5 = wx.StaticText(panel, label='Prefix to use for output filenames (REQUIRED):',size=(340,-1))
             sizer5.Add(label5,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.base = wx.TextCtrl(panel,value=vars.base,size=(400,30))
             sizer5.Add(self.base, proportion=1.0, flag=wx.EXPAND|wx.ALL, border=5)
@@ -186,7 +196,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer6 = wx.BoxSizer(wx.HORIZONTAL)
             label6 = wx.StaticText(panel, label='Max reads (leave blank to use all):',size=(340,-1))
             sizer6.Add(label6,0,wx.ALIGN_CENTER_VERTICAL,0)
-            self.maxreads = wx.TextCtrl(panel,size=(150,30))
+            self.maxreads = wx.TextCtrl(panel,value=str(vars.maxreads),size=(150,30)) # or "" if not defined? can't write to tpp.cfg
             sizer6.Add(self.maxreads, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer6.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Maximum reads to use from the reads files. Useful for running only a portion of very large number of reads. Leave blank to use all the reads."), flag=wx.CENTER, border=0)
             sizer6.Add((10, 1), 0, wx.EXPAND)
@@ -202,18 +212,43 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer7.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer7,0,wx.EXPAND,0)    
 
+            # PRIMER_START_WINDOW
+            sizer_primer_start = wx.BoxSizer(wx.HORIZONTAL)
+            label_primer_start = wx.StaticText(panel, label='Start of window to look for prefix (Tn terminus):', size=(340,-1))
+            sizer_primer_start.Add(label_primer_start,0,wx.ALIGN_CENTER_VERTICAL,0)
+            primer_start_window = "%s,%s" % (vars.primer_start_window[0],vars.primer_start_window[1])
+            self.primer_start = wx.TextCtrl(panel,value=primer_start_window,size=(150,30))
+            sizer_primer_start.Add(self.primer_start, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+            sizer_primer_start.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Region in read 1 to search for start of prefix seq (i.e. end of transposon)."), flag=wx.CENTER, border=0)
+            sizer_primer_start.Add((10, 1), 0, wx.EXPAND)
+            sizer.Add(sizer_primer_start,0,wx.EXPAND,0)  
+
+#            # WINDOW SIZE                                 # [RJ] This block is to add the acceptance of a set window size for setting P,Q parameters
+#            sizer_window_size = wx.BoxSizer(wx.HORIZONTAL)
+#            label_window_size = wx.StaticText(panel, label='Window size for Tn prefix in read:', size=(340,-1))
+#            sizer_window_size.Add(label_window_size,0,wx.ALIGN_CENTER_VERTICAL,0)
+#            self.window_size = wx.TextCtrl(panel,value=str(vars.window_size),size=(150,30))
+#            sizer_window_size.Add(self.window_size, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+#            sizer_window_size.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Window size for extract_staggered() to look for start of Tn prefix."), flag=wx.CENTER, border=0)
+#            sizer_window_size.Add((10, 1), 0, wx.EXPAND)
+#            sizer.Add(sizer_window_size,0,wx.EXPAND,0)  
+
             # BWA
             sizer0 = wx.BoxSizer(wx.HORIZONTAL)
-            label0 = wx.StaticText(panel, label='BWA executable:',size=(330,-1))
+            label0 = wx.StaticText(panel, label='BWA executable (REQUIRED):',size=(330,-1))
             sizer0.Add(label0,0,wx.ALIGN_CENTER_VERTICAL,0)
 
             self.picker0 = wx.lib.filebrowsebutton.FileBrowseButton(panel, id = wx.ID_ANY, size=(400,30), dialogTitle='Path to BWA', fileMode=wx.FD_OPEN, fileMask='bwa*', startDirectory=os.path.dirname(vars.bwa), initialValue=vars.bwa, labelText='')
-
-             
             sizer0.Add(self.picker0, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer0.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Specify a path to the BWA executable (including the executable)."), flag=wx.CENTER, border=0)
             sizer0.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer0,0,wx.EXPAND,0)
+
+            self.bwa_alg = wx.ComboBox(panel,choices=["use algorithm 'aln'", "use algorithm 'mem'"],size=(200,30))
+            if vars.bwa_alg=='aln': self.bwa_alg.SetSelection(0)
+            else: self.bwa_alg.SetSelection(1) # default
+            sizer0.Add(self.bwa_alg, proportion=0.5, flag=wx.EXPAND|wx.ALL, border=5) ## 
+            self.bwa_alg.Bind(wx.EVT_COMBOBOX, self.OnBwaAlgSelection, id=self.bwa_alg.GetId())
 
             # BWA FLAGS
             sizer8 = wx.BoxSizer(wx.HORIZONTAL)
@@ -250,7 +285,15 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer.Add(sizer9,0,wx.EXPAND,0)
 
 
-
+#
+        
+        def OnBwaAlgSelection(self, event):
+            if 'aln' in self.bwa_alg.GetValue():
+                self.vars.bwa_alg = "aln"
+            elif 'mem' in self.bwa_alg.GetValue():
+                self.vars.bwa_alg = "mem"
+            else:
+                self.vars.bwa_alg = "[Custom]"
 
 #
         
@@ -292,7 +335,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             value = os.path.basename(str_path).split('.')[0]
             if '_R1' in value or '_R2':
                 value = value.split('_')[0]
-            self.base.SetValue(value)
+            #self.base.SetValue(value)
 
 #
 
@@ -300,8 +343,8 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             value2 = os.path.basename(self.picker2.GetValue()).split('.')[0]
             value1 = os.path.basename(self.picker1.GetValue()).split('.')[0]
             value = os.path.commonprefix([value1, value2])
-            self.base.SetValue(value)
-            self.base.Refresh()
+            #self.base.SetValue(value)
+            #self.base.Refresh()
 
 #
 
@@ -430,6 +473,18 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             self.vars.base = base  
             self.vars.mm1 = mm1
             self.vars.prefix = prefix
+
+            #self.vars.window_size = int(self.window_size.GetValue())
+            if 'aln' in self.bwa_alg.GetValue():
+                self.vars.bwa_alg = 'aln'
+            elif 'mem' in self.bwa_alg.GetValue():
+                self.vars.bwa_alg = 'mem'
+            self.vars.replicon_ids = self.replicon_ids.GetValue().split(',')
+        
+            v = self.primer_start.GetValue()
+            if v!="":
+              v = v.split(',')
+              self.vars.primer_start_window = (int(v[0]),int(v[1]))
         
             if maxreads == '': self.vars.maxreads = -1
             else: self.vars.maxreads = int(maxreads)

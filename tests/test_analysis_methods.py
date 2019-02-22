@@ -29,7 +29,6 @@ from pytransit.analysis.utest import UTestMethod
 from pytransit.analysis.gi import GIMethod
 
 def significant_pvals_qvals(fname, pcol=-2, qcol=-1):
-    print(fname)
     pvals, qvals = [], []
     with open(fname) as f:
         lines = f.readlines()

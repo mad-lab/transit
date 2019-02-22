@@ -176,7 +176,7 @@ diagnostic purposes. These are saved in local file caled
 from previously processed datasets in a directory and displays them in a
 table.
 
-TPP uses a local config file called "**tpp.cfg**" to rememeber parameter
+TPP uses a local config file called "**tpp.cfg**" to remember parameter
 settings from run to run. This makes it convenient so that you don't
 have to type in things like the path to the BWA executable or reference
 genome over and over again. You just have to do it once, and TPP will
@@ -188,43 +188,107 @@ filenames and parameters as command-line arguments.
 
 ::
 
-    > python tpp.py -help
+    > python tpp.py --help
 
-    usage: python PATH/src/tpp.py -bwa <EXECUTABLE_WITH_PATH> -ref <REF_SEQ> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [-maxreads <N>] [-mismatches <N>] [-flags "<STRING>"] [-tn5|-himar1] [-primer <seq>] [-barseq_catalog_in|_out <file>]
+    usage: python PATH/src/tpp.py -bwa <EXECUTABLE_WITH_PATH> -ref <fasta-file|comma_separated_list> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [OPTIONAL ARGS]
+    OPTIONAL ARGS:
+    -maxreads <INT>
+    -flags "<STRING>"  # args to pass to BWA
+    -himar1 or -tn5    # which transposon was used?; default is -himar1
+    -primer <seq>      # prefix of reads corresponding to end of transposon at junction with genomic sequence
+    -mismatches <INT>  # when searching for constant regions in reads 1 and 2; default is 1
+    -primer-start-window INT,INT # position in read to search for start of primer; default is [0,20]
+    -barseq_catalog_in|-barseq_catalog_out <file>
+    -replicon-ids <comma_separated_list_of_names> # if multiple replicons/genomes/contigs/sequences were provided in -ref, give them names
+
 
 The input arguments and file types are as follows:
 
 
-+-----------------+---------------------------------------------------------------+------------------------------------------------------+
-| Flag            | Value                                                         | Comments                                             |
-+=================+===============================================================+======================================================+
-| -bwa            | path executable                                               |                                                      |
-+-----------------+---------------------------------------------------------------+------------------------------------------------------+
-| -ref            | reference genome sequence                                     | FASTA file                                           |
-+-----------------+---------------------------------------------------------------+------------------------------------------------------+
-| -reads1         | file of read 1 of paired reads                                | FASTA or FASTQ format (or gzipped)                   |
-+-----------------+---------------------------------------------------------------+------------------------------------------------------+
-| -reads2         | file of read 2 of paired reads (optional for single-end reads | FASTA or FASTQ format (or gzipped)                   |
-+-----------------+---------------------------------------------------------------+------------------------------------------------------+
-| -output&dagger; | base filename to use for output files                         |                                                      |
-+-----------------+---------------------------------------------------------------+------------------------------------------------------+
-| -maxreads       | subset of reads to process (optional); if blank, use          |                                                      |
-+-----------------+---------------------------------------------------------------+------------------------------------------------------+
-| -mismatches     | how many to allow when searching reads for sequence patterns  |                                                      |
-+-----------------+---------------------------------------------------------------+------------------------------------------------------+
-| -tn5            | process reads as a Tn5 library (Himar1 is assumed by default  | Reads mapping to any site will be considered.        |
-+-----------------+---------------------------------------------------------------+------------------------------------------------------+
-| -himar1         | process reads as a Himar1 library (assumed by default)        | Considers reads that map to TA sites only.           |
-+-----------------+---------------------------------------------------------------+------------------------------------------------------+
-| -primer         |   nucleotide sequence                                         | Constant prefix of reads that TPP searches for.      |
-|                 |                                                               | default: ACTTATCAGCCAACCTGTTA (terminus of Himar1)   |
-+-----------------+---------------------------------------------------------------+------------------------------------------------------+
-&dagger; In earlier versions of Transit, this flag used to be '-prefix', but we changed it to '-output'
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| Flag                 | Value                                            | Comments                                             |
++======================+==================================================+======================================================+
+| -bwa                 | path executable                                  |                                                      |
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| -bwa-alg             | 'mem' (default) or 'aln' (the old way)           |                                                      |
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| -flag                | parameters to pass to BWA                        |                                                      |
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| -ref                 | reference genome sequence                        | FASTA file or comma-separated list of files          |
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| -replicon-ids        | comma-separated list of names to use for contigs | necessary only if genome seq has multiple contigs    |
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| -reads1              | file of read 1 of paired reads                   | FASTA or FASTQ format (or gzipped)                   |
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| -reads2              | file of read 2 of paired reads                   | FASTA or FASTQ format (or gzipped)                   |
+|                      | (optional for single-end reads)                  |                                                      |
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| -output              | base filename to use for output files            |                                                      |
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| -maxreads            | subset of reads to process (optional)            | default is to use all reads                          |
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| -mismatches          | how many to allow when searching reads for       | default is 1 mismatch                                |
+|                      | sequence patterns                                |                                                      |
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| -tn5                 | process reads as a Tn5 library                   | Reads mapping to ANY site will be considered.        |
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| -himar1              | process reads as a Himar1 library (default)      | Considers reads that map to TA sites only.           |
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| -primer              | nucleotide sequence                              | Constant prefix of reads that TPP searches for.      |
+|                      |                                                  | default: ACTTATCAGCCAACCTGTTA (terminus of Himar1)   |
++----------------------+--------------------------------------------------+------------------------------------------------------+
+| -primer-start-window | INT,INT (default is 0,20)                        | Start and end nucleotides in read 1                  |
+|                      |                                                  | in which to search for start of Tn prefix.           |
++----------------------+--------------------------------------------------+------------------------------------------------------+
 
 (Note: if you have already run TPP once, the you can leave out the
 specification of the path for BWA, and it will automatically take the
 path stored in the config file, tpp.cfg. Same for ref, if you always use
 the same reference sequence.)
+
+(The -primer-start-window flag specifies the range of nucleotide in read 1 
+to search for the start of the primer sequence (which is the end of the transposon).
+This is useful to narrow the down the region to search from the whole read 
+(especially if the primer sequence is short, e.g. <10bp),
+to avoid spurious matches in reads not representing true transposon:genomic junctions.
+Depending on the protocol and
+primer design, the constant sequence corresponding the the end of the transposon
+usually occurs near the beginning of the read, possibly at varying (shifted) positions.
+However, if your primer sequence is long enough (e.g >16bp), then the changes of
+spurious matches (e.g. to the reference genome) is quite low.)
+
+
+Mapping to Genomes with Multiple Contigs
+========================================
+
+Occasionally, it is useful to process TnSeq data where the reference genome consists of multiple sequences,
+such as multiple chromosomes (e.g. *Vibrio cholera*), or a chromosome + plasmid, or it might be
+a new strain with an incomplete assembly (multiple contigs not yet assembled into a single continuous scaffold).
+While TPP was originally designed for mapping reads to one sequence at a time, it has recently been
+extended to process multiple contigs in parallel (with help from Robert Jenquin and William Matern).
+
+You can provide either a single merged reference sequence (multi-fasta file, with several
+header lines and sequences), or a comma-separated list of input fasta files (command-line only).
+If multiple sequences are provided to TPP, you will have to include an additional flag on the
+command line called *-replicon-ids* (again, a comma-separated list; the number of ids needs to match
+the number of input sequences).
+
+In the GUI, there is a new field for specifiying replicon-ids as well.
+If there is just one sequence or contig, you can leave replicon-ids blank; you do not have to specify it
+in the GUI or on the command line.
+
+In such situations, TPP will generate multiple .wig files, each with the base filename (arg of '-output' flag),
+suffixed with a replicon-id.
+
+For example, consider the following example command:
+
+::
+
+  > python tpp.py python -bwa ../../bwa-0.7.12/bwa -ref avium104.fna,pMAH135.fna -replicon-ids avium104,pMAH135 -reads1 TnSeq-avium-7H10-A1_R1.fastq -reads2 TnSeq-avium-7H10-A1_R2.fastq -output TnSeq-avium-7H10-A1 
+
+| This command would generate output these files: 
+| *TnSeq-avium-7H10-A1_avium104.wig* and *TnSeq-avium-7H10-A1_pMAH135.wig*.
+
 
 Overview of Data Processing Procedure
 =====================================
@@ -281,8 +345,12 @@ Here is a brief summary of the steps performed in converting raw reads
    the site with the max template count. Look for reads matching the
    primer or vector sequences.
 
+.. _TPP_Statistics:
+
 Statistics
 ==========
+
+See also: :ref:`Transit Quality Control <transit_quality_control>`
 
 Here is an explanation of the statistics that are saved in the
 .tn\_stats file and displayed in the table in the GUI. For convenience,
