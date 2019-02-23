@@ -93,13 +93,16 @@ class TestTPP(TransitTestCase):
         with self.assertRaises(SystemExit):
           (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-primer", " "])
           tppMain(*args, **kwargs)
-          self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), NOFLAG_NOPRIMER))
+          # This should not be called
+          self.assertTrue(False)
 
     @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_flag_noprimer(self):
-        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-flags", "-k 1", "-primer", " "])
-        tppMain(*args, **kwargs)
-        self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), FLAG_NOPRIMER))
+        with self.assertRaises(SystemExit):
+            (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-flags", "-k 1", "-primer", " "])
+            tppMain(*args, **kwargs)
+            # This should not be called
+            self.assertTrue(False)
 
 if __name__ == '__main__':
     unittest.main()
