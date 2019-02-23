@@ -50,10 +50,17 @@ def main(*args, **kwargs):
         sys.argv.remove("--debug")
         kwargs.pop("-debug")
 
-    if (not args and 'h' in kwargs):
+    if (not args and ('h' in kwargs or '-help' in kwargs)):
         print "For commandline mode, please use one of the known methods (or see documentation to add a new one):"
+        print("Analysis methods: ")
         for m in all_methods:
+            ## TODO :: Move normalize to seperate subcommand?
+            if (m == "normalize"): continue
             print "\t - %s" % m
+        print("Other functions: ")
+        print("\t - normalize")
+        print("\t - convert")
+        print("\t - export")
         print "Usage: python %s <method>" % sys.argv[0]
         sys.exit(0)
 
