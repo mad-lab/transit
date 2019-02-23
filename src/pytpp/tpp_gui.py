@@ -52,7 +52,7 @@ if hasWx:
             self.vars = vars
             initialize_globals(self.vars)
     
-            wx.Frame.__init__(self, None, wx.ID_ANY, "TPP: Tn-Seq PreProcessor") # v%s" % vars.version)
+            wx.Frame.__init__(self, None, wx.ID_ANY, "TPP: Tn-Seq PreProcessor") # v%s" % vars.version
             # Add a panel so it looks the correct on all platforms
             
             panel = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.VSCROLL )
@@ -111,7 +111,7 @@ if hasWx:
             sizer_replicon_ids.Add(label_replicon_ids,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.replicon_ids = wx.TextCtrl(panel,value=vars.replicon_ids,size=(400,30))
             sizer_replicon_ids.Add(self.replicon_ids, proportion=1.0, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer_replicon_ids.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Specify names of each contig within the reference genome separated by commas (if using wig_gb_to_csv.py you must use the contig names in the Genbank file).  Only required if there are multiple contigs; can leave blank if there is just one seq."), flag=wx.CENTER, border=0)
+            sizer_replicon_ids.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Specify names of each contig within the reference genome separated by commas (if using wig_gb_to_csv.py you must use the contig names in the Genbank file).  Only required if there are multiple contigs; can leave blank if there is just one sequence."), flag=wx.CENTER, border=0)
             sizer_replicon_ids.Add((10, 1), 0, wx.EXPAND) 
             sizer.Add(sizer_replicon_ids,0,wx.EXPAND,0)
  
@@ -143,7 +143,7 @@ if hasWx:
             sizer5.Add(label5,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.base = wx.TextCtrl(panel,value=vars.base,size=(400,30))
             sizer5.Add(self.base, proportion=1.0, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer5.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a a label prefix that will be used when writing output files e.g. 'wt_run1'"), flag=wx.CENTER, border=0)
+            sizer5.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select a prefix that will be used when writing output files"), flag=wx.CENTER, border=0)
             sizer5.Add((10, 1), 0, wx.EXPAND) 
             sizer.Add(sizer5,0,wx.EXPAND,0)
 
@@ -155,9 +155,9 @@ if hasWx:
             self.protocol = wx.ComboBox(panel,choices=['Sassetti','Mme1', 'Tn5'],size=(400,30))
             self.protocol.SetStringSelection(vars.protocol)
             sizer_protocol.Add(self.protocol, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-            protocol_tooltip_text = """Select which protocol best represents the reads. Default values will populate the fields.
+            protocol_tooltip_text = """Select which protocol used to prepare the sequencing samples. Default values will populate the other fields.
 
-The Sassetti protocol generally assumes the reads include the primer prefix and part of the transposon sequencing. It also assumes reads are sequenced in the forward direction.
+The Sassetti protocol generally assumes the reads include the primer prefix and part of the transposon sequence, followed by genomic sequence. It also assumes reads are sequenced in the forward direction.  Barcodes are in read 2, along with genomic DNA from the other end of the fragment.
 
 The Mme1 protocol generally assumes reads do NOT include the primer prefix, and that the reads are sequenced in the reverse direction"""
             sizer_protocol.Add(TPPIcon(panel, wx.ID_ANY, bmp, protocol_tooltip_text), flag=wx.CENTER, border=0)
@@ -249,6 +249,9 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             else: self.bwa_alg.SetSelection(1) # default
             sizer0.Add(self.bwa_alg, proportion=0.5, flag=wx.EXPAND|wx.ALL, border=5) ## 
             self.bwa_alg.Bind(wx.EVT_COMBOBOX, self.OnBwaAlgSelection, id=self.bwa_alg.GetId())
+            sizer0.Add(TPPIcon(panel, wx.ID_ANY, bmp, "'mem' is considered to do a better job at mapping reads, but 'aln' is available as an alternative."), flag=wx.CENTER, border=0)
+            sizer0.Add((10, 1), 0, wx.EXPAND)
+            #sizer.Add(sizer0,0,wx.EXPAND,0)
 
             # BWA FLAGS
             sizer8 = wx.BoxSizer(wx.HORIZONTAL)
@@ -256,7 +259,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer8.Add(label8,0,wx.ALIGN_CENTER_VERTICAL,0)
             self.flags = wx.TextCtrl(panel,value=vars.flags,size=(400,30))
             sizer8.Add(self.flags, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-            sizer8.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Use this textobx to enter any desired flags for the BWA alignment. For example, to limit the number of mismatches to 1, type: -k 1. See the BWA documentation for all possible flags."), flag=wx.CENTER, border=0)
+            sizer8.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Use this textbox to enter any desired flags for the BWA alignment. For example, to limit the number of mismatches to 1, type: -k 1. See the BWA documentation for all possible flags."), flag=wx.CENTER, border=0)
             sizer8.Add((10, 1), 0, wx.EXPAND)
             sizer.Add(sizer8,0,wx.EXPAND,0)
 
@@ -436,9 +439,9 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
 #
 
         def add_data(self, dataset,vals):
-            self.list_ctrl.InsertStringItem(self.index, dataset)
+            self.list_ctrl.InsertItem(self.index, dataset)
             for i in range(1, len(vals)+1):
-                self.list_ctrl.SetStringItem(self.index, i, vals[i-1])
+                self.list_ctrl.SetItem(self.index, i, vals[i-1])
             self.index += 1
 
 #
