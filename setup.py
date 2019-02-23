@@ -60,8 +60,10 @@ class UploadCommand(Command):
 
         if not self.yes_or_no("Have you done the following? \n" +
                     "- Updated README/Documentation?\n"
+                    "- Are in the master branch, and have you merged version branch into master?\n"
                     "- Have you updated CHANGELOG?\n"
                     "- Have you updated Transit Essentiality page?\n"
+                    "- Updated version in src/pytransit/__init__.py (used to set git tag)?\n"
                     "- Is version v{0} correct".format(version)):
             self.status("Exiting...")
             sys.exit()
