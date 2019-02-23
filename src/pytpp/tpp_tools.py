@@ -1254,6 +1254,7 @@ def verify_inputs(vars):
     for ref_genome in vars.ref:
         if not os.path.exists(ref_genome): error("reference file not found: "+ref_genome)
     if vars.base == '': error("prefix cannot be empty")
+    if len(vars.prefix)==0: error("primer sequence cannot be empty")
     if vars.fq1 == vars.fq2: error('fastq files cannot be identical')
     if vars.barseq_catalog_in!=None and vars.barseq_catalog_out!=None: error('barseq catalog input and output files cannot both be defined at the same time')
 
@@ -1307,7 +1308,7 @@ def initialize_globals(vars, args=[], kwargs={}):
     if "protocol" in kwargs:
         vars.protocol = kwargs["protocol"]
     if "primer" in kwargs:
-        vars.prefix = kwargs["primer"]
+        vars.prefix = kwargs["primer"].strip()
     if "reads1" in kwargs:
         vars.fq1 = kwargs["reads1"]
     if "reads2" in kwargs:

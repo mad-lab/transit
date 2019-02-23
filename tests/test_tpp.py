@@ -90,10 +90,10 @@ class TestTPP(TransitTestCase):
 
     @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_noflag_noprimer(self):
-        # with self.assertRaises(SystemExit):
-        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-primer", " "])
-        tppMain(*args, **kwargs)
-        self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), NOFLAG_NOPRIMER))
+        with self.assertRaises(SystemExit):
+          (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-primer", " "])
+          tppMain(*args, **kwargs)
+          self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), NOFLAG_NOPRIMER))
 
     @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_flag_noprimer(self):
