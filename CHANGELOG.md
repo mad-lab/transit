@@ -10,10 +10,12 @@ All notable changes to this project will be documented in this file.
  - BWA: switched from using 'aln' to 'mem' by default
  - added flags to set the nucleotide window for searching for start of primer sequence (-primer-window-start)
  - fixed bug in counting misprimed reads, and reads mapped to both R1 and R2
- - adedd some fields to TPP GUI, and be more consistent about saving parameters in the tpp.cfg config file
+ - added some fields to TPP GUI, and made it more consistent about saving/reading parameters in the tpp.cfg config file
 - Transit:	
  - fixed bug in handling '-minreads' flag in Gumbel analysis
  - updated support for converting .gff files to .prot_table format (in GUI and on command line)
+ - added a status field to ANOVA output
+ - TrackView scales all plots simultaneously by default
 - updated documentation
 
 ## Pull Request 18 by Robert Jenquin and William Matern (Jan, 2019)

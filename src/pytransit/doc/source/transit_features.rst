@@ -130,7 +130,7 @@ In addition, I look
 at MaxReadCount and Skewness as indicators.  Typically, MaxReadCount
 will be in the range of a few thousand to tens-of-thousands.  
 If you see individual sites with
-counts in the range of 10^5-10^6, it might mean you have some positive
+counts in the range of 10\ :sup:`5`\ -10\ :sup:`6` , it might mean you have some positive
 selection at a site (e.g. biological, or due to PCR jackpotting), and
 this can have the effect of reducing counts and influencing the
 distribution at all the other sites.  If MaxReadCount<100, that is also
@@ -139,8 +139,8 @@ Also, skewness>30 often (but not
 always) signals a problem.  Kurtosis doesn't seem to be very
 meaningful.  The reason it is not easy to boil all these down to a
 simple set of criteria is that some some of the metrics interact with
-each other.  I am working on new QC metrics for a future release of
-Transit (TRI, 10/10/18).
+each other.  
+
 
 .. _BGC:
 

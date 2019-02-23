@@ -128,3 +128,24 @@ which can be done through the GUI (under 'Convert' in menu), or on the command-l
   > python transit.py convert gff_to_prot_table <.gff> <.prot_table>
 
 |
+
+
+.. _tn5-main-overview:
+
+Tn5 Datasets
+------------
+
+Transit can now process and analyze Tn5 datasets  This is a different transposon than Himar1.
+The major difference is Tn5 can insert at any site in the genome, and is not restricted
+to TA dinucleotides (and saturation is typically much lower).  This affects
+the statistical analyses (which were originally designed for Himar1 and can't directly
+be applied to Tn5). Therefore, :ref:`Resampling <resampling>` was extended to handle Tn5 for comparative analysis, and
+:ref:`Tn5Gaps <tn5gaps>` is a new statistical model for identifying essential genes in single Tn5 datasets.
+Amplification of Tn5 libraries
+uses different primers, and this affects the pre-processing by TPP.  But TPP has
+be modified to recognize the primer sequence for the most widely
+used protocol for Tn5.  Furthermore, TPP now has an option for users to define their
+own primer sequences, if they use a different sample prep protocol.
+
+
+

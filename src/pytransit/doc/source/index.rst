@@ -39,15 +39,16 @@ TRANSIT offers a variety of features including:
 
 
 
-
-Mailing List
-~~~~~~~~~~~~
-
-You can join our mailing list to get announcements of new versions, discuss any bugs, or request features! Just head over to the following site and enter your email address:
-
-
- + `https://groups.google.com/forum/#!forum/tnseq-transit/join <https://groups.google.com/forum/#!forum/tnseq-transit/join>`_
-
+.. 
+ Mailing List
+ ~~~~~~~~~~~~
+ 
+ You can join our mailing list to get announcements of new versions, discuss any bugs, or request features! Just head over to the following site and enter your email address:
+ 
+ 
+  + `https://groups.google.com/forum/#!forum/tnseq-transit/join <https://groups.google.com/forum/#!forum/tnseq-transit/join>`_
+ 
+..
 
 
 .. _manual-link:
@@ -95,3 +96,10 @@ You can join our mailing list to get announcements of new versions, discuss any 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+Support
+~~~~~~~
+
+For any questions or comments, please contact Dr. Thomas Ioerger, ioerger@cs.tamu.edu.
+
+
