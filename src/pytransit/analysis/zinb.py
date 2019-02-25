@@ -245,7 +245,7 @@ class ZinbMethod(base.MultiConditionMethod):
                   if (sat_adjust) {
                     zeroinfl(cnt~0+cond+offset(log(NZmean))|0+cond+offset(logitZperc),data=melted,dist="negbin")
                   } else {
-                    zeroinfl(cnt~0+cond),data=melted,dist="negbin")
+                    zeroinfl(cnt~0+cond,data=melted,dist="negbin")
                   }
                 } else {
                   glm.nb(cnt~0+cond,data=melted)
