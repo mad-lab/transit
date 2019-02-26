@@ -690,6 +690,21 @@ def uncompress(filename):
       outfil.write(line)
    return filename[0:-3]
 
+def copy_fasta(infile,outfile,maxreads=-1):
+  a = open(infile)
+  b = open(outfile,"w")
+  cnt = 0
+  while True:
+    hdr = a.readline()
+    seq = a.readline()
+    if len(hdr)==0: break
+    b.write(hdr)
+    b.write(seq)
+    cnt += 1
+    if maxreads>0 and cnt>=maxreads:break
+  a.close()
+  b.close()
+
 def extract_reads(vars):
     message("extracting reads...")
 
@@ -715,7 +730,8 @@ def extract_reads(vars):
         message("fastq2reads: %s -> %s" % (vars.fq1,vars.reads1))
         fastq2reads(vars.fq1,vars.reads1,vars.maxreads)
     else:
-        shutil.copyfile(vars.fq1, vars.reads1)
+        #shutil.copyfile(vars.fq1, vars.reads1)
+        copy_fasta(vars.fq1, vars.reads1, vars.maxreads)
 
     if vars.single_end==True:
       message("assuming single-ended reads")
@@ -728,7 +744,8 @@ def extract_reads(vars):
         message("fastq2reads: %s -> %s" % (vars.fq2,vars.reads2))
         fastq2reads(vars.fq2,vars.reads2,vars.maxreads)
     else:
-        shutil.copyfile(vars.fq2, vars.reads2)
+        #shutil.copyfile(vars.fq2, vars.reads2)
+        copy_fasta(vars.fq2, vars.reads2, vars.maxreads)
 
     message("fixing headers of paired reads for bwa...")
     fix_paired_headers_for_bwa(vars.reads1,vars.reads2)
