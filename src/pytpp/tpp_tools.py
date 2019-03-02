@@ -837,8 +837,10 @@ def bwa_subprocess(command, outfile):
         commandstr += " > %s" % outfile.name
     message(commandstr)
     process = subprocess.Popen(command, stdout=outfile, stderr=subprocess.PIPE)
-    process.wait()
-    for line in iter(process.stderr.readline, ''):
+    #process.wait()
+    (pout,perr) = process.communicate()
+    #for line in iter(process.stderr.readline, ''):
+    for line in perr.split('\n'): # returned by communicate()
         if "Permission denied" in line:
             raise IOError("Error: BWA encountered a permissions error: \n\n%s" % line)
         if "invalid option" in line:
