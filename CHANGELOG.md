@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 2.4.1 2019-03-04
+- TPP:
+ - allow the primer sequence to be the empty string (i.e. -primer "" on command-line; for pre-trimmed reads)
+ - do not throw an error if header ids in read1 and read2 fastq files happen to match identically
+ - minor bug fixes:
+ - fixed problem of order of data in tn_stats table when there are multiple contigs but only single-ended reads
+ - fxied name of flag from "replicon-id" to "replicon-ids"
+ - prevent div-by-zero error in cases where no reads map
 	
 
 ## Version 2.4.0 2019-02-28
