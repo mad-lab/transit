@@ -286,7 +286,8 @@ def extract_staggered(infile,outfile,vars):
     if a>=P and a<=Q:
       gstart,gend = a+lenTn,readlen
       if b!=-1: gend = b; vars.truncated_reads += 1
-      if gend-gstart<20: continue # too short # I should make this a param
+      minReadLen = 15 if vars.protocol.lower() == "mme1" else 20
+      if gend-gstart < minReadLen: continue # too short # I should make this a param
       output.write(header+"\n")
       output.write(line[gstart:gend]+"\n")
       vars.tot_tgtta += 1
