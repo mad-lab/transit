@@ -81,10 +81,15 @@ class TestMethods(TransitTestCase):
 
 
     def test_resampling_adaptive(self):
-        args = [ctrl_data_txt, exp_data_txt, annotation, output, "-s", "1000", "-a"]
+        args = [ctrl_data_txt, exp_data_txt, annotation, output, "-s", "10000", "-a"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
+        (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-2, qcol=-1))
+        self.assertLessEqual(
+            abs(len(sig_qvals) - 75),
+            4,
+            "sig_qvals expected in range: %s, actual: %d" % ("[71, 79]", len(sig_qvals)))
 
     def test_anova(self):
         args = [combined_wig, annotation, samples_metadata, output, "--ignore-conditions", "Unknown"]
