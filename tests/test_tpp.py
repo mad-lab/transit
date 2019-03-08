@@ -26,19 +26,6 @@ def get_bwa():
 bwa_path = get_bwa()
 
 
-NOFLAG_NOPRIMER = [
-        "# density: 0.000",
-        "# NZ_mean (among templates): 1.0",
-        "# FR_corr (Fwd templates vs. Rev templates): -0.000"
-        ]
-
-FLAG_NOPRIMER = [
-        "# density: 0.000",
-        "# NZ_mean (among templates): 1.0",
-        "# FR_corr (Fwd templates vs. Rev templates): -0.000",
-        "# bwa flags: -k 1"
-        ]
-
 NOFLAG_PRIMER = [
         "# TA_sites: 74605",
         "# TAs_hit: 914",
@@ -57,6 +44,28 @@ FLAG_PRIMER = [
         "# NZ_mean (among templates): 1.0",
         "# FR_corr (Fwd templates vs. Rev templates): 0.019"
         ]
+
+MULTICONTIG = [
+        "# TA_sites:",
+        "#   a: 89994",
+        "#   b: 646",
+        "#   c: 664",
+        "# TAs_hit:",
+        "#   a: 63",
+        "#   b: 0",
+        "#   c: 0",
+        "# density:",
+        "#   a: 0.001",
+        "#   b: 0.000",
+        "#   c: 0.000",
+        "# max_count (among templates):",
+        "#   a: 1",
+        "#   b: 0",
+        "#   c: 0",
+        "# max_site (coordinate):",
+        "#   a: 4977050",
+        "#   b: 57441",
+        "#   c: 38111" ]
 
 def get_stats(path):
     for line in open(path):
@@ -89,20 +98,10 @@ class TestTPP(TransitTestCase):
         self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), FLAG_PRIMER))
 
     @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
-    def test_tpp_noflag_noprimer(self):
-        with self.assertRaises(SystemExit):
-          (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-primer", " "])
-          tppMain(*args, **kwargs)
-          # This should not be called
-          self.assertTrue(False)
-
-    @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
-    def test_tpp_flag_noprimer(self):
-        with self.assertRaises(SystemExit):
-            (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-flags", "-k 1", "-primer", " "])
-            tppMain(*args, **kwargs)
-            # This should not be called
-            self.assertTrue(False)
+    def test_tpp_multicontig_empty_prefix(self):
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", test_multicontig, "-reads1", test_multicontig_reads1, "reads2", test_multicontig_reads2, "-output", tpp_output_base, "-replicon-ids", "a,b,c", "-maxreads", "10000", "-primer", ""])
+        tppMain(*args, **kwargs)
+        self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), MULTICONTIG))
 
 if __name__ == '__main__':
     unittest.main()

@@ -79,3 +79,8 @@ tests/testoutput_genes.txt
 /src/pytransit/genomes/*.bwt
 /src/pytransit/genomes/*.pac
 /src/pytransit/genomes/*.sa
+/tests/*.amb
+/tests/*.ann
+/tests/*.bwt
+/tests/*.pac
+/tests/*.sa

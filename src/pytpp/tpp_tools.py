@@ -109,6 +109,7 @@ def fix_paired_headers_for_bwa(reads1,reads2):
   d = open(temp2,"w")
   tot = 0
   try:
+   # Check to make sure that headers differ only by 1 character. (Read number. 1 can be single read or Read 2 of paired-end)
    while True:
     e = a.readline().rstrip()
     f = b.readline().rstrip()
@@ -120,7 +121,7 @@ def fix_paired_headers_for_bwa(reads1,reads2):
       i,n = 0,len(e)
       if len(f)!=n: raise Exception('Error: unexpected format of headers in .fastq files')
       while i<n and e[i]==f[i]: i += 1
-      if i==n: raise Exception('Error: unexpected format of headers in .fastq files')
+      # if i==n: raise Exception('Error: unexpected format of headers in .fastq files')
       e = e.replace(' ','_')
       f = f.replace(' ','_')
       e = e.replace('/','_') # this was neceesary for bwa 0.7.10 but not 0.7.12
@@ -285,7 +286,8 @@ def extract_staggered(infile,outfile,vars):
     if a>=P and a<=Q:
       gstart,gend = a+lenTn,readlen
       if b!=-1: gend = b; vars.truncated_reads += 1
-      if gend-gstart<20: continue # too short # I should make this a param
+      minReadLen = 15 if vars.protocol.lower() == "mme1" else 20
+      if gend-gstart < minReadLen: continue # too short # I should make this a param
       output.write(header+"\n")
       output.write(line[gstart:gend]+"\n")
       vars.tot_tgtta += 1
@@ -585,10 +587,10 @@ def read_counts(ref,sam,vars):
                         increase_counts(site1, sites_dict[replicon_name], strand)
 
     results_list = []
-    for replicon_name in sites_dict:
+    for replicon_index in range(vars.num_replicons):
         results = []
-        for key in sorted(sites_dict[replicon_name].keys()):
-            results.append(sites_dict[replicon_name][key])
+        for key in sorted(sites_dict[replicon_names[replicon_index]].keys()):
+            results.append(sites_dict[replicon_names[replicon_index]][key])
         results_list.append(results)
     return results_list # list of (coord, Fwd_Rd_Ct, Fwd_Templ_Ct, Rev_Rd_Ct, Rev_Templ_Ct, Tot_Rd_Ct, Tot_Templ_Ct)
 
@@ -656,10 +658,11 @@ def driver(vars):
     vars.tc.append(vars.base+".counts")
     vars.wig.append(vars.base+".wig")
   
-  if not vars.prefix:
-    if vars.transposon=="Tn5": vars.prefix = "TAAGAGACAG"
-    elif vars.transposon=="Himar1": vars.prefix = "ACTTATCAGCCAACCTGTTA" # [ORIGINAL]
-    else: vars.prefix = ""
+  # Handled independently for CLI and GUI.
+  # if not vars.prefix:
+  #   if vars.transposon=="Tn5": vars.prefix = "TAAGAGACAG"
+  #   elif vars.transposon=="Himar1": vars.prefix = "ACTTATCAGCCAACCTGTTA" # [ORIGINAL]
+  #   else: vars.prefix = ""
 
   try:
     extract_reads(vars)
@@ -690,6 +693,21 @@ def uncompress(filename):
       outfil.write(line)
    return filename[0:-3]
 
+def copy_fasta(infile,outfile,maxreads=-1):
+  a = open(infile)
+  b = open(outfile,"w")
+  cnt = 0
+  while True:
+    hdr = a.readline()
+    seq = a.readline()
+    if len(hdr)==0: break
+    b.write(hdr)
+    b.write(seq)
+    cnt += 1
+    if maxreads>0 and cnt>=maxreads:break
+  a.close()
+  b.close()
+
 def extract_reads(vars):
     message("extracting reads...")
 
@@ -715,7 +733,8 @@ def extract_reads(vars):
         message("fastq2reads: %s -> %s" % (vars.fq1,vars.reads1))
         fastq2reads(vars.fq1,vars.reads1,vars.maxreads)
     else:
-        shutil.copyfile(vars.fq1, vars.reads1)
+        #shutil.copyfile(vars.fq1, vars.reads1)
+        copy_fasta(vars.fq1, vars.reads1, vars.maxreads)
 
     if vars.single_end==True:
       message("assuming single-ended reads")
@@ -728,7 +747,8 @@ def extract_reads(vars):
         message("fastq2reads: %s -> %s" % (vars.fq2,vars.reads2))
         fastq2reads(vars.fq2,vars.reads2,vars.maxreads)
     else:
-        shutil.copyfile(vars.fq2, vars.reads2)
+        #shutil.copyfile(vars.fq2, vars.reads2)
+        copy_fasta(vars.fq2, vars.reads2, vars.maxreads)
 
     message("fixing headers of paired reads for bwa...")
     fix_paired_headers_for_bwa(vars.reads1,vars.reads2)
@@ -820,8 +840,10 @@ def bwa_subprocess(command, outfile):
         commandstr += " > %s" % outfile.name
     message(commandstr)
     process = subprocess.Popen(command, stdout=outfile, stderr=subprocess.PIPE)
-    process.wait()
-    for line in iter(process.stderr.readline, ''):
+    #process.wait()
+    (pout,perr) = process.communicate()
+    #for line in iter(process.stderr.readline, ''):
+    for line in perr.split('\n'): # returned by communicate()
         if "Permission denied" in line:
             raise IOError("Error: BWA encountered a permissions error: \n\n%s" % line)
         if "invalid option" in line:
@@ -882,10 +904,12 @@ def run_bwa(vars):
 
 
 def stats(vals):
-  sum,ss = 0,0
-  for x in vals: sum += x; ss += x*x
   N = float(len(vals))
-  mean = sum/N
+  tot,ss = 0,0
+  if N == 0:
+      return 0, 0
+  for x in vals: tot += x; ss += x*x
+  mean = tot/N
   var = ss/N-mean*mean
   stdev = math.sqrt(var)
   return mean,stdev
@@ -1043,11 +1067,11 @@ def generate_output(vars):
     cur_ratio = cur_rc/float(cur_tc) if (cur_rc != 0 and cur_tc !=0) else 0
     cur_ta_sites = len(cur_rcounts)
     cur_tas_hit = len(filter(lambda x: x>0,cur_rcounts))
-    cur_density = cur_tas_hit/float(cur_ta_sites)
+    cur_density = cur_tas_hit/float(cur_ta_sites) if cur_tas_hit != 0 else 0
     counts[replicon_index].sort(key=lambda x: x[-1])
     cur_max_tc = counts[replicon_index][-1][6]
     cur_max_coord = counts[replicon_index][-1][0]
-    cur_NZmean = cur_tc/float(cur_tas_hit)
+    cur_NZmean = cur_tc/float(cur_tas_hit) if cur_tas_hit != 0 else 0
 
     try:
       cur_FR_corr = corr([x[1] for x in counts[replicon_index]],[x[3] for x in counts[replicon_index]])
@@ -1254,7 +1278,8 @@ def verify_inputs(vars):
     for ref_genome in vars.ref:
         if not os.path.exists(ref_genome): error("reference file not found: "+ref_genome)
     if vars.base == '': error("prefix cannot be empty")
-    if len(vars.prefix)==0: error("primer sequence cannot be empty")
+    # Empty prefix is allowed (03/04/2019 - When reads are pretrimmed)
+    # if len(vars.prefix)==0: error("primer sequence cannot be empty")
     if vars.fq1 == vars.fq2: error('fastq files cannot be identical')
     if vars.barseq_catalog_in!=None and vars.barseq_catalog_out!=None: error('barseq catalog input and output files cannot both be defined at the same time')
 
@@ -1348,6 +1373,13 @@ def initialize_globals(vars, args=[], kwargs={}):
    
     if "replicon-ids" in kwargs:
         vars.replicon_ids = kwargs["replicon-ids"]
+
+    # Handle no primer but Tn5 protocol case
+    # Handled in initialize_globals and tpp_gui
+    if "primer" not in kwargs and vars.transposon == "Tn5":
+        vars.prefix = "TAAGAGACAG"
+    if "primer" not in kwargs and vars.transposon == "Himar1":
+        vars.prefix = "ACTTATCAGCCAACCTGTTA"
 
     # note: if last flag expected an arg but was end of list, it gets value True ; check for this and report as missing # TRI, 10/28/17
 
