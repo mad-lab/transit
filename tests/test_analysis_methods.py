@@ -46,26 +46,26 @@ class TestMethods(TransitTestCase):
 
 
     def test_Gumbel(self):
-        args = [ctrl_data_txt, annotation, output, "-s", "1000", "-b", "100"]
+        args = [ctrl_data_txt, small_annotation, output, "-s", "1000", "-b", "100"]
         G = GumbelMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
 
     def test_Binomial(self):
-        args = [ctrl_data_txt, annotation, output, "-s", "1000", "-b", "100"]
+        args = [ctrl_data_txt, small_annotation, output, "-s", "1000", "-b", "100"]
         G = BinomialMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
 
     def test_Griffin(self):
-        args = [ctrl_data_txt, annotation, output, "-s", "1000", "-b", "100"]
+        args = [ctrl_data_txt, small_annotation, output, "-s", "1000", "-b", "100"]
         G = GriffinMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
 
 
     def test_HMM(self):
-        args = [ctrl_data_txt, annotation, output, "-s", "1000", "-b", "100"]
+        args = [ctrl_data_txt, small_annotation, output, "-s", "1000", "-b", "100"]
         G = HMMMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -74,22 +74,53 @@ class TestMethods(TransitTestCase):
 
 
     def test_resampling(self):
-        args = [ctrl_data_txt, exp_data_txt, annotation, output, "-s", "1000"]
+        args = [ctrl_data_txt, exp_data_txt, small_annotation, output]
         G = ResamplingMethod.fromargs(args)
         G.Run()
-        self.assertTrue(os.path.exists(output))
-
+        (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-2, qcol=-1))
+        self.assertLessEqual(
+                abs(len(sig_pvals) - 37),
+                1,
+                "sig_pvals expected in range: %s, actual: %d" % ("[36, 38]", len(sig_qvals)))
+        self.assertLessEqual(
+                abs(len(sig_qvals) - 35),
+                1,
+                "sig_qvals expected in range: %s, actual: %d" % ("[34, 36]", len(sig_qvals)))
 
     def test_resampling_adaptive(self):
-        args = [ctrl_data_txt, exp_data_txt, annotation, output, "-s", "10000", "-a"]
+        args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-a"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
         (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-2, qcol=-1))
+        print(len(sig_pvals))
+        print(len(sig_qvals))
         self.assertLessEqual(
-            abs(len(sig_qvals) - 75),
-            4,
-            "sig_qvals expected in range: %s, actual: %d" % ("[71, 79]", len(sig_qvals)))
+                abs(len(sig_pvals) - 37),
+                1,
+                "sig_pvals expected in range: %s, actual: %d" % ("[36, 38]", len(sig_qvals)))
+        self.assertLessEqual(
+                abs(len(sig_qvals) - 35),
+                1,
+                "sig_qvals expected in range: %s, actual: %d" % ("[34, 36]", len(sig_qvals)))
+
+    def test_resampling_histogram(self):
+        args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000", "-h"]
+        G = ResamplingMethod.fromargs(args)
+        G.Run()
+        self.assertTrue(os.path.exists(output))
+        self.assertTrue(
+                os.path.isdir(hist_path),
+                "histpath expected: %s" % (hist_path))
+
+    def test_resampling_multistrain(self):
+        args = [ctrl_data_txt, exp_data_txt, ','.join([small_annotation, small_annotation]), output, "-h"]
+        G = ResamplingMethod.fromargs(args)
+        G.Run()
+        self.assertTrue(os.path.exists(output))
+        self.assertTrue(
+                os.path.isdir(hist_path),
+                "histpath expected: %s" % (hist_path))
 
     def test_anova(self):
         args = [combined_wig, annotation, samples_metadata, output, "--ignore-conditions", "Unknown"]
@@ -107,36 +138,25 @@ class TestMethods(TransitTestCase):
             36,
             "sig_qvals expected: %d, actual: %d" % (36, len(sig_qvals)))
 
-    #def test_resampling_histogram(self):
-    #    args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000", "-h"]
-    #    G = ResamplingMethod.fromargs(args)
-    #    G.Run()
-    #    self.assertTrue(os.path.exists(output))
-    #    hist_path = output.rsplit(".", 1)[0] + "_histograms"
-    #    self.assertTrue(os.path.isdir(hist_path))
-
-
     def test_GI(self):
-        args = [ctrl_data_txt, exp_data_txt, annotation, output, "-s", "1000"]
+        args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000"]
         G = GIMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
 
     def test_utest(self):
-        args = [ctrl_data_txt, exp_data_txt, annotation, output]
+        args = [ctrl_data_txt, exp_data_txt, small_annotation, output]
         G = UTestMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
 
 
     def test_GI(self):
-        args = [ctrl_data_txt, exp_data_txt, ctrl_data_txt, exp_data_txt, annotation, output,
+        args = [ctrl_data_txt, exp_data_txt, ctrl_data_txt, exp_data_txt, small_annotation, output,
                     "-s", "1000"]
         G = GIMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
-
-
 
 if __name__ == '__main__':
     unittest.main()

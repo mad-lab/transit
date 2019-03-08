@@ -228,7 +228,7 @@ class ResamplingMethod(base.DualConditionMethod):
         self.ctrl_lib_str = ctrl_lib_str
         self.exp_lib_str = exp_lib_str
         self.diffStrains = diffStrains
-        self.annotation_path_exp = annotation_path_exp
+        self.annotation_path_exp = annotation_path_exp if diffStrains else annotation_path
 
     @classmethod
     def fromGUI(self, wxobj):
@@ -412,7 +412,7 @@ class ResamplingMethod(base.DualConditionMethod):
         data_exp = self.preprocess_data(data_exp)
 
         G_ctrl = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data_ctrl, position=position_ctrl)
-        G_exp = tnseq_tools.Genes(self.expdata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data_exp, position=position_exp)
+        G_exp = tnseq_tools.Genes(self.expdata, self.annotation_path_exp, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data_exp, position=position_exp)
 
         doLibraryResampling = False
         # If library string not empty
@@ -476,11 +476,6 @@ class ResamplingMethod(base.DualConditionMethod):
         self.add_file(filetype="Resampling")
 
     def run_resampling(self, G_ctrl, G_exp = None, doLibraryResampling = False, histPath = ""):
-        if not self.diffStrains and (len(G_ctrl) != len(G_exp)):
-            self.transit_error("Error: Different number of genes found on Ctrl and Exp dataset")
-            self.transit_error("Make sure all .wig files come from the same strain.")
-            return
-
         data = []
         N = len(G_ctrl)
         count = 0
@@ -493,7 +488,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 else:
                     self.transit_error("Error: Gene in ctrl data not present in exp data")
                     self.transit_error("Make sure all .wig files come from the same strain.")
-                    break
+                    return ([], [])
 
             gene_exp = G_exp[gene.orf]
             count+=1
@@ -501,7 +496,7 @@ class ResamplingMethod(base.DualConditionMethod):
             if not self.diffStrains and gene.n != gene_exp.n:
                 self.transit_error("Error: No. of TA sites in Exp and Ctrl data are different")
                 self.transit_error("Make sure all .wig files come from the same strain.")
-                break
+                return ([], [])
 
             if (gene.k == 0 and gene_exp.k == 0) or gene.n == 0 or gene_exp.n == 0:
                 (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist, data1, data2) = (0, 0, 0, 0, 1.00, 1.00, 1.00, [], [0], [0])
