@@ -388,16 +388,31 @@ class ResamplingMethod(base.DualConditionMethod):
             if not os.path.isdir(histPath):
                 os.makedirs(histPath)
 
-        Kctrl = len(self.ctrldata)
-        Kexp = len(self.expdata)
         #Get orf data
         self.transit_message("Getting Data")
-        (data, position) = transit_tools.get_validated_data(self.ctrldata+self.expdata, wxobj=self.wxobj)
+        if self.diffStrains:
+            self.transit_message("Mapping ctrl data to {0}, exp data to {1}".format(self.annotation_path, self.annotation_path_exp))
 
-        data_ctrl = self.preprocess_data(data)
+        (data_ctrl, position_ctrl) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
+        (data_exp, position_exp) = transit_tools.get_validated_data(self.expdata, wxobj=self.wxobj)
+        (K_ctrl, N_ctrl) = data_ctrl.shape
+        (K_exp, N_exp) = data_exp.shape
 
-        G_ctrl = tnseq_tools.Genes(self.ctrldata + self.expdata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data_ctrl, position=position)
-        G_exp = None
+        if not self.diffStrains and (N_ctrl != N_exp):
+            self.transit_error("Error: Ctrl and Exp wig files don't have the same number of sites.")
+            self.transit_error("Make sure all .wig files come from the same strain.")
+            return
+        # (data, position) = transit_tools.get_validated_data(self.ctrldata+self.expdata, wxobj=self.wxobj)
+
+
+        self.transit_message("Preprocessing Ctrl data...")
+        data_ctrl = self.preprocess_data(data_ctrl)
+
+        self.transit_message("Preprocessing Exp data...")
+        data_exp = self.preprocess_data(data_exp)
+
+        G_ctrl = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data_ctrl, position=position_ctrl)
+        G_exp = tnseq_tools.Genes(self.expdata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data_exp, position=position_exp)
 
         doLibraryResampling = False
         # If library string not empty
@@ -420,8 +435,13 @@ class ResamplingMethod(base.DualConditionMethod):
                     self.exp_lib_str = ""
 
         (data, qval) = self.run_resampling(G_ctrl, G_exp, doLibraryResampling, histPath)
+        self.write_output(data, qval, start_time)
 
-        # Write output
+        self.finish()
+        self.transit_message("Finished resampling Method")
+
+    def write_output(self, data, qval, start_time):
+
         self.output.write("#Resampling\n")
         if self.wxobj:
             members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
@@ -454,35 +474,47 @@ class ResamplingMethod(base.DualConditionMethod):
 
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file(filetype="Resampling")
-        self.finish()
-        self.transit_message("Finished resampling Method")
-
-    def intersecting_genes(G_ctrl, data_ctrl, G_exp, data_exp):
-        return G_ctrl
 
     def run_resampling(self, G_ctrl, G_exp = None, doLibraryResampling = False, histPath = ""):
-        G = self.intersecting_genes(G_ctrl, G_exp) if self.diffStrains else G_ctrl
-        Kctrl = len(self.ctrldata)
-        Kexp = len(self.expdata)
+        if not self.diffStrains and (len(G_ctrl) != len(G_exp)):
+            self.transit_error("Error: Different number of genes found on Ctrl and Exp dataset")
+            self.transit_error("Make sure all .wig files come from the same strain.")
+            return
 
         data = []
-        N = len(G)
+        N = len(G_ctrl)
         count = 0
         self.progress_range(N)
 
-        for gene in G:
+        for gene in G_ctrl:
+            if gene.orf not in G_exp:
+                if self.diffStrains:
+                    continue
+                else:
+                    self.transit_error("Error: Gene in ctrl data not present in exp data")
+                    self.transit_error("Make sure all .wig files come from the same strain.")
+                    break
+
+            gene_exp = G_exp[gene.orf]
             count+=1
-            if gene.k == 0 or gene.n == 0:
+
+            if not self.diffStrains and gene.n != gene_exp.n:
+                self.transit_error("Error: No. of TA sites in Exp and Ctrl data are different")
+                self.transit_error("Make sure all .wig files come from the same strain.")
+                break
+
+            if (gene.k == 0 and gene_exp.k == 0) or gene.n == 0 or gene_exp.n == 0:
                 (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist, data1, data2) = (0, 0, 0, 0, 1.00, 1.00, 1.00, [], [0], [0])
             else:
                 if not self.includeZeros:
-                    ii = numpy.sum(gene.reads,0) > 0
+                    ii_ctrl = numpy.sum(gene.reads,0) > 0
+                    ii_exp = numpy.sum(gene_exp.reads,0) > 0
                 else:
-                    ii = numpy.ones(gene.n) == 1
+                    ii_ctrl = numpy.ones(gene.n) == 1
+                    ii_exp = numpy.ones(gene_exp.n) == 1
 
-
-                data1 = gene.reads[:Kctrl,ii].flatten()+self.pseudocount
-                data2 = gene.reads[Kctrl:,ii].flatten()+self.pseudocount
+                data1 = gene.reads[:,ii_ctrl].flatten() + self.pseudocount
+                data2 = gene_exp.reads[:,ii_exp].flatten() + self.pseudocount
 
                 if doLibraryResampling:
                     (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_dict, permFunc=stat_tools.F_shuffle_dict_libraries, adaptive=self.adaptive, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str)
