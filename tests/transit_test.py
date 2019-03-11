@@ -20,7 +20,7 @@ annotation = basedir + "/../src/pytransit/genomes/H37Rv.prot_table"
 small_annotation = basedir + "/test.prot_table"
 output = basedir + "/testoutput.txt"
 tpp_output_base = basedir + "/test_tpp_temp"
-tpp_output_paths = [tpp_output_base + i for i in [".counts", ".reads1", ".sam", ".tn_stats", ".trimmed1", ".trimmed1_failed_trim", ".wig", "_a.counts", "_b.counts", "_c.counts"]]
+tpp_output_paths = [tpp_output_base + i for i in [".counts", ".reads1", ".sam", ".tn_stats", ".trimmed1", ".trimmed1_failed_trim", ".wig", "_a.counts", "_b.counts", "_c.counts", "_1.counts", "_2.counts", "_3.counts"]]
 
 # For tpp
 reads1 = basedir + "/test.fastq"

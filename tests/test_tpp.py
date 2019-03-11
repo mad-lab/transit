@@ -67,6 +67,28 @@ MULTICONTIG = [
         "#   b: 57441",
         "#   c: 38111" ]
 
+MULTICONTIG_AUTO_IDS = [
+        "# TA_sites:",
+        "#   1: 89994",
+        "#   2: 646",
+        "#   3: 664",
+        "# TAs_hit:",
+        "#   1: 63",
+        "#   2: 0",
+        "#   3: 0",
+        "# density:",
+        "#   1: 0.001",
+        "#   2: 0.000",
+        "#   3: 0.000",
+        "# max_count (among templates):",
+        "#   1: 1",
+        "#   2: 0",
+        "#   3: 0",
+        "# max_site (coordinate):",
+        "#   1: 4977050",
+        "#   2: 57441",
+        "#   3: 38111" ]
+
 def get_stats(path):
     for line in open(path):
         if line.startswith("#"):
@@ -78,10 +100,11 @@ def get_stats(path):
 def verify_stats(stats_file, expected):
     with open(stats_file) as f:
         lines = set([line.strip() for line in f])
-        print(lines)
-        print(set(expected) - lines)
-        return len(set(expected) - lines) == 0
-    return False
+        diff = set(expected) - lines
+        if (len(diff) == 0):
+            return True
+        print("Diff: ", diff)
+        return False
 
 class TestTPP(TransitTestCase):
 
@@ -102,6 +125,12 @@ class TestTPP(TransitTestCase):
         (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", test_multicontig, "-reads1", test_multicontig_reads1, "reads2", test_multicontig_reads2, "-output", tpp_output_base, "-replicon-ids", "a,b,c", "-maxreads", "10000", "-primer", ""])
         tppMain(*args, **kwargs)
         self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), MULTICONTIG))
+
+    @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
+    def test_tpp_multicontig_auto_replicon_ids(self):
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", test_multicontig, "-reads1", test_multicontig_reads1, "reads2", test_multicontig_reads2, "-output", tpp_output_base, "-replicon-ids", "auto", "-maxreads", "10000", "-primer", ""])
+        tppMain(*args, **kwargs)
+        self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), MULTICONTIG_AUTO_IDS))
 
 if __name__ == '__main__':
     unittest.main()
