@@ -453,7 +453,7 @@ class ResamplingMethod(base.DualConditionMethod):
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
         self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata).encode('utf-8')))
         self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata).encode('utf-8')))
-        self.output.write("#Annotation path: %s\n" % (self.annotation_path.encode('utf-8')))
+        self.output.write("#Annotation path: %s %s\n" % (self.annotation_path.encode('utf-8'), self.annotation_path_exp.encode('utf-8') if self.diffStrains else ''))
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         #Z = True # include Z-score column in resampling output?
         global columns # consider redefining columns above (for GUI)
