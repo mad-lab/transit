@@ -65,7 +65,7 @@ class TestMethods(TransitTestCase):
 
 
     def test_HMM(self):
-        args = [ctrl_data_txt, small_annotation, output, "-s", "1000", "-b", "100"]
+        args = [mini_wig, small_annotation, output]
         G = HMMMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))

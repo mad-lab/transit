@@ -5,6 +5,7 @@ basedir = os.path.dirname(__file__)
 ctrl_rep1 = basedir + "/../src/pytransit/data/glycerol_H37Rv_rep1.wig"
 ctrl_rep2 = basedir + "/../src/pytransit/data/glycerol_H37Rv_rep2.wig"
 ctrl_data_txt = ",".join([ctrl_rep1, ctrl_rep2])
+mini_wig = basedir + "/data/test.wig"
 
 combined_wig = basedir + "/../src/pytransit/data/cholesterol_glycerol_combined.dat"
 samples_metadata = basedir + "/../src/pytransit/data/samples_metadata_cg.txt"
