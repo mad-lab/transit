@@ -27,7 +27,7 @@ minimum read-length of around 50 bp). The transposon terminus appears in
 the prefix of read1 reads, and barcodes are embedded in read2 reads.
 
 The suffixes of read1 and read2 contain nucleotides from the genomic
-region adjacent to the transpsoson insertion. These subsequences must be
+region adjacent to the transposon insertion. These subsequences must be
 mapped into the genome. TPP uses
 `BWA <http://bio-bwa.sourceforge.net/>`__ (Burroughs-Wheeler Aligner) to
 do this mapping. It is a widely-used tool, but you will have to install
@@ -64,19 +64,14 @@ Installation
 TPP should work equivalently on Macs, PCs running Windows, or Unix
 machines. TPP is fundamentally a python script that has a graphical user
 interface (GUI) written in wxPython. Its major dependency is that it
-calls BWA to map reads. TPP has the following requirements. If these are
-not already on your system, you will have to install them manually.
+calls BWA to map reads. TPP is packaged as a part of TRANSIT.
 
-Requirements:
+See: :ref:`Transit/TPP installation <install-link>`
 
--  `python version 2.7 <http://www.python.org/>`__
--  `wxPython 3.0.1 <http://www.wxpython.org/>`__ (the 'cocoa' version)
--  `BWA version 0.7.12 <http://bio-bwa.sourceforge.net/>`__ (can put
-   this directory anywhere; be sure to run 'make' to build bwa
-   executable
-
-   -  `pre-compiled version for 64-bit
-      Windows <http://saclab.tamu.edu/essentiality/transit/bwa-0.7.12_windows.zip>`__)
+Requirements (in addition to TRANSIT requirement):
+  -  `BWA version 0.7.12 <http://bio-bwa.sourceforge.net/>`__ (can put
+     this directory anywhere; be sure to run 'make' to build bwa executable
+     `pre-compiled version for 64-bit Windows <http://saclab.tamu.edu/essentiality/transit/bwa-0.7.12_windows.zip>`__)
 
 Since TPP is a python script, there is nothing to compile or 'make'.
 
@@ -89,6 +84,9 @@ shell) by typing:
 ::
 
     python PATH/src/tpp.py
+
+    # If installed as PyPI package
+    tpp
 
 where PATH is the path to the TRANSIT installation directory. This
 should pop up the GUI window, looking like this...
@@ -166,7 +164,7 @@ The main fields to fill out in the GUI are...
  - **MmeI** - This can be used with a variant of the Himar1 transposon (C9 HMAR), but the 
    method of selecting and amplifying transposon:genomic junctions is different.
    The MmeI restriction enzyme is used to recognize a site in the terminus of 
-   the transpson, and makes a cut 18-20bp downstream into the genomic region.
+   the transposon, and makes a cut 18-20bp downstream into the genomic region.
    Thus the reads are much shorter (and reverse-complemented), and also there
    is no need for read2 (these are typically single-ended datasets).  See
    `Santiago et al. (2015) <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4389836/>`__.
@@ -182,7 +180,7 @@ The main fields to fill out in the GUI are...
    TPP searches for in each read.  Note that you should not
    enter the ENTIRE primer sequence, but rather just
    the part of the primer sequence that will show up at the beginning
-   of every read.  If you preprocess your reads by trimming off the 5' transpsoson
+   of every read.  If you preprocess your reads by trimming off the 5' transposon
    prefixes, you could set this to blank, and TPP will process all your reads; but
    we don't recommend doing it this way.
  
@@ -250,6 +248,7 @@ filenames and parameters as command-line arguments.
     -himar1 or -tn5    # which transposon was used?; default is -himar1
     -primer <seq>      # prefix of reads corresponding to end of transposon at junction with genomic sequence
     -mismatches <INT>  # when searching for constant regions in reads 1 and 2; default is 1
+    -protocol mme1     # Use the mmeI protocol for recognizing sites'
     -primer-start-window INT,INT # position in read to search for start of primer; default is [0,20]
     -barseq_catalog_in|-barseq_catalog_out <file>
     -replicon-ids <comma_separated_list_of_names> # if multiple replicons/genomes/contigs/sequences were provided in -ref, give them names.

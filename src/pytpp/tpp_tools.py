@@ -1440,6 +1440,7 @@ def show_help():
   print '    -flags "<STRING>"  # args to pass to BWA'
   print '    -himar1 or -tn5    # which transposon was used?; default is -himar1'
   print '    -primer <seq>      # prefix of reads corresponding to end of transposon at junction with genomic sequence' 
+  print '    -protocol mme1     # Use the mmeI protocol for recognizing sites'
   print '    -mismatches <INT>  # when searching for constant regions in reads 1 and 2; default is 1'
   print '    -primer-start-window INT,INT # position in read to search for start of primer; default is [0,20]'
   print '    -window-size INT   # automatic method to set window'
