@@ -64,8 +64,8 @@ class TestMethods(TransitTestCase):
         (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-2, qcol=-1))
         self.assertLessEqual(
                 abs(len(sig_pvals) - 37),
-                1,
-                "sig_pvals expected in range: %s, actual: %d" % ("[36, 38]", len(sig_qvals)))
+                2,
+                "sig_pvals expected in range: %s, actual: %d" % ("[35, 39]", len(sig_qvals)))
         self.assertLessEqual(
                 abs(len(sig_qvals) - 35),
                 1,
@@ -81,8 +81,8 @@ class TestMethods(TransitTestCase):
         print(len(sig_qvals))
         self.assertLessEqual(
                 abs(len(sig_pvals) - 37),
-                1,
-                "sig_pvals expected in range: %s, actual: %d" % ("[36, 38]", len(sig_qvals)))
+                2,
+                "sig_pvals expected in range: %s, actual: %d" % ("[35, 39]", len(sig_qvals)))
         self.assertLessEqual(
                 abs(len(sig_qvals) - 35),
                 1,
