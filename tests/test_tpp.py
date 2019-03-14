@@ -34,7 +34,19 @@ NOFLAG_PRIMER = [
         "# NZ_mean (among templates): 1.0",
         "# FR_corr (Fwd templates vs. Rev templates): 0.019",
         "# transposon type: Himar1",
-        "# protocol type: Sassetti"
+        "# protocol type: Sassetti",
+        "# primer_matches: 8 reads (0.8%) contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT (Himar1)"
+        ]
+
+MME1_PROTOCOL = [
+        "# TA_sites: 74605",
+        "# TAs_hit: 34",
+        "# mapped_reads (both R1 and R2 map into genome, and R2 has a proper barcode): 967",
+        "# density: 0.000",
+        "# NZ_mean (among templates): 1.0",
+        "# transposon type: Himar1",
+        "# protocol type: Mme1",
+        "# primer_matches: 8 reads (0.8%) contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT (Himar1)"
         ]
 
 FLAG_PRIMER = [
@@ -112,7 +124,7 @@ class TestTPP(TransitTestCase):
 
     @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_noflag_primer(self):
-        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-protocol","sassetti"])
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-protocol", "sassetti"])
         tppMain(*args, **kwargs)
         self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), NOFLAG_PRIMER))
 
@@ -121,6 +133,12 @@ class TestTPP(TransitTestCase):
         (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-himar1", "-flags", "-k 1"])
         tppMain(*args, **kwargs)
         self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), FLAG_PRIMER))
+
+    @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
+    def test_tpp_protocol_mme1(self):
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-protocol", "Mme1"])
+        tppMain(*args, **kwargs)
+        self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), MME1_PROTOCOL))
 
     @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_multicontig_empty_prefix(self):
