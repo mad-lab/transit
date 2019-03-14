@@ -28,23 +28,7 @@ from pytransit.analysis.utest import UTestMethod
 # Genetic Interactions
 from pytransit.analysis.gi import GIMethod
 
-def significant_pvals_qvals(fname, pcol=-2, qcol=-1):
-    pvals, qvals = [], []
-    with open(fname) as f:
-        lines = f.readlines()
-    for line in lines[2:]:
-        if line[0]=='#': continue
-        cols = line.split("\t")
-        # Read in position as int, and readcounts as float
-        pvals.append(float(cols[pcol]))
-        qvals.append(float(cols[qcol]))
-
-    return (filter(lambda p: p < 0.05, pvals), filter(lambda q: q < 0.05, qvals))
-
-
 class TestMethods(TransitTestCase):
-
-
     def test_Gumbel(self):
         args = [ctrl_data_txt, small_annotation, output, "-s", "1000", "-b", "100"]
         G = GumbelMethod.fromargs(args)

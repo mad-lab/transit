@@ -60,56 +60,60 @@ class TestNormMethods(TransitTestCase):
 #    """
 
     def test_resampling_nonorm(self):
-        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "nonorm"]
+        args = [ctrl_rep1, ctrl_rep2, small_annotation, output, "-s", "1000", "-n", "nonorm"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
-        hits = count_hits(output)
-        self.assertLessEqual(hits, 200)
+        pvals, qvals = significant_pvals_qvals(output)
+        self.assertLessEqual(len(pvals), 5)
+        self.assertLessEqual(len(qvals), 1)
+
 #
 
     def test_resampling_TTR(self):
-        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "TTR"]
+        args = [ctrl_rep1, ctrl_rep2, small_annotation, output, "-s", "1000", "-n", "TTR"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
-        hits = count_hits(output)
-        self.assertLessEqual(hits, 10)
+        pvals, qvals = significant_pvals_qvals(output)
+        self.assertLessEqual(len(pvals), 1)
+        self.assertLessEqual(len(qvals), 1)
 
 #
 
     def test_resampling_NZMean(self):
-        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "nzmean"]
+        args = [ctrl_rep1, ctrl_rep2, small_annotation, output, "-s", "1000", "-n", "nzmean"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
-        hits = count_hits(output)
-        self.assertLessEqual(hits, 20)
-
+        pvals, qvals = significant_pvals_qvals(output)
+        self.assertLessEqual(len(pvals), 5)
+        self.assertLessEqual(len(qvals), 1)
 #
 
     def test_resampling_TotReads(self):
-        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "totreads"]
+        args = [ctrl_rep1, ctrl_rep2, small_annotation, output, "-s", "1000", "-n", "totreads"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
-        hits = count_hits(output)
-        self.assertLessEqual(hits, 15)
-
+        pvals, qvals = significant_pvals_qvals(output)
+        self.assertLessEqual(len(pvals), 5)
+        self.assertLessEqual(len(qvals), 1)
 #
 
     def test_resampling_Quantile(self):
-        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "quantile"]
+        args = [ctrl_rep1, ctrl_rep2, small_annotation, output, "-s", "1000", "-n", "quantile"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
         hits = count_hits(output)
-        self.assertLessEqual(hits, 50)
-
+        pvals, qvals = significant_pvals_qvals(output)
+        self.assertLessEqual(len(pvals), 5)
+        self.assertLessEqual(len(qvals), 1)
 #
     
     def test_resampling_ZINFNB(self):
-        args = [ctrl_rep1, ctrl_rep2, annotation, output, "-s", "1000", "-n", "zinfnb"]
+        args = [ctrl_rep1, ctrl_rep2, small_annotation, output, "-s", "1000", "-n", "zinfnb"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
