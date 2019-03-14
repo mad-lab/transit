@@ -5,16 +5,21 @@ Running TRANSIT
 ===============
 
 
-TRANSIT can be run in either GUI mode or in console mode. GUI Mode will be run if TRANSIT is not given any command-line argumentsl. If any arguments are given, TRANSIT will run in console-mode.
+TRANSIT can be run in either GUI mode or in console mode. GUI Mode
+will be run if TRANSIT is not given any command-line arguments. If any
+arguments are given, TRANSIT will run in console-mode.
 
-The exact commands will vary depending on the method of installation. Details are given below:
+The exact commands will vary depending on the method of
+installation. Details are given below:
 
 |
 
 GUI Mode
 --------
 
-In general, if you installed TRANSIT as a python package (e.g. using *pip install tnseq-transit*), then the proper way to run TRANSIT in GUI mode is simply to type the following into a console:
+In general, if you installed TRANSIT as a python package (e.g. using
+*pip install tnseq-transit*), then the proper way to run TRANSIT in
+GUI mode is simply to type the following into a console:
 
 ::
 
@@ -22,7 +27,8 @@ In general, if you installed TRANSIT as a python package (e.g. using *pip instal
 
 
 .. NOTE::
-    In windows, you will likely have to navigate to C:\Python2.7\Scripts to be able to recognize the transit.exe file.
+    In windows, you will likely have to navigate to C:\\Python2.7\\Scripts to be able to recognize the transit.exe file.
+
 
 
 If, however, you installed transit by downloading and extracting the source-code archive, you can run TRANSIT in GUI mode by typing in the command line:

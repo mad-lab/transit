@@ -194,10 +194,9 @@ p-value can be derived for every run. A gene is then classified by
 using the p-value of the run with the largest number of nucleotides
 overlapping with the gene.
 
-This method was tested on a salmonella Tn5 dataset presented in this
-paper:
+This method was tested on a Salmonella Tn5 dataset presented in this paper:
 
-Langridge GC1, Phan MD, Turner DJ, Perkins TT, Parts L, Haase J,
+Langridge GC, Phan MD, Turner DJ, Perkins TT, Parts L, Haase J,
 Charles I, Maskell DJ, Peters SE, Dougan G, Wain J, Parkhill J, Turner
 AK. (2009). `Simultaneous assay of every Salmonella Typhi gene using one million
 transposon mutants. <http://www.ncbi.nlm.nih.gov/pubmed/19826075>`_ *Genome Res.* , 19(12):2308-16.

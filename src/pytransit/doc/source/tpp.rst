@@ -94,7 +94,7 @@ where PATH is the path to the TRANSIT installation directory. This
 should pop up the GUI window, looking like this...
 
 .. image:: _images/TPP-screenshot.png
-   :width: 600
+   :width: 800
    :align: center
 
 
@@ -103,11 +103,22 @@ Note, TPP can process paired-end reads, as well as single-end datasets.
 
 The main fields to fill out in the GUI are...
 
--  bwa executable - you'll have to find the path to where the executable
-   is installed
--  reference genome - this is the sequence in Fasta format against which
-   the reads will be mapped
--  reads1 file - this should be the raw reads file (*untrimmed*) for
+-  **Reference genome** - This is the sequence in Fasta format against which
+   the reads will be mapped.  The reference genome may contain multiple
+   contigs (hence a 'multi-fasta' file, with multiple headers starting with '>'),
+   or in fact may include a comma-separated list of fasta files.
+
+- **Replicon ids** - If your genome sequence has only one contig (the usual case),
+  you don't have to do anthing here (leave blank).  If you have mutiple contigs
+  (e.g. multiple chomosomes, or plasmids included, etc.), you can give them
+  unqiue labels/ids as a comma-separated list.  This will be used as filename
+  suffixes for the output .wig files (a separate file with insertion counts
+  at TA sites for each replicon).  If you have many (anonymous) contigs, e.g.
+  from a de novo assembly, you can enter 'auto' in this field, and it will generate
+  numerical ids for filename suffixes, 1,2...n for however many contigs are in
+  the file.
+
+-  **Reads1 file** - This should be the raw reads file (*untrimmed*) for
    read1 in `FASTQ <http://en.wikipedia.org/wiki/FASTQ_format>`__ or
    `FASTA <http://en.wikipedia.org/wiki/FASTA>`__ format, e.g.
    DATASET\_NAME\_R1.fastq
@@ -115,19 +126,17 @@ The main fields to fill out in the GUI are...
    -  *Note: you can also supply gzipped files for reads, e.g.
       \*.fastq.gz*
 
--  reads2 file - this should be the raw reads file (*untrimmed*) for
+-  **Reads2 file** - this should be the raw reads file (*untrimmed*) for
    read2 in FASTQ or FASTA format, e.g. DATASET\_NAME\_R2.fastq
 
    -  *Note: if you leave read2 blank, it will process the dataset as
       single-ended. Since there are no barcodes, each read will be
       counted as a unique template.*
 
--  prefix to use for output filename (for the multiple intermediate files that
-   will get generated in the process; when you pick datasets, a temp
-   file name will automatically be suggested for you, but you can change
-   it to whatever you want)
+-  **Prefix** - base to use for output filenames (for the multiple intermediate files that
+   will get generated in the process)
 
--  transposon used - Himar1 is assumed by default, but you can set it to
+-  **Transposon used** - Himar1 is assumed by default, but you can set it to
    Tn5 to process libraries of that type. The main consequences of this
    setting are: 1) the selected transposon determines the nucleotide
    prefix to be recognized in read 1, and 2) for Himar1, reads are
@@ -135,7 +144,34 @@ The main fields to fill out in the GUI are...
    sites in the genome (since it does not have significant sequence
    specificity) and written out in the .counts and .wig files.
 
--  primer sequence - This represents the end of the transposon that
+- **Protocol used** - Currently, 3 TnSeq sample prep protocols are supported:
+
+ - **Himar1** - DNA is sheared into fragments, sequencing adapters are ligated, and
+   then transposon:genomic junctions are amplified by PCR.
+   Thus a portion (~20bp) of the Himar1 terminus appears as a prefix in the
+   reads, which is stripped off prior to mapping to genome.  Also, read 2 contains a 
+   random nucleotide barcode, which is used to reduce read counts at TA sites to unique template
+   counts, which reduces noise.  See `Long et al. (2015) <http://www.springer.com/biomed/human+genetics/book/978-1-4939-2397-7>`__.
+
+ - **Tn5** - This is a different transposon than Himar1.  The main difference between Tn5 and Himar1
+   is that it is not restricted to insertions at TA dinucleotides, and can insert
+   randomly anywhere in the genome.  In principle, this could result in higher saturation 
+   (more insertions per gene; insertions at hundreds of thousands of sites are common).  
+   Thus the .wig files generated list insertion counts at every coordinate genome-wide
+   (not just TA sites), though most counts are still 0.
+   Analysis of Tn5 datasets has some unique challenges, which are discussed in 
+   `Transit Methods <transit_methods.html>`__.
+   See `Langridge et al. (2009) <http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2792183/>`__.
+
+ - **MmeI** - This can be used with a variant of the Himar1 transposon (C9 HMAR), but the 
+   method of selecting and amplifying transposon:genomic junctions is different.
+   The MmeI restriction enzyme is used to recognize a site in the terminus of 
+   the transpson, and makes a cut 18-20bp downstream into the genomic region.
+   Thus the reads are much shorter (and reverse-complemented), and also there
+   is no need for read2 (these are typically single-ended datasets).  See
+   `Santiago et al. (2015) <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4389836/>`__.
+
+-  **Primer sequence** - This represents the end of the transposon that
    appears as a constant prefix in read 1 (possibly shifted by a few
    random bases), resulting from amplifying transposon:genomic junctions.
    TPP searches for this prefix and strips it off, to
@@ -144,19 +180,36 @@ The main fields to fill out in the GUI are...
    used protocols (`Long et al. (2015) <http://www.springer.com/biomed/human+genetics/book/978-1-4939-2397-7>`__; `Langridge et al. (2009) <http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2792183/>`__).  However, if you amplify junctions with a different
    primer, this field gives you the opportunity to change the sequence
    TPP searches for in each read.  Note that you should not
-   entirer the ENTIRE primer sequence, but rather just
+   enter the ENTIRE primer sequence, but rather just
    the part of the primer sequence that will show up at the beginning
-   of every read.
-
--  max reads - Normally, leave this blank by default, and TPP will
+   of every read.  If you preprocess your reads by trimming off the 5' transpsoson
+   prefixes, you could set this to blank, and TPP will process all your reads; but
+   we don't recommend doing it this way.
+ 
+-  **Max reads** - Normally, leave this blank by default, and TPP will
    process all reads. However, if you want to do a quick run on a subset
    of the data, you can select a smaller number. This is mainly for
    testing purposes.
 
--  mismatches - this is for searching for the sequence patterns in reads
+-  **Mismatches** - this is for searching for the sequence patterns in reads
    corresponding to the transposon prefix in R1 and the constant adapter
    sequences surrounding the barcode in R2; we suggest using a default
    value of 1 mismatch
+
+- **Primer start window** - a pair of integers separated by a comma (P,Q), which constrains
+  the location in the read to search for the start of the primer sequence; default
+  is set to 0,20 (which is typically where it will be found for samples prepared
+  using the Sassetti protocol, i.e. near the beginning of reads, with some small
+  random shifts)
+
+-  **BWA executable** - you'll have to find the path to where the executable is installed
+
+- **BWA algorithm** - there are 2 options: 'aln' and 'mem'.  'aln' was originally used in Transit,
+  but the default has now been switched to 'mem', which should be able to map more reads
+
+- **BWA flags** - if you want to pass through options to BWA
+
+- **BarSeq Catalog** - this is not finished yet, but we are working on it.  Stay tuned...
 
 Once you have filled all these fields out, you can press START (or
 QUIT). At this point the GUI window will disappear, and the data
@@ -447,7 +500,7 @@ Here is an example of a .tn\_stats file:
 
 
 **Interpretation:** To assess the quality of a dataset, I would
-recommend starting by looking at 3 primary statistics:
+recommend starting by looking at these primary statistics:
 
 #. **mapped reads**: should be on the order of several million
    mapped\_reads; if there is a significant reduction from total\_reads,
@@ -460,8 +513,8 @@ recommend starting by looking at 3 primary statistics:
    infection; if there are a lot of primer reads, these probably
    represent "primer-dimers", which could be reduced by inproving
    fragment size selection during sample prep.
-#. **insertion density**: good libraries should have insertions at ≥
-   ~35% of TA sites for statistical analysis
+#. **insertion density**: good libraries should have insertions in at least
+   ~35% of TA sites for meaningful statistical analysis
 #. **NZ\_mean**: good datasets should have a mean of around 50 templates
    per site for sufficient dynamic range
 
