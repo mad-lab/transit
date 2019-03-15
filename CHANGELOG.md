@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
  - added 'auto' for -replicon-ids
  - added 'pre-trimmed' as option for transposon in TPP GUI (prefix="")
 #### TRANSIT:
- - **resampling can now be done between TnSeq libraries from different strains**
+ - [resampling can now be done between TnSeq libraries from different strains](https://transit.readthedocs.io/en/latest/transit_methods.html#re-sampling)
  - add documentation for 'griffin' and Mann-Whitney 'utest' analysis methods
 
 	
