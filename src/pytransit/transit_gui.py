@@ -2,6 +2,7 @@
 
 
 import sys
+from collections import defaultdict
 
 try:
     import wx
@@ -731,7 +732,12 @@ class TnSeekFrame(MainFrame):
         # Method Panels
 
         methodChoiceChoices = [ "[Choose Method]"]
-        for name in methods:
+        methodorder = [("gumbel", 1), ("resampling", 2), ("hmm", 3)]
+        order = defaultdict(lambda: 100)
+        for k, v in methodorder:
+            order[k] = v
+
+        for name in sorted(methods.keys(), key=lambda x: order[x]):
             methods[name].gui.definePanel(self)
             #methods[name].gui.panel.BackgroundColour = (0, 200, 20)
             self.methodSizer.Add(methods[name].gui.panel, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
