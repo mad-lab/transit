@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
  - added 'auto' for -replicon-ids
  - added 'pre-trimmed' as option for transposon in TPP GUI (prefix="")
 #### TRANSIT:
- - resampling can now be done between TnSeq libraries from different strains
+ - **resampling can now be done between TnSeq libraries from different strains**
  - add documentation for 'griffin' and Mann-Whitney 'utest' analysis methods
 
 	
@@ -26,7 +26,7 @@ All notable changes to this project will be documented in this file.
 
 ## Version 2.4.0 2019-02-28
 #### TPP:
- - can now handle genomes with multiple contigs (thanks to modifications by Robert Jenquin and William Matern); it creates multiple .wig files as output
+ - **can now handle genomes with multiple contigs** (thanks to modifications by Robert Jenquin and William Matern); it creates multiple .wig files as output
  - BWA: switched from using 'aln' to 'mem' by default
  - added flags to set the nucleotide window for searching for start of primer sequence (-primer-window-start)
  - fixed bug in counting misprimed reads, and reads mapped to both R1 and R2
