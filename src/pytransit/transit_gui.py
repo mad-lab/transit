@@ -121,7 +121,7 @@ class MainFrame ( wx.Frame ):
         annot_sizer = wx.BoxSizer( wx.HORIZONTAL )
         label_annot = wx.StaticText( self.mainWindow, wx.ID_ANY, u"Annotation File:", wx.DefaultPosition, wx.DefaultSize, 0 )
         annot_sizer.Add(label_annot,0,wx.ALIGN_CENTER_VERTICAL,0)
-        self.annotationFilePicker = wx.FilePickerCtrl(self.mainWindow, id=wx.ID_ANY, size=(400,30), wildcard="prot_table or GFF3 files (*.gff3)|*.prot_table|*.txt", message = "Select Annotation file (.prot_table or .gff3)", style=wx.FLP_DEFAULT_STYLE)
+        self.annotationFilePicker = wx.FilePickerCtrl(self.mainWindow, id=wx.ID_ANY, size=(400,30), wildcard=u"prot_table or GFF3 files (*.gff3)|*.prot_table;|*.txt;|", message = "Select Annotation file (.prot_table or .gff3)", style=wx.FLP_DEFAULT_STYLE|wx.FLP_USE_TEXTCTRL|wx.FD_MULTIPLE)
         self.annotationFilePicker.SetInitialDirectory(os.getcwd())
         annot_sizer.Add(self.annotationFilePicker, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
 
