@@ -151,6 +151,27 @@ replicates; replicate datasets will be automatically merged.
 
 |
 
+.. rst-class:: transit_sectionend
+----
+
+griffin
+-------
+
+This is an earlier version of the Gumbel method that
+identifies essential genes based on how unlikely 'gaps'
+(or consecutive runs of TA sites with 0 insertions) are,
+given the overall level of saturation.
+It is a frequentist (non-Bayesian) model that uses
+the Gumbel Extreme-Value Distribution as a likelihood function.
+This is the analysis used in our paper on 
+`cholesterol catabolism (Griffin et al., 2011) 
+<http://www.ncbi.nlm.nih.gov/pubmed/21980284>`_.
+All things considered, you are probably better off using the
+hierarchical-Bayesian Gumbel model above, which does a better job
+of estimating internal parameters.
+
+|
+
 
 .. rst-class:: transit_sectionend
 ----
@@ -650,6 +671,27 @@ Run-time
 A typical run of the re-sampling method with 10,000 samples will take
 around 45 minutes (with the histogram option ON). Using the *adaptive
 resampling* option (-a), the run-time is reduced to around 10 minutes.
+
+|
+
+.. rst-class:: transit_sectionend
+----
+
+Mann-Whitney U-test (utest)
+---------------------------
+
+This is a method for comparing datasets from a TnSeq library evaluated in
+two different conditions, analogous to resampling.
+This is a *rank-based* test on whether the level of insertions in a 
+gene or chromosomal region are significantly higher or lower in one
+condition than the other.  Effectively, the insertion counts at the TA
+sites in the region are pooled and sorted.  Then the combined ranks of the counts
+in region A are compared to those in region B, and p-value is calculated
+that reflects whether there is a significant difference in the ranks.
+The advantage of this method is that it is less sensitive to outliers
+(a unusually high insertion count at just a single TA site).
+A reference for this method is `(Santa Maria et al., 2014)
+<https://www.ncbi.nlm.nih.gov/pubmed/25104751>`__.
 
 
 |
