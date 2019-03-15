@@ -64,6 +64,7 @@ docs/_build/
 *.dat
 *.png
 *.out
+*.prot_table
 
 NOTES
 *~
