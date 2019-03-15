@@ -83,3 +83,8 @@ tests/testoutput_genes.txt
 /tests/**/*.bwt
 /tests/**/*.pac
 /tests/**/*.sa
+*.amb
+*.ann
+*.bwt
+*.pac
+*.sa

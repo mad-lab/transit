@@ -206,13 +206,13 @@ class Gene:
         Returns:
             bool: True if the gene object id is less than the other.
         """
-        return self.orf < other.orf 
+        return self.orf < other.orf
 
 #
 
     def get_gap_span(self):
         """Returns the span of the maxrun of the gene (i.e. number of nucleotides).
-        
+
         Returns:
             int: Number of nucleotides spanned by the max run.
         """
@@ -244,7 +244,7 @@ class Gene:
 
     def theta(self):
         """Return the insertion density ("theta") for the gene.
-        
+
         Returns:
             float: Density of the gene (i.e. k/n )
         """
@@ -253,11 +253,11 @@ class Gene:
         else:
             return 0.0
 
-# 
+#
 
     def phi(self):
         """Return the non-insertion density ("phi") for the gene.
-        
+
         Returns:
             float: Non-insertion density  (i.e. 1 - theta)
         """
@@ -268,7 +268,7 @@ class Gene:
     def total_reads(self):
         """Return the total reads for the gene.
 
-        Returns:        
+        Returns:
             float: Total sum of read-counts.
         """
         return numpy.sum(self.reads, 1)
@@ -279,9 +279,9 @@ class Genes:
     """Class defining a list of Gene objects with useful attributes for TnSeq
     analysis.
 
-    This class helps define a list of Gene objects with attributes that 
+    This class helps define a list of Gene objects with attributes that
     facilitate TnSeq analysis. Includes methods that calculate useful statistics
-    and even rudamentary analysis of essentiality. 
+    and even rudamentary analysis of essentiality.
 
     Attributes:
         wigList: List of paths to datasets in .wig format.
@@ -300,7 +300,7 @@ class Genes:
     :Example:
 
         >>> import pytransit.tnseq_tools as tnseq_tools
-        >>> G = tnseq_tools.Genes(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"], "transit/genomes/H37Rv.prot_table", norm="TTR") 
+        >>> G = tnseq_tools.Genes(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"], "transit/genomes/H37Rv.prot_table", norm="TTR")
         >>> print G
         Genes Object (N=3990)
         >>> print G.global_theta()
@@ -332,7 +332,7 @@ class Genes:
 
     def __getitem__(self, i):
         """Defines __getitem__ method so that it works as dictionary and list.
-    
+
         Arguments:
             i (int): Integer or string defining index or orf ID desired.
         Returns:
@@ -378,13 +378,13 @@ class Genes:
         return "Genes Object (N=%d)" % len(self.genes)
 
 #
-    
+
     def __init__(self, wigList, annotation, norm="nonorm", reps="All", minread=1, ignoreCodon = True, nterm=0.0, cterm=0.0, include_nc = False, data=[], position=[],genome="", transposon="himar1"):
         """Initializes the gene list based on the list of wig files and a prot_table.
 
-        This class helps define a list of Gene objects with attributes that 
+        This class helps define a list of Gene objects with attributes that
         facilitate TnSeq analysis. Includes methods that calculate useful statistics
-        and even rudamentary analysis of essentiality. 
+        and even rudamentary analysis of essentiality.
 
         Arguments:
             wigList (list): List of paths to datasets in .wig format.
@@ -396,7 +396,7 @@ class Genes:
             nterm (float): Float number of the fraction of the N-terminus to ignore.
             cterm (float): Float number of the fraction of the C-terminus to ignore.
             include_nc (bool): Boolean determining whether to include non-coding areas.
-            data (list): List of data. Used to define the object without files. 
+            data (list): List of data. Used to define the object without files.
             position (list): List of position of sites. Used to define the object without files.
 
 
@@ -418,7 +418,7 @@ class Genes:
 
         self.orf2index = {}
         self.genes = []
-        
+
         orf2info = get_gene_info(self.annotation)
         if not numpy.any(data):
             if transposon.lower() == "himar1" and not genome:
@@ -437,13 +437,13 @@ class Genes:
             (data, factors) = norm_tools.normalize_data(data, norm, self.wigList, self.annotation)
         else:
             factors = []
-       
+
         if reps.lower() != "all":
             data = numpy.array([combine_replicates(data, method=reps)])
 
         K,N = data.shape
-       
-        self.data = data 
+
+        self.data = data
         orf2posindex = {}
         visited_list = []
         for i in range(N):
@@ -453,7 +453,7 @@ class Genes:
                 if gene not in orf2posindex: orf2posindex[gene] = []
 
                 name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
-                
+
                 if strand == "+":
                     if self.ignoreCodon and position[i] > end - 3:
                         continue
@@ -463,7 +463,7 @@ class Genes:
 
                 if (position[i]-start)/float(end-start) < (self.nterm/100.0):
                     continue
-                
+
                 if (position[i]-start)/float(end-start) > ((100-self.cterm)/100.0):
                     continue
 
@@ -473,7 +473,7 @@ class Genes:
         for line in open(self.annotation):
             if line.startswith("#"): continue
             tmp = line.split("\t")
-        
+
             if isProt:
                 gene = tmp[8].strip()
                 name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
@@ -531,7 +531,7 @@ class Genes:
         R = numpy.zeros(G)
         for i in xrange(G):
             R[i] = self.genes[i].r
-        return R 
+        return R
 
 #
 
@@ -549,7 +549,7 @@ class Genes:
         return S
 
 #
-  
+
     def local_gene_span(self):
         """Returns numpy array with the span of nucleotides of the gene,
         't', for each gene.
@@ -663,9 +663,9 @@ class Genes:
 
     def global_phi(self):
         """Returns global non-insertion frequency, of the library.
-    
+
         Returns:
-            float: Complement of global theta i.e. 1.0-theta    
+            float: Complement of global theta i.e. 1.0-theta
         """
         return 1.0 - self.global_theta()
 
@@ -673,7 +673,7 @@ class Genes:
 
     def total_reads(self):
         """Returns total reads among the library.
-        
+
         Returns:
             float: Total sum of read-counts accross all genes.
         """
@@ -686,7 +686,7 @@ class Genes:
 
     def tosses(self):
         """Returns list of bernoulli trials, 'tosses', representing insertions in the gene.
-        
+
         Returns:
             list: Sites represented as bernoulli trials with insertions as true.
         """
@@ -743,7 +743,7 @@ def runs(data):
 
 def runindex(runs):
     """Returns a list of the indexes of the start of the runs; complements runs().
-    
+
     Arguments:
         runs (list): List of numeric data.
 
@@ -777,7 +777,7 @@ def get_file_types(wig_list):
     """
     if not wig_list:
         return []
-    
+
     types = ['tn5' for i in range(len(wig_list))]
     for i, wig_filename in enumerate(wig_list):
         with open(wig_filename) as wig_file:
@@ -834,7 +834,7 @@ def get_unknown_file_types(wig_list, transposons):
 
 def get_data(wig_list):
     """ Returns a tuple of (data, position) containing a matrix of raw read-counts
-        , and list of coordinates. 
+        , and list of coordinates.
 
     Arguments:
         wig_list (list): List of paths to wig files.
@@ -869,10 +869,10 @@ def get_data(wig_list):
 
     # If it doesn't match, report an error and quit
     if sum(size_list) != (T * len(size_list)):
-        print "Error: Not all wig files have the same number of sites." 
+        print "Error: Not all wig files have the same number of sites."
         print "       Make sure all .wig files come from the same strain."
         sys.exit()
-    
+
     data = numpy.zeros((K,T))
     position = numpy.zeros(T, dtype=int)
     for j,path in enumerate(wig_list):
@@ -885,7 +885,7 @@ def get_data(wig_list):
             pos = int(tmp[0])
             rd = float(tmp[1])
             prev_pos = pos
-            
+
             try:
                 data[j,i] = rd
             except Exception as e:
@@ -925,10 +925,10 @@ def get_data_zero_fill(wig_list):
             last_line = line
         pos = int(last_line.split()[0])
         T = max(T,pos)
-    
+
     if T == 0:
         return (numpy.zeros((1,0)), numpy.zeros(0), [])
-    
+
     data = numpy.zeros((K,T))
     position = numpy.array(range(T)) + 1#numpy.zeros(T)
     for j,path in enumerate(wig_list):
@@ -946,7 +946,7 @@ def get_data_zero_fill(wig_list):
 
 
 def get_data_w_genome(wig_list, genome):
-   
+
     X = read_genome(genome)
     N = len(X)
     positions = []
@@ -975,7 +975,7 @@ def get_data_w_genome(wig_list, genome):
             else:
                 print "Warning: Coordinate %d did not match a TA site in the genome. Ignoring counts." %(pos)
     return (data, positions)
- 
+
 #
 
 def combine_replicates(data, method="Sum"):
@@ -1019,7 +1019,7 @@ def get_data_stats(reads):
     kurtosis = scipy.stats.kurtosis(reads[reads>0])
     return (density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis)
 
-    
+
 
 def get_wig_stats(path):
     """Returns statistics for the given wig file with read-counts.
@@ -1049,7 +1049,7 @@ def get_extended_pos_hash_pt(path, N=None):
 
     hash = {}
     maxcoord = float("-inf")
-    data = [] 
+    data = []
     for line in open(path):
         if line.startswith("#"): continue
         tmp = line.split("\t")
@@ -1072,7 +1072,7 @@ def get_extended_pos_hash_pt(path, N=None):
         prev_orf = ""
         if i > 0:
             prev_orf = data[i-1][0]
-            
+
         next_orf = ""
         if i < len(data)-1:
             next_orf = data[i+1][0]
@@ -1081,13 +1081,13 @@ def get_extended_pos_hash_pt(path, N=None):
             if pos not in hash: hash[pos] = {"current":[], "prev":[], "next":[]}
 
             hash[pos]["prev"].append(prev_orf)
-            
+
             if pos >= start:
                 hash[pos]["next"].append(next_orf)
                 hash[pos]["current"].append(orf)
             else:
                 hash[pos]["next"].append(orf)
-        genome_start = end+1 
+        genome_start = end+1
 
     if N:
         for pos in range(maxcoord, genome_end+1):
@@ -1158,10 +1158,10 @@ def get_extended_pos_hash_gff(path, N=None):
 
 def get_pos_hash_pt(path):
     """Returns a dictionary that maps coordinates to a list of genes that occur at that coordinate.
-    
+
     Arguments:
         path (str): Path to annotation in .prot_table format.
-    
+
     Returns:
         dict: Dictionary of position to list of genes that share that position.
     """
@@ -1181,10 +1181,10 @@ def get_pos_hash_pt(path):
 
 def get_pos_hash_gff(path):
     """Returns a dictionary that maps coordinates to a list of genes that occur at that coordinate.
-    
+
     Arguments:
         path (str): Path to annotation in GFF3 format.
-    
+
     Returns:
         dict: Dictionary of position to list of genes that share that position.
     """
@@ -1225,10 +1225,10 @@ def get_pos_hash(path):
 
 def get_gene_info_pt(path):
     """Returns a dictionary that maps gene id to gene information.
-    
+
     Arguments:
         path (str): Path to annotation in .prot_table format.
-    
+
     Returns:
         dict: Dictionary of gene id to tuple of information:
             - name
@@ -1236,7 +1236,7 @@ def get_gene_info_pt(path):
             - start coordinate
             - end coordinate
             - strand
-            
+
     """
     orf2info = {}
     for line in open(path):
@@ -1255,10 +1255,10 @@ def get_gene_info_pt(path):
 
 def get_gene_info_gff(path):
     """Returns a dictionary that maps gene id to gene information.
-    
+
     Arguments:
         path (str): Path to annotation in GFF3 format.
-    
+
     Returns:
         dict: Dictionary of gene id to tuple of information:
             - name
@@ -1266,7 +1266,7 @@ def get_gene_info_gff(path):
             - start coordinate
             - end coordinate
             - strand
-            
+
     """
     orf2info = {}
     for line in open(path):
@@ -1320,11 +1320,11 @@ def get_gene_info(path):
 
 def get_coordinate_map(galign_path, reverse=False):
     """Attempts to get mapping of coordinates from galign file.
-    
+
     Arguments:
         path (str): Path to .galign file.
         reverse (bool): Boolean specifying whether to do A to B or B to A.
-    
+
     Returns:
         dict: Dictionary of coordinate in one file to another file.
     """
@@ -1345,13 +1345,13 @@ def get_coordinate_map(galign_path, reverse=False):
             right = int(tmp[1])
         else:
              right = int(tmp[2])
-            
+
         if not reverse:
             if not leftempty:
                 c1Toc2[left] = right
         else:
             if not rightempty:
-                 c1Toc2[right] = left    
+                 c1Toc2[right] = left
     return c1Toc2
 
 #
@@ -1414,7 +1414,7 @@ def getE1(n):
     return(0.01)
 
 #
-    
+
 def getE2(n):
     """Small Correction term. Defaults to 0.01 for now"""
     return(0.01)
@@ -1426,10 +1426,10 @@ def getGamma():
     return(0.5772156649015328606)
 
 #
-    
+
 def ExpectedRuns(n,pnon):
     """Expected value of the run of non=insertions (Schilling, 1990):
-    
+
         ER_n =  log(1/p)(nq) + gamma/ln(1/p) -1/2 + r1(n) + E1(n)
 
     Arguments:
@@ -1439,7 +1439,7 @@ def ExpectedRuns(n,pnon):
     Returns:
         float: Size of the expected maximum run.
 
-    """   
+    """
     if n<20: # use exact calculation for genes with less than 20 TA sites
       # Eqn 17-20 in Boyd, https://www.math.ubc.ca/~boyd/bern.runs/bernoulli.html
       #  recurrence relations for F(n,k) = prob that max run has length k
@@ -1460,15 +1460,15 @@ def ExpectedRuns(n,pnon):
     A = math.log(n*pins,1.0/pnon)
     B = gamma/math.log(1.0/pnon)
     ER = A + B -0.5 + r1 + E1
-    return ER 
-    
+    return ER
+
 #
 
 def VarR(n,pnon):
     """Variance of the expected run of non-insertons (Schilling, 1990):
 
     .. math::
- 
+
         VarR_n =  (pi^2)/(6*ln(1/p)^2) + 1/12 + r2(n) + E2(n)
 
 
@@ -1480,13 +1480,13 @@ def VarR(n,pnon):
         float: Variance of the length of the maximum run.
     """
     r2 = getR2(n)
-    E2 = getE2(n)    
+    E2 = getE2(n)
     A = math.pow(math.pi,2.0)/(6* math.pow(math.log(1.0/pnon),2.0))
     V = A + 1/12.0 + r2 + E2
     return V
 
 #
-    
+
 def GumbelCDF(x,u,B):
     """CDF of the Gumbel distribution:
 
@@ -1501,7 +1501,7 @@ def GumbelCDF(x,u,B):
         float: Cumulative probability o the Gumbel distribution.
     """
     return (math.exp( -1 * math.exp((u-x)/B )))
-    
+
 #
 
 def griffin_analysis(genes_obj, pins):
@@ -1552,7 +1552,7 @@ def runs_w_info(data):
 
     Arguments:
         data (list): List of numeric data to check for runs.
-    
+
     Returns:
         list: List of dictionary from run to length and position information of the tun.
     """
@@ -1568,7 +1568,7 @@ def runs_w_info(data):
             current_r = 0
         else:
             current_r += 1
-    
+
     # If we ended in a run, add it
     if current_r > 0:
         end = start + current_r - 1
@@ -1589,7 +1589,7 @@ def get_genes_in_range(pos_hash, start, end):
         list: List of genes that fall within range.
 
     """
-    
+
     genes = set()
     for pos in range(start, end + 1):
         if pos in pos_hash:

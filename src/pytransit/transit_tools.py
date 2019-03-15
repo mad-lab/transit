@@ -252,8 +252,8 @@ def transit_error(text):
 
 def validate_annotation(annotation):
     #TODO: Write docstring
-    if not annotation:
-        transit_error("Error: No annotation file selected!")
+    if not annotation or not os.path.exists(annotation):
+        transit_error("Error: No or Invalid annotation file selected!")
         return False
     return True
 

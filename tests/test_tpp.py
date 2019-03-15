@@ -32,7 +32,21 @@ NOFLAG_PRIMER = [
         "# mapped_reads (both R1 and R2 map into genome, and R2 has a proper barcode): 967",
         "# density: 0.012",
         "# NZ_mean (among templates): 1.0",
-        "# FR_corr (Fwd templates vs. Rev templates): 0.019"
+        "# FR_corr (Fwd templates vs. Rev templates): 0.019",
+        "# transposon type: Himar1",
+        "# protocol type: Sassetti",
+        "# primer_matches: 8 reads (0.8%) contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT (Himar1)"
+        ]
+
+MME1_PROTOCOL = [
+        "# TA_sites: 74605",
+        "# TAs_hit: 34",
+        "# mapped_reads (both R1 and R2 map into genome, and R2 has a proper barcode): 967",
+        "# density: 0.000",
+        "# NZ_mean (among templates): 1.0",
+        "# transposon type: Himar1",
+        "# protocol type: Mme1",
+        "# primer_matches: 8 reads (0.8%) contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT (Himar1)"
         ]
 
 FLAG_PRIMER = [
@@ -67,6 +81,28 @@ MULTICONTIG = [
         "#   b: 57441",
         "#   c: 38111" ]
 
+MULTICONTIG_AUTO_IDS = [
+        "# TA_sites:",
+        "#   1: 89994",
+        "#   2: 646",
+        "#   3: 664",
+        "# TAs_hit:",
+        "#   1: 63",
+        "#   2: 0",
+        "#   3: 0",
+        "# density:",
+        "#   1: 0.001",
+        "#   2: 0.000",
+        "#   3: 0.000",
+        "# max_count (among templates):",
+        "#   1: 1",
+        "#   2: 0",
+        "#   3: 0",
+        "# max_site (coordinate):",
+        "#   1: 4977050",
+        "#   2: 57441",
+        "#   3: 38111" ]
+
 def get_stats(path):
     for line in open(path):
         if line.startswith("#"):
@@ -78,16 +114,17 @@ def get_stats(path):
 def verify_stats(stats_file, expected):
     with open(stats_file) as f:
         lines = set([line.strip() for line in f])
-        print(lines)
-        print(set(expected) - lines)
-        return len(set(expected) - lines) == 0
-    return False
+        diff = set(expected) - lines
+        if (len(diff) == 0):
+            return True
+        print("Diff: ", diff)
+        return False
 
 class TestTPP(TransitTestCase):
 
     @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_noflag_primer(self):
-        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-himar1"])
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-protocol", "sassetti"])
         tppMain(*args, **kwargs)
         self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), NOFLAG_PRIMER))
 
@@ -98,10 +135,22 @@ class TestTPP(TransitTestCase):
         self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), FLAG_PRIMER))
 
     @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
+    def test_tpp_protocol_mme1(self):
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-protocol", "Mme1"])
+        tppMain(*args, **kwargs)
+        self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), MME1_PROTOCOL))
+
+    @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_multicontig_empty_prefix(self):
         (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", test_multicontig, "-reads1", test_multicontig_reads1, "reads2", test_multicontig_reads2, "-output", tpp_output_base, "-replicon-ids", "a,b,c", "-maxreads", "10000", "-primer", ""])
         tppMain(*args, **kwargs)
         self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), MULTICONTIG))
+
+    @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
+    def test_tpp_multicontig_auto_replicon_ids(self):
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", test_multicontig, "-reads1", test_multicontig_reads1, "reads2", test_multicontig_reads2, "-output", tpp_output_base, "-replicon-ids", "auto", "-maxreads", "10000", "-primer", ""])
+        tppMain(*args, **kwargs)
+        self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), MULTICONTIG_AUTO_IDS))
 
 if __name__ == '__main__':
     unittest.main()

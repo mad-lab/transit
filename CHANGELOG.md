@@ -2,24 +2,36 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 2.4.2 2019-03-15
+#### TPP:
+ - updated docs for TPP; expanded discussion of protocols, including Mme1 
+ - for Mme1, change min read length from 20bp to 15bp (for genomic part of read1)
+ - replaced '-himar1' and 'tn5' flags with '-protocol [sassetti|tn5|mme1]'
+ - added 'auto' for -replicon-ids
+ - added 'pre-trimmed' as option for transposon in TPP GUI (prefix="")
+#### TRANSIT:
+ - [resampling can now be done between TnSeq libraries from different strains](https://transit.readthedocs.io/en/latest/transit_methods.html#re-sampling)
+ - add documentation for 'griffin' and Mann-Whitney 'utest' analysis methods
+
+	
 ## Version 2.4.1 2019-03-04
-- TPP:
+#### TPP:
  - allow the primer sequence to be the empty string (i.e. -primer "" on command-line; for pre-trimmed reads)
  - do not throw an error if header ids in read1 and read2 fastq files happen to match identically
  - minor bug fixes:
  - fixed problem of order of data in tn_stats table when there are multiple contigs but only single-ended reads
- - fxied name of flag from "replicon-id" to "replicon-ids"
+ - fixed name of flag from "replicon-id" to "replicon-ids"
  - prevent div-by-zero error in cases where no reads map
 	
 
 ## Version 2.4.0 2019-02-28
-- TPP:
- - can now handle genomes with multiple contigs (thanks to modifications by Robert Jenquin and William Matern); it creates multiple .wig files as output
+#### TPP:
+ - **can now handle genomes with multiple contigs** (thanks to modifications by Robert Jenquin and William Matern); it creates multiple .wig files as output
  - BWA: switched from using 'aln' to 'mem' by default
  - added flags to set the nucleotide window for searching for start of primer sequence (-primer-window-start)
  - fixed bug in counting misprimed reads, and reads mapped to both R1 and R2
  - added some fields to TPP GUI, and made it more consistent about saving/reading parameters in the tpp.cfg config file
-- Transit:	
+#### Transit:	
  - fixed bug in handling '-minreads' flag in Gumbel analysis
  - updated support for converting .gff files to .prot_table format (in GUI and on command line)
  - added a status field to ANOVA output

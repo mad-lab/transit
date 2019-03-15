@@ -151,6 +151,27 @@ replicates; replicate datasets will be automatically merged.
 
 |
 
+.. rst-class:: transit_sectionend
+----
+
+griffin
+-------
+
+This is an earlier version of the Gumbel method that
+identifies essential genes based on how unlikely 'gaps'
+(or consecutive runs of TA sites with 0 insertions) are,
+given the overall level of saturation.
+It is a frequentist (non-Bayesian) model that uses
+the Gumbel Extreme-Value Distribution as a likelihood function.
+This is the analysis used in our paper on 
+`cholesterol catabolism (Griffin et al., 2011) 
+<http://www.ncbi.nlm.nih.gov/pubmed/21980284>`_.
+All things considered, you are probably better off using the
+hierarchical-Bayesian Gumbel model above, which does a better job
+of estimating internal parameters.
+
+|
+
 
 .. rst-class:: transit_sectionend
 ----
@@ -194,10 +215,9 @@ p-value can be derived for every run. A gene is then classified by
 using the p-value of the run with the largest number of nucleotides
 overlapping with the gene.
 
-This method was tested on a salmonella Tn5 dataset presented in this
-paper:
+This method was tested on a Salmonella Tn5 dataset presented in this paper:
 
-Langridge GC1, Phan MD, Turner DJ, Perkins TT, Parts L, Haase J,
+Langridge GC, Phan MD, Turner DJ, Perkins TT, Parts L, Haase J,
 Charles I, Maskell DJ, Peters SE, Dougan G, Wain J, Parkhill J, Turner
 AK. (2009). `Simultaneous assay of every Salmonella Typhi gene using one million
 transposon mutants. <http://www.ncbi.nlm.nih.gov/pubmed/19826075>`_ *Genome Res.* , 19(12):2308-16.
@@ -460,7 +480,7 @@ Example
 
 ::
 
-  python transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+  python transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <comma-seperated list of annotation .prot_table or GFF3> <output file> [Optional Arguments]
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
         -n <string>     :=  Normalization method. Default: -n TTR
@@ -516,6 +536,99 @@ parameters are available for the method:
    as real differences. See the :ref:`Normalization <normalization>` section for a description
    of normalization method available in TRANSIT.
 
+-  **--ctrl_lib, --exp_lib** These are for doing resampling with datasets from multiple libraries, see below.
+
+|
+
+
+Doing resampling with datasets from different libraries.  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In most cases, comparisons are done among samples (replicates) from
+the same library evaluated in two different conditions.  But if the
+samples themselves come from different libraries, then this could 
+introduce extra variability, the way resampling is normally done.  To
+compensate for this, if you specify which libraries each dataset comes
+from, the permutations will be restricted to permuting counts only
+among samples within each library.  Statistical significance is still
+determined from all the data in the end (by comparing the obversed
+difference of means between the two conditions to a null distribution).
+Of course, this method makes most sense when you have at least 1 replicate
+from each library in each condition.
+
+|
+
+
+Doing resampling between different strains.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The most common case is that resampling is done among replicates all
+from the same Tn library, and hence all the datasets (fastq files) are
+mapped to the same refence genome.  Occasionally, it is useful to
+compare TnSeq datasets between two different strains, such as a
+reference strain and a clinical isolate from a different lineage.
+Suppose for simplicity that you want to compare one replicate from
+strain A (e.g. H37Rv) and one replicate from strain B (e.g. CDC1551).
+Resampling was not originally designed to handle this case.  The
+problem is that the TA sites in the .wig files with insertion counts
+might have different coordinates (because of shifts due to indels
+between the genomes).  Furthermore, a given gene might not even have
+the same number of TA sites in the two strains (due to SNPs).  A
+simplistic solution is to just map both datasets to the same genome
+sequence (say H37Rv, for example).  Then a resampling comparison could
+be run as usual, because the TA sites would all be on the same
+coordinate system. This is not ideal, however, because some reads of
+strain B might not map properly to genome A due to SNPs or indels
+between the genomes.  In fact, in more divergent organisms with higher
+genetic diversity, this can cause entire regions to look artificially
+essential, because reads fail to map in genes with a large number of
+SNPs, resulting in the apparent absence of transposon insertions.
+
+A better approach is to map each library to the custom genome sequence
+of its own strain (using TPP).  It turns out the resampling can still
+be applied (since it is fundamentally a test on the difference of the
+*mean* insertion count in each gene).  The key to making this work,
+aside from mapping each library to its own genome sequence, is that
+you need an annotation (prot_table) for the second strain that has
+been "adapted" from the first strain.  This is because,
+to do a comparison between conditions for a gene, Transit needs to be
+able to determine which TA sites fall in that gene for each strain.
+This can be achieved by producing a "modified" prot_table, where the
+START and END coordinates of each ORF in strain B have been adjusted
+according to an alignment between genome A and genome B.  You can use
+this web app: `Prot_table Adjustment Tool
+<http://saclab.tamu.edu/cgi-bin/iutils/app.cgi/>`__, to create a
+modifed prot_table, given the prot_table for one strain and the fasta
+files for both genomes (which will be aligned).  In other words, the
+app allows you to create 'B.prot_table' from 'A.prot_table' (and 'A.fna'
+and 'B.fna').
+
+Once you have created B.prot_table, all you need to do is provide
+*both* prot_tables to resampling (either through the GUI, or on the
+command-line), as a comma-separated list.  For example:
+
+::
+
+  > python transit.py resampling Rv_1_H37Rv.wig,Rv_2_H37Rv.wig 632_1_632WGS.wig,632_2_632WGS.wig H37Rv.prot_table,632WGS.prot_table resampling_output.txt -a
+
+In this example, 2 replicates from H37Rv (which had been mapped to
+H37Rv.fna by TPP) were compared to 2 replicates from strain 632 (which
+had been mapped to 632WGS.fna, the custom genome seq for strain 632).
+The important point is that **two annotations** are given in the 3rd
+arg on the command-line: **H37Rv.prot_table,632WGS.prot_table**.  The
+assumption is that the ORF boundaries for H37Rv will be used to find
+TA sites in Rv_1_H37Rv.wig and Rv_2_H37Rv.wig, and the ORF boundaries
+in 632WGS.prot_table (which had been adapted from H37Rv.prot_table
+using the web app above) will be used to find TA sites in the
+corrsponding regions in 632_1_632WGS.wig and 632_2_632WGS.wig.
+
+
+Note that, in contrast to handling datasets from different libraries
+disucssed above, in this case, the assumption is that all replicates
+in condition A will be from one library (and one strain), and all
+replicates in condition B will be from another library (another strain).
+
+
 |
 
 Output and Diagnostics
@@ -556,8 +669,29 @@ Run-time
 ~~~~~~~~
 
 A typical run of the re-sampling method with 10,000 samples will take
-around 45 minutes (with the histogram option ON). Using the adaptive
-resampling option, the run-time is reduced to around 10 minutes.
+around 45 minutes (with the histogram option ON). Using the *adaptive
+resampling* option (-a), the run-time is reduced to around 10 minutes.
+
+|
+
+.. rst-class:: transit_sectionend
+----
+
+Mann-Whitney U-test (utest)
+---------------------------
+
+This is a method for comparing datasets from a TnSeq library evaluated in
+two different conditions, analogous to resampling.
+This is a *rank-based* test on whether the level of insertions in a 
+gene or chromosomal region are significantly higher or lower in one
+condition than the other.  Effectively, the insertion counts at the TA
+sites in the region are pooled and sorted.  Then the combined ranks of the counts
+in region A are compared to those in region B, and p-value is calculated
+that reflects whether there is a significant difference in the ranks.
+The advantage of this method is that it is less sensitive to outliers
+(a unusually high insertion count at just a single TA site).
+A reference for this method is `(Santa Maria et al., 2014)
+<https://www.ncbi.nlm.nih.gov/pubmed/25104751>`__.
 
 
 |
