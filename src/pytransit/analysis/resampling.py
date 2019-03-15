@@ -234,8 +234,18 @@ class ResamplingMethod(base.DualConditionMethod):
     def fromGUI(self, wxobj):
         """ """
         #Get Annotation file
-        annotationPath = wxobj.annotation
+        annot_paths = wxobj.annotation.split(",")
+        annotationPath = annot_paths[0]
+        diffStrains = False
+        annotationPathExp = ""
+        if len(annot_paths) == 2:
+            annotationPathExp = annot_paths[1]
+            diffStrains = True
+
         if not transit_tools.validate_annotation(annotationPath):
+            return None
+
+        if annotationPathExp and not transit_tools.validate_annotation(annotationPathExp):
             return None
 
         #Get selected files
@@ -296,7 +306,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 NTerminus,
                 CTerminus,
                 ctrl_lib_str,
-                exp_lib_str, wxobj)
+                exp_lib_str, wxobj, Z = False, diffStrains = diffStrains, annotation_path_exp = annotationPathExp)
 
     @classmethod
     def fromargs(self, rawargs):
@@ -391,6 +401,7 @@ class ResamplingMethod(base.DualConditionMethod):
         #Get orf data
         self.transit_message("Getting Data")
         if self.diffStrains:
+            self.transit_message("Multiple annotation files found")
             self.transit_message("Mapping ctrl data to {0}, exp data to {1}".format(self.annotation_path, self.annotation_path_exp))
 
         (data_ctrl, position_ctrl) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
@@ -554,7 +565,7 @@ class ResamplingMethod(base.DualConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <comma seperated list of annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        return """python %s resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <comma-seperated list of annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000

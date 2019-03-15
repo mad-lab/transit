@@ -115,21 +115,32 @@ class MainFrame ( wx.Frame ):
 
         bSizer4 = wx.BoxSizer( wx.VERTICAL )
 
-        # ANNOTATION
         orgSizer = wx.StaticBoxSizer( wx.StaticBox( self.mainWindow, wx.ID_ANY, u"Organism" ), wx.VERTICAL )
 
-        bSizer10 = wx.BoxSizer( wx.HORIZONTAL )
+        # ANNOTATION
+        annot_sizer = wx.BoxSizer( wx.HORIZONTAL )
+        label_annot = wx.StaticText( self.mainWindow, wx.ID_ANY, u"Annotation File:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        annot_sizer.Add(label_annot,0,wx.ALIGN_CENTER_VERTICAL,0)
+        self.annotationFilePicker = wx.FilePickerCtrl(self.mainWindow, id=wx.ID_ANY, size=(400,30), wildcard="prot_table or GFF3 files (*.gff3)|*.prot_table|*.txt", message = "Select Annotation file (.prot_table or .gff3)", style=wx.FLP_DEFAULT_STYLE)
+        self.annotationFilePicker.SetInitialDirectory(os.getcwd())
+        annot_sizer.Add(self.annotationFilePicker, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
 
-        self.m_staticText5 = wx.StaticText( self.mainWindow, wx.ID_ANY, u"Annotation File:", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText5.Wrap( -1 )
-        bSizer10.Add( self.m_staticText5, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        orgSizer.Add( annot_sizer, 1, wx.EXPAND, 5 )
+
+        # ANNOTATION
+
+        # bSizer10 = wx.BoxSizer( wx.HORIZONTAL )
+
+        # self.m_staticText5 = wx.StaticText( self.mainWindow, wx.ID_ANY, u"Annotation File:", wx.DefaultPosition, wx.DefaultSize, 0 )
+        # self.m_staticText5.Wrap( -1 )
+        # bSizer10.Add( self.m_staticText5, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
-        self.annotationFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Annotation File (.prot_table or .gff3)]', size= wx.Size(500, -1))
+        # self.annotationFilePicker = GenBitmapTextButton(self.mainWindow, 1, bmp, '[Click to add Annotation File (.prot_table or .gff3)]', size= wx.Size(500, -1))
 
-        bSizer10.Add( self.annotationFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
+        # bSizer10.Add( self.annotationFilePicker, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
 
-        orgSizer.Add( bSizer10, 1, wx.EXPAND, 5 )
+        # orgSizer.Add( bSizer10, 1, wx.EXPAND, 5 )
 
         bSizer4.Add( orgSizer, 0, wx.EXPAND, 5 )
 
@@ -485,7 +496,7 @@ class MainFrame ( wx.Frame ):
 
         # Connect Events
 
-        self.annotationFilePicker.Bind( wx.EVT_BUTTON, self.annotationFileFunc )
+        self.annotationFilePicker.Bind( wx.EVT_FILEPICKER_CHANGED, self.annotationFileFunc )
         self.ctrlRemoveButton.Bind( wx.EVT_BUTTON, self.ctrlRemoveFunc )
         self.ctrlView.Bind( wx.EVT_BUTTON, self.allViewFunc )
         self.ctrlScatter.Bind( wx.EVT_BUTTON, self.scatterFunc )
@@ -790,7 +801,6 @@ class TnSeekFrame(MainFrame):
 
             try:
                 self.annotation = os.path.join(os.path.dirname('/pacific/home/mdejesus/transit/src/transit.py'), "pytransit/genomes/H37Rv.prot_table")
-                self.annotationFilePicker.SetLabel(transit_tools.basename(self.annotation))
                 transit_tools.transit_message("Annotation File Selected: %s" % self.annotation)
             except Exception as e:
                 print "Error:", str(e)
@@ -1424,17 +1434,19 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             traceback.print_exc()
 
 #
-
     def annotationFileFunc(self, event):
+        self.annotation=event.GetPath()
 
-        wc = u"Known Annotation Formats (*.prot_table,*.gff3,*.gff)|*.prot_table;*.gff3;*.gff;|\nProt Table (*.prot_table)|*.prot_table;|\nGFF3 (*.gff,*.gff3)|*.gff;*.gff3;|\nAll files (*.*)|*.*"
-        self.annotation = self.OpenFile(DIR=self.workdir, FILE="", WC=wc)
-        if self.annotation:
-            self.annotationFilePicker.SetLabel(transit_tools.basename(self.annotation))
-            if self.verbose:
-                transit_tools.transit_message("Annotation File Selected: %s" % self.annotation)
-        else:
-            self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table or .gff3)]")
+    # def annotationFileFunc(self, event):
+
+    #     wc = u"Known Annotation Formats (*.prot_table,*.gff3,*.gff)|*.prot_table;*.gff3;*.gff;|\nProt Table (*.prot_table)|*.prot_table;|\nGFF3 (*.gff,*.gff3)|*.gff;*.gff3;|\nAll files (*.*)|*.*"
+    #     self.annotation = self.OpenFile(DIR=self.workdir, FILE="", WC=wc)
+    #     if self.annotation:
+    #         self.annotationFilePicker.SetLabel(transit_tools.basename(self.annotation))
+    #         if self.verbose:
+    #             transit_tools.transit_message("Annotation File Selected: %s" % self.annotation)
+    #     else:
+    #         self.annotationFilePicker.SetLabel("[Click to add Annotation File (.prot_table or .gff3)]")
 
 #
     def MethodSelectFunc(self, selected_name, test=""):
