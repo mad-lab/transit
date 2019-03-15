@@ -171,7 +171,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
             sizer8 = wx.BoxSizer(wx.HORIZONTAL)
             label8 = wx.StaticText(panel, label='Transposon used:',size=(340,-1))
             sizer8.Add(label8,0,wx.ALIGN_CENTER_VERTICAL,0)
-            self.transposon = wx.ComboBox(panel,choices=['Himar1','Tn5', '[Custom]'],size=(400,30))
+            self.transposon = wx.ComboBox(panel,choices=['Himar1','Tn5', 'pre-trimmed','[Custom]'],size=(400,30))
             self.transposon.SetStringSelection(vars.transposon)
             sizer8.Add(self.transposon, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
             sizer8.Add(TPPIcon(panel, wx.ID_ANY, bmp, "Select the transposon used to construct the TnSeq libraries. This will automatically populate the primer prefix field. Select custom to specify your own sequence."), flag=wx.CENTER, border=0)
@@ -309,6 +309,11 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
                 self.prefix.SetValue("ACTTATCAGCCAACCTGTTA")
                 self.transposon.SetStringSelection("Himar1")
                 self.vars.transposon = "Himar1"
+            elif self.transposon.GetValue()=="pre-trimmed":
+                self.transposon.SetValue("pre-trimmed")
+                self.transposon.SetStringSelection("pre-trimmed")
+                self.vars.transposon = "pre-trimmed"
+                self.prefix.SetValue('""')
             else:
                 self.transposon.SetValue("[Custom]")
                 self.transposon.SetStringSelection("[Custom]")
@@ -327,9 +332,9 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
                 self.transposon.SetStringSelection("Himar1")
                 self.vars.transposon = "Himar1"
             elif self.protocol.GetValue()=="Mme1":
-                self.prefix.SetValue("")
-                self.transposon.SetStringSelection("Himar1")
-                self.vars.transposon = "Himar1"
+                self.prefix.SetValue('""')
+                self.transposon.SetStringSelection("pre-trimmed")
+                self.vars.transposon = ""
 
 #
 

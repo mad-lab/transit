@@ -156,12 +156,16 @@ The main fields to fill out in the GUI are...
    `Transit Methods <transit_methods.html>`__.
    See `Langridge et al. (2009) <http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2792183/>`__.
 
- - **MmeI** - This can be used with a variant of the Himar1 transposon (C9 HMAR), but the 
+ - **Mme1** - This can be used with a variant of the Himar1 transposon, but the 
    method of selecting and amplifying transposon:genomic junctions is different.
-   The MmeI restriction enzyme is used to recognize a site in the terminus of 
+   The Mme1 (or MmeI) restriction enzyme is used to recognize a site in the terminus of 
    the transposon, and makes a cut 18-20bp downstream into the genomic region.
-   Thus the reads are much shorter (and reverse-complemented), and also there
-   is no need for read2 (these are typically single-ended datasets).  See
+   Thus the reads are much shorter, and also there
+   is no need for read2 (these are typically single-ended datasets). 
+   For now, most users pre-trim their raw reads down to 16-20bp by using another tool
+   to strip off the transposon prefix and adapter suffix.  
+   If you do this, you should set your primer sequence to "" in TPP.
+   See
    `Santiago et al. (2015) <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4389836/>`__.
 
 -  **Transposon used** - Himar1 is assumed by default, but you can set it to
