@@ -4,6 +4,9 @@
 Welcome to TRANSIT's documentation!
 ===================================
 
+.. image:: https://img.shields.io/github/tag/mad-lab/transit.svg
+    :target: https://github.com/mad-lab/transit
+    :alt: GitHub last tag
 
 This page contains the documentation for TRANSIT. Below are a few quick links to some of the most important sections of the documentation, followed by a brief overview of TRANSIT's features.
 
