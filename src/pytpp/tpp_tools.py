@@ -1329,13 +1329,15 @@ def initialize_globals(vars, args=[], kwargs={}):
 
     # If running in console mode with flags
     if "protocol" in kwargs:
-        vars.protocol = kwargs["protocol"]
+        protocol = kwargs["protocol"].lower().capitalize()
+        if protocol not in "Sassetti Tn5 Mme1".split(): error("protocol must be one of: Sassetti, Tn5, Mme1")
+        vars.protocol = protocol
+        if vars.protocol in ["Sassetti","Mme1"]: vars.transposon = "Himar1"
+        if vars.protocol=="Tn5": vars.transposon = "Tn5"
     if "himar1" in kwargs:
         vars.transposon = "Himar1"
     if "tn5" in kwargs:
         vars.transposon = "Tn5"
-    if "protocol" in kwargs:
-        vars.protocol = kwargs["protocol"]
     if "primer" in kwargs:
         vars.prefix = kwargs["primer"].strip()
     if "reads1" in kwargs:
@@ -1419,7 +1421,6 @@ def save_config(vars):
   f.write("bwa %s\n" % vars.bwa)
   f.write("bwa_alg %s\n" % vars.bwa_alg)
   f.write("flags %s\n" % vars.flags)
-  #f.write("prefix %s\n" % vars.base)
   f.write("mismatches1 %s\n" % vars.mm1)
   f.write("primer_start_window %s,%s\n" % (vars.primer_start_window[0],vars.primer_start_window[1]))
   f.write("window_size %s\n" % vars.window_size)
@@ -1436,11 +1437,11 @@ def show_help():
 
   print 'usage: python PATH/src/tpp.py -bwa <EXECUTABLE_WITH_PATH> -ref <fasta-file|comma_separated_list> -reads1 <FASTQ_OR_FASTA_FILE> [-reads2 <FASTQ_OR_FASTA_FILE>] -output <BASE_FILENAME> [OPTIONAL ARGS]'
   print '  OPTIONAL ARGS:'
+  print '    -protocol [Sassetti|Tn5|Mme1] # which sample prep protocol was used?; sassetti protocol is the default; this sets the default transposon and primer sequence'
+  print '    -primer <seq>      # prefix of reads corresponding to end of transposon at junction with genomic sequence; can override default seq' 
   print '    -maxreads <INT>'
-  print '    -flags "<STRING>"  # args to pass to BWA'
-  print '    -himar1 or -tn5    # which transposon was used?; default is -himar1'
-  print '    -primer <seq>      # prefix of reads corresponding to end of transposon at junction with genomic sequence' 
   print '    -mismatches <INT>  # when searching for constant regions in reads 1 and 2; default is 1'
+  print '    -flags "<STRING>"  # args to pass to BWA'
   print '    -primer-start-window INT,INT # position in read to search for start of primer; default is [0,20]'
   print '    -window-size INT   # automatic method to set window'
   print '    -barseq_catalog_in|-barseq_catalog_out <file>'
