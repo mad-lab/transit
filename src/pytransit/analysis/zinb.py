@@ -7,7 +7,7 @@ import time
 import sys
 import collections
 
-from rpy2.robjects import r, globalenv, IntVector, FloatVector, StrVector, packages as rpackages
+from rpy2.robjects import r, DataFrame, globalenv, IntVector, FloatVector, StrVector, packages as rpackages
 
 import base
 import pytransit
@@ -65,7 +65,7 @@ class ZinbMethod(base.MultiConditionMethod):
         ignored_conditions = filter(None, kwargs.get("-ignore-conditions", "").split(","))
         included_conditions = filter(None, kwargs.get("-include-conditions", "").split(","))
         if len(included_conditions) > 0 and len(ignored_conditions) > 0:
-            print("Cannot use both include-conditions and ignore-conditions flags")
+            self.transit_error("Cannot use both include-conditions and ignore-conditions flags")
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
@@ -78,6 +78,21 @@ class ZinbMethod(base.MultiConditionMethod):
             Condition :: [String]
         """
         return [conditionsByFile.get(f, self.unknown_cond_flag) for f in filenamesInCombWig]
+
+    def wigs_to_covariates(self, covariatesMap, filenamesInCombWig):
+        """
+            Returns list of covariate lists. Each covariate list consists of covariates corresponding to given wigfiles.
+            ([{FileName: Covar}], [FileName]) -> [[Covar]]
+            Condition :: [String]
+            Covar :: [String]
+        """
+        try:
+            return [[covarsByFile[f]
+                        for f in filenamesInCombWig]
+                        for covarsByFile in covariatesMap]
+        except KeyError:
+            self.transit_error("Error: Covariates not found for file {0}".format(f))
+            sys.exit(0)
 
     def stats_by_condition_for_gene(self, siteIndexes, conditions, data):
         """
@@ -111,13 +126,13 @@ class ZinbMethod(base.MultiConditionMethod):
                 nz_percs[c] = nzperc(arr)
         return [means, nz_means, nz_percs]
 
-    def filter_wigs_by_conditions(self, data, conditions, ignored_conditions, included_conditions):
+    def filter_wigs_by_conditions(self, data, conditions, covariates, ignored_conditions, included_conditions):
         """
             Filters conditions that are ignored/included.
-            ([[Wigdata]], [Condition], [Condition], [Condition]) -> Tuple([[Wigdata]], [Condition])
+            ([[Wigdata]], [Condition], [[Covar]], [Condition], [Condition]) -> Tuple([[Wigdata]], [Condition])
         """
         ignored_conditions, included_conditions = (set(ignored_conditions), set(included_conditions))
-        d_filtered, cond_filtered = [], [];
+        d_filtered, cond_filtered, covariates_filtered_indexes = [], [], [];
         if len(ignored_conditions) > 0 and len(included_conditions) > 0:
             self.transit_error("Both ignored and included conditions have len > 0", ignored_conditions, included_conditions)
             sys.exit(0)
@@ -127,28 +142,35 @@ class ZinbMethod(base.MultiConditionMethod):
               if (c != self.unknown_cond_flag) and (c not in ignored_conditions):
                 d_filtered.append(data[i])
                 cond_filtered.append(conditions[i])
+                covariates_filtered_indexes.append(i)
         elif (len(included_conditions) > 0):
             self.transit_message("conditions included: {0}".format(included_conditions))
-            d_filtered, cond_filtered = [], [];
             for i, c in enumerate(conditions):
               if (c != self.unknown_cond_flag) and (c in included_conditions):
                 d_filtered.append(data[i])
                 cond_filtered.append(conditions[i])
+                covariates_filtered_indexes.append(i)
         else:
             for i, c in enumerate(conditions):
               if (c != self.unknown_cond_flag):
                 d_filtered.append(data[i])
                 cond_filtered.append(conditions[i])
+                covariates_filtered_indexes.append(i)
 
-        return (numpy.array(d_filtered), numpy.array(cond_filtered))
+        covariates_filtered = [[c[i] for i in covariates_filtered_indexes] for c in covariates]
 
-    def read_samples_metadata(self, metadata_file):
+        return (numpy.array(d_filtered), numpy.array(cond_filtered), numpy.array(covariates_filtered))
+
+    def read_samples_metadata(self, metadata_file, covarsToRead = []):
         """
           Filename -> ConditionMap
-          ConditionMap :: {Filename: Condition}
+          ConditionMap :: {Filename: Condition}, [{Filename: Covar}]
+          Condition :: String
+          Covar :: String
         """
         wigFiles = []
         conditionsByFile = {}
+        covariatesByFileList = [{} for i in range(len(covarsToRead))]
         headersToRead = ["condition", "filename"]
         with open(metadata_file) as mfile:
             lines = mfile.readlines()
@@ -156,12 +178,20 @@ class ZinbMethod(base.MultiConditionMethod):
                     for h in headersToRead
                     for i, c in enumerate(lines[0].split())
                     if c.lower() == h]
+            covarIndexes = [i
+                    for h in covarsToRead
+                    for i, c in enumerate(lines[0].split())
+                    if c.lower() == h.lower()]
+
             for line in lines:
                 if line[0]=='#': continue
                 vals = line.split()
                 [condition, wfile] = vals[headIndexes[0]], vals[headIndexes[1]]
                 conditionsByFile[wfile] = condition
-        return conditionsByFile
+                for i, c in enumerate(covarsToRead):
+                    covariatesByFileList[i][wfile] = vals[covarIndexes[i]]
+
+        return conditionsByFile, covariatesByFileList
 
     def stats_by_rv(self, data, RvSiteindexesMap, genes, conditions):
         """
@@ -211,22 +241,24 @@ class ZinbMethod(base.MultiConditionMethod):
 
         return [numpy.array(v).flatten() for v in countsByCondition.values()]
 
-    def melt_data(self, readCountsForRv, conditions, NZMeanByRep, LogZPercByRep):
+    def melt_data(self, readCountsForRv, conditions, covariates, NZMeanByRep, LogZPercByRep):
         rvSitesLength = len(readCountsForRv[0])
         repeatAndFlatten = lambda xs: numpy.repeat(xs, rvSitesLength)
+        covars = map(repeatAndFlatten, covariates)
         return [
                 numpy.concatenate(readCountsForRv).astype(int),
                 repeatAndFlatten(conditions),
+                [],
                 repeatAndFlatten(NZMeanByRep),
                 repeatAndFlatten(LogZPercByRep)
                ]
 
     def def_r_zinb_signif(self):
         r('''
-            zinb_signif = function(count, condition, NZmean, logitZPerc, sat_adjust=TRUE) {
+            zinb_signif = function(df, sat_adjust=TRUE) {
               suppressMessages(require(pscl))
               suppressMessages(require(MASS))
-              melted = data.frame(cnt=count, cond=condition, NZmean = NZmean, logitZperc = logitZPerc)
+              melted = df
               sums = aggregate(melted$cnt,by=list(melted$cond),FUN=sum)
               # to avoid model failing due to singular condition, add fake counts of 1 to all conds if any cond is all 0s
               if (0 %in% sums[,2]) {
@@ -290,14 +322,15 @@ class ZinbMethod(base.MultiConditionMethod):
                         for count in wig] for wig in data]
         return numpy.array(result)
 
-    def run_zinb(self, data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions):
+    def run_zinb(self, data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions, covariates):
         """
             Runs Zinb for each gene across conditions and returns p and q values
-            ([[Wigdata]], [Gene], [[Number]], {Rv: [SiteIndex]}, [Condition]) -> Tuple([Number], [Number])
+            ([[Wigdata]], [Gene], [[Number]], {Rv: [SiteIndex]}, [Condition]) -> Tuple([Number], [Number], [[Covar]])
             Wigdata :: [Number]
             Gene :: {start, end, rv, gene, strand}
             SiteIndex: Integer
             Condition :: String
+            Covar :: String
         """
 
         count = 0
@@ -319,16 +352,24 @@ class ZinbMethod(base.MultiConditionMethod):
                     lambda wigData: wigData[RvSiteindexesMap[Rv]], data)) if self.winz else map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data)
                 ([ readCounts,
                    condition,
+                   covars,
                    NZmean,
                    logitZPerc]) = self.melt_data(
                            norm_data,
-                           conditions, NZMeanByRep, LogZPercByRep)
+                           conditions, covariates, NZMeanByRep, LogZPercByRep)
                 if (numpy.sum(readCounts) == 0):
                     status.append("No counts in all conditions")
                     pvals.append(1)
                 else:
-                    r_args = [IntVector(readCounts), StrVector(condition), FloatVector(NZmean), FloatVector(logitZPerc)] + [True]
-                    pval, msg = r_zinb_signif(*r_args)
+                    df_args = {
+                        'cnt': IntVector(readCounts),
+                        'cond': StrVector(condition),
+                        'NZmean': FloatVector(NZmean),
+                        'logitZperc': FloatVector(logitZPerc),
+                    }
+                    melted = DataFrame(df_args)
+                    # r_args = [IntVector(readCounts), StrVector(condition), melted, map(lambda x: StrVector(x), covars), FloatVector(NZmean), FloatVector(logitZPerc)] + [True]
+                    pval, msg = r_zinb_signif(melted, True)
                     status.append(msg)
                     pvals.append(float(pval))
             Rvs.append(Rv)
@@ -364,10 +405,15 @@ class ZinbMethod(base.MultiConditionMethod):
         self.transit_message("Normalizing using: %s" % self.normalization)
         (data, factors) = norm_tools.normalize_data(data, self.normalization)
 
+        # conditionsByFile, covariatesByFileList = self.read_samples_metadata(self.metadata, ['batch'])
+        conditionsByFile, covariatesByFileList = self.read_samples_metadata(self.metadata)
         conditions = self.wigs_to_conditions(
-            self.read_samples_metadata(self.metadata),
+            conditionsByFile,
             filenamesInCombWig)
-        data, conditions = self.filter_wigs_by_conditions(data, conditions, self.ignored_conditions, self.included_conditions)
+        covariates = self.wigs_to_covariates(
+            covariatesByFileList,
+            filenamesInCombWig)
+        data, conditions, covariates = self.filter_wigs_by_conditions(data, conditions, covariates, self.ignored_conditions, self.included_conditions)
 
         genes = tnseq_tools.read_genes(self.annotation_path)
 
@@ -377,7 +423,7 @@ class ZinbMethod(base.MultiConditionMethod):
         LogZPercByRep, NZMeanByRep = self.global_stats_for_rep(data)
 
         self.transit_message("Running ZINB")
-        pvals,qvals,run_status = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions)
+        pvals,qvals,run_status = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions, covariates)
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")

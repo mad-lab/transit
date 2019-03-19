@@ -143,6 +143,22 @@ class TestMethods(TransitTestCase):
             30,
             "sig_qvals expected: %d, actual: %d" % (30, len(sig_qvals)))
 
+    def test_zinb_covariates(self):
+        args = [combined_wig, small_annotation, samples_metadata_covariates, output]
+        G = ZinbMethod.fromargs(args)
+        G.Run()
+        self.assertTrue(os.path.exists(output))
+        (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-3, qcol=-2))
+        sig_qvals.sort()
+        self.assertEqual(
+            len(sig_pvals),
+            31,
+            "sig_pvals expected: %d, actual: %d" % (31, len(sig_pvals)))
+        self.assertEqual(
+            len(sig_qvals),
+            30,
+            "sig_qvals expected: %d, actual: %d" % (30, len(sig_qvals)))
+
     def test_GI(self):
         args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000"]
         G = GIMethod.fromargs(args)

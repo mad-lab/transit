@@ -9,6 +9,7 @@ mini_wig = basedir + "/data/test.wig"
 
 combined_wig = basedir + "/../src/pytransit/data/cholesterol_glycerol_combined.dat"
 samples_metadata = basedir + "/../src/pytransit/data/samples_metadata_cg.txt"
+samples_metadata_covariates = basedir + "/../src/pytransit/data/samples_metadata_cg_covar.txt"
 
 exp_rep1 = basedir + "/../src/pytransit/data/cholesterol_H37Rv_rep1.wig"
 exp_rep2 = basedir + "/../src/pytransit/data/cholesterol_H37Rv_rep2.wig"
