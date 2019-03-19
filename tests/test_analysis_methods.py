@@ -112,7 +112,7 @@ class TestMethods(TransitTestCase):
                 "histpath expected: %s" % (hist_path))
 
     def test_anova(self):
-        args = [combined_wig, annotation, samples_metadata, output, "--ignore-conditions", "Unknown"]
+        args = [combined_wig, small_annotation, samples_metadata, output]
         G = AnovaMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -120,28 +120,28 @@ class TestMethods(TransitTestCase):
         sig_qvals.sort()
         self.assertEqual(
             len(sig_pvals),
-            196,
-            "sig_pvals expected: %d, actual: %d" % (196, len(sig_pvals)))
+            32,
+            "sig_pvals expected: %d, actual: %d" % (32, len(sig_pvals)))
         self.assertEqual(
             len(sig_qvals),
-            36,
-            "sig_qvals expected: %d, actual: %d" % (36, len(sig_qvals)))
+            28,
+            "sig_qvals expected: %d, actual: %d" % (28, len(sig_qvals)))
 
     def test_zinb(self):
-        args = [combined_wig, annotation, samples_metadata, output, "--ignore-conditions", "Unknown"]
+        args = [combined_wig, small_annotation, samples_metadata, output]
         G = ZinbMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
         (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-3, qcol=-2))
         sig_qvals.sort()
-        self.assertLessEqual(
-            abs(len(sig_pvals) - 368),
-            2,
-            "sig_pvals expected in range: %s, actual: %d" % ("[367, 369]", len(sig_pvals)))
+        self.assertEqual(
+            len(sig_pvals),
+            31,
+            "sig_pvals expected: %d, actual: %d" % (31, len(sig_pvals)))
         self.assertEqual(
             len(sig_qvals),
-            84,
-            "sig_qvals expected: %d, actual: %d" % (84, len(sig_qvals)))
+            30,
+            "sig_qvals expected: %d, actual: %d" % (30, len(sig_qvals)))
 
     def test_GI(self):
         args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000"]
