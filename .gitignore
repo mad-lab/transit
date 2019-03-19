@@ -65,9 +65,9 @@ docs/_build/
 #Data files
 *.wig
 *.dat
-*.prot_table
 *.png
 *.out
+*.prot_table
 
 NOTES
 *~
@@ -77,6 +77,16 @@ tests/testoutput.txt
 tests/testoutput_genes.txt
 
 #BWA generated files from fna
+/src/pytransit/genomes/*.amb
+/src/pytransit/genomes/*.ann
+/src/pytransit/genomes/*.bwt
+/src/pytransit/genomes/*.pac
+/src/pytransit/genomes/*.sa
+/tests/**/*.amb
+/tests/**/*.ann
+/tests/**/*.bwt
+/tests/**/*.pac
+/tests/**/*.sa
 *.amb
 *.ann
 *.bwt
