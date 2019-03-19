@@ -163,27 +163,6 @@ class TestMethods(TransitTestCase):
         G.Run()
         self.assertTrue(os.path.exists(output))
 
-<<<<<<< HEAD
-    def test_winsorize(self):
-        expected = [
-                [10, 20, 100, 20, 10, 20, 150, 10],
-                [10, 20, 100, 20, 10, 20, 150, 10],
-                [10, 20, 80, 20, 10, 20, 150, 10],
-                [10, 20, 90, 20, 10, 20, 20, 10]]
-
-        args = [basedir + "/data/test_combined_wig.txt", basedir + '/data/test.prot_table', output]
-        W = WinsorizeMethod.fromargs(args)
-        W.Run()
-        self.assertTrue(os.path.exists(output))
-        (_, data, _) = tnseq_tools.read_combined_wig(output)
-        for i, wigData in enumerate(data):
-            self.assertItemsEqual(wigData, expected[i])
-
-
-
-
-=======
->>>>>>> v2.4.2
 if __name__ == '__main__':
     unittest.main()
     #suite = unittest.TestLoader().loadTestsFromTestCase(TestMethods)
