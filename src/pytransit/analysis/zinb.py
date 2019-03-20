@@ -255,7 +255,11 @@ class ZinbMethod(base.MultiConditionMethod):
 
     def def_r_zinb_signif(self):
         r('''
-            zinb_signif = function(df, sat_adjust=TRUE) {
+            zinb_signif = function(df,
+                zinbMod1,
+                zinbMod0,
+                nbMod1,
+                nbMod0) {
               suppressMessages(require(pscl))
               suppressMessages(require(MASS))
               melted = df
@@ -273,27 +277,24 @@ class ZinbMethod(base.MultiConditionMethod):
               status = "-"
               minCount = min(melted$cnt)
               mod1 = tryCatch(
-                { if (minCount == 0) {
-                  if (sat_adjust) {
-                    zeroinfl(cnt~0+cond+offset(log(NZmean))|0+cond+offset(logitZperc),data=melted,dist="negbin")
+                {
+                  if (minCount == 0) {
+                    zeroinfl(as.formula(zinbMod1),data=melted,dist="negbin")
                   } else {
-                    zeroinfl(cnt~0+cond,data=melted,dist="negbin")
+                    glm.nb(as.formula(nbMod1),data=melted)
                   }
-                } else {
-                  glm.nb(cnt~0+cond,data=melted)
-                }
                 },
                 error=function(err) {
                   status <<- err$message
                   return(NULL)
                 })
               mod0 = tryCatch( # null model, independent of conditions
-                { if (minCount == 0) {
-                  if (sat_adjust) { zeroinfl(cnt~1+offset(log(NZmean))|1+offset(logitZperc),data=melted,dist="negbin") }
-                  else { zeroinfl(cnt~1,data=melted,dist="negbin") }
-                } else {
-                  glm.nb(cnt~1,data=melted)
-                }
+                {
+                  if (minCount == 0) {
+                    zeroinfl(as.formula(zinbMod0),data=melted,dist="negbin")
+                  } else {
+                    glm.nb(as.formula(nbMod0),data=melted)
+                  }
                 },
                 error=function(err) {
                   status <<- err$message
@@ -340,6 +341,13 @@ class ZinbMethod(base.MultiConditionMethod):
         if (self.winz):
             self.transit_message("Winsorizing and running analysis...")
 
+        ## Worth making a user param?
+        sat_adjust = True
+        zinbMod1 = "cnt~0+cond+offset(log(NZmean))|0+cond+offset(logitZperc)" if sat_adjust else "cnt~0+cond"
+        zinbMod0 = "cnt~1+offset(log(NZmean))|1+offset(logitZperc)" if sat_adjust else "cnt~1"
+        nbMod1 = "cnt~0+cond"
+        nbMod0 = "cnt~1"
+
         for gene in genes:
             count += 1
             Rv = gene["rv"]
@@ -369,7 +377,7 @@ class ZinbMethod(base.MultiConditionMethod):
                     }
                     melted = DataFrame(df_args)
                     # r_args = [IntVector(readCounts), StrVector(condition), melted, map(lambda x: StrVector(x), covars), FloatVector(NZmean), FloatVector(logitZPerc)] + [True]
-                    pval, msg = r_zinb_signif(melted, True)
+                    pval, msg = r_zinb_signif(melted, zinbMod1, zinbMod0, nbMod1, nbMod0)
                     status.append(msg)
                     pvals.append(float(pval))
             Rvs.append(Rv)
