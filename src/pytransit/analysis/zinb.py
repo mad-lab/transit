@@ -357,9 +357,9 @@ class ZinbMethod(base.MultiConditionMethod):
 
         ## Worth making a user param?
         sat_adjust = True
-        zinbMod1 = ("cnt~0+cond+offset(log(NZmean)){0}|0+cond+offset(logitZperc)" if sat_adjust else "cnt~0+cond").format(covarsFormula)
-        zinbMod0 = ("cnt~1+offset(log(NZmean)){0}|1+offset(logitZperc)" if sat_adjust else "cnt~1").format(covarsFormula)
-        nbMod1 = "cnt~0+cond{0}".format(covarsFormula)
+        zinbMod1 = ("cnt~1+cond+offset(log(NZmean)){0}|1+cond+offset(logitZperc){0}" if sat_adjust else "cnt~1+cond").format(covarsFormula)
+        zinbMod0 = ("cnt~1+offset(log(NZmean)){0}|1+offset(logitZperc){0}" if sat_adjust else "cnt~1").format(covarsFormula)
+        nbMod1 = "cnt~1+cond{0}".format(covarsFormula)
         nbMod0 = "cnt~1{0}".format(covarsFormula)
         toRFloatOrStrVec = lambda xs: FloatVector(xs) if self.is_number(xs[0]) else StrVector(xs)
 
@@ -384,7 +384,6 @@ class ZinbMethod(base.MultiConditionMethod):
                     status.append("No counts in all conditions")
                     pvals.append(1)
                 else:
-                    
                     df_args = {
                         'cnt': IntVector(readCounts),
                         'cond': toRFloatOrStrVec(condition),

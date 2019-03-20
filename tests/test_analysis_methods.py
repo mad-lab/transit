@@ -152,12 +152,12 @@ class TestMethods(TransitTestCase):
         sig_qvals.sort()
         self.assertEqual(
             len(sig_pvals),
-            25,
-            "sig_pvals expected: %d, actual: %d" % (25, len(sig_pvals)))
+            15,
+            "sig_pvals expected: %d, actual: %d" % (15, len(sig_pvals)))
         self.assertEqual(
             len(sig_qvals),
-            17,
-            "sig_qvals expected: %d, actual: %d" % (17, len(sig_qvals)))
+            10,
+            "sig_qvals expected: %d, actual: %d" % (10, len(sig_qvals)))
 
     def test_GI(self):
         args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000"]
