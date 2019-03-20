@@ -325,6 +325,13 @@ class ZinbMethod(base.MultiConditionMethod):
                         for count in wig] for wig in data]
         return numpy.array(result)
 
+    def is_number(self, s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
+
     def run_zinb(self, data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions, covariates):
         """
             Runs Zinb for each gene across conditions and returns p and q values
@@ -354,6 +361,7 @@ class ZinbMethod(base.MultiConditionMethod):
         zinbMod0 = ("cnt~1+offset(log(NZmean)){0}|1+offset(logitZperc)" if sat_adjust else "cnt~1").format(covarsFormula)
         nbMod1 = "cnt~0+cond{0}".format(covarsFormula)
         nbMod0 = "cnt~1{0}".format(covarsFormula)
+        toRFloatOrStrVec = lambda xs: FloatVector(xs) if self.is_number(xs[0]) else StrVector(xs)
 
         for gene in genes:
             count += 1
@@ -376,13 +384,14 @@ class ZinbMethod(base.MultiConditionMethod):
                     status.append("No counts in all conditions")
                     pvals.append(1)
                 else:
+                    
                     df_args = {
                         'cnt': IntVector(readCounts),
-                        'cond': StrVector(condition),
+                        'cond': toRFloatOrStrVec(condition),
                         'NZmean': FloatVector(NZmean),
                         'logitZperc': FloatVector(logitZPerc)
                         }
-                    df_args.update(map(lambda (i, c): (c, StrVector(covarsData[i])), enumerate(self.covars)))
+                    df_args.update(map(lambda (i, c): (c, toRFloatOrStrVec(covarsData[i])), enumerate(self.covars)))
 
                     melted = DataFrame(df_args)
                     # r_args = [IntVector(readCounts), StrVector(condition), melted, map(lambda x: StrVector(x), covars), FloatVector(NZmean), FloatVector(logitZPerc)] + [True]
