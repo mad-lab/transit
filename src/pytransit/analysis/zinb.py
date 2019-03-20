@@ -36,7 +36,7 @@ class ZinbMethod(base.MultiConditionMethod):
     """
     Zinb
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0, covars=[]):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file, normalization=normalization)
         self.ignored_conditions = ignored_conditions
         self.included_conditions = included_conditions
@@ -44,6 +44,7 @@ class ZinbMethod(base.MultiConditionMethod):
         self.winz = winz
         self.NTerminus = nterm
         self.CTerminus = cterm
+        self.covars = covars
 
     @classmethod
     def fromargs(self, rawargs):
@@ -61,6 +62,7 @@ class ZinbMethod(base.MultiConditionMethod):
         normalization = kwargs.get("n", "TTR")
         NTerminus = float(kwargs.get("iN", 5.0))
         CTerminus = float(kwargs.get("iC", 5.0))
+        covars = filter(None, kwargs.get("-covars", "").split(","))
         winz = True if kwargs.has_key("w") else False
         ignored_conditions = filter(None, kwargs.get("-ignore-conditions", "").split(","))
         included_conditions = filter(None, kwargs.get("-include-conditions", "").split(","))
@@ -69,7 +71,7 @@ class ZinbMethod(base.MultiConditionMethod):
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, NTerminus, CTerminus)
+        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, NTerminus, CTerminus, covars)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -248,7 +250,7 @@ class ZinbMethod(base.MultiConditionMethod):
         return [
                 numpy.concatenate(readCountsForRv).astype(int),
                 repeatAndFlatten(conditions),
-                [],
+                covars,
                 repeatAndFlatten(NZMeanByRep),
                 repeatAndFlatten(LogZPercByRep)
                ]
@@ -341,12 +343,17 @@ class ZinbMethod(base.MultiConditionMethod):
         if (self.winz):
             self.transit_message("Winsorizing and running analysis...")
 
+        covarsFormula = ""
+        if (len(self.covars) > 0):
+            covarsFormula = "+".join([""] + self.covars)
+            self.transit_message("Covariates: {0}".format(covarsFormula))
+
         ## Worth making a user param?
         sat_adjust = True
-        zinbMod1 = "cnt~0+cond+offset(log(NZmean))|0+cond+offset(logitZperc)" if sat_adjust else "cnt~0+cond"
-        zinbMod0 = "cnt~1+offset(log(NZmean))|1+offset(logitZperc)" if sat_adjust else "cnt~1"
-        nbMod1 = "cnt~0+cond"
-        nbMod0 = "cnt~1"
+        zinbMod1 = ("cnt~0+cond+offset(log(NZmean)){0}|0+cond+offset(logitZperc)" if sat_adjust else "cnt~0+cond").format(covarsFormula)
+        zinbMod0 = ("cnt~1+offset(log(NZmean)){0}|1+offset(logitZperc)" if sat_adjust else "cnt~1").format(covarsFormula)
+        nbMod1 = "cnt~0+cond{0}".format(covarsFormula)
+        nbMod0 = "cnt~1{0}".format(covarsFormula)
 
         for gene in genes:
             count += 1
@@ -360,7 +367,7 @@ class ZinbMethod(base.MultiConditionMethod):
                     lambda wigData: wigData[RvSiteindexesMap[Rv]], data)) if self.winz else map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data)
                 ([ readCounts,
                    condition,
-                   covars,
+                   covarsData,
                    NZmean,
                    logitZPerc]) = self.melt_data(
                            norm_data,
@@ -373,8 +380,10 @@ class ZinbMethod(base.MultiConditionMethod):
                         'cnt': IntVector(readCounts),
                         'cond': StrVector(condition),
                         'NZmean': FloatVector(NZmean),
-                        'logitZperc': FloatVector(logitZPerc),
-                    }
+                        'logitZperc': FloatVector(logitZPerc)
+                        }
+                    df_args.update(map(lambda (i, c): (c, StrVector(covarsData[i])), enumerate(self.covars)))
+
                     melted = DataFrame(df_args)
                     # r_args = [IntVector(readCounts), StrVector(condition), melted, map(lambda x: StrVector(x), covars), FloatVector(NZmean), FloatVector(logitZPerc)] + [True]
                     pval, msg = r_zinb_signif(melted, zinbMod1, zinbMod0, nbMod1, nbMod0)
@@ -413,8 +422,8 @@ class ZinbMethod(base.MultiConditionMethod):
         self.transit_message("Normalizing using: %s" % self.normalization)
         (data, factors) = norm_tools.normalize_data(data, self.normalization)
 
-        # conditionsByFile, covariatesByFileList = self.read_samples_metadata(self.metadata, ['batch'])
-        conditionsByFile, covariatesByFileList = self.read_samples_metadata(self.metadata)
+        conditionsByFile, covariatesByFileList = self.read_samples_metadata(self.metadata, self.covars)
+        # conditionsByFile, covariatesByFileList = self.read_samples_metadata(self.metadata)
         conditions = self.wigs_to_conditions(
             conditionsByFile,
             filenamesInCombWig)
@@ -467,6 +476,7 @@ class ZinbMethod(base.MultiConditionMethod):
         --include-conditions <cond1,cond2> :=  Comma seperated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
         -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5.0
         -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5.0
+        --covars <covar1,covar2>     :=  Comma seperated list of covariates to include, for the analysis.
         """ % (sys.argv[0])
 
 if __name__ == "__main__":
