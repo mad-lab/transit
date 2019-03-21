@@ -17,15 +17,15 @@ import pytransit.transit_tools as transit_tools
 
 
 class TestTnSeqTools(TransitTestCase):
- 
+
 
     def test_read_data(self):
         data,position = tnseq_tools.get_data(all_data_list)
         K,N = data.shape
-        
+
         self.assertEqual(K, 5)
         self.assertGreater(N, 70000)
-        
+
     def test_genes_creation_fromwig(self):
         G = tnseq_tools.Genes(all_data_list, annotation)
         N = len(G)
@@ -41,7 +41,7 @@ class TestTnSeqTools(TransitTestCase):
         #Test list lookup + data
         self.assertEqual(G[0].orf, test_orf)
         self.assertEqual(G[0].name, test_name)
-    
+
 
     def test_genes_creation_fromdata(self):
         data,position = tnseq_tools.get_data(all_data_list)
@@ -75,7 +75,7 @@ class TestTnSeqTools(TransitTestCase):
         data,position = tnseq_tools.get_data(all_data_list)
         norm_data,factors = norm_tools.normalize_data(data, "TTR")
         self.assertFalse((factors == numpy.ones(N)).all())
-   
+
 #
 
     def test_cleanargs_negative_arguments(self):
@@ -83,8 +83,8 @@ class TestTnSeqTools(TransitTestCase):
         args, kwargs = transit_tools.cleanargs(TEST_RAWARGS)
         self.assertEqual(int(kwargs.get("p",0)), -10)
 
-#       
- 
+#
+
     def test_cleanargs_flag_without_arguments(self):
         TEST_RAWARGS = ["test", "-p"]
         args, kwargs = transit_tools.cleanargs(TEST_RAWARGS)
@@ -122,6 +122,6 @@ class TestTnSeqTools(TransitTestCase):
 
 
 
- 
+
 if __name__ == '__main__':
     unittest.main()

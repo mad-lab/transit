@@ -33,6 +33,14 @@ from pytransit.analysis.utest import UTestMethod
 # Genetic Interactions
 from pytransit.analysis.gi import GIMethod
 
+hasR = False
+try:
+    import rpy2.robjects
+    hasR = True
+except Exception as e:
+    hasR = False
+
+
 class TestMethods(TransitTestCase):
     def test_Gumbel(self):
         args = [ctrl_data_txt, small_annotation, output, "-s", "1000", "-b", "100"]
@@ -127,6 +135,7 @@ class TestMethods(TransitTestCase):
             28,
             "sig_qvals expected: %d, actual: %d" % (28, len(sig_qvals)))
 
+    @unittest.skipUnless(hasR, "requires R, rpy2")
     def test_zinb(self):
         args = [combined_wig, small_annotation, samples_metadata, output]
         G = ZinbMethod.fromargs(args)
@@ -143,6 +152,7 @@ class TestMethods(TransitTestCase):
             30,
             "sig_qvals expected: %d, actual: %d" % (30, len(sig_qvals)))
 
+    @unittest.skipUnless(hasR, "requires R, rpy2")
     def test_zinb_covariates(self):
         args = [combined_wig, small_annotation, samples_metadata_covariates, output, "--covars", "batch"]
         G = ZinbMethod.fromargs(args)

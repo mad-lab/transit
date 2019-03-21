@@ -7,7 +7,15 @@ import time
 import sys
 import collections
 
-from rpy2.robjects import r, DataFrame, globalenv, IntVector, FloatVector, StrVector, packages as rpackages
+hasR = False
+try:
+    import rpy2.robjects
+    hasR = True
+except Exception as e:
+    hasR = False
+
+if hasR:
+    from rpy2.robjects import r, DataFrame, globalenv, IntVector, FloatVector, StrVector, packages as rpackages
 
 import base
 import pytransit
@@ -48,6 +56,11 @@ class ZinbMethod(base.MultiConditionMethod):
 
     @classmethod
     def fromargs(self, rawargs):
+        if not hasR:
+            print("Error: R and rpy2 (< 2.9.0) required to run ZINB analysis.")
+            print("After installing R, you can install rpy2 using the command \"pip install 'rpy2<2.9.0'\"")
+            sys.exit(0)
+
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
         if (kwargs.get('-help', False) or kwargs.get('h', False)):
