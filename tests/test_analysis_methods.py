@@ -61,7 +61,7 @@ class TestMethods(TransitTestCase):
 
 
     def test_resampling(self):
-        args = [ctrl_data_txt, exp_data_txt, small_annotation, output]
+        args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-l"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-2, qcol=-1))
