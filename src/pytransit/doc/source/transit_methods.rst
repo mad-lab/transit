@@ -480,7 +480,7 @@ Example
 
 ::
 
-  python transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <comma-seperated list of annotation .prot_table or GFF3> <output file> [Optional Arguments]
+  python transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
         -n <string>     :=  Normalization method. Default: -n TTR

@@ -362,7 +362,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 ctrl_lib_str,
                 exp_lib_str, Z = Z, diffStrains = diffStrains, annotation_path_exp = annotationPathExp)
 
-    def preprocess_data(self, data):
+    def preprocess_data(self, position, data):
         (K,N) = data.shape
 
         if self.normalization != "nonorm":
@@ -417,10 +417,10 @@ class ResamplingMethod(base.DualConditionMethod):
 
 
         self.transit_message("Preprocessing Ctrl data...")
-        data_ctrl = self.preprocess_data(data_ctrl)
+        data_ctrl = self.preprocess_data(position_ctrl, data_ctrl)
 
         self.transit_message("Preprocessing Exp data...")
-        data_exp = self.preprocess_data(data_exp)
+        data_exp = self.preprocess_data(position_exp, data_exp)
 
         G_ctrl = tnseq_tools.Genes(self.ctrldata, self.annotation_path, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data_ctrl, position=position_ctrl)
         G_exp = tnseq_tools.Genes(self.expdata, self.annotation_path_exp, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data_exp, position=position_exp)
@@ -565,7 +565,7 @@ class ResamplingMethod(base.DualConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <comma-seperated list of annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        return """python %s resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000

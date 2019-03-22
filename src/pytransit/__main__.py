@@ -23,7 +23,6 @@ import pytransit.analysis
 import pytransit.export
 import pytransit.convert
 
-
 method_wrap_width = 250
 methods = pytransit.analysis.methods
 export_methods = pytransit.export.methods
@@ -50,6 +49,9 @@ def main(*args, **kwargs):
         sys.argv.remove("--debug")
         kwargs.pop("-debug")
 
+    if (not args and ('v' in kwargs or '-version' in kwargs)):
+        print "Version: {0}".format(pytransit.__version__)
+        sys.exit(0)
     if (not args and ('h' in kwargs or '-help' in kwargs)):
         print "For commandline mode, please use one of the known methods (or see documentation to add a new one):"
         print("Analysis methods: ")
