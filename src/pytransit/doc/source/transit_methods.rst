@@ -163,8 +163,8 @@ identifies essential genes based on how unlikely 'gaps'
 given the overall level of saturation.
 It is a frequentist (non-Bayesian) model that uses
 the Gumbel Extreme-Value Distribution as a likelihood function.
-This is the analysis used in our paper on 
-`cholesterol catabolism (Griffin et al., 2011) 
+This is the analysis used in our paper on
+`cholesterol catabolism (Griffin et al., 2011)
 <http://www.ncbi.nlm.nih.gov/pubmed/21980284>`_.
 All things considered, you are probably better off using the
 hierarchical-Bayesian Gumbel model above, which does a better job
@@ -447,7 +447,7 @@ used to determine conditional essentiality of genes. It is based on a
 permutation test, and is capable of determining read-counts that are
 significantly different across conditions.
 
-See :ref:`Pathway Enrichment Analysis <GSEA>` for post-processing the hits to 
+See :ref:`Pathway Enrichment Analysis <GSEA>` for post-processing the hits to
 determine if the hits are associated with a particular functional catogory
 of genes or known biological pathway.
 
@@ -480,7 +480,7 @@ Example
 
 ::
 
-  python transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+  python transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <comma-seperated list of annotation .prot_table or GFF3> <output file> [Optional Arguments]
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
         -n <string>     :=  Normalization method. Default: -n TTR
@@ -541,12 +541,12 @@ parameters are available for the method:
 |
 
 
-Doing resampling with datasets from different libraries.  
+Doing resampling with datasets from different libraries.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In most cases, comparisons are done among samples (replicates) from
 the same library evaluated in two different conditions.  But if the
-samples themselves come from different libraries, then this could 
+samples themselves come from different libraries, then this could
 introduce extra variability, the way resampling is normally done.  To
 compensate for this, if you specify which libraries each dataset comes
 from, the permutations will be restricted to permuting counts only
@@ -682,7 +682,7 @@ Mann-Whitney U-test (utest)
 
 This is a method for comparing datasets from a TnSeq library evaluated in
 two different conditions, analogous to resampling.
-This is a *rank-based* test on whether the level of insertions in a 
+This is a *rank-based* test on whether the level of insertions in a
 gene or chromosomal region are significantly higher or lower in one
 condition than the other.  Effectively, the insertion counts at the TA
 sites in the region are pooled and sorted.  Then the combined ranks of the counts
@@ -850,8 +850,8 @@ How does it work?
 ~~~~~~~~~~~~~~~~~
 
 The method performs the `One-way anova test <https://en.wikipedia.org/wiki/Analysis_of_variance?oldformat=true#The_F-test>`_ for each gene across conditions.
-It takes into account variability of normalized transposon insertion counts among TA sites 
-and among replicates, 
+It takes into account variability of normalized transposon insertion counts among TA sites
+and among replicates,
 to determine if the differences among the mean counts for each condition are significant.
 
 
@@ -864,6 +864,9 @@ Example
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma seperated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
+        --include-conditions <cond1,cond2> :=  Comma seperated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
+        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 0.0
+        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 0.0
 
 Note: the combined_wig input file can be generated from multiple wig
 files through the Transit GUI
@@ -922,7 +925,9 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 +-----------------+-----------------------------------------------------------------+
 | p-value         | P-value calculated by the Anova test.                           |
 +-----------------+-----------------------------------------------------------------+
-| p-adj.          | Adjusted p-value controlling for the FDR (Benjamini-Hochberg)   |
+| p-adj           | Adjusted p-value controlling for the FDR (Benjamini-Hochberg)   |
++-----------------+-----------------------------------------------------------------+
+| status          | Debug information (If any)                                      |
 +-----------------+-----------------------------------------------------------------+
 
 |
@@ -930,7 +935,136 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 Run-time
 ~~~~~~~~
 
-Takes in the order of 30 seconds for a combined wig file with 10 conditions, with 3 replicates per condition.
+A typical run of the anova method takes less than 1 minute for a combined wig file with 6 conditions, 3 replicates per condition.
+
+|
+
+
+.. rst-class:: transit_sectionend
+----
+
+.. _zinb:
+
+.. rst-class:: transit_clionly
+ZINB
+--------------
+
+The ZINB (Zero Inflated Negative Binomial) method is used to determine which genes
+exhibit statistically significant variability in either the magnitude of insertion counts or local saturation, across multiple conditions.
+Like :ref:`Anova <anova>`, the zinb method takes a *combined_wig* file (which combined multiple datasets in one file) and a *samples_metadata* file (which describes which samples/replicates belong to which experimental conditions).
+
+|
+
+How does it work?
+~~~~~~~~~~~~~~~~~
+
+| For a formal description of how this method works, see our paper | <link paper> .....
+
+Example
+~~~~~~~
+
+::
+
+  python transit.py zinb <combined wig file> <annotation .prot_table> <samples_metadata file> <output file> [Optional Arguments]
+        Optional Arguments:
+        -n <string>         :=  Normalization method. Default: -n TTR
+        --ignore-conditions <cond1,cond2> :=  Comma seperated list of conditions to ignore, for the analysis.
+        --include-conditions <cond1,cond2> :=  Comma seperated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
+        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5.0
+        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5.0
+        --covars <covar1,covar2>     :=  Comma seperated list of covariates to include, for the analysis.
+
+Note: the combined_wig input file can be generated from multiple wig files through the Transit GUI (File->Export->Selected_Datasets->Combined_wig), or via the 'export' command on the command-line (see combined_wig_).
+
+Format of the samples metadata file: a tab-separated file (which you can edit in Excel)
+with 3 columns: Id, Condition, and Filename (it must have these headers).  You can include
+other columns of info, but do not include additional rows.  Individual rows can be
+commented out by prefixing them with a '#'.  Here is an example of a samples metadata file:
+The filenames should match what is shown in the header of the combined_wig (including pathnames, if present).
+
+::
+
+  ID      Condition    Filename
+  glyc1   glycerol     /Users/example_data/glycerol_rep1.wig
+  glyc2   glycerol     /Users/example_data/glycerol_rep2.wig
+  chol1   cholesterol  /Users/example_data/cholesterol_rep1.wig
+  chol2   cholesterol  /Users/example_data/cholesterol_rep2.wig
+  chol2   cholesterol  /Users/example_data/cholesterol_rep3.wig
+
+Parameters
+~~~~~~~~~~
+
+The following parameters are available for the method:
+
+-  **Ignore Conditions:** Ignores the given set of conditions from the ZINB test.
+-  **Include Conditions:** Includes the given set of conditions from the ZINB test. Conditions not in this list are ignored.
+-  **Normalization Method:** Determines which normalization method to
+   use when comparing datasets. Proper normalization is important as it
+   ensures that other sources of variability are not mistakenly treated
+   as real differences. See the :ref:`Normalization <normalization>` section for a description
+   of normalization method available in TRANSIT.
+- **Covariates** If additional covariates distinguishing the samples are available, such as library, timepoint, or genotype, they may be incorporated in the test.
+
+Incorporating Covariates:
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If additional covariates distinguishing the samples are available, such as library, timepoint, or genotype, they may be incorporated in the test by using the `covars` flag and samples metadata file. For example, consider the following samples metadata file, with a column describing the batch information of each replicate.
+
+::
+
+  ID      Condition    Filename                                     Batch
+  glyc1   glycerol     /Users/example_data/glycerol_rep1.wig        B1
+  glyc2   glycerol     /Users/example_data/glycerol_rep2.wig        B2
+  chol1   cholesterol  /Users/example_data/cholesterol_rep1.wig     B1
+  chol2   cholesterol  /Users/example_data/cholesterol_rep2.wig     B2
+  chol2   cholesterol  /Users/example_data/cholesterol_rep3.wig     B2
+
+This information can be included to eliminate variability due to batch by using the `covars` flag.
+
+::
+
+ python transit.py zinb <combined wig file> <annotation .prot_table> <samples_metadata file> <output file> --covars Batch
+
+String vs Numeric Covariates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  The ZINB test tries to guess the type of the covariates. If the given conditions/covariates can be parsed as numbers, the model treats them as real values. If not, they are treated as factors. This choice depends on the specific experiment. For example: TODO :: Varying concentrations of a drug vs independent conditions.
+
+
+Output and Diagnostics
+~~~~~~~~~~~~~~~~~~~~~~
+
+The zinb method outputs a tab-delimited file with results for each
+gene in the genome. P-values are adjusted for multiple comparisons using
+the Benjamini-Hochberg procedure (called "q-values" or "p-adj."). A
+typical threshold for conditional essentiality on is q-value < 0.05.
+
++---------------------+-----------------------------------------------------------------+
+| Column Header       | Column Definition                                               |
++=====================+=================================================================+
+| Orf                 | Gene ID.                                                        |
++---------------------+-----------------------------------------------------------------+
+| Name                | Name of the gene.                                               |
++---------------------+-----------------------------------------------------------------+
+| TAs                 | Number of TA sites in Gene                                      |
++---------------------+-----------------------------------------------------------------+
+| <Condition Mean>    | Mean readcounts for the Gene, by condition                      |
++---------------------+-----------------------------------------------------------------+
+| <Condition NZMean>  | Non-zero Mean readcounts for the Gene, by condition             |
++---------------------+-----------------------------------------------------------------+
+| p-value             | P-value calculated by the ZINB test.                            |
++---------------------+-----------------------------------------------------------------+
+| p-adj               | Adjusted p-value controlling for the FDR (Benjamini-Hochberg)   |
++---------------------+-----------------------------------------------------------------+
+| status              | Debug information (If any)                                      |
++---------------------+-----------------------------------------------------------------+
+
+|
+
+Run-time
+~~~~~~~~
+
+A typical run of the zinb method takes ~4 minutes for a combined wig file with 6 conditions, 3 replicates per condition.
 
 |
 
@@ -992,7 +1126,7 @@ Command-line
 ~~~~~~~~~~~~
 
 In addition to choosing normalization for various analyses in the GUI,
-you can also call Transit to normalize wig files from the command-line, 
+you can also call Transit to normalize wig files from the command-line,
 as shown in this example:
 
 Example
@@ -1008,7 +1142,7 @@ Example
 
   > python src/transit.py normalize Rv_1_H37RvRef.wig Rv_1_H37RvRef_BG.wig -n betageom
 
-The normalize command now also works on combined_wig files too.  
+The normalize command now also works on combined_wig files too.
 If the input file is a combined_wig file, add the '-c' flag at the end.
 
 .. _combined_wig:
@@ -1018,7 +1152,7 @@ Combined wig files
 
 Transit now supports a new file format called 'combined_wig' which basically
 combines multiple wig files into one file (with multiple columns).  This is
-used for some of the new analysis methods for larger collections of datasets, like ANOVA.
+used for some of the new analysis methods for larger collections of datasets, like :ref:`Anova <anova>`, :ref:`ZINB <zinb>`.
 You can specify the normalization method you want to use with a flag.
 TTR is the default, but other relevant normalization options would be 'nonorm'
 (i.e. preserve raw counts) and 'betageom' (this corrects for skew, but is slow).
@@ -1043,8 +1177,8 @@ Pathway Enrichment Analysis
 
 How does it work?
 ~~~~~~~~~~~~~~~~~
-Pathway Enrichment Analysis provides a method to 
-identify enrichment of functionally-related genes among those that are 
+Pathway Enrichment Analysis provides a method to
+identify enrichment of functionally-related genes among those that are
 conditionally essential (i.e.
 significantly more or less essential between two conditions).
 The analysis is typically applied as post-processing step to the hits identified
@@ -1057,14 +1191,14 @@ The GSEA methods use the whole list of genes, ranked in order of statistical sig
 (without requiring a cutoff), to calculated enrichment.
 
 Two systems of categories are provided for *M. tuberculosis* (but you can add your own):
-the Sanger functional categories of genes determined by Stewart Cole in the 
-original annotation of the H37Rv genome (1998, with updates), and 
+the Sanger functional categories of genes determined by Stewart Cole in the
+original annotation of the H37Rv genome (1998, with updates), and
 also GO terms (Gene Ontology).  They are in the src/pytransit/data/ directory.
 
 For now, pathway enrichment analysis is only implemented as a command-line function,
 and is not available in the Transit GUI.
 
-GSEA is very slow, which is why we included 
+GSEA is very slow, which is why we included
 two faster methods that use approximations (GSEA-Z and GSEA-Chi).
 
 
@@ -1083,7 +1217,7 @@ Parameters
 - **Resampling File**
     The resampling file is the one obtained after using the resampling method in Transit. (It is a tab separated file with 11 columns.) GSEA method makes usage of the last column (adjusted P-value)
 - **Annotation File**
-    This file is a tab-separated text file (which you could open in Excel).  The file format has 3 columns: the id of the pathway (e.g. "GO:0090502"), a description (e.g. "RNA phosphodiester bond hydrolysis"), and a space-separated list of genes (ORF ids, like Rv1339).  Examples for Sanger categories and GO terms for H37Rv are in src/pytransit/data/.  
+    This file is a tab-separated text file (which you could open in Excel).  The file format has 3 columns: the id of the pathway (e.g. "GO:0090502"), a description (e.g. "RNA phosphodiester bond hydrolysis"), and a space-separated list of genes (ORF ids, like Rv1339).  Examples for Sanger categories and GO terms for H37Rv are in src/pytransit/data/.
 - **Output File**
     This parameter is used to specify the output file name and the path where it will be created.
 - **p**
@@ -1094,7 +1228,7 @@ Parameters
     Methodology to be used. (HYPE, or hypergeometric test, is the default)
   -**GSEA**
     This method was proposed by Subramanian in:
-    
+
     Subramanian, A., Tamayo, P., Mootha, V. K., Mukherjee, S., Ebert, B. L., Gillette, M. A., ... & Mesirov, J. P. (2005).  `Gene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles <http://www.pnas.org/content/102/43/15545.short>`_ . Proceedings of the National Academy of Sciences, 102(43), 15545-15550.
   -**HYPE**
     This is a traditional Hypergeometric approach, which test whether the
@@ -1106,7 +1240,7 @@ is significantly higher or lower than expected, relative to the background distr
     Irizarry, R. A., Wang, C., Zhou, Y., & Speed, T. P. (2009). `Gene set enrichment analysis made simple  <http://journals.sagepub.com/doi/abs/10.1177/0962280209351908>`_. Statistical methods in medical research, 18(6), 565-575.
   -**GSEA-CHI**
     A faster approximation of GSEA.  This method is the one proposed by Irizarry, R. A et al in :
-        
+
     Irizarry, R. A., Wang, C., Zhou, Y., & Speed, T. P. (2009). `Gene set enrichment analysis made simple  <http://journals.sagepub.com/doi/abs/10.1177/0962280209351908>`_. Statistical methods in medical research, 18(6), 565-575.
 
 Run-time
@@ -1151,7 +1285,7 @@ The output file is a tab separated file and according to the method, the file ha
 
       - ID descr: ID of the pathway, functional category, or GO term, with its description. This information comes from the annotation file
 
-      - Total genes, The number of genes in the pathway      
+      - Total genes, The number of genes in the pathway
 
       - Score, Either Z or Chi, according to the one selected to calculate
 
