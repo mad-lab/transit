@@ -24,21 +24,14 @@ probability of this using a Bayesian model.
 .. NOTE::
    Intended only for **Himar1** datasets.
 
-
-|
-
 How does it work?
 ~~~~~~~~~~~~~~~~~
 
 | For a formal description of how this method works, see our paper [DeJesus2013]_:
 
-|
-
 |  DeJesus, M.A., Zhang, Y.J., Sassettti, C.M., Rubin, E.J.,
   Sacchettini, J.C., and Ioerger, T.R. (2013).
 | `Bayesian analysis of gene essentiality based on sequencing of transposon insertion libraries. <http://www.ncbi.nlm.nih.gov/pubmed/23361328>`_ *Bioinformatics*, 29(6):695-703.
-
-|
 
 Example
 ~~~~~~~
@@ -835,9 +828,10 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 .. rst-class:: transit_sectionend
 ----
 
+.. rst-class:: transit_clionly
+
 .. _anova:
 
-.. rst-class:: transit_clionly
 ANOVA
 -----
 
@@ -947,9 +941,10 @@ A typical run of the anova method takes less than 1 minute for a combined wig fi
 .. rst-class:: transit_sectionend
 ----
 
+.. rst-class:: transit_clionly
+
 .. _zinb:
 
-.. rst-class:: transit_clionly
 ZINB
 ----
 

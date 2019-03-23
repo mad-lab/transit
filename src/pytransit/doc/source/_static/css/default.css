@@ -6,3 +6,7 @@ hr.transit-sectionend {
   content: "(command line only)";
 }
 
+.rst-content .line-block {
+  margin-bottom: 10px;
+}
+
