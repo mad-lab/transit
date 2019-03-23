@@ -10,6 +10,8 @@ Below is a description of some of the methods.
 
 |
 
+.. _gumbel:
+
 Gumbel
 ------
 
@@ -306,6 +308,8 @@ datasets will be automatically merged.
 .. rst-class:: transit_sectionend
 ----
 
+.. _HMM:
+
 HMM
 ---
 
@@ -439,10 +443,10 @@ Run-time
 
 .. _resampling:
 
-Re-sampling
------------
+Resampling
+----------
 
-The re-sampling method is a comparative analysis the allows that can be
+The resampling method is a comparative analysis the allows that can be
 used to determine conditional essentiality of genes. It is based on a
 permutation test, and is capable of determining read-counts that are
 significantly different across conditions.
@@ -480,7 +484,7 @@ Example
 
 ::
 
-  python transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <comma-seperated list of annotation .prot_table or GFF3> <output file> [Optional Arguments]
+  python transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <comma-separated list of annotation .prot_table or GFF3> <output file> [Optional Arguments]
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
         -n <string>     :=  Normalization method. Default: -n TTR
@@ -512,7 +516,7 @@ parameters are available for the method:
 -  **Samples:** The number of samples (permutations) to perform. The
    larger the number of samples, the more resolution the p-values
    calculated will have, at the expense of longer computation time. The
-   re-sampling method runs on 10,000 samples by default.
+   resampling method runs on 10,000 samples by default.
 
 -  **Output Histograms:**\ Determines whether to output .png images of
    the histograms obtained from resampling the difference in
@@ -634,7 +638,7 @@ replicates in condition B will be from another library (another strain).
 Output and Diagnostics
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The re-sampling method outputs a tab-delimited file with results for each
+The resampling method outputs a tab-delimited file with results for each
 gene in the genome. P-values are adjusted for multiple comparisons using
 the Benjamini-Hochberg procedure (called "q-values" or "p-adj."). A
 typical threshold for conditional essentiality on is q-value < 0.05.
@@ -668,7 +672,7 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 Run-time
 ~~~~~~~~
 
-A typical run of the re-sampling method with 10,000 samples will take
+A typical run of the resampling method with 10,000 samples will take
 around 45 minutes (with the histogram option ON). Using the *adaptive
 resampling* option (-a), the run-time is reduced to around 10 minutes.
 
@@ -757,7 +761,7 @@ parameters are available for the method:
 -  **Samples:** The number of samples (permutations) to perform. The
    larger the number of samples, the more resolution the p-values
    calculated will have, at the expense of longer computation time. The
-   re-sampling method runs on 10,000 samples by default.
+   resampling method runs on 10,000 samples by default.
 
 
 -  **ROPE:** Region of Practical Equivalence. This region defines an area
@@ -835,7 +839,7 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 
 .. rst-class:: transit_clionly
 ANOVA
---------------
+-----
 
 The Anova (Analysis of variance) method is used to determine which genes
 exhibit statistically significant variability of insertion counts across multiple conditions.
@@ -863,8 +867,8 @@ Example
   python transit.py anova <combined wig file> <annotation .prot_table> <samples_metadata file> <output file> [Optional Arguments]
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
-        --ignore-conditions <cond1,cond2> :=  Comma seperated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
-        --include-conditions <cond1,cond2> :=  Comma seperated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
+        --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
+        --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
         -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 0.0
         -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 0.0
 
@@ -947,11 +951,24 @@ A typical run of the anova method takes less than 1 minute for a combined wig fi
 
 .. rst-class:: transit_clionly
 ZINB
---------------
+----
 
-The ZINB (Zero Inflated Negative Binomial) method is used to determine which genes
-exhibit statistically significant variability in either the magnitude of insertion counts or local saturation, across multiple conditions.
-Like :ref:`Anova <anova>`, the zinb method takes a *combined_wig* file (which combined multiple datasets in one file) and a *samples_metadata* file (which describes which samples/replicates belong to which experimental conditions).
+The ZINB (Zero-Inflated Negative Binomial) method is used to determine
+which genes exhibit statistically significant variability in either
+the magnitude of insertion counts or local saturation, across multiple
+conditions.  Like :ref:`ANOVA <anova>`, the ZINB method takes a
+*combined_wig* file (which combines multiple datasets in one file) and
+a *samples_metadata* file (which describes which samples/replicates
+belong to which experimental conditions).
+
+ZINB can be applied to two or more conditions at a time.  Thus it
+subsumes :ref:`resampling <resampling>`.  Our testing suggests that
+ZINB typically identifies 10-20% more varying genes than resampling
+(and vastly out-performs ANOVA for detecting significant variability
+across conditions).  Furthermore, because of how ZINB treats magnitude
+of read counts separately from local saturation in a gene, it
+occasionally identifies genes with variability not detectable by
+resampling analysis.
 
 |
 
@@ -968,19 +985,24 @@ Example
   python transit.py zinb <combined wig file> <annotation .prot_table> <samples_metadata file> <output file> [Optional Arguments]
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
-        --ignore-conditions <cond1,cond2> :=  Comma seperated list of conditions to ignore, for the analysis.
-        --include-conditions <cond1,cond2> :=  Comma seperated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
+        --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis.
+        --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
         -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5.0
         -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5.0
-        --covars <covar1,covar2>     :=  Comma seperated list of covariates to include, for the analysis.
+        --covars <covar1,covar2>     :=  Comma-separated list of covariates to include, for the analysis.
 
-Note: the combined_wig input file can be generated from multiple wig files through the Transit GUI (File->Export->Selected_Datasets->Combined_wig), or via the 'export' command on the command-line (see combined_wig_).
+Note: the *combined_wig* input file can be generated from multiple wig
+files through the Transit GUI
+(File->Export->Selected_Datasets->Combined_wig), or via the 'export'
+command on the command-line (see combined_wig_).
 
-Format of the samples metadata file: a tab-separated file (which you can edit in Excel)
-with 3 columns: Id, Condition, and Filename (it must have these headers).  You can include
-other columns of info, but do not include additional rows.  Individual rows can be
-commented out by prefixing them with a '#'.  Here is an example of a samples metadata file:
-The filenames should match what is shown in the header of the combined_wig (including pathnames, if present).
+Format of the *samples_metadata* file: a tab-separated file (which you
+can edit in Excel) with 3 columns: Id, Condition, and Filename (it
+must have these headers).  You can include other columns of info, but
+do not include additional rows.  Individual rows can be commented out
+by prefixing them with a '#'.  Here is an example of a samples
+metadata file: The filenames should match what is shown in the header
+of the combined_wig (including pathnames, if present).
 
 ::
 
@@ -1003,12 +1025,17 @@ The following parameters are available for the method:
    ensures that other sources of variability are not mistakenly treated
    as real differences. See the :ref:`Normalization <normalization>` section for a description
    of normalization method available in TRANSIT.
-- **Covariates** If additional covariates distinguishing the samples are available, such as library, timepoint, or genotype, they may be incorporated in the test.
+- **CovariatesL** If additional covariates distinguishing the samples are available, such as library, timepoint, or genotype, they may be incorporated in the test.
 
-Incorporating Covariates:
+Incorporating Covariates
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-If additional covariates distinguishing the samples are available, such as library, timepoint, or genotype, they may be incorporated in the test by using the `covars` flag and samples metadata file. For example, consider the following samples metadata file, with a column describing the batch information of each replicate.
+If additional covariates distinguishing the samples are available,
+such as batch, library, timepoint, or genotype, they may be
+incorporated in the ZINB model by using the `covars` flag and samples
+metadata file. For example, consider the following samples metadata
+file, with a column describing the batch information of each
+replicate.
 
 ::
 
@@ -1025,16 +1052,27 @@ This information can be included to eliminate variability due to batch by using 
 
  python transit.py zinb <combined wig file> <annotation .prot_table> <samples_metadata file> <output file> --covars Batch
 
-String vs Numeric Covariates
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Categorical vs Numeric Covariates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  The ZINB test tries to guess the type of the covariates. If the given conditions/covariates can be parsed as numbers, the model treats them as real values. If not, they are treated as factors. This choice depends on the specific experiment. For example: TODO :: Varying concentrations of a drug vs independent conditions.
+In some cases, covariates are intended to be treated as categorical
+variables, like 'batch' or 'library' or 'medium'.
+In other cases, a covariate might be a numeric value, such as
+'time' or 'concentration', in which the ordering of values is
+relevant.  The ZINB implementation tries to guess the type of each covariate.
+If they are strings, they are treated as discrete factors (each with
+their own distinct parameter).  If the given covariate can
+be parsed as numbers, the model interprets them as real values.  In this
+case, the covariate is treated as a linear factor (regressor), and is
+incorporated in the model as a single coefficient, capturing the slope or
+trend in the insertion counts as the covariate value increases.
+
 
 
 Output and Diagnostics
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The zinb method outputs a tab-delimited file with results for each
+The ZINB method outputs a tab-delimited file with results for each
 gene in the genome. P-values are adjusted for multiple comparisons using
 the Benjamini-Hochberg procedure (called "q-values" or "p-adj."). A
 typical threshold for conditional essentiality on is q-value < 0.05.
@@ -1048,15 +1086,15 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 +---------------------+-----------------------------------------------------------------+
 | TAs                 | Number of TA sites in Gene                                      |
 +---------------------+-----------------------------------------------------------------+
-| <Condition Mean>    | Mean readcounts for the Gene, by condition                      |
+| <Condition Mean>    | Mean read-counts for the gene, by condition                     |
 +---------------------+-----------------------------------------------------------------+
-| <Condition NZMean>  | Non-zero Mean readcounts for the Gene, by condition             |
+| <Condition NZMean>  | Non-zero Mean read-counts for the gene, by condition            |
 +---------------------+-----------------------------------------------------------------+
 | p-value             | P-value calculated by the ZINB test.                            |
 +---------------------+-----------------------------------------------------------------+
 | p-adj               | Adjusted p-value controlling for the FDR (Benjamini-Hochberg)   |
 +---------------------+-----------------------------------------------------------------+
-| status              | Debug information (If any)                                      |
+| status              | Diagnositic information (explanation for genes not analyzed)    |
 +---------------------+-----------------------------------------------------------------+
 
 |
@@ -1064,7 +1102,9 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 Run-time
 ~~~~~~~~
 
-A typical run of the zinb method takes ~4 minutes for a combined wig file with 6 conditions, 3 replicates per condition.
+A typical run of the ZINB method takes ~5 minutes to analze a combined wig
+file with 6 conditions, 3 replicates per condition. It will, of
+course, run more slowly if you have many more conditions.
 
 |
 
@@ -1078,8 +1118,10 @@ Normalization
 -------------
 
 
-Proper normalization is important as it ensures that other sources of variability are not mistakenly treated
-as real differences in datasets. TRANSIT provides various normalization methods, which are briefly described below:
+Proper normalization is important as it ensures that other sources of
+variability are not mistakenly treated as real differences in
+datasets. TRANSIT provides various normalization methods, which are
+briefly described below:
 
 - **TTR:**
     Trimmed Total Reads (TTR), normalized by the total

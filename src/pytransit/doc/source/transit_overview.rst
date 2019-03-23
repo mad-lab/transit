@@ -16,8 +16,11 @@ TRANSIT Overview
 
 + TRANSIT is capable of analyzing TnSeq libraries constructed with Himar1 or :ref:`Tn5 <tn5-main-overview>` datasets.
 
+|
+
 + TRANSIT assumes you have already done pre-processing of raw sequencing files (.fastq) and extracted read counts into a `.wig formatted file <http://genome.ucsc.edu/goldenpath/help/wiggle.html>`_. The .wig file should contain the counts at all sites where an insertion could take place (including sites with no reads). For Himar1 datasets this is all TA sites in the genome. For :ref:`Tn5 <tn5-main-overview>` datasets this would be all nucleotides in the genome.
 
+|
 
 + Note that while refer to "read-counts" throughout the documentation, the `current Himar1 protocol <http://www.springer.com/biomed/human+genetics/book/978-1-4939-2397-7>`_ utilizes internal barcodes that can be used to reduce raw read counts to unique template counts, and this this is the intended input to TRANSIT from Himar1 datasets.
 
@@ -29,10 +32,20 @@ TRANSIT Overview
 |
 
 + Most of the analysis methods in TRANSIT require an **annotation** to know the gene coordinates and names. This is the top file input in the GUI window. The annotation has to be in a somewhat non-standard format called a ".prot_table". If you know what you are doing, it is easy to convert annotations for other organisms into .prot_table format. But for convenience, we are distributing the prot_tables for 3 common versions of the H37Rv genome: H37Rv.prot_table (NC_000962.2, from Stewart Cole), H37RvMA2.prot_table (sequenced version from the Sassetti lab), and H37RvBD.prot_table (sequenced by the Broad Institute). All of these are slightly different, and it is **critical** that you use the same annotation file as the reference genome sequence used for mapping the reads (during pre-processing).
+|
++ There are three main types of essentiality analyses: individual,
+  comparative (pairwise), and multi-condition. 
+
+  + In *individual analysis*, the goal is to distinguish essential vs. non-essential in a single growth condition, and to assess the statistical significance of these calls. Two methods for this are the :ref:`Gumbel <gumbel>` method and the :ref:`HMM <HMM>`. They are computationally distinct. The Gumbel method is looking for significant stretches of TA sites lacking insertions, whereas the HMM looks for regions where the mean read count is locally suppressed or increased. The HMM can detect 'growth-advantaged' and 'growth-defect' regions. The HMM is also a bit more robust on low-density datasets (with insertion density as low as 20-30%). But both methods have their merits and are complementary.
 
 |
 
-+ There are 2 main types of essentiality analyses: individual, comparative. In individual analysis, the goal is to distinguish essential vs. non-essential in a single growth condition, and to assess the statistical significance of these calls. Two methods for this are the Gumbel method and the HMM. They are computationally distinct. The Gumbel method is looking for significant stretches of TA sites lacking insertions, whereas the HMM looks for regions where the mean read count is locally suppressed or increased. The HMM can detect 'growth-advantaged' and 'growth-defect' regions. The HMM is also a bit more robust on low-density datasets (insertion density 20-30%). But both methods have their merits and are complementary. For comparative analysis, TRANSIT uses 're-sampling', which is analogous to a permutation test, to determine if the sum of read counts differs significantly between two conditions. Hence this can be used to identify conditionally essential regions and quantify the statistical significance.
+  + For *comparative analysis*, the goal is to determine if the sum of read counts differs significantly between two conditions, for which TRANSIT uses :ref:`resampling<resampling>` (a non-parameteric test analogous to a permutation test). Hence this can be used to identify conditionally essential regions and quantify the statistical significance.  A rank-based Mann-Whitney U-test is also available.
+
+|
+
+  + For *multi-condition analysis*, there are two methods for determining whether insertion counts in a gene vary significantly across conditions: :ref:`ZINB <zinb>` (Zero-Inflated Negative Binomial) regression, and :ref:`ANOVA <anova>`.  In general, we find that ZINB finds more (and better) hits than ANOVA (and even out-performs resampling, for cases with 2 conditions).  Futhermore, ZINB can incorporate additional covariates.
+
 
 |
 
@@ -42,6 +55,7 @@ TRANSIT Overview
 
 + For those methods that generate p-values, we often also calculate adjusted p-value (or 'q-values') which are corrected for multiple tests typically the Benjamini-Hochberg procedure. A typical threshold for significance would be q<0.05 (not p<0.05).
 
+|
 
 + It is important to understand the GUI model that TRANSIT uses It allows you to load up datasets (.wig files), select them, choose an analysis method, set parameters, and start the computation. It will generate **output files** in your local directory with the results. These files can then be loaded into the interface and browser with custom displays and graphs. The interface has 3 main windows or sections: 'Control Samples', 'Experimental Samples', 'Results Files.' The first two are for loading input files ('Control Samples' would be like replicate datasets from a reference condition, like in vitro, rich media, etc.; 'Experimental Samples' would be where you would load replicates for a comparative conditions, like in vivo, or minimal media, or low-iron, etc.) The 'Results Files' section is initially empty, but after a computation finishes, it will automatically be populated with the corresponding output file. See the 'Tutorial' section below in this documentation for an illustration of the overall process for a typical work-flow.
 
@@ -67,7 +81,7 @@ TRANSIT Overview
 
 
 |
-    + Volcano plots can be used to visualize the results of resampling and assess the distribution between over- and under-represented genes in condition B vs. condition A. In addition you can look at histogram of the re-sample distributions for each gene.
+    + Volcano plots can be used to visualize the results of resampling and assess the distribution between over- and under-represented genes in condition B vs. condition A. In addition you can look at histogram of the resampling distributions for each gene.
 
 .. image:: _images/transit_result_volcano_graph.png
    :width: 600

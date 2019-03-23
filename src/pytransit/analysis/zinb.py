@@ -493,11 +493,11 @@ class ZinbMethod(base.MultiConditionMethod):
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
         -w                  :=  If set, Winsorize data.
-        --ignore-conditions <cond1,cond2> :=  Comma seperated list of conditions to ignore, for the analysis.
-        --include-conditions <cond1,cond2> :=  Comma seperated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
+        --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis.
+        --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
         -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5.0
         -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5.0
-        --covars <covar1,covar2>     :=  Comma seperated list of covariates to include, for the analysis.
+        --covars <covar1,covar2>     :=  Comma separated list of covariates to include, for the analysis.
         """ % (sys.argv[0])
 
 if __name__ == "__main__":
