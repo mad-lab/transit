@@ -51,7 +51,7 @@ def read_combined_wig(fname):
         lines = f.readlines()
         for line in lines:
             if line.startswith("#File: "):
-                files.append(line.split()[1])
+                files.append(line.rstrip()[7:]) # allows for spaces in filenames
     countsByWig = [[] for _ in files]
     for line in lines:
         if line[0]=='#': continue
