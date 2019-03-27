@@ -66,6 +66,37 @@ def read_combined_wig(fname):
 
     return (numpy.array(sites), numpy.array(countsByWig), files)
 
+def read_samples_metadata(metadata_file, covarsToRead = []):
+    """
+      Filename -> ConditionMap
+      ConditionMap :: {Filename: Condition}, [{Filename: Covar}]
+      Condition :: String
+      Covar :: String
+    """
+    wigFiles = []
+    conditionsByFile = {}
+    covariatesByFileList = [{} for i in range(len(covarsToRead))]
+    headersToRead = ["condition", "filename"]
+    with open(metadata_file) as mfile:
+        lines = mfile.readlines()
+        headIndexes = [i
+                for h in headersToRead
+                for i, c in enumerate(lines[0].split())
+                if c.lower() == h]
+        covarIndexes = [i
+                for h in covarsToRead
+                for i, c in enumerate(lines[0].split())
+                if c.lower() == h.lower()]
+
+        for line in lines:
+            if line[0]=='#': continue
+            vals = line.split()
+            [condition, wfile] = vals[headIndexes[0]], vals[headIndexes[1]]
+            conditionsByFile[wfile] = condition
+            for i, c in enumerate(covarsToRead):
+                covariatesByFileList[i][wfile] = vals[covarIndexes[i]]
+
+    return conditionsByFile, covariatesByFileList
 
 def read_genes(fname,descriptions=False):
     """

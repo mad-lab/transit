@@ -60,7 +60,6 @@ class TestMethods(TransitTestCase):
         G.Run()
         self.assertTrue(os.path.exists(output))
 
-
     def test_HMM(self):
         args = [mini_wig, small_annotation, output]
         G = HMMMethod.fromargs(args)
@@ -84,14 +83,30 @@ class TestMethods(TransitTestCase):
                 1,
                 "sig_qvals expected in range: %s, actual: %d" % ("[34, 36]", len(sig_qvals)))
 
-    def test_resampling_adaptive(self):
-        args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-a"]
+    def test_resampling_combined_wig(self):
+        # The conditions in the args should be matched case-insensitively.
+        args = [combined_wig, "Glycerol", "cholesterol", small_annotation, samples_metadata, output, "-a", "-c"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
         (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-2, qcol=-1))
         print(len(sig_pvals))
         print(len(sig_qvals))
+        self.assertLessEqual(
+                abs(len(sig_pvals) - 37),
+                2,
+                "sig_pvals expected in range: %s, actual: %d" % ("[35, 39]", len(sig_qvals)))
+        self.assertLessEqual(
+                abs(len(sig_qvals) - 35),
+                1,
+                "sig_qvals expected in range: %s, actual: %d" % ("[34, 36]", len(sig_qvals)))
+
+    def test_resampling_adaptive(self):
+        args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-a"]
+        G = ResamplingMethod.fromargs(args)
+        G.Run()
+        self.assertTrue(os.path.exists(output))
+        (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-2, qcol=-1))
         self.assertLessEqual(
                 abs(len(sig_pvals) - 37),
                 2,

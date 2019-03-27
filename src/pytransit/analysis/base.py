@@ -18,6 +18,7 @@ if hasWx:
 
 import traceback
 import datetime
+import numpy
 import pytransit.transit_tools as transit_tools
 
 file_prefix = "[FileDisplay]"
@@ -508,14 +509,52 @@ class MultiConditionMethod(AnalysisMethod):
     Class to be inherited by analysis methods that compare essentiality between multiple conditions (e.g Anova).
     '''
 
-    def __init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation_path, output, normalization=None, LOESS=False, ignoreCodon=True, wxobj=None):
+    def __init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation_path, output, normalization=None, LOESS=False, ignoreCodon=True, wxobj=None, ignored_conditions=[], included_conditions=[], nterm=0.0, cterm=0.0):
         AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, output,
                 annotation_path, wxobj)
         self.combined_wig = combined_wig
         self.metadata = metadata
         self.normalization = normalization
-        self.LOESS = LOESS
-        self.ignoreCodon = ignoreCodon
+        self.NTerminus = nterm
+        self.CTerminus = cterm
+        self.unknown_cond_flag = "FLAG-UNMAPPED-CONDITION-IN-WIG"
+        self.ignored_conditions = ignored_conditions
+        self.included_conditions = included_conditions
+
+    def filter_wigs_by_conditions(self, data, conditions, covariates = [], ignored_conditions = [], included_conditions = []):
+        """
+            Filters conditions that are ignored/included.
+            ([[Wigdata]], [Condition], [[Covar]], [Condition], [Condition]) -> Tuple([[Wigdata]], [Condition])
+        """
+        ignored_conditions, included_conditions = (set(ignored_conditions), set(included_conditions))
+        d_filtered, cond_filtered, covariates_filtered_indexes = [], [], [];
+        if len(ignored_conditions) > 0 and len(included_conditions) > 0:
+            self.transit_error("Both ignored and included conditions have len > 0", ignored_conditions, included_conditions)
+            sys.exit(0)
+        elif (len(ignored_conditions) > 0):
+            self.transit_message("conditions ignored: {0}".format(ignored_conditions))
+            for i, c in enumerate(conditions):
+              if (c != self.unknown_cond_flag) and (c not in ignored_conditions):
+                d_filtered.append(data[i])
+                cond_filtered.append(conditions[i])
+                covariates_filtered_indexes.append(i)
+        elif (len(included_conditions) > 0):
+            self.transit_message("conditions included: {0}".format(included_conditions))
+            for i, c in enumerate(conditions):
+              if (c != self.unknown_cond_flag) and (c in included_conditions):
+                d_filtered.append(data[i])
+                cond_filtered.append(conditions[i])
+                covariates_filtered_indexes.append(i)
+        else:
+            for i, c in enumerate(conditions):
+              if (c != self.unknown_cond_flag):
+                d_filtered.append(data[i])
+                cond_filtered.append(conditions[i])
+                covariates_filtered_indexes.append(i)
+
+        covariates_filtered = [[c[i] for i in covariates_filtered_indexes] for c in covariates]
+
+        return (numpy.array(d_filtered), numpy.array(cond_filtered), numpy.array(covariates_filtered))
 
 #
 

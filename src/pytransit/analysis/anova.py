@@ -34,12 +34,8 @@ class AnovaMethod(base.MultiConditionMethod):
     anova
     """
     def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], nterm=0.0, cterm=0.0):
-        base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file, normalization=normalization)
-        self.ignored_conditions = ignored_conditions
-        self.included_conditions = included_conditions
-        self.unknown_cond_flag = "FLAG-UNMAPPED-CONDITION-IN-WIG"
-        self.NTerminus = nterm
-        self.CTerminus = cterm
+        base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file,
+                normalization=normalization, ignored_conditions=ignored_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
 
     @classmethod
     def fromargs(self, rawargs):
@@ -87,58 +83,6 @@ class AnovaMethod(base.MultiConditionMethod):
             wigsByConditions[c].append(i)
 
         return { c: numpy.mean(data[wigIndex][:, sites]) if nTASites > 0 else 0 for (c, wigIndex) in wigsByConditions.items() }
-
-    def filter_wigs_by_conditions(self, data, conditions, ignored_conditions, included_conditions):
-        """
-            Filters conditions that are ignored/included.
-            ([[Wigdata]], [Condition], [Condition], [Condition]) -> Tuple([[Wigdata]], [Condition])
-        """
-        ignored_conditions, included_conditions = (set(ignored_conditions), set(included_conditions))
-        d_filtered, cond_filtered = [], [];
-        if len(ignored_conditions) > 0 and len(included_conditions) > 0:
-            self.transit_error("Both ignored and included conditions have len > 0", ignored_conditions, included_conditions)
-            sys.exit(0)
-        elif (len(ignored_conditions) > 0):
-            self.transit_message("conditions ignored: {0}".format(ignored_conditions))
-            for i, c in enumerate(conditions):
-              if (c != self.unknown_cond_flag) and (c not in ignored_conditions):
-                d_filtered.append(data[i])
-                cond_filtered.append(conditions[i])
-        elif (len(included_conditions) > 0):
-            self.transit_message("conditions included: {0}".format(included_conditions))
-            d_filtered, cond_filtered = [], [];
-            for i, c in enumerate(conditions):
-              if (c != self.unknown_cond_flag) and (c in included_conditions):
-                d_filtered.append(data[i])
-                cond_filtered.append(conditions[i])
-        else:
-            for i, c in enumerate(conditions):
-              if (c != self.unknown_cond_flag):
-                d_filtered.append(data[i])
-                cond_filtered.append(conditions[i])
-
-        return (numpy.array(d_filtered), numpy.array(cond_filtered))
-
-    def read_samples_metadata(self, metadata_file):
-        """
-          Filename -> ConditionMap
-          ConditionMap :: {Filename: Condition}
-        """
-        wigFiles = []
-        conditionsByFile = {}
-        headersToRead = ["condition", "filename"]
-        with open(metadata_file) as mfile:
-            lines = mfile.readlines()
-            headIndexes = [i
-                    for h in headersToRead
-                    for i, c in enumerate(lines[0].split())
-                    if c.lower() == h]
-            for line in lines:
-                if line[0]=='#': continue
-                vals = line.split()
-                [condition, wfile] = vals[headIndexes[0]], vals[headIndexes[1]]
-                conditionsByFile[wfile] = condition
-        return conditionsByFile
 
     def means_by_rv(self, data, RvSiteindexesMap, genes, conditions):
         """
@@ -228,10 +172,11 @@ class AnovaMethod(base.MultiConditionMethod):
         self.transit_message("Normalizing using: %s" % self.normalization)
         (data, factors) = norm_tools.normalize_data(data, self.normalization)
 
+        conditionsByFile, _ = tnseq_tools.read_samples_metadata(self.metadata)
         conditions = self.wigs_to_conditions(
-            self.read_samples_metadata(self.metadata),
+            conditionsByFile,
             filenamesInCombWig)
-        data, conditions = self.filter_wigs_by_conditions(data, conditions, self.ignored_conditions, self.included_conditions)
+        data, conditions, _ = self.filter_wigs_by_conditions(data, conditions, ignored_conditions = self.ignored_conditions, included_conditions = self.included_conditions)
 
         genes = tnseq_tools.read_genes(self.annotation_path)
 
