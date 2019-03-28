@@ -46,8 +46,8 @@ class AnovaMethod(base.MultiConditionMethod):
             sys.exit(0)
 
         combined_wig = args[0]
-        annotation = args[1]
-        metadata = args[2]
+        annotation = args[2]
+        metadata = args[1]
         output_file = args[3]
         normalization = kwargs.get("n", "TTR")
         NTerminus = float(kwargs.get("iN", 0.0))
@@ -208,7 +208,7 @@ class AnovaMethod(base.MultiConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s anova <combined wig file> <annotation .prot_table> <samples_metadata file> <output file> [Optional Arguments]
+        return """python %s anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
 
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR

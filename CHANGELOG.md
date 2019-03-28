@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
   - Added analysis method for Zero-Inflated Negative Binomial (ZINB)
   - Fix minor LOESS flag bug in resampling 2.4.2
   - Resampling supports combined_wig files for single strain comparison
+  - Change ordering of metadata and annotation in ANOVA cmd
 
 ## Version 2.4.2 2019-03-15
 #### TPP:

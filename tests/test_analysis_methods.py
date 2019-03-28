@@ -85,7 +85,7 @@ class TestMethods(TransitTestCase):
 
     def test_resampling_combined_wig(self):
         # The conditions in the args should be matched case-insensitively.
-        args = ["-c", combined_wig, "Glycerol", "cholesterol", small_annotation, samples_metadata, output, "-a"]
+        args = ["-c", combined_wig, samples_metadata, "Glycerol", "cholesterol", small_annotation, output, "-a"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -135,7 +135,7 @@ class TestMethods(TransitTestCase):
                 "histpath expected: %s" % (hist_path))
 
     def test_anova(self):
-        args = [combined_wig, small_annotation, samples_metadata, output]
+        args = [combined_wig, samples_metadata, small_annotation, output]
         G = AnovaMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -152,7 +152,7 @@ class TestMethods(TransitTestCase):
 
     @unittest.skipUnless(hasR, "requires R, rpy2")
     def test_zinb(self):
-        args = [combined_wig, small_annotation, samples_metadata, output]
+        args = [combined_wig, samples_metadata, small_annotation, output]
         G = ZinbMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -169,7 +169,7 @@ class TestMethods(TransitTestCase):
 
     @unittest.skipUnless(hasR, "requires R, rpy2")
     def test_zinb_covariates(self):
-        args = [combined_wig, small_annotation, samples_metadata_covariates, output, "--covars", "batch"]
+        args = [combined_wig, samples_metadata_covariates, small_annotation, output, "--covars", "batch"]
         G = ZinbMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))

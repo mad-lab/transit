@@ -323,10 +323,10 @@ class ResamplingMethod(base.DualConditionMethod):
                 sys.exit(0)
             combinedWigParams = {
                 "combined_wig": kwargs.get('c'),
-                "samples_metadata": args[3],
-                "conditions": [args[0].lower(), args[1].lower()]
+                "samples_metadata": args[0],
+                "conditions": [args[1].lower(), args[2].lower()]
             }
-            annot_paths = args[2].split(",")
+            annot_paths = args[3].split(",")
             ctrldata = ""
             expdata = ""
             output_path = args[4]
@@ -628,7 +628,7 @@ class ResamplingMethod(base.DualConditionMethod):
         ---
         OR
         ---
-        python %s resampling -c <combined wig file> <ctrl condition name> <exp condition name> <annotation .prot_table> <samples_metadata file> <output file> [Optional Arguments]
+        python %s resampling -c <combined wig file> <samples_metadata file> <ctrl condition name> <exp condition name> <annotation .prot_table> <output file> [Optional Arguments]
         NB: The ctrl and exp condition names should match Condition names in samples_metadata file.
 
         Optional Arguments:
