@@ -45,13 +45,9 @@ class ZinbMethod(base.MultiConditionMethod):
     Zinb
     """
     def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0, covars=[]):
-        base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file, normalization=normalization)
-        self.ignored_conditions = ignored_conditions
-        self.included_conditions = included_conditions
-        self.unknown_cond_flag = "FLAG-UNMAPPED-CONDITION-IN-WIG"
+        base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file,
+                normalization=normalization, ignored_conditions=ignored_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
         self.winz = winz
-        self.NTerminus = nterm
-        self.CTerminus = cterm
         self.covars = covars
 
     @classmethod
@@ -140,73 +136,6 @@ class ZinbMethod(base.MultiConditionMethod):
                 nz_means[c] = numpy.mean(nonzero_arr) if len(nonzero_arr) > 0 else 0
                 nz_percs[c] = nzperc(arr)
         return [means, nz_means, nz_percs]
-
-    def filter_wigs_by_conditions(self, data, conditions, covariates, ignored_conditions, included_conditions):
-        """
-            Filters conditions that are ignored/included.
-            ([[Wigdata]], [Condition], [[Covar]], [Condition], [Condition]) -> Tuple([[Wigdata]], [Condition])
-        """
-        ignored_conditions, included_conditions = (set(ignored_conditions), set(included_conditions))
-        d_filtered, cond_filtered, covariates_filtered_indexes = [], [], [];
-        if len(ignored_conditions) > 0 and len(included_conditions) > 0:
-            self.transit_error("Both ignored and included conditions have len > 0", ignored_conditions, included_conditions)
-            sys.exit(0)
-        elif (len(ignored_conditions) > 0):
-            self.transit_message("conditions ignored: {0}".format(ignored_conditions))
-            for i, c in enumerate(conditions):
-              if (c != self.unknown_cond_flag) and (c not in ignored_conditions):
-                d_filtered.append(data[i])
-                cond_filtered.append(conditions[i])
-                covariates_filtered_indexes.append(i)
-        elif (len(included_conditions) > 0):
-            self.transit_message("conditions included: {0}".format(included_conditions))
-            for i, c in enumerate(conditions):
-              if (c != self.unknown_cond_flag) and (c in included_conditions):
-                d_filtered.append(data[i])
-                cond_filtered.append(conditions[i])
-                covariates_filtered_indexes.append(i)
-        else:
-            for i, c in enumerate(conditions):
-              if (c != self.unknown_cond_flag):
-                d_filtered.append(data[i])
-                cond_filtered.append(conditions[i])
-                covariates_filtered_indexes.append(i)
-
-        covariates_filtered = [[c[i] for i in covariates_filtered_indexes] for c in covariates]
-
-        return (numpy.array(d_filtered), numpy.array(cond_filtered), numpy.array(covariates_filtered))
-
-    def read_samples_metadata(self, metadata_file, covarsToRead = []):
-        """
-          Filename -> ConditionMap
-          ConditionMap :: {Filename: Condition}, [{Filename: Covar}]
-          Condition :: String
-          Covar :: String
-        """
-        wigFiles = []
-        conditionsByFile = {}
-        covariatesByFileList = [{} for i in range(len(covarsToRead))]
-        headersToRead = ["condition", "filename"]
-        with open(metadata_file) as mfile:
-            lines = mfile.readlines()
-            headIndexes = [i
-                    for h in headersToRead
-                    for i, c in enumerate(lines[0].split())
-                    if c.lower() == h]
-            covarIndexes = [i
-                    for h in covarsToRead
-                    for i, c in enumerate(lines[0].split())
-                    if c.lower() == h.lower()]
-
-            for line in lines:
-                if line[0]=='#': continue
-                vals = line.split()
-                [condition, wfile] = vals[headIndexes[0]], vals[headIndexes[1]]
-                conditionsByFile[wfile] = condition
-                for i, c in enumerate(covarsToRead):
-                    covariatesByFileList[i][wfile] = vals[covarIndexes[i]]
-
-        return conditionsByFile, covariatesByFileList
 
     def stats_by_rv(self, data, RvSiteindexesMap, genes, conditions):
         """
@@ -443,15 +372,14 @@ class ZinbMethod(base.MultiConditionMethod):
         self.transit_message("Normalizing using: %s" % self.normalization)
         (data, factors) = norm_tools.normalize_data(data, self.normalization)
 
-        conditionsByFile, covariatesByFileList = self.read_samples_metadata(self.metadata, self.covars)
-        # conditionsByFile, covariatesByFileList = self.read_samples_metadata(self.metadata)
+        conditionsByFile, covariatesByFileList = tnseq_tools.read_samples_metadata(self.metadata, self.covars)
         conditions = self.wigs_to_conditions(
             conditionsByFile,
             filenamesInCombWig)
         covariates = self.wigs_to_covariates(
             covariatesByFileList,
             filenamesInCombWig)
-        data, conditions, covariates = self.filter_wigs_by_conditions(data, conditions, covariates, self.ignored_conditions, self.included_conditions)
+        data, conditions, covariates = self.filter_wigs_by_conditions(data, conditions, covariates, ignored_conditions = self.ignored_conditions, included_conditions = self.included_conditions)
 
         genes = tnseq_tools.read_genes(self.annotation_path)
 

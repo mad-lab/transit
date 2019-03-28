@@ -1,6 +1,11 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+## Version 2.5.0 2019-03-27
+#### TRANSIT:
+  - Added analysis method for Zero-Inflated Negative Binomial (ZINB)
+  - Fix minor LOESS flag bug in resampling 2.4.2
+  - Resampling supports combined_wig files for single strain comparison
 
 ## Version 2.4.2 2019-03-15
 #### TPP:

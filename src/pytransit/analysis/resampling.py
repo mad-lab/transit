@@ -215,7 +215,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 CTerminus=0.0,
                 ctrl_lib_str="",
                 exp_lib_str="",
-                wxobj=None, Z = False, diffStrains = False, annotation_path_exp = ""):
+                wxobj=None, Z = False, diffStrains = False, annotation_path_exp = "", combinedWigParams = None):
 
         base.DualConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
@@ -229,6 +229,7 @@ class ResamplingMethod(base.DualConditionMethod):
         self.exp_lib_str = exp_lib_str
         self.diffStrains = diffStrains
         self.annotation_path_exp = annotation_path_exp if diffStrains else annotation_path
+        self.combinedWigParams = combinedWigParams
 
     @classmethod
     def fromGUI(self, wxobj):
@@ -313,16 +314,37 @@ class ResamplingMethod(base.DualConditionMethod):
 
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
-        ctrldata = args[0].split(",")
-        expdata = args[1].split(",")
-        annot_paths = args[2].split(",")
+        isCombinedWig = True if kwargs.get('c', False) else False
+        combinedWigParams = None
+        if isCombinedWig:
+            if (len(args) != 6):
+                print("Error: Incorrect number of args. See usage")
+                print(self.usage_string())
+                sys.exit(0)
+            combinedWigParams = {
+                "combined_wig": args[0],
+                "samples_metadata": args[4],
+                "conditions": [args[1].lower(), args[2].lower()]
+            }
+            annot_paths = args[3].split(",")
+            ctrldata = ""
+            expdata = ""
+            output_path = args[5]
+        else:
+            ctrldata = args[0].split(",")
+            expdata = args[1].split(",")
+            annot_paths = args[2].split(",")
+            output_path = args[3]
         annotationPath = annot_paths[0]
         diffStrains = False
         annotationPathExp = ""
         if len(annot_paths) == 2:
             annotationPathExp = annot_paths[1]
             diffStrains = True
-        output_path = args[3]
+        if (diffStrains and isCombinedWig):
+            print("Error: Cannot have combined wig and different annotation files.")
+            sys.exit(0)
+
         output_file = open(output_path, "w")
 
         normalization = kwargs.get("n", "TTR")
@@ -360,7 +382,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 NTerminus,
                 CTerminus,
                 ctrl_lib_str,
-                exp_lib_str, Z = Z, diffStrains = diffStrains, annotation_path_exp = annotationPathExp)
+                exp_lib_str, Z = Z, diffStrains = diffStrains, annotation_path_exp = annotationPathExp, combinedWigParams = combinedWigParams)
 
     def preprocess_data(self, position, data):
         (K,N) = data.shape
@@ -375,6 +397,30 @@ class ResamplingMethod(base.DualConditionMethod):
                 data[j] = stat_tools.loess_correction(position, data[j])
 
         return data
+
+    def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
+        """
+            Returns list of conditions corresponding to given wigfiles.
+            ({FileName: Condition}, [FileName]) -> [Condition]
+            Condition :: [String]
+        """
+        return [conditionsByFile.get(f, None) for f in filenamesInCombWig]
+
+    def filter_wigs_by_conditions(self, data, conditions, included_conditions):
+        """
+            Filters conditions from wig to ctrl, exp conditions only
+            ([[Wigdata]], [ConditionCtrl, ConditionExp]) -> Tuple([[Wigdata]], [Condition])
+        """
+        d_filtered, cond_filtered = [], []
+        if len(included_conditions) != 2:
+            self.transit_error("Only 2 conditions expected", included_conditions)
+            sys.exit(0)
+        for i, c in enumerate(conditions):
+          if (c.lower() in included_conditions):
+            d_filtered.append(data[i])
+            cond_filtered.append(conditions[i])
+
+        return (numpy.array(d_filtered), numpy.array(cond_filtered))
 
     def Run(self):
 
@@ -404,8 +450,17 @@ class ResamplingMethod(base.DualConditionMethod):
             self.transit_message("Multiple annotation files found")
             self.transit_message("Mapping ctrl data to {0}, exp data to {1}".format(self.annotation_path, self.annotation_path_exp))
 
-        (data_ctrl, position_ctrl) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
-        (data_exp, position_exp) = transit_tools.get_validated_data(self.expdata, wxobj=self.wxobj)
+        if self.combinedWigParams:
+            (position, data, filenamesInCombWig) = tnseq_tools.read_combined_wig(self.combinedWigParams['combined_wig'])
+            conditionsByFile, _ = tnseq_tools.read_samples_metadata(self.combinedWigParams['samples_metadata'])
+            conditions = self.wigs_to_conditions(conditionsByFile, filenamesInCombWig)
+            data, conditions = self.filter_wigs_by_conditions(data, conditions, self.combinedWigParams['conditions'])
+            data_ctrl = numpy.array([d for i, d in enumerate(data) if conditions[i].lower() == self.combinedWigParams['conditions'][0]])
+            data_exp = numpy.array([d for i, d in enumerate(data) if conditions[i].lower() == self.combinedWigParams['conditions'][1]])
+            position_ctrl, position_exp = position, position
+        else:
+            (data_ctrl, position_ctrl) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
+            (data_exp, position_exp) = transit_tools.get_validated_data(self.expdata, wxobj=self.wxobj)
         (K_ctrl, N_ctrl) = data_ctrl.shape
         (K_exp, N_exp) = data_exp.shape
 
@@ -414,7 +469,6 @@ class ResamplingMethod(base.DualConditionMethod):
             self.transit_error("Make sure all .wig files come from the same strain.")
             return
         # (data, position) = transit_tools.get_validated_data(self.ctrldata+self.expdata, wxobj=self.wxobj)
-
 
         self.transit_message("Preprocessing Ctrl data...")
         data_ctrl = self.preprocess_data(position_ctrl, data_ctrl)
@@ -565,9 +619,16 @@ class ResamplingMethod(base.DualConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        return """
+        python %s resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        ---
+        OR
+        ---
+        python %s resampling <combined wig file> <ctrl condition name> <exp condition name> <annotation .prot_table> <samples_metadata file> <output file> -c [Optional Arguments]
+        NB: The ctrl and exp condition names should match Condition names in samples_metadata file.
 
         Optional Arguments:
+        -c              :=  Required for combined_wig input (See above)
         -s <integer>    :=  Number of samples. Default: -s 10000
         -n <string>     :=  Normalization method. Default: -n TTR
         -h              :=  Output histogram of the permutations for each gene. Default: Turned Off.
@@ -587,7 +648,7 @@ class ResamplingMethod(base.DualConditionMethod):
                             e.g. 'ABAB'. Default empty. Letters used must also be used in --ctrl_lib
                             If non-empty, resampling will limit permutations to within-libraries.
 
-        """ % (sys.argv[0])
+        """ % (sys.argv[0], sys.argv[0])
 
 if __name__ == "__main__":
 

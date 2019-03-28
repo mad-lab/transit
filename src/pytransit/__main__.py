@@ -56,7 +56,7 @@ def main(*args, **kwargs):
         print "For commandline mode, please use one of the known methods (or see documentation to add a new one):"
         print("Analysis methods: ")
         for m in all_methods:
-            ## TODO :: Move normalize to seperate subcommand?
+            ## TODO :: Move normalize to separate subcommand?
             if (m == "normalize"): continue
             print "\t - %s" % m
         print("Other functions: ")
