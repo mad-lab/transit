@@ -544,17 +544,18 @@ Doing resampling with a combined_wig file
 Resampling can also now take a combined_wig_ file as input (containing insertion counts
 for multiple sample), along with a samples_metadata_ file
 that describes the samples. This mode is indicated with a '-c' flag.
+If you want to compare more than two conditions, see :ref:`ZINB <zinb>`.
 
 
 ::
 
   usage: 
 
-  python transit.py resampling -c <combined_wig> <control_condition_name> <experimental_condition_name> <annotation .prot_table or GFF3> <samples_metadata> <output file> [Optional Arguments]
+  python transit.py resampling -c <combined_wig> <samples_metadata> <control_condition_name> <experimental_condition_name> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
   example:
 
-  python transit.py resampling -c antibiotic_combined_wig.txt Untreated Isoniazid H37Rv.prot_table antibiotic_samples_metadata.txt results.txt -a
+  python transit.py resampling -c antibiotic_combined_wig.txt antibiotic_samples_metadata.txt Untreated Isoniazid H37Rv.prot_table results.txt -a
 
 
 Doing resampling with datasets from different libraries.
@@ -877,7 +878,7 @@ Example
 
 ::
 
-  python transit.py anova <combined wig file> <annotation .prot_table> <samples_metadata file> <output file> [Optional Arguments]
+  python transit.py anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
@@ -998,7 +999,7 @@ Example
 
 ::
 
-  python transit.py zinb <combined wig file> <annotation .prot_table> <samples_metadata file> <output file> [Optional Arguments]
+  python transit.py zinb <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis.
@@ -1071,7 +1072,7 @@ This information can be included to eliminate variability due to batch by using 
 
 ::
 
- python transit.py zinb <combined wig file> <annotation .prot_table> <samples_metadata file> <output file> --covars Batch
+ python transit.py zinb <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> --covars Batch
 
 Categorical vs Numeric Covariates
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1217,6 +1218,8 @@ Combined wig files
 Transit now supports a new file format called 'combined_wig' which basically
 combines multiple wig files into one file (with multiple columns).  This is
 used for some of the new analysis methods for larger collections of datasets, like :ref:`Anova <anova>`, :ref:`ZINB <zinb>`.
+Combined_wig files can created through the Transit GUI
+(File->Export->Selected_Datasets->Combined_wig), or via the command line.
 You can specify the normalization method you want to use with a flag.
 TTR is the default, but other relevant normalization options would be 'nonorm'
 (i.e. preserve raw counts) and 'betageom' (this corrects for skew, but is slow).
