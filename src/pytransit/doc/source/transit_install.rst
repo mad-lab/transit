@@ -54,6 +54,15 @@ Pip and Python are usually preinstalled in most modern operating systems.
 
 |
 
+.. _install-zinb:
+
+**Additional requirements for** :ref:`ZINB <zinb>` **method (in addition to the TRANSIT requirements above):**
+
+ - `R <https://www.r-project.org/>`_
+ - R packages: MASS, pscl (run "install.packages(MASS)" etc. in R console)
+ - python packages: rpy2 (v<2.9.0) (run "pip install 'rpy2<2.9.0' " on command line)
+
+
 
 Use as a Python Package
 -----------------------------------------------------
