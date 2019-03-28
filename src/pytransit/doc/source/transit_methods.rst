@@ -471,13 +471,13 @@ original, observed difference in read-counts.
 |
 
 
-Example
-~~~~~~~
+Usage
+~~~~~
 
 
 ::
 
-  python transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <comma-separated list of annotation .prot_table or GFF3> <output file> [Optional Arguments]
+  python transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
         -n <string>     :=  Normalization method. Default: -n TTR
@@ -536,6 +536,25 @@ parameters are available for the method:
 -  **--ctrl_lib, --exp_lib** These are for doing resampling with datasets from multiple libraries, see below.
 
 |
+
+
+Doing resampling with a combined_wig file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Resampling can also now take a combined_wig_ file as input (containing insertion counts
+for multiple sample), along with a samples_metadata_ file
+that describes the samples. This mode is indicated with a '-c' flag.
+
+
+::
+
+  usage: 
+
+  python transit.py resampling -c <combined_wig> <control_condition_name> <experimental_condition_name> <annotation .prot_table or GFF3> <samples_metadata> <output file> [Optional Arguments]
+
+  example:
+
+  python transit.py resampling -c antibiotic_combined_wig.txt Untreated Isoniazid H37Rv.prot_table antibiotic_samples_metadata.txt results.txt -a
 
 
 Doing resampling with datasets from different libraries.
@@ -970,7 +989,9 @@ resampling analysis.
 How does it work?
 ~~~~~~~~~~~~~~~~~
 
-| For a formal description of how this method works, see our paper | <link paper> .....
+| For a formal description of how this method works, see our `paper on bioRxiv <https://www.biorxiv.org/content/10.1101/590281v1>`_.
+
+
 
 Example
 ~~~~~~~
@@ -990,6 +1011,11 @@ Note: the *combined_wig* input file can be generated from multiple wig
 files through the Transit GUI
 (File->Export->Selected_Datasets->Combined_wig), or via the 'export'
 command on the command-line (see combined_wig_).
+
+.. _samples_metadata:
+
+Samples Metadata File
+~~~~~~~~~~~~~~~~~~~~~
 
 Format of the *samples_metadata* file: a tab-separated file (which you
 can edit in Excel) with 3 columns: Id, Condition, and Filename (it
@@ -1173,14 +1199,15 @@ Example
 
   > python src/transit.py normalize --help
 
-  usage: python src/transit.py normalize <input.wig> <output.wig> [-c] [-n TTR|betageom]
+  usage: python src/transit.py normalize <input.wig> <output.wig> [-n TTR|betageom]
+     or: python src/transit.py normalize -c <combined_wig> <output> [-n TTR|betageom]
 
   > python src/transit.py normalize Rv_1_H37RvRef.wig Rv_1_H37RvRef_TTR.wig -n TTR
 
   > python src/transit.py normalize Rv_1_H37RvRef.wig Rv_1_H37RvRef_BG.wig -n betageom
 
 The normalize command now also works on combined_wig files too.
-If the input file is a combined_wig file, add the '-c' flag at the end.
+If the input file is a combined_wig file, indicate it with a '-c' flag.
 
 .. _combined_wig:
 
