@@ -74,7 +74,7 @@ def read_genes(fname,descriptions=False):
     """
     genes = []
     for line in open(fname):
-        w = line.split('\t')
+        w = line.rstrip().split('\t')
         data = {
                 "start": int(w[1]),
                 "end": int(w[2]),
