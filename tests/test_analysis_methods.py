@@ -85,7 +85,7 @@ class TestMethods(TransitTestCase):
 
     def test_resampling_combined_wig(self):
         # The conditions in the args should be matched case-insensitively.
-        args = [combined_wig, "Glycerol", "cholesterol", small_annotation, samples_metadata, output, "-a", "-c"]
+        args = ["-c", combined_wig, "Glycerol", "cholesterol", small_annotation, samples_metadata, output, "-a"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))

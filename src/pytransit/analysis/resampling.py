@@ -317,20 +317,24 @@ class ResamplingMethod(base.DualConditionMethod):
         isCombinedWig = True if kwargs.get('c', False) else False
         combinedWigParams = None
         if isCombinedWig:
-            if (len(args) != 6):
+            if (len(args) != 5):
                 print("Error: Incorrect number of args. See usage")
                 print(self.usage_string())
                 sys.exit(0)
             combinedWigParams = {
-                "combined_wig": args[0],
-                "samples_metadata": args[4],
-                "conditions": [args[1].lower(), args[2].lower()]
+                "combined_wig": kwargs.get('c'),
+                "samples_metadata": args[3],
+                "conditions": [args[0].lower(), args[1].lower()]
             }
-            annot_paths = args[3].split(",")
+            annot_paths = args[2].split(",")
             ctrldata = ""
             expdata = ""
-            output_path = args[5]
+            output_path = args[4]
         else:
+            if (len(args) != 4):
+                print("Error: Incorrect number of args. See usage")
+                print(self.usage_string())
+                sys.exit(0)
             ctrldata = args[0].split(",")
             expdata = args[1].split(",")
             annot_paths = args[2].split(",")
@@ -624,11 +628,10 @@ class ResamplingMethod(base.DualConditionMethod):
         ---
         OR
         ---
-        python %s resampling <combined wig file> <ctrl condition name> <exp condition name> <annotation .prot_table> <samples_metadata file> <output file> -c [Optional Arguments]
+        python %s resampling -c <combined wig file> <ctrl condition name> <exp condition name> <annotation .prot_table> <samples_metadata file> <output file> [Optional Arguments]
         NB: The ctrl and exp condition names should match Condition names in samples_metadata file.
 
         Optional Arguments:
-        -c              :=  Required for combined_wig input (See above)
         -s <integer>    :=  Number of samples. Default: -s 10000
         -n <string>     :=  Normalization method. Default: -n TTR
         -h              :=  Output histogram of the permutations for each gene. Default: Turned Off.
