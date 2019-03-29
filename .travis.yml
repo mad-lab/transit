@@ -1,19 +1,16 @@
 language: python
 
-matrix:
-  include:
-    - os: linux
-      dist: trusty
-      sudo: required
-      python: 2.7
-      before_install: "sudo apt-get install -y -f python python-dev python-pip pkg-config libpng-dev libjpeg8-dev libfreetype6-dev"
-      install: "pip install --upgrade pip setuptools numpy scipy pillow matplotlib pytest statsmodels"
+services:
+  - docker
+
+before_install:
+  - docker build -t transit .
 
 DISPLAY: 0.0
 notifications:
   email:
     on_success: change # default: change
     on_failure: change # default: always
-before_script: cd /home/travis/build/mad-lab/transit/tests
-script: travis_wait 30 pytest
+
+script: travis_wait 20 docker run -t transit
 

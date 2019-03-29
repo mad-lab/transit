@@ -184,12 +184,6 @@ class TestMethods(TransitTestCase):
             10,
             "sig_qvals expected: %d, actual: %d" % (10, len(sig_qvals)))
 
-    def test_GI(self):
-        args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000"]
-        G = GIMethod.fromargs(args)
-        G.Run()
-        self.assertTrue(os.path.exists(output))
-
     def test_utest(self):
         args = [ctrl_data_txt, exp_data_txt, small_annotation, output]
         G = UTestMethod.fromargs(args)
