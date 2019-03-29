@@ -339,7 +339,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
 #
 
         def OnChanged(self, str_path):
-            print "changed"
+            print("changed")
             value = os.path.basename(str_path).split('.')[0]
             if '_R1' in value or '_R2':
                 value = value.split('_')[0]
@@ -405,7 +405,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
           if dlg.ShowModal() == wx.ID_OK:
               paths = dlg.GetPaths()
               for path in paths:
-                print "analyzing dataset:",path
+                print("analyzing dataset:",path)
                 analyze_dataset(path)
           dlg.Destroy()
           self.update_dataset_list()
@@ -452,7 +452,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
 #
 
         def OnQuit(self, e):
-            print "Quitting TPP.  Good bye."
+            print("Quitting TPP.  Good bye.")
             self.vars.action = "quit"
             self.Close()
             return 0

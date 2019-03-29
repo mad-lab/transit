@@ -73,7 +73,7 @@ class HMMSitesFile(base.TransitFile):
             elif tmp[col] == "GD": gd+=1
             elif tmp[col] == "NE": ne+=1
             elif tmp[col] == "GA": ga+=1
-            else: print tmp
+            else: print(tmp)
             T+=1
 
         text = """Results:
@@ -468,7 +468,7 @@ class HMMMethod(base.SingleConditionMethod):
             text = "Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations)
             self.progress_update(text, self.count)
             self.count+=1
-            #print t, O[:,t], alpha[:,t]
+            #print(t, O[:,t], alpha[:,t])
 
         log_Prob_Obs = - (numpy.sum(numpy.log(C)))
         return(( log_Prob_Obs, alpha, C ))
@@ -616,8 +616,8 @@ if __name__ == "__main__":
     G.console_message("Printing the member variables:")   
     G.print_members()
 
-    print ""
-    print "Running:"
+    print("")
+    print("Running:")
 
     G.Run()
 

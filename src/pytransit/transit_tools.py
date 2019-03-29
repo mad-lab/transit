@@ -237,9 +237,9 @@ def ShowError(MSG=""):
 def transit_message(msg="", prefix=""):
     #TODO: Write docstring
     if prefix:
-        print prefix, msg
+        print(prefix, msg)
     else:
-        print pytransit.prefix, msg
+        print(pytransit.prefix, msg)
 
 def transit_error(text):
     #TODO: Write docstring
@@ -306,7 +306,7 @@ def validate_wig_format(wig_list, wxobj=None):
     includesZeros = tnseq_tools.check_wig_includes_zeros(wig_list)
 
     if sum(includesZeros) < len(includesZeros):
-        # If console mode, just print a warning
+        # If console mode, just print(a warning)
         if not wxobj or not hasWx:
             warnings.warn("\nOne or more of your .wig files does not include any empty sites (i.e. sites with zero read-counts). Proceeding as if data was Tn5 (all other sites assumed to be zero)!\n")
             return (2, "")
@@ -513,7 +513,7 @@ def get_validated_data(wig_list, wxobj=None):
 
         >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_validated_data(["data/glycerol_H37Rv_rep1.wig", "data/glycerol_H37Rv_rep2.wig"])
-        >>> print data
+        >>> print(data)
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
 

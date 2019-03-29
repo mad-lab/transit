@@ -67,9 +67,9 @@ def main(*args, **kwargs):
             pass
 
     elif not args and not kwargs and not hasWx:
-        print "Please install wxPython to run in GUI Mode."
-        print "To run in Console Mode please follow these instructions:"
-        print ""
+        print("Please install wxPython to run in GUI Mode.")
+        print("To run in Console Mode please follow these instructions:")
+        print("")
         show_help()
 
     else:
@@ -85,7 +85,7 @@ def main(*args, **kwargs):
                            "window-size", "bwa-alg", "replicon-ids","primer-start-window"])
         unknown_flags = set(kwargs.keys()) - known_flags
         if unknown_flags:
-            print "error: unrecognized flags:", ", ".join(unknown_flags)
+            print("error: unrecognized flags:", ", ".join(unknown_flags))
             show_help()
             sys.exit()
 

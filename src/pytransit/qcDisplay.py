@@ -201,7 +201,7 @@ class qcFrame ( wx.Frame ):
             #self.bSizer9.Fit()
 
         except Exception as e:
-            print self.qc_prefix, "Error:", e
+            print(self.qc_prefix, "Error:", e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
@@ -224,7 +224,7 @@ class qcFrame ( wx.Frame ):
             self.statsListCtrl.Select(0)
             self.refreshPlots()
         except Exception as e:
-            print self.qc_prefix, "Error:", e
+            print(self.qc_prefix, "Error:", e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
@@ -247,10 +247,10 @@ class qcFrame ( wx.Frame ):
                 self.statsListCtrl.SetStringItem(self.index_stats, 6, "%d" % (totalrd))
                 self.statsListCtrl.SetStringItem(self.index_stats, 7, "%1.1f" % (skew))
                 self.statsListCtrl.SetStringItem(self.index_stats, 8, "%1.1f" % (kurtosis))
-                print self.qc_prefix, "Adding dataset (%d): %s" % (self.index_stats, name)
+                print(self.qc_prefix, "Adding dataset (%d): %s" % (self.index_stats, name))
                 self.index_stats+=1
         except Exception as e:
-            print self.qc_prefix, "Error:", e
+            print(self.qc_prefix, "Error:", e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
@@ -327,7 +327,7 @@ class qcFrame ( wx.Frame ):
 
 
         except Exception as e:
-            print self.qc_prefix, "Error:", e
+            print(self.qc_prefix, "Error:", e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
@@ -335,7 +335,7 @@ class qcFrame ( wx.Frame ):
 
     def onNormSelect(self, event):
         self.norm = self.normChoice.GetString(self.normChoice.GetCurrentSelection())
-        print self.qc_prefix, "Normalizing data using '%s' method" % (self.norm)
+        print(self.qc_prefix, "Normalizing data using '%s' method" % (self.norm))
         self.refresh() 
 
 
@@ -349,7 +349,7 @@ class qcFrame ( wx.Frame ):
 
     def onStatsItemSelect(self, event):
         ii = self.statsListCtrl.GetFirstSelected()
-        print self.qc_prefix, "Showing plots for ", self.statsListCtrl.GetItem(ii, 0).GetText()
+        print(self.qc_prefix, "Showing plots for ", self.statsListCtrl.GetItem(ii, 0).GetText())
         self.refreshPlots()
 
 

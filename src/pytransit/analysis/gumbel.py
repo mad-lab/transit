@@ -408,7 +408,7 @@ class GumbelMethod(base.SingleConditionMethod):
                 self.transit_message("Quitting.") 
                 return
 
-#            print i,phi_new,w1,G[idxG].name,N[idxN],R[idxN],Z[idxN]
+#            print(i,phi_new,w1,G[idxG].name,N[idxN],R[idxN],Z[idxN])
             
             phi_old = phi_new
             #Update progress
@@ -507,7 +507,7 @@ class GumbelMethod(base.SingleConditionMethod):
         for i in range(len(N)): # estimate more accurately based on expected run len, using exact calc for small genes
           if N[i]<EXACT: mu[i] = self.ExpectedRuns_cached(int(N[i]),p)-BetaGamma
         sigma = 1/math.log(1/p);
-        #for i in range(len(N)): print '\t'.join([str(x) for x in N[i],R[i],self.ExpectedRuns_cached(int(N[i]),q),mu[i],scipy.stats.gumbel_r.pdf(R[i], mu[i], sigma)])
+        #for i in range(len(N)): print('\t'.join([str(x) for x in N[i],R[i],self.ExpectedRuns_cached(int(N[i]),q),mu[i],scipy.stats.gumbel_r.pdf(R[i], mu[i], sigma)]))
         total += numpy.sum(scipy.stats.gumbel_r.logpdf(R, mu, sigma))
         return(total)
     
@@ -552,8 +552,8 @@ if __name__ == "__main__":
     G.console_message("Printing the member variables:")   
     G.print_members()
 
-    print ""
-    print "Running:"
+    print("")
+    print("Running:")
 
     G.Run()
 

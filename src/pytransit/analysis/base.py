@@ -124,8 +124,8 @@ class TransitFile (TransitGUIBase):
             if line.startswith("#"): continue
             tmp = line.split("\t")
             tmp[-1] = tmp[-1].strip()
-            #print colnames
-            #print  len(colnames), len(tmp)
+            #print(colnames)
+            #print( len(colnames), len(tmp))
             try:
                 rowdict = dict([(colnames[i], tmp[i]) for i in range(len(colnames))])
             except Exception as e:
@@ -153,15 +153,15 @@ class TransitFile (TransitGUIBase):
 
     def displayInTrackView(self, displayFrame, event):
 
-        #print "Self:", self
-        #print "Frame:", displayFrame
-        #print "Event:", event
-        #print "Frame parent:", displayFrame.parent
+        #print("Self:", self)
+        #print("Frame:", displayFrame)
+        #print("Event:", event)
+        #print("Frame parent:", displayFrame.parent)
         try:
             gene = displayFrame.grid.GetCellValue(displayFrame.row, 0)
             displayFrame.parent.allViewFunc(displayFrame, gene)
         except Exception as e:
-            print file_prefix, "Error occurred: %s" % e
+            print(file_prefix, "Error occurred: %s" % e)
 
 #
 
@@ -318,23 +318,23 @@ class AnalysisMethod:
         try:
             return self.fromargs(sys.argv[2:])
         except InvalidArgumentException as e:
-            print "Error: %s" % str(e)
-            print self.usage_string()
+            print("Error: %s" % str(e))
+            print(self.usage_string())
         except IndexError as e:
-            print "Error: %s" % str(e)
-            print self.usage_string()
+            print("Error: %s" % str(e))
+            print(self.usage_string())
         except TypeError as e:
-            print "Error: %s" % str(e)
+            print("Error: %s" % str(e))
             traceback.print_exc()
-            print self.usage_string()
+            print(self.usage_string())
         except ValueError as e:
-            print "Error: %s" % str(e)
+            print("Error: %s" % str(e))
             traceback.print_exc()
-            print self.usage_string()
+            print(self.usage_string())
         except Exception as e:
-            print "Error: %s" % str(e)
+            print("Error: %s" % str(e))
             traceback.print_exc()
-            print self.usage_string()
+            print(self.usage_string())
         sys.exit()
 
 #
@@ -356,7 +356,7 @@ class AnalysisMethod:
         #TODO: write docstring
         members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
         for m in members:
-            print "%s = %s" % (m, getattr(self, m))
+            print("%s = %s" % (m, getattr(self, m)))
 
 #
 

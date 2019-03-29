@@ -226,7 +226,7 @@ class GSEAMethod(base.SingleConditionMethod):
 			P[0][1]=miss
 		ESval = P[0][0]-P[0][1]
 		ES.append(ESval)
-		# print L[0][0],",",L[0][1],",",P[0][0],",",P[0][1],",",ESval
+		# print(L[0][0],",",L[0][1],",",P[0][0],",",P[0][1],",",ESval)
 		for i in range(1,lenL):
 			P.append([P[i-1][0],P[i-1][1],0])
 			if L[i][0] in S:
@@ -236,7 +236,7 @@ class GSEAMethod(base.SingleConditionMethod):
 				P[i][1]+=miss
 			ESTemp = P[i][0]-P[i][1]
 			ES.append(ESTemp)
-			# print L[i][0],",",L[i][1],",",P[i][0],",",P[i][1],",",ESTemp
+			# print(L[i][0],",",L[i][1],",",P[i][0],",",P[i][1],",",ESTemp)
 			if ESval<ESTemp:
 				ESval = ESTemp
 		return ESval,N_R,rank
@@ -296,7 +296,7 @@ class GSEAMethod(base.SingleConditionMethod):
 		Total = float(l*N)	
 		gseaVal={}	
 		for i in range(N):
-			print "Percentage: ",(100.0*l*i)/Total,"%"
+			print("Percentage: ",(100.0*l*i)/Total,"%")
 			D1 = self.shuffleByColumnI(D,0)
 			D1 = sorted(D1,key = lambda x:x[1], reverse=False)
 			for goTerm in GoTerms:
@@ -523,17 +523,17 @@ if __name__ == "__main__":
 
 	(args, kwargs) = transit_tools.cleanargs(sys.argv[1:])
 
-	print "ARGS:", args
-	print "KWARGS:", kwargs
+	print("ARGS:", args)
+	print("KWARGS:", kwargs)
 
 	G = GSEAMethod.fromargs(sys.argv[1:])
 
-	print G
+	print(G)
 	G.console_message("Printing the member variables:")   
 	G.print_members()
 
-	print ""
-	print "Running:"
+	print("")
+	print("Running:")
 
 	G.Run()
 

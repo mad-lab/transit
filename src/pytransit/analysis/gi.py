@@ -351,9 +351,9 @@ if hasWx:
                     )
                 if dlg.ShowModal() == wx.ID_OK:
                     paths = dlg.GetPaths()
-                    print "You chose the following Control file(s):"
+                    print("You chose the following Control file(s):")
                     for fullpath in paths:
-                        print "\t%s" % fullpath
+                        print("\t%s" % fullpath)
                         self.loadCtrlFile(fullpath)
                 dlg.Destroy()
             except Exception as e:
@@ -389,9 +389,9 @@ if hasWx:
                     )
                 if dlg.ShowModal() == wx.ID_OK:
                     paths = dlg.GetPaths()
-                    print "You chose the following Experimental file(s):"
+                    print("You chose the following Experimental file(s):")
                     for fullpath in paths:
-                        print "\t%s" % fullpath
+                        print("\t%s" % fullpath)
                         self.loadExpFile(fullpath)
                 dlg.Destroy()
             except Exception as e:
@@ -830,7 +830,7 @@ class GIMethod(base.QuadConditionMethod):
 
 
 
-        # Print output
+        # Print(output)
         if self.wxobj:
             members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
             memberstr = ""
@@ -919,8 +919,8 @@ if __name__ == "__main__":
     G.console_message("Printing the member variables:")
     G.print_members()
 
-    print ""
-    print "Running:"
+    print("")
+    print("Running:")
 
     G.Run()
 

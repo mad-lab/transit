@@ -75,11 +75,11 @@ TRANSIT can be (optionally) installed as a python package. This can simplify the
         >>> import pytransit.norm_tools as norm_tools
         >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-        >>> print data
+        >>> print(data)
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
         >>> factors = norm_tools.TTR_factors(data)
-        >>> print factors
+        >>> print(factors)
         array([[ 1.        ],
                [ 0.62862886]])
 

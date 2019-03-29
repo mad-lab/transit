@@ -288,7 +288,7 @@ class TrashFrame(view_trash.MainFrame):
         fi = open(path)
         line = fi.readline()
         tmp = line.split("\t")
-        #print tmp
+        #print(tmp)
         last_state = ""
         start = 0
         end = 0

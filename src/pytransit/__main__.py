@@ -50,20 +50,20 @@ def main(*args, **kwargs):
         kwargs.pop("-debug")
 
     if (not args and ('v' in kwargs or '-version' in kwargs)):
-        print "Version: {0}".format(pytransit.__version__)
+        print("Version: {0}".format(pytransit.__version__))
         sys.exit(0)
     if (not args and ('h' in kwargs or '-help' in kwargs)):
-        print "For commandline mode, please use one of the known methods (or see documentation to add a new one):"
+        print("For commandline mode, please use one of the known methods (or see documentation to add a new one):")
         print("Analysis methods: ")
         for m in all_methods:
             ## TODO :: Move normalize to separate subcommand?
             if (m == "normalize"): continue
-            print "\t - %s" % m
+            print("\t - %s" % m)
         print("Other functions: ")
         print("\t - normalize")
         print("\t - convert")
         print("\t - export")
-        print "Usage: python %s <method>" % sys.argv[0]
+        print("Usage: python %s <method>" % sys.argv[0])
         sys.exit(0)
 
     # Check if running in GUI Mode
@@ -87,13 +87,13 @@ def main(*args, **kwargs):
 
     # Tried GUI mode but has no wxPython
     elif not (args or kwargs) and not hasWx:
-        print "Please install wxPython to run in GUI Mode."
-        print "To run in Console Mode please follow these instructions:"
-        print ""
-        print "Usage: python %s <method>" % sys.argv[0]
-        print "List of known methods:"
+        print("Please install wxPython to run in GUI Mode.")
+        print("To run in Console Mode please follow these instructions:")
+        print("")
+        print("Usage: python %s <method>" % sys.argv[0])
+        print("List of known methods:")
         for m in methods:
-            print "\t - %s" % m
+            print("\t - %s" % m)
     # Running in Console mode
     else:
         import matplotlib
@@ -106,11 +106,11 @@ def main(*args, **kwargs):
                     export_method_name = args[1]
 
                 if export_method_name not in export_methods:
-                    print "Error: Need to specify the export method."
-                    print "Please use one of the known methods (or see documentation to add a new one):"
+                    print("Error: Need to specify the export method.")
+                    print("Please use one of the known methods (or see documentation to add a new one):")
                     for m in export_methods:
-                        print "\t - %s" % m
-                    print "Usage: python %s export <method>" % sys.argv[0]
+                        print("\t - %s" % m)
+                    print("Usage: python %s export <method>" % sys.argv[0])
                 else:
                     methodobj = export_methods[export_method_name].method.fromconsole()
                     methodobj.Run()
@@ -120,20 +120,20 @@ def main(*args, **kwargs):
                     convert_method_name = args[1]
 
                 if convert_method_name not in convert_methods:
-                    print "Error: Need to specify the convert method."
-                    print "Please use one of the known methods (or see documentation to add a new one):"
+                    print("Error: Need to specify the convert method.")
+                    print("Please use one of the known methods (or see documentation to add a new one):")
                     for m in convert_methods:
-                        print "\t - %s" % m
-                    print "Usage: python %s convert <method>" % sys.argv[0]
+                        print("\t - %s" % m)
+                    print("Usage: python %s convert <method>" % sys.argv[0])
                 else:
                     methodobj = convert_methods[convert_method_name].method.fromconsole()
                     methodobj.Run()
             else:
-                print "Error: The '%s' method is unknown." % method_name
-                print "Please use one of the known methods (or see documentation to add a new one):"
+                print("Error: The '%s' method is unknown." % method_name)
+                print("Please use one of the known methods (or see documentation to add a new one):")
                 for m in all_methods:
-                    print "\t - %s" % m
-                print "Usage: python %s <method>" % sys.argv[0]
+                    print("\t - %s" % m)
+                print("Usage: python %s <method>" % sys.argv[0])
         else:
 
             methodobj = all_methods[method_name].method.fromconsole()

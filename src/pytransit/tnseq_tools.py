@@ -141,11 +141,11 @@ class Gene:
 
         >>> import pytransit.tnseq_tools as tnseq_tools
         >>> G = tnseq_tools.Gene("Rv0001", "dnaA", "DNA Replication A", [[0,0,0,0,1,3,0,1]],  [1,21,32,37,45,58,66,130], strand="+" )
-        >>> print G
+        >>> print(G)
         Rv0001  (dnaA)  k=3 n=8 r=4 theta=0.37500
-        >>> print G.phi()
+        >>> print(G.phi())
         0.625
-        >>> print G.tosses
+        >>> print(G.tosses)
         array([ 0.,  0.,  0.,  0.,  1.,  1.,  0.,  1.])
 
         .. seealso:: :class:`Genes`
@@ -181,7 +181,7 @@ class Gene:
         try:
             self.runs = runs(self.tosses)
         except Exception as e:
-            print orf, name, self.tosses
+            print(orf, name, self.tosses)
             raise e
 
         self.k = int(numpy.sum(self.tosses))
@@ -189,8 +189,8 @@ class Gene:
         try:
             self.r = numpy.max(self.runs)
         except Exception as e:
-            print orf, name, self.tosses
-            print self.runs
+            print(orf, name, self.tosses)
+            print(self.runs)
             raise e
 
         self.s = self.get_gap_span()
@@ -332,15 +332,15 @@ class Genes:
 
         >>> import pytransit.tnseq_tools as tnseq_tools
         >>> G = tnseq_tools.Genes(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"], "transit/genomes/H37Rv.prot_table", norm="TTR")
-        >>> print G
+        >>> print(G)
         Genes Object (N=3990)
-        >>> print G.global_theta()
+        >>> print(G.global_theta())
         0.40853707222816626
-        >>> print G["Rv0001"]   # Lookup like dictionary
+        >>> print(G["Rv0001"]   # Lookup like dictionary)
         Rv0001  (dnaA)  k=0 n=31    r=31    theta=0.00000
-        >>> print G[2]          # Lookup like list
+        >>> print(G[2]          # Lookup like list)
         Rv0003  (recF)  k=5 n=35    r=14    theta=0.14286
-        >>> print G[2].reads
+        >>> print(G[2].reads)
         [[  62.            0.            0.            0.            0.            0.
          0.            0.            0.            0.            0.            0.
          0.            0.           63.            0.            0.           13.
@@ -401,7 +401,7 @@ class Genes:
 #
 
     def __str__(self):
-        """Defines __str__ to print a generic str with the size of the list.
+        """Defines __str__ to print(a generic str with the size of the list.)
 
         Returns:
             str: Human readable string with number of genes in object.
@@ -877,7 +877,7 @@ def get_data(wig_list):
 
         >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["data/glycerol_H37Rv_rep1.wig", "data/glycerol_H37Rv_rep2.wig"])
-        >>> print data
+        >>> print(data)
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
 
@@ -900,8 +900,8 @@ def get_data(wig_list):
 
     # If it doesn't match, report an error and quit
     if sum(size_list) != (T * len(size_list)):
-        print "Error: Not all wig files have the same number of sites."
-        print "       Make sure all .wig files come from the same strain."
+        print("Error: Not all wig files have the same number of sites.")
+        print("       Make sure all .wig files come from the same strain.")
         sys.exit()
 
     data = numpy.zeros((K,T))
@@ -920,9 +920,9 @@ def get_data(wig_list):
             try:
                 data[j,i] = rd
             except Exception as e:
-                print "Error: %s" % e
-                print ""
-                print "Make sure that all wig files have the same number of TA sites (i.e. same strain)"
+                print("Error: %s" % e)
+                print("")
+                print("Make sure that all wig files have the same number of TA sites (i.e. same strain)")
                 sys.exit()
             position[i] = pos
             i+=1
@@ -1004,7 +1004,7 @@ def get_data_w_genome(wig_list, genome):
                 index = pos2index[pos]
                 data[j,index] = rd
             else:
-                print "Warning: Coordinate %d did not match a TA site in the genome. Ignoring counts." %(pos)
+                print("Warning: Coordinate %d did not match a TA site in the genome. Ignoring counts." %(pos))
     return (data, positions)
 
 #
@@ -1634,17 +1634,17 @@ if __name__ == "__main__":
 
     G = Genes(sys.argv[1].split(","), sys.argv[2], norm="TTR")
     theta = G.global_theta()
-    print "#Insertion: %s" % G.global_insertion()
-    print "#Sites: %s" % G.global_sites()
-    print "#Run: %s" % G.global_run()
-    print "#Theta: %1.4f" % theta
-    print "#Phi: %1.4f" % G.global_phi()
-    print "#"
+    print("#Insertion: %s" % G.global_insertion())
+    print("#Sites: %s" % G.global_sites())
+    print("#Run: %s" % G.global_run())
+    print("#Theta: %1.4f" % theta)
+    print("#Phi: %1.4f" % G.global_phi())
+    print("#")
 
     griffin_results = griffin_analysis(G, theta)
     for i,gene in enumerate(G):
         pos = gene.position
         exprun, pval = griffin_results[i][-2:]
-        print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%1.1f\t%1.5f" % (gene.orf, gene.name, gene.k, gene.n, gene.r, gene.s, gene.t, exprun, pval)
+        print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%1.1f\t%1.5f" % (gene.orf, gene.name, gene.k, gene.n, gene.r, gene.s, gene.t, exprun, pval))
 
 
