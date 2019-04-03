@@ -126,6 +126,11 @@ class CombinedWigMethod(base.SingleConditionMethod):
     def fromargs(self, rawargs):
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
+        if (len(args) != 3): # wigs prot_table output
+            print("Error: Incorrect number of args. See usage")
+            print(self.usage_string())
+            sys.exit(0)
+
         ctrldata = args[0].split(",")
         annotationPath = args[1]
         outpath = args[2]
@@ -174,6 +179,7 @@ class CombinedWigMethod(base.SingleConditionMethod):
         (K,N) = fulldata.shape
         for f in self.ctrldata:
             self.output.write("#File: %s\n" % f)
+        self.output.write("#TAcoord\t%s\n" % ('\t'.join(self.ctrldata)))
 
         for i,pos in enumerate(position):
             #self.output.write("%d\t%s\t%s\n" % (position[i], "\t".join(["%1.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
