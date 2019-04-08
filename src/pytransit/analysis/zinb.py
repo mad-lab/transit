@@ -509,6 +509,7 @@ class ZinbMethod(base.MultiConditionMethod):
         -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5.0
         -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5.0
         --covars <covar1,covar2>     :=  Comma separated list of covariates to include, for the analysis.
+        --interactions <covar1,covar2>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis. Must be factors
         """ % (sys.argv[0])
 
 if __name__ == "__main__":
