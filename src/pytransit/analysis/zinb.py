@@ -30,6 +30,8 @@ long_name = "ZINB"
 short_desc = "Perform ZINB analysis"
 long_desc = """Perform ZINB analysis"""
 EOL = "\n"
+DEBUG = False
+GENE = None
 
 transposons = ["", ""]
 columns = []
@@ -64,6 +66,13 @@ class ZinbMethod(base.MultiConditionMethod):
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
+        if (kwargs.get('v', False)):
+            global DEBUG
+            DEBUG = True
+
+        if (kwargs.get('-gene', False)):
+            global GENE
+            GENE = kwargs.get('-gene', None)
 
         combined_wig = args[0]
         metadata = args[1]
@@ -219,7 +228,7 @@ class ZinbMethod(base.MultiConditionMethod):
                 zinbMod1,
                 zinbMod0,
                 nbMod1,
-                nbMod0) {
+                nbMod0, DEBUG = F) {
               suppressMessages(require(pscl))
               suppressMessages(require(MASS))
               melted = df
@@ -236,11 +245,14 @@ class ZinbMethod(base.MultiConditionMethod):
               }
               status = "-"
               minCount = min(melted$cnt)
+              f1 = ""
               mod1 = tryCatch(
                 {
                   if (minCount == 0) {
+                    f1 = zinbMod1
                     zeroinfl(as.formula(zinbMod1),data=melted,dist="negbin")
                   } else {
+                    f1 = nbMod1
                     glm.nb(as.formula(nbMod1),data=melted)
                   }
                 },
@@ -248,11 +260,15 @@ class ZinbMethod(base.MultiConditionMethod):
                   status <<- err$message
                   return(NULL)
                 })
+
+              f0 = ""
               mod0 = tryCatch( # null model, independent of conditions
                 {
                   if (minCount == 0) {
+                    f0 = zinbMod0
                     zeroinfl(as.formula(zinbMod0),data=melted,dist="negbin")
                   } else {
+                    f0 = nbMod0
                     glm.nb(as.formula(nbMod0),data=melted)
                   }
                 },
@@ -260,6 +276,15 @@ class ZinbMethod(base.MultiConditionMethod):
                   status <<- err$message
                   return(NULL)
                 })
+              if (DEBUG) {
+                  print("Model 1:")
+                  print(f1)
+                  print(mod1)
+                  print("Model 0:")
+                  print(f0)
+                  print(mod0)
+              }
+
               if (is.null(mod1) | is.null(mod0)) { return (c(1, paste0("Model Error. ", status))) }
               if ((minCount == 0) && (sum(is.na(coef(summary(mod1))$count[,4]))>0)) { return(c(1, "Has Coefs, pvals are NAs")) } # rare failure mode - has coefs, but pvals are NA
               df1 = attr(logLik(mod1),"df"); df0 = attr(logLik(mod0),"df") # should be (2*ngroups+1)-3
@@ -331,11 +356,24 @@ class ZinbMethod(base.MultiConditionMethod):
         for gene in genes:
             count += 1
             Rv = gene["rv"]
+            ## Single gene case for debugging
+            if (GENE):
+                Rv = None
+                if RvSiteindexesMap.has_key(GENE):
+                    Rv = GENE
+                else:
+                    for g in genes:
+                        if (g['gene'] == GENE):
+                            Rv = g["rv"]
+                            break
+                if not Rv:
+                    self.transit_error("Cannot find gene: {0}".format(GENE))
+                    sys.exit(0)
+
             if (len(RvSiteindexesMap[Rv]) <= 1):
                 status.append("TA sites <= 1")
                 pvals.append(1)
             else:
-                ## TODO :: Option for sat adjustment?
                 norm_data = self.winsorize(map(
                     lambda wigData: wigData[RvSiteindexesMap[Rv]], data)) if self.winz else map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data)
                 ([ readCounts,
@@ -362,9 +400,15 @@ class ZinbMethod(base.MultiConditionMethod):
 
                     melted = DataFrame(df_args)
                     # r_args = [IntVector(readCounts), StrVector(condition), melted, map(lambda x: StrVector(x), covars), FloatVector(NZmean), FloatVector(logitZPerc)] + [True]
-                    pval, msg = r_zinb_signif(melted, zinbMod1, zinbMod0, nbMod1, nbMod0)
+                    debugFlag = True if DEBUG or GENE else False
+                    pval, msg = r_zinb_signif(melted, zinbMod1, zinbMod0, nbMod1, nbMod0, debugFlag)
                     status.append(msg)
                     pvals.append(float(pval))
+                if (DEBUG or GENE):
+                    self.transit_message("Pval for Gene {0}: {1}, status: {2}".format(Rv, pvals[-1], status[-1]))
+                if (GENE):
+                    self.transit_message("Ran for single gene. Exiting...")
+                    sys.exit(0)
             Rvs.append(Rv)
             # Update progress
             text = "Running ZINB Method... %5.1f%%" % (100.0*count/len(genes))
