@@ -44,11 +44,12 @@ class ZinbMethod(base.MultiConditionMethod):
     """
     Zinb
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0, covars=[]):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0, covars=[], interactions = []):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file,
                 normalization=normalization, ignored_conditions=ignored_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
         self.winz = winz
         self.covars = covars
+        self.interactions = interactions
 
     @classmethod
     def fromargs(self, rawargs):
@@ -72,6 +73,7 @@ class ZinbMethod(base.MultiConditionMethod):
         NTerminus = float(kwargs.get("iN", 5.0))
         CTerminus = float(kwargs.get("iC", 5.0))
         covars = filter(None, kwargs.get("-covars", "").split(","))
+        interactions = filter(None, kwargs.get("-interactions", "").split(","))
         winz = True if kwargs.has_key("w") else False
         ignored_conditions = filter(None, kwargs.get("-ignore-conditions", "").split(","))
         included_conditions = filter(None, kwargs.get("-include-conditions", "").split(","))
@@ -80,7 +82,7 @@ class ZinbMethod(base.MultiConditionMethod):
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, NTerminus, CTerminus, covars)
+        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, NTerminus, CTerminus, covars, interactions)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -94,8 +96,7 @@ class ZinbMethod(base.MultiConditionMethod):
         """
             Returns list of covariate lists. Each covariate list consists of covariates corresponding to given wigfiles.
             ([{FileName: Covar}], [FileName]) -> [[Covar]]
-            Condition :: [String]
-            Covar :: [String]
+            Covar :: String
         """
         try:
             return [[covarsByFile[f]
@@ -103,6 +104,20 @@ class ZinbMethod(base.MultiConditionMethod):
                         for covarsByFile in covariatesMap]
         except KeyError:
             self.transit_error("Error: Covariates not found for file {0}".format(f))
+            sys.exit(0)
+
+    def wigs_to_interactions(self, interactionsMap, filenamesInCombWig):
+        """
+            Returns list of interaction lists. Each interaction list consists of covariates corresponding to given wigfiles.
+            ([{FileName: Interaction}], [FileName]) -> [[Interaction]]
+            Interaction :: String
+        """
+        try:
+            return [[covarsByFile[f]
+                        for f in filenamesInCombWig]
+                        for covarsByFile in interactionsMap]
+        except KeyError:
+            self.transit_error("Error: Interaction var not found for file {0}".format(f))
             sys.exit(0)
 
     def stats_by_condition_for_gene(self, siteIndexes, conditions, data):
@@ -185,14 +200,15 @@ class ZinbMethod(base.MultiConditionMethod):
 
         return [numpy.array(v).flatten() for v in countsByCondition.values()]
 
-    def melt_data(self, readCountsForRv, conditions, covariates, NZMeanByRep, LogZPercByRep):
+    def melt_data(self, readCountsForRv, conditions, covariates, interactions, NZMeanByRep, LogZPercByRep):
         rvSitesLength = len(readCountsForRv[0])
         repeatAndFlatten = lambda xs: numpy.repeat(xs, rvSitesLength)
-        covars = map(repeatAndFlatten, covariates)
+
         return [
                 numpy.concatenate(readCountsForRv).astype(int),
                 repeatAndFlatten(conditions),
-                covars,
+                map(repeatAndFlatten, covariates),
+                map(repeatAndFlatten, interactions),
                 repeatAndFlatten(NZMeanByRep),
                 repeatAndFlatten(LogZPercByRep)
                ]
@@ -274,15 +290,17 @@ class ZinbMethod(base.MultiConditionMethod):
         except ValueError:
             return False
 
-    def run_zinb(self, data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions, covariates):
+    def run_zinb(self, data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions, covariates, interactions):
         """
             Runs Zinb for each gene across conditions and returns p and q values
-            ([[Wigdata]], [Gene], [[Number]], {Rv: [SiteIndex]}, [Condition]) -> Tuple([Number], [Number], [[Covar]])
+            ([[Wigdata]], [Gene], [Number], [Number], {Rv: [SiteIndex]}, [Condition], [Covar], [Interaction]) -> Tuple([Number], [Number], [Status])
             Wigdata :: [Number]
             Gene :: {start, end, rv, gene, strand}
             SiteIndex: Integer
             Condition :: String
             Covar :: String
+            Interaction :: String
+            Status :: String
         """
 
         count = 0
@@ -297,12 +315,17 @@ class ZinbMethod(base.MultiConditionMethod):
             covarsFormula = "+".join([""] + self.covars)
             self.transit_message("Covariates: {0}".format(covarsFormula))
 
+        condFormula = "cond"
+        if (len(self.interactions) > 0):
+            condFormula = "+".join(["cond*{0}".format(interaction) for interaction in self.interactions])
+            self.transit_message("Interactions: {0}".format(condFormula))
+
         ## Worth making a user param?
         sat_adjust = True
-        zinbMod1 = ("cnt~1+cond+offset(log(NZmean)){0}|1+cond+offset(logitZperc){0}" if sat_adjust else "cnt~1+cond").format(covarsFormula)
-        zinbMod0 = ("cnt~1+offset(log(NZmean)){0}|1+offset(logitZperc){0}" if sat_adjust else "cnt~1").format(covarsFormula)
-        nbMod1 = "cnt~1+cond{0}".format(covarsFormula)
-        nbMod0 = "cnt~1{0}".format(covarsFormula)
+        zinbMod1 = ("cnt~1+{cond}+offset(log(NZmean)){covars}|1+{cond}+offset(logitZperc){covars}" if sat_adjust else "cnt~1+{cond}{covars}").format(cond=condFormula, covars=covarsFormula)
+        zinbMod0 = ("cnt~1+offset(log(NZmean)){covars}|1+offset(logitZperc){covars}" if sat_adjust else "cnt~1{covars}").format(covars=covarsFormula)
+        nbMod1 = "cnt~1+{cond}{covars}".format(cond=condFormula, covars=covarsFormula)
+        nbMod0 = "cnt~1{covars}".format(covars=covarsFormula)
         toRFloatOrStrVec = lambda xs: FloatVector(xs) if self.is_number(xs[0]) else StrVector(xs)
 
         for gene in genes:
@@ -318,10 +341,11 @@ class ZinbMethod(base.MultiConditionMethod):
                 ([ readCounts,
                    condition,
                    covarsData,
+                   interactionsData,
                    NZmean,
                    logitZPerc]) = self.melt_data(
                            norm_data,
-                           conditions, covariates, NZMeanByRep, LogZPercByRep)
+                           conditions, covariates, interactions, NZMeanByRep, LogZPercByRep)
                 if (numpy.sum(readCounts) == 0):
                     status.append("No counts in all conditions")
                     pvals.append(1)
@@ -332,7 +356,9 @@ class ZinbMethod(base.MultiConditionMethod):
                         'NZmean': FloatVector(NZmean),
                         'logitZperc': FloatVector(logitZPerc)
                         }
+                    ## Add columns for covariates and interactions if they exist.
                     df_args.update(map(lambda (i, c): (c, toRFloatOrStrVec(covarsData[i])), enumerate(self.covars)))
+                    df_args.update(map(lambda (i, c): (c, toRFloatOrStrVec(interactionsData[i])), enumerate(self.interactions)))
 
                     melted = DataFrame(df_args)
                     # r_args = [IntVector(readCounts), StrVector(condition), melted, map(lambda x: StrVector(x), covars), FloatVector(NZmean), FloatVector(logitZPerc)] + [True]
@@ -372,14 +398,27 @@ class ZinbMethod(base.MultiConditionMethod):
         self.transit_message("Normalizing using: %s" % self.normalization)
         (data, factors) = norm_tools.normalize_data(data, self.normalization)
 
-        conditionsByFile, covariatesByFileList = tnseq_tools.read_samples_metadata(self.metadata, self.covars)
+        conditionsByFile, covariatesByFileList, interactionsByFileList = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions)
+
+        ## [Condition] in the order of files in combined wig
         conditions = self.wigs_to_conditions(
             conditionsByFile,
             filenamesInCombWig)
+        ## [Covariate] in the order of files in combined wig
         covariates = self.wigs_to_covariates(
             covariatesByFileList,
             filenamesInCombWig)
-        data, conditions, covariates = self.filter_wigs_by_conditions(data, conditions, covariates, ignored_conditions = self.ignored_conditions, included_conditions = self.included_conditions)
+        ## [Interaction] in the order of files in combined wig
+        interactions = self.wigs_to_interactions(
+            interactionsByFileList,
+            filenamesInCombWig)
+        data, conditions, covariates, interactions = self.filter_wigs_by_conditions(
+                data,
+                conditions,
+                covariates = covariates,
+                interactions = interactions,
+                ignored_conditions = self.ignored_conditions,
+                included_conditions = self.included_conditions)
 
         genes = tnseq_tools.read_genes(self.annotation_path)
 
@@ -389,7 +428,7 @@ class ZinbMethod(base.MultiConditionMethod):
         LogZPercByRep, NZMeanByRep = self.global_stats_for_rep(data)
 
         self.transit_message("Running ZINB")
-        pvals,qvals,run_status = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions, covariates)
+        pvals, qvals, run_status = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions, covariates, interactions)
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")

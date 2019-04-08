@@ -184,6 +184,23 @@ class TestMethods(TransitTestCase):
             10,
             "sig_qvals expected: %d, actual: %d" % (10, len(sig_qvals)))
 
+    @unittest.skipUnless(hasR, "requires R, rpy2")
+    def test_zinb_interactions(self):
+        args = [combined_wig, samples_metadata_interactions, small_annotation, output, "--covars", "batch", "--interactions", "atm"]
+        G = ZinbMethod.fromargs(args)
+        G.Run()
+        self.assertTrue(os.path.exists(output))
+        (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-3, qcol=-2))
+        sig_qvals.sort()
+        self.assertEqual(
+            len(sig_pvals),
+            9,
+            "sig_pvals expected: %d, actual: %d" % (9, len(sig_pvals)))
+        self.assertEqual(
+            len(sig_qvals),
+            3,
+            "sig_qvals expected: %d, actual: %d" % (3, len(sig_qvals)))
+
     def test_utest(self):
         args = [ctrl_data_txt, exp_data_txt, small_annotation, output]
         G = UTestMethod.fromargs(args)

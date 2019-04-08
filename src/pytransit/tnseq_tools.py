@@ -66,16 +66,18 @@ def read_combined_wig(fname):
 
     return (numpy.array(sites), numpy.array(countsByWig), files)
 
-def read_samples_metadata(metadata_file, covarsToRead = []):
+def read_samples_metadata(metadata_file, covarsToRead = [], interactionsToRead = []):
     """
       Filename -> ConditionMap
-      ConditionMap :: {Filename: Condition}, [{Filename: Covar}]
+      ConditionMap :: {Filename: Condition}, [{Filename: Covar}], [{Filename: Interaction}]
       Condition :: String
       Covar :: String
+      Interaction :: String
     """
     wigFiles = []
     conditionsByFile = {}
     covariatesByFileList = [{} for i in range(len(covarsToRead))]
+    interactionsByFileList = [{} for i in range(len(interactionsToRead))]
     headersToRead = ["condition", "filename"]
     with open(metadata_file) as mfile:
         lines = mfile.readlines()
@@ -87,6 +89,10 @@ def read_samples_metadata(metadata_file, covarsToRead = []):
                 for h in covarsToRead
                 for i, c in enumerate(lines[0].split())
                 if c.lower() == h.lower()]
+        interactionIndexes = [i
+                for h in interactionsToRead
+                for i, c in enumerate(lines[0].split())
+                if c.lower() == h.lower()]
 
         for line in lines:
             if line[0]=='#': continue
@@ -95,8 +101,10 @@ def read_samples_metadata(metadata_file, covarsToRead = []):
             conditionsByFile[wfile] = condition
             for i, c in enumerate(covarsToRead):
                 covariatesByFileList[i][wfile] = vals[covarIndexes[i]]
+            for i, c in enumerate(interactionsToRead):
+                interactionsByFileList[i][wfile] = vals[interactionIndexes[i]]
 
-    return conditionsByFile, covariatesByFileList
+    return conditionsByFile, covariatesByFileList, interactionsByFileList
 
 def read_genes(fname,descriptions=False):
     """
