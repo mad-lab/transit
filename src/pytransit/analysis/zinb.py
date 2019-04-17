@@ -46,12 +46,13 @@ class ZinbMethod(base.MultiConditionMethod):
     """
     Zinb
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0, covars=[], interactions = []):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0, condition="Condition", covars=[], interactions = []):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file,
                 normalization=normalization, ignored_conditions=ignored_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
         self.winz = winz
         self.covars = covars
         self.interactions = interactions
+        self.condition = condition
 
     @classmethod
     def fromargs(self, rawargs):
@@ -81,6 +82,7 @@ class ZinbMethod(base.MultiConditionMethod):
         normalization = kwargs.get("n", "TTR")
         NTerminus = float(kwargs.get("iN", 5.0))
         CTerminus = float(kwargs.get("iC", 5.0))
+        condition = kwargs.get("-condition", "Condition")
         covars = filter(None, kwargs.get("-covars", "").split(","))
         interactions = filter(None, kwargs.get("-interactions", "").split(","))
         winz = True if kwargs.has_key("w") else False
@@ -91,7 +93,7 @@ class ZinbMethod(base.MultiConditionMethod):
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, NTerminus, CTerminus, covars, interactions)
+        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, NTerminus, CTerminus, condition, covars, interactions)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -279,10 +281,10 @@ class ZinbMethod(base.MultiConditionMethod):
               if (DEBUG) {
                   print("Model 1:")
                   print(f1)
-                  print(mod1)
+                  print(summary(mod1))
                   print("Model 0:")
                   print(f0)
-                  print(mod0)
+                  print(summary(mod0))
               }
 
               if (is.null(mod1) | is.null(mod0)) { return (c(1, paste0("Model Error. ", status))) }
@@ -335,6 +337,7 @@ class ZinbMethod(base.MultiConditionMethod):
         if (self.winz):
             self.transit_message("Winsorizing and running analysis...")
 
+        self.transit_message("Condition: %s" % self.condition)
         covarsFormula = ""
         if (len(self.covars) > 0):
             covarsFormula = "+".join([""] + self.covars)
@@ -345,10 +348,24 @@ class ZinbMethod(base.MultiConditionMethod):
             condFormula = "+".join(["cond*{0}".format(interaction) for interaction in self.interactions])
             self.transit_message("Interactions: {0}".format(condFormula))
 
-        ## Worth making a user param?
-        sat_adjust = True
+        sat_adjust = True # just for testing False, but we always want to leave it as True
         zinbMod1 = ("cnt~1+{cond}+offset(log(NZmean)){covars}|1+{cond}+offset(logitZperc){covars}" if sat_adjust else "cnt~1+{cond}{covars}").format(cond=condFormula, covars=covarsFormula)
         zinbMod0 = ("cnt~1+offset(log(NZmean)){covars}|1+offset(logitZperc){covars}" if sat_adjust else "cnt~1{covars}").format(covars=covarsFormula)
+        nbMod1 = "cnt~1+{cond}{covars}".format(cond=condFormula, covars=covarsFormula)
+        nbMod0 = "cnt~1{covars}".format(covars=covarsFormula)
+
+
+        # proposed new way to do it
+        comp1a = "1+cond"
+        comp1b = "1+cond"
+        # include cond in mod0 only if testing interactions
+        comp0a = "1" if len(self.interactions)==0 else "1+cond"
+        comp0b = "1" if len(self.interactions)==0 else "1+cond"
+        for I in self.interactions: comp1a += "*"+I; comp1b += "*"+I; comp0a += "+"+I; comp0b += "+"+I
+        for C in self.covars: comp1a += "+"+C; comp1b += "+"+C; comp0a += "+"+C; comp0b += "+"+C
+        zinbMod1 = "cnt~%s+offset(log(NZmean))|%s+offset(logitZperc)" % (comp1a,comp1b)
+        zinbMod0 = "cnt~%s+offset(log(NZmean))|%s+offset(logitZperc)" % (comp0a,comp0b)
+
         nbMod1 = "cnt~1+{cond}{covars}".format(cond=condFormula, covars=covarsFormula)
         nbMod0 = "cnt~1{covars}".format(covars=covarsFormula)
         toRFloatOrStrVec = lambda xs: FloatVector(xs) if self.is_number(xs[0]) else StrVector(xs)
@@ -442,7 +459,8 @@ class ZinbMethod(base.MultiConditionMethod):
         self.transit_message("Normalizing using: %s" % self.normalization)
         (data, factors) = norm_tools.normalize_data(data, self.normalization)
 
-        conditionsByFile, covariatesByFileList, interactionsByFileList = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions)
+        condition_name = self.condition
+        conditionsByFile, covariatesByFileList, interactionsByFileList = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions, condition_name=condition_name)
 
         ## [Condition] in the order of files in combined wig
         conditions = self.wigs_to_conditions(
@@ -508,8 +526,8 @@ class ZinbMethod(base.MultiConditionMethod):
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
         -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5.0
         -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5.0
-        --covars <covar1,covar2>     :=  Comma separated list of covariates to include, for the analysis.
-        --interactions <covar1,covar2>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis. Must be factors
+        --covars <covar1,...>     :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
+        --interactions <covar1,...>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis. Must be factors
         """ % (sys.argv[0])
 
 if __name__ == "__main__":

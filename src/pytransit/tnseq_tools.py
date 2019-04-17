@@ -66,7 +66,7 @@ def read_combined_wig(fname):
 
     return (numpy.array(sites), numpy.array(countsByWig), files)
 
-def read_samples_metadata(metadata_file, covarsToRead = [], interactionsToRead = []):
+def read_samples_metadata(metadata_file, covarsToRead = [], interactionsToRead = [], condition_name="Condition"):
     """
       Filename -> ConditionMap
       ConditionMap :: {Filename: Condition}, [{Filename: Covar}], [{Filename: Interaction}]
@@ -78,7 +78,7 @@ def read_samples_metadata(metadata_file, covarsToRead = [], interactionsToRead =
     conditionsByFile = {}
     covariatesByFileList = [{} for i in range(len(covarsToRead))]
     interactionsByFileList = [{} for i in range(len(interactionsToRead))]
-    headersToRead = ["condition", "filename"]
+    headersToRead = [condition_name.lower(), "filename"]
     with open(metadata_file) as mfile:
         lines = mfile.readlines()
         headIndexes = [i
