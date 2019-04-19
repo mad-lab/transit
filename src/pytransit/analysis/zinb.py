@@ -234,6 +234,11 @@ class ZinbMethod(base.MultiConditionMethod):
               suppressMessages(require(pscl))
               suppressMessages(require(MASS))
               melted = df
+
+              # filter out genes that have low saturation across all conditions, since pscl sometimes does not fit params well (resulting in large negative intercepts and high std errors)
+              NZpercs = aggregate(melted$cnt,by=list(melted$cond),FUN=function(x) { sum(x>0)/length(x) })
+              if (max(NZpercs$x)<=0.15) { return(c(pval=1,status="pan-essential, not analyzed")) }
+
               sums = aggregate(melted$cnt,by=list(melted$cond),FUN=sum)
               # to avoid model failing due to singular condition, add fake counts of 1 to all conds if any cond is all 0s
               if (0 %in% sums[,2]) {
@@ -262,13 +267,17 @@ class ZinbMethod(base.MultiConditionMethod):
                   status <<- err$message
                   return(NULL)
                 })
-
               f0 = ""
               mod0 = tryCatch( # null model, independent of conditions
                 {
                   if (minCount == 0) {
                     f0 = zinbMod0
                     zeroinfl(as.formula(zinbMod0),data=melted,dist="negbin")
+                    # this was just for testing, i.e. printing out intercepts and stderrs of models in spreadsheet
+                    #x = zeroinfl(as.formula(zinbMod1),data=melted,dist="negbin")
+                    #coeffs = summary(x)$coefficients
+                    #status = paste(status,'Intercept1',coeffs$count[,1][1],coeffs$count[,2][1])
+                    #x
                   } else {
                     f0 = nbMod0
                     glm.nb(as.formula(nbMod0),data=melted)
@@ -294,7 +303,7 @@ class ZinbMethod(base.MultiConditionMethod):
               # this gives same answer, but I would need to extract the Pvalue...
               #require(lmtest)
               #print(lrtest(mod1,mod0))
-              return (c(pval, "-"))
+              return (c(pval, status))
             }
         ''')
 
