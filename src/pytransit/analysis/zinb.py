@@ -257,7 +257,11 @@ class ZinbMethod(base.MultiConditionMethod):
                 {
                   if (minCount == 0) {
                     f1 = zinbMod1
-                    zeroinfl(as.formula(zinbMod1),data=melted,dist="negbin")
+                    mod = zeroinfl(as.formula(zinbMod1),data=melted,dist="negbin")
+                    coeffs = summary(mod)$coefficients
+                    # [,1] is col of parms, [,2] is col of stderrs, assume Intercept is always first
+                    if (coeffs$count[,2][1]>0.5) { status = 'warning: high stderr on Intercept for mod1' }
+                    mod
                   } else {
                     f1 = nbMod1
                     glm.nb(as.formula(nbMod1),data=melted)
@@ -272,12 +276,11 @@ class ZinbMethod(base.MultiConditionMethod):
                 {
                   if (minCount == 0) {
                     f0 = zinbMod0
-                    zeroinfl(as.formula(zinbMod0),data=melted,dist="negbin")
-                    # this was just for testing, i.e. printing out intercepts and stderrs of models in spreadsheet
-                    #x = zeroinfl(as.formula(zinbMod1),data=melted,dist="negbin")
-                    #coeffs = summary(x)$coefficients
-                    #status = paste(status,'Intercept1',coeffs$count[,1][1],coeffs$count[,2][1])
-                    #x
+                    mod = zeroinfl(as.formula(zinbMod0),data=melted,dist="negbin")
+                    coeffs = summary(mod)$coefficients
+                    # [,1] is col of parms, [,2] is col of stderrs, assume Intercept is always first
+                    if (coeffs$count[,2][1]>0.5) { status = 'warning: high stderr on Intercept for mod0' }
+                    mod
                   } else {
                     f0 = nbMod0
                     glm.nb(as.formula(nbMod0),data=melted)
