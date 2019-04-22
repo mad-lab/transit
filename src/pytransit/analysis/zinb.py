@@ -170,20 +170,18 @@ class ZinbMethod(base.MultiConditionMethod):
             Condition :: String
             Interaction :: String
         """
-        statPrefix = []
 
         ## Group wigfiles by (interaction, condition) pair
         ## {'<interaction>_<condition>': [Wigindexes]}
         groupWigIndexMap = collections.defaultdict(lambda: [])
-        if (len(interactions) > 0):
-            for i, conditionForWig in enumerate(conditions):
-                if (len(interactions) > 0):
-                    for interaction in interactions:
-                        groupName = interaction[i] + '_' + conditionForWig
-                        groupWigIndexMap[groupName].append(i)
-                else:
-                    groupName = conditionForWig
+        for i, conditionForWig in enumerate(conditions):
+            if (len(interactions) > 0):
+                for interaction in interactions:
+                    groupName = interaction[i] + '_' + conditionForWig
                     groupWigIndexMap[groupName].append(i)
+            else:
+                groupName = conditionForWig
+                groupWigIndexMap[groupName].append(i)
 
         statsByRv = {}
         for gene in genes:
