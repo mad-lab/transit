@@ -271,7 +271,7 @@ class ZinbMethod(base.MultiConditionMethod):
                     mod = zeroinfl(as.formula(zinbMod1),data=melted,dist="negbin")
                     coeffs = summary(mod)$coefficients
                     # [,1] is col of parms, [,2] is col of stderrs, assume Intercept is always first
-                    if (coeffs$count[,2][1]>0.5) { status = 'warning: high stderr on Intercept for mod1' }
+                    #if (coeffs$count[,2][1]>0.5) { status = 'warning: high stderr on Intercept for mod1' }
                     mod
                   } else {
                     f1 = nbMod1
@@ -290,7 +290,7 @@ class ZinbMethod(base.MultiConditionMethod):
                     mod = zeroinfl(as.formula(zinbMod0),data=melted,dist="negbin")
                     coeffs = summary(mod)$coefficients
                     # [,1] is col of parms, [,2] is col of stderrs, assume Intercept is always first
-                    if (coeffs$count[,2][1]>0.5) { status = 'warning: high stderr on Intercept for mod0' }
+                    #if (coeffs$count[,2][1]>0.5) { status = 'warning: high stderr on Intercept for mod0' }
                     mod
                   } else {
                     f0 = nbMod0
