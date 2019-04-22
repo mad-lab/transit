@@ -1,4 +1,4 @@
-Id	Condition	Filename	Batch
+Id	NewConditionCol	Filename	Batch
 c1	Cholesterol	src/pytransit/data/cholesterol_H37Rv_rep1.wig	b1
 c2	Cholesterol	src/pytransit/data/cholesterol_H37Rv_rep2.wig	b1
 c3	Cholesterol	src/pytransit/data/cholesterol_H37Rv_rep3.wig	b2

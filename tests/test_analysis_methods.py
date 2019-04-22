@@ -169,7 +169,7 @@ class TestMethods(TransitTestCase):
 
     @unittest.skipUnless(hasR, "requires R, rpy2")
     def test_zinb_covariates(self):
-        args = [combined_wig, samples_metadata_covariates, small_annotation, output, "--covars", "batch"]
+        args = [combined_wig, samples_metadata_covariates, small_annotation, output, "--covars", "batch", "--condition", "NewConditionCol"]
         G = ZinbMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -194,12 +194,12 @@ class TestMethods(TransitTestCase):
         sig_qvals.sort()
         self.assertEqual(
             len(sig_pvals),
-            9,
-            "sig_pvals expected: %d, actual: %d" % (9, len(sig_pvals)))
+            3,
+            "sig_pvals expected: %d, actual: %d" % (3, len(sig_pvals)))
         self.assertEqual(
             len(sig_qvals),
-            3,
-            "sig_qvals expected: %d, actual: %d" % (3, len(sig_qvals)))
+            0,
+            "sig_qvals expected: %d, actual: %d" % (0, len(sig_qvals)))
 
     def test_utest(self):
         args = [ctrl_data_txt, exp_data_txt, small_annotation, output]

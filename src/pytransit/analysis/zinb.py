@@ -131,57 +131,68 @@ class ZinbMethod(base.MultiConditionMethod):
             self.transit_error("Error: Interaction var not found for file {0}".format(f))
             sys.exit(0)
 
-    def stats_by_condition_for_gene(self, siteIndexes, conditions, data):
+    def stats_for_gene(self, siteIndexes, groupWigIndexMap, data):
         """
-            Returns a dictionary of [{Condition: Stat}] for Mean, NzMean, NzPercentage
+            Returns a dictionary of {Group: {Mean, NzMean, NzPerc}}
             ([SiteIndex], [Condition], [WigData]) -> [{Condition: Number}]
             SiteIndex :: Number
             WigData :: [Number]
-            Condition :: String
+            Group :: String (combination of '<interaction>_<condition>')
         """
-        wigsByConditions = collections.defaultdict(lambda: [])
-        for i, c in enumerate(conditions):
-            wigsByConditions[c].append(i)
-
         nonzero = lambda xs: xs[numpy.nonzero(xs)]
         nzperc = lambda xs: numpy.count_nonzero(xs)/float(xs.size)
-        zperc = lambda xs: 1 - numpy.count_nonzero(xs)/float(xs.size)
 
         means = {}
         nz_means = {}
         nz_percs = {}
-        for (c, wigIndex) in wigsByConditions.items():
-            if (len(siteIndexes) == 0): # If no TA sites, write 0
-                means[c] = 0
-                nz_means[c] = 0
-                nz_percs[c] = 0
-            else:
-                arr = data[wigIndex][:, siteIndexes]
-                means[c] = numpy.mean(arr) if len(arr) > 0 else 0
-                nonzero_arr = nonzero(arr)
-                nz_means[c] = numpy.mean(nonzero_arr) if len(nonzero_arr) > 0 else 0
-                nz_percs[c] = nzperc(arr)
-        return [means, nz_means, nz_percs]
 
-    def stats_by_rv(self, data, RvSiteindexesMap, genes, conditions):
+        for (group, wigIndexes) in groupWigIndexMap.items():
+            if (len(siteIndexes) == 0): # If no TA sites, write 0
+                means[group] = 0
+                nz_means[group] = 0
+                nz_percs[group] = 0
+            else:
+                arr = data[wigIndexes][:, siteIndexes]
+                means[group] = numpy.mean(arr) if len(arr) > 0 else 0
+                nonzero_arr = nonzero(arr)
+                nz_means[group] = numpy.mean(nonzero_arr) if len(nonzero_arr) > 0 else 0
+                nz_percs[group] = nzperc(arr)
+
+        return {'mean': means, 'nz_mean': nz_means, 'nz_perc': nz_percs}
+
+    def stats_by_rv(self, data, RvSiteindexesMap, genes, conditions, interactions):
         """
             Returns Dictionary of Stats by condition for each Rv
-            ([[Wigdata]], {Rv: SiteIndex}, [Gene], [Condition]) -> {Rv: {Condition: Number}}
+            ([[Wigdata]], {Rv: SiteIndex}, [Gene], [Condition], [Interaction]) -> {Rv: {Condition: Number}}
             Wigdata :: [Number]
             SiteIndex :: Number
             Gene :: {start, end, rv, gene, strand}
             Condition :: String
+            Interaction :: String
         """
-        MeansByRv = {}
-        NzMeansByRv = {}
-        NzPercByRv = {}
+        statPrefix = []
+
+        ## Group wigfiles by (interaction, condition) pair
+        ## {'<interaction>_<condition>': [Wigindexes]}
+        groupWigIndexMap = collections.defaultdict(lambda: [])
+        if (len(interactions) > 0):
+            for i, conditionForWig in enumerate(conditions):
+                if (len(interactions) > 0):
+                    for interaction in interactions:
+                        groupName = interaction[i] + '_' + conditionForWig
+                        groupWigIndexMap[groupName].append(i)
+                else:
+                    groupName = conditionForWig
+                    groupWigIndexMap[groupName].append(i)
+
+        statsByRv = {}
         for gene in genes:
             Rv = gene["rv"]
+            statsByRv[Rv] = self.stats_for_gene(RvSiteindexesMap[Rv], groupWigIndexMap, data)
 
-            (MeansByRv[Rv],
-             NzMeansByRv[Rv],
-             NzPercByRv[Rv]) = self.stats_by_condition_for_gene(RvSiteindexesMap[Rv], conditions, data)
-        return [MeansByRv, NzMeansByRv, NzPercByRv]
+        ## TODO :: Any ordering to follow?
+        statGroupNames = groupWigIndexMap.keys()
+        return statsByRv, statGroupNames
 
     def global_stats_for_rep(self, data):
         """
@@ -498,7 +509,7 @@ class ZinbMethod(base.MultiConditionMethod):
 
         TASiteindexMap = {TA: i for i, TA in enumerate(sites)}
         RvSiteindexesMap = tnseq_tools.rv_siteindexes_map(genes, TASiteindexMap, nterm=self.NTerminus, cterm=self.CTerminus)
-        [MeansByRv, NzMeansByRv, NzPercByRv] = self.stats_by_rv(data, RvSiteindexesMap, genes, conditions)
+        statsByRv, statGroupNames = self.stats_by_rv(data, RvSiteindexesMap, genes, conditions, interactions)
         LogZPercByRep, NZMeanByRep = self.global_stats_for_rep(data)
 
         self.transit_message("Running ZINB")
@@ -506,11 +517,10 @@ class ZinbMethod(base.MultiConditionMethod):
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
-        conditionsList = self.included_conditions if len(self.included_conditions) > 0 else list(set(conditions))
         head = ("Rv Gene TAs".split() +
-                map(lambda v: "mean_" + v, conditionsList) +
-                map(lambda v: "NZmean_" + v, conditionsList) +
-                map(lambda v: "NZperc_" + v, conditionsList) +
+                map(lambda v: "Mean_" + v, statGroupNames) +
+                map(lambda v: "NZmean_" + v, statGroupNames) +
+                map(lambda v: "NZperc_" + v, statGroupNames) +
                 "pval padj".split() + ["status"])
 
         file.write("#Console: python %s\n" % " ".join(sys.argv))
@@ -518,9 +528,9 @@ class ZinbMethod(base.MultiConditionMethod):
         for gene in genes:
             Rv = gene["rv"]
             vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
-                    ["%0.2f" % MeansByRv[Rv][c] for c in conditionsList] +
-                    ["%0.2f" % NzMeansByRv[Rv][c] for c in conditionsList] +
-                    ["%0.2f" % NzPercByRv[Rv][c] for c in conditionsList] +
+                    ["%0.2f" % statsByRv[Rv]['mean'][group] for group in statGroupNames] +
+                    ["%0.2f" % statsByRv[Rv]['nz_mean'][group] for group in statGroupNames] +
+                    ["%0.2f" % statsByRv[Rv]['nz_perc'][group] for group in statGroupNames] +
                     ["%f" % x for x in [pvals[Rv], qvals[Rv]]]) + [run_status[Rv]]
             file.write('\t'.join(vals)+EOL)
         file.close()
