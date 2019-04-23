@@ -456,7 +456,7 @@ class ResamplingMethod(base.DualConditionMethod):
 
         if self.combinedWigParams:
             (position, data, filenamesInCombWig) = tnseq_tools.read_combined_wig(self.combinedWigParams['combined_wig'])
-            conditionsByFile, _, _ = tnseq_tools.read_samples_metadata(self.combinedWigParams['samples_metadata'])
+            conditionsByFile, _, _, _ = tnseq_tools.read_samples_metadata(self.combinedWigParams['samples_metadata'])
             conditions = self.wigs_to_conditions(conditionsByFile, filenamesInCombWig)
             data, conditions = self.filter_wigs_by_conditions(data, conditions, self.combinedWigParams['conditions'])
             data_ctrl = numpy.array([d for i, d in enumerate(data) if conditions[i].lower() == self.combinedWigParams['conditions'][0]])

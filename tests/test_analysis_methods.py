@@ -80,8 +80,8 @@ class TestMethods(TransitTestCase):
                 "sig_pvals expected in range: %s, actual: %d" % ("[35, 39]", len(sig_qvals)))
         self.assertLessEqual(
                 abs(len(sig_qvals) - 35),
-                1,
-                "sig_qvals expected in range: %s, actual: %d" % ("[34, 36]", len(sig_qvals)))
+                2,
+                "sig_qvals expected in range: %s, actual: %d" % ("[33, 37]", len(sig_qvals)))
 
     def test_resampling_combined_wig(self):
         # The conditions in the args should be matched case-insensitively.

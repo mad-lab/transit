@@ -172,7 +172,7 @@ class AnovaMethod(base.MultiConditionMethod):
         self.transit_message("Normalizing using: %s" % self.normalization)
         (data, factors) = norm_tools.normalize_data(data, self.normalization)
 
-        conditionsByFile, _, _ = tnseq_tools.read_samples_metadata(self.metadata)
+        conditionsByFile, _, _, _ = tnseq_tools.read_samples_metadata(self.metadata)
         conditions = self.wigs_to_conditions(
             conditionsByFile,
             filenamesInCombWig)

@@ -79,6 +79,7 @@ def read_samples_metadata(metadata_file, covarsToRead = [], interactionsToRead =
     covariatesByFileList = [{} for i in range(len(covarsToRead))]
     interactionsByFileList = [{} for i in range(len(interactionsToRead))]
     headersToRead = [condition_name.lower(), "filename"]
+    metadataCondOrdering = []
     with open(metadata_file) as mfile:
         lines = mfile.readlines()
         headIndexes = [i
@@ -99,12 +100,13 @@ def read_samples_metadata(metadata_file, covarsToRead = [], interactionsToRead =
             vals = line.split()
             [condition, wfile] = vals[headIndexes[0]], vals[headIndexes[1]]
             conditionsByFile[wfile] = condition
+            metadataCondOrdering.append(condition)
             for i, c in enumerate(covarsToRead):
                 covariatesByFileList[i][wfile] = vals[covarIndexes[i]]
             for i, c in enumerate(interactionsToRead):
                 interactionsByFileList[i][wfile] = vals[interactionIndexes[i]]
 
-    return conditionsByFile, covariatesByFileList, interactionsByFileList
+    return conditionsByFile, covariatesByFileList, interactionsByFileList, metadataCondOrdering
 
 def read_genes(fname,descriptions=False):
     """

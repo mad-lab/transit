@@ -359,26 +359,10 @@ class ZinbMethod(base.MultiConditionMethod):
             self.transit_message("Winsorizing and running analysis...")
 
         self.transit_message("Condition: %s" % self.condition)
-        covarsFormula = ""
-        if (len(self.covars) > 0):
-            covarsFormula = "+".join([""] + self.covars)
-            self.transit_message("Covariates: {0}".format(covarsFormula))
 
-        condFormula = "cond"
-        if (len(self.interactions) > 0):
-            condFormula = "+".join(["cond*{0}".format(interaction) for interaction in self.interactions])
-            self.transit_message("Interactions: {0}".format(condFormula))
-
-        sat_adjust = True # just for testing False, but we always want to leave it as True
-        zinbMod1 = ("cnt~1+{cond}+offset(log(NZmean)){covars}|1+{cond}+offset(logitZperc){covars}" if sat_adjust else "cnt~1+{cond}{covars}").format(cond=condFormula, covars=covarsFormula)
-        zinbMod0 = ("cnt~1+offset(log(NZmean)){covars}|1+offset(logitZperc){covars}" if sat_adjust else "cnt~1{covars}").format(covars=covarsFormula)
-        nbMod1 = "cnt~1+{cond}{covars}".format(cond=condFormula, covars=covarsFormula)
-        nbMod0 = "cnt~1{covars}".format(covars=covarsFormula)
-
-
-        # proposed new way to do it
         comp1a = "1+cond"
         comp1b = "1+cond"
+
         # include cond in mod0 only if testing interactions
         comp0a = "1" if len(self.interactions)==0 else "1+cond"
         comp0b = "1" if len(self.interactions)==0 else "1+cond"
@@ -387,8 +371,8 @@ class ZinbMethod(base.MultiConditionMethod):
         zinbMod1 = "cnt~%s+offset(log(NZmean))|%s+offset(logitZperc)" % (comp1a,comp1b)
         zinbMod0 = "cnt~%s+offset(log(NZmean))|%s+offset(logitZperc)" % (comp0a,comp0b)
 
-        nbMod1 = "cnt~1+{cond}{covars}".format(cond=condFormula, covars=covarsFormula)
-        nbMod0 = "cnt~1{covars}".format(covars=covarsFormula)
+        nbMod1 = "cnt~%s" % (comp1a)
+        nbMod0 = "cnt~%s" % (comp0a)
         toRFloatOrStrVec = lambda xs: FloatVector(xs) if self.is_number(xs[0]) else StrVector(xs)
 
         for gene in genes:
@@ -481,7 +465,7 @@ class ZinbMethod(base.MultiConditionMethod):
         (data, factors) = norm_tools.normalize_data(data, self.normalization)
 
         condition_name = self.condition
-        conditionsByFile, covariatesByFileList, interactionsByFileList = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions, condition_name=condition_name)
+        conditionsByFile, covariatesByFileList, interactionsByFileList, metadataCondOrdering = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions, condition_name=condition_name)
 
         ## [Condition] in the order of files in combined wig
         conditions = self.wigs_to_conditions(
@@ -513,12 +497,23 @@ class ZinbMethod(base.MultiConditionMethod):
         self.transit_message("Running ZINB")
         pvals, qvals, run_status = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions, covariates, interactions)
 
+        def orderStats(x, y):
+            ic1 = x.split("_")
+            ic2 = y.split("_")
+            c1 = ic1[1] if len(ic1) > 1 else ic1[0]
+            c2 = ic2[1] if len(ic2) > 1 else ic2[0]
+            if len(self.included_conditions) > 0:
+                return (self.included_conditions.index(c1) - self.included_conditions.index(c2))
+            return (metadataCondOrdering.index(c1) - metadataCondOrdering.index(c2))
+
+        orderedStatGroupNames = sorted(statGroupNames, orderStats)
+
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
         head = ("Rv Gene TAs".split() +
-                map(lambda v: "Mean_" + v, statGroupNames) +
-                map(lambda v: "NZmean_" + v, statGroupNames) +
-                map(lambda v: "NZperc_" + v, statGroupNames) +
+                map(lambda v: "Mean_" + v, orderedStatGroupNames) +
+                map(lambda v: "NZmean_" + v, orderedStatGroupNames) +
+                map(lambda v: "NZperc_" + v, orderedStatGroupNames) +
                 "pval padj".split() + ["status"])
 
         file.write("#Console: python %s\n" % " ".join(sys.argv))
@@ -526,9 +521,9 @@ class ZinbMethod(base.MultiConditionMethod):
         for gene in genes:
             Rv = gene["rv"]
             vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
-                    ["%0.2f" % statsByRv[Rv]['mean'][group] for group in statGroupNames] +
-                    ["%0.2f" % statsByRv[Rv]['nz_mean'][group] for group in statGroupNames] +
-                    ["%0.2f" % statsByRv[Rv]['nz_perc'][group] for group in statGroupNames] +
+                    ["%0.2f" % statsByRv[Rv]['mean'][group] for group in orderedStatGroupNames] +
+                    ["%0.2f" % statsByRv[Rv]['nz_mean'][group] for group in orderedStatGroupNames] +
+                    ["%0.2f" % statsByRv[Rv]['nz_perc'][group] for group in orderedStatGroupNames] +
                     ["%f" % x for x in [pvals[Rv], qvals[Rv]]]) + [run_status[Rv]]
             file.write('\t'.join(vals)+EOL)
         file.close()
@@ -541,13 +536,14 @@ class ZinbMethod(base.MultiConditionMethod):
 
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
-        -w                  :=  If set, Winsorize data.
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis.
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
         -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5.0
         -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5.0
+        --condition     :=  columnname (in samples_metadata) to use as the Condition. Default: "Condition"
         --covars <covar1,...>     :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
         --interactions <covar1,...>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis. Must be factors
+        --gene <RV number or Gene name> := Run method for one gene and print model output.
         """ % (sys.argv[0])
 
 if __name__ == "__main__":
