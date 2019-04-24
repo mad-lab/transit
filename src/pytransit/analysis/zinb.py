@@ -177,7 +177,7 @@ class ZinbMethod(base.MultiConditionMethod):
         for i, conditionForWig in enumerate(conditions):
             if (len(interactions) > 0):
                 for interaction in interactions:
-                    groupName = interaction[i] + '_' + conditionForWig
+                    groupName = conditionForWig + '_' + interaction[i]
                     groupWigIndexMap[groupName].append(i)
             else:
                 groupName = conditionForWig
@@ -465,7 +465,7 @@ class ZinbMethod(base.MultiConditionMethod):
         (data, factors) = norm_tools.normalize_data(data, self.normalization)
 
         condition_name = self.condition
-        conditionsByFile, covariatesByFileList, interactionsByFileList, metadataCondOrdering = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions, condition_name=condition_name)
+        conditionsByFile, covariatesByFileList, interactionsByFileList, orderingMetadata = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions, condition_name=condition_name)
 
         ## [Condition] in the order of files in combined wig
         conditions = self.wigs_to_conditions(
@@ -500,11 +500,21 @@ class ZinbMethod(base.MultiConditionMethod):
         def orderStats(x, y):
             ic1 = x.split("_")
             ic2 = y.split("_")
-            c1 = ic1[1] if len(ic1) > 1 else ic1[0]
-            c2 = ic2[1] if len(ic2) > 1 else ic2[0]
+            c1, i1 = (ic1[0], ic1[1]) if len(ic1) > 1 else (ic1[0], None)
+            c2, i2 = (ic2[0], ic2[1]) if len(ic2) > 1 else (ic2[0], None)
+
             if len(self.included_conditions) > 0:
-                return (self.included_conditions.index(c1) - self.included_conditions.index(c2))
-            return (metadataCondOrdering.index(c1) - metadataCondOrdering.index(c2))
+                condDiff = (self.included_conditions.index(c1) - self.included_conditions.index(c2))
+                ## Order by interaction, if stat belongs to same condition
+                if condDiff == 0 and i1 is not None and i2 is not None:
+                    return (orderingMetadata['interaction'].index(i1) - orderingMetadata['interaction'].index(i2))
+                return condDiff
+
+            ## Order by samples metadata, if include flag not provided.
+            condDiff = (orderingMetadata['condition'].index(c1) - orderingMetadata['condition'].index(c2))
+            if condDiff == 0 and i1 is not None and i2 is not None:
+                return (orderingMetadata['interaction'].index(i1) - orderingMetadata['interaction'].index(i2))
+            return condDiff
 
         orderedStatGroupNames = sorted(statGroupNames, orderStats)
 

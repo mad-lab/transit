@@ -79,7 +79,7 @@ def read_samples_metadata(metadata_file, covarsToRead = [], interactionsToRead =
     covariatesByFileList = [{} for i in range(len(covarsToRead))]
     interactionsByFileList = [{} for i in range(len(interactionsToRead))]
     headersToRead = [condition_name.lower(), "filename"]
-    metadataCondOrdering = []
+    orderingMetadata = { 'condition': [], 'interaction': [] }
     with open(metadata_file) as mfile:
         lines = mfile.readlines()
         headIndexes = [i
@@ -95,18 +95,22 @@ def read_samples_metadata(metadata_file, covarsToRead = [], interactionsToRead =
                 for i, c in enumerate(lines[0].split())
                 if c.lower() == h.lower()]
 
-        for line in lines:
+        for line in lines[1:]:
             if line[0]=='#': continue
             vals = line.split()
             [condition, wfile] = vals[headIndexes[0]], vals[headIndexes[1]]
             conditionsByFile[wfile] = condition
-            metadataCondOrdering.append(condition)
+            orderingMetadata['condition'].append(condition)
             for i, c in enumerate(covarsToRead):
                 covariatesByFileList[i][wfile] = vals[covarIndexes[i]]
             for i, c in enumerate(interactionsToRead):
                 interactionsByFileList[i][wfile] = vals[interactionIndexes[i]]
 
-    return conditionsByFile, covariatesByFileList, interactionsByFileList, metadataCondOrdering
+                # This makes sense only if there is only 1 interaction variable
+                # For multiple interaction vars, may have to rethink ordering.
+                orderingMetadata['interaction'].append(vals[interactionIndexes[i]])
+
+    return conditionsByFile, covariatesByFileList, interactionsByFileList, orderingMetadata
 
 def read_genes(fname,descriptions=False):
     """
