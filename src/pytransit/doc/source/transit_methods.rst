@@ -1082,19 +1082,17 @@ Covariates and Interactions
 
 While ZINB is focus on identifying variability of insertion counts across conditions,
 the linear model also allows you to take other variables into account.
-There are two types of auxilliary variables: *covariates* and *interactions*.
-Covariates are attributes of the individuals samples that could have a systematic
+There are two types of auxilliary variables: *covariates* and *interactions*. These can be provided as extra columns in the samples metadata file.
+Covariates are attributes of the individual samples that could have a systematic
 effect on the insertion counts which we would like to account for and subsequently ignore
-(like nuissance variables).
-Examples include things like batch or library.  These can be provided as extra
-columns in the samples metadata file.
+(like nuissance variables). Examples include things like batch or library.
 
 Interactions are extra variables for which we want to test their effect on the 
 main variable (or condition).  For example, suppose we collect TnSeq data at several
 different timepoints (e.g. length of incubation or infection).  If we just test
 time as the condition, we will be identifying genes that vary over time (if timepoints
 are numeric, think of the model as fitting a 'slope' to the counts).
-But suppose we have data both a wild-type and knock-out strain.  Then we might be
+But suppose we have data for both a wild-type and knock-out strain.  Then we might be
 interested in genes for which the time-dependent behavior *differs* between the two
 strains (think: different 'slopes'). In such a case, we would say strain and time interact.
 
@@ -1123,10 +1121,10 @@ the **\\-\\-covars** flag.
  python transit.py zinb combined.wig samples.metadata prot.table output.file --covars Batch
 
 
-Similarly, one or more interaction may be included in the model.
-These are specified by the user with the **\\-\\-interactions** flag,
+Similarly, an interaction variable may be included in the model.
+This is specified by the user with the **\\-\\-interactions** flag,
 followed by the name of a column in the samples metadata to test as the interaction
-with the condition.  If there are multiple interactions, they may be given as a comma-separated list.
+with the condition. If there are multiple interactions, they may be given as a comma-separated list.
 
 To give an example,
 consider an experiment where the condition represents
