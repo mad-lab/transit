@@ -35,6 +35,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'sphinx.ext.mathbase',
+    'sphinx.ext.mathjax',
 ]
 
 ### NAPOLEON VARS:
