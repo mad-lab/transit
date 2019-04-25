@@ -1077,10 +1077,29 @@ The following parameters are available for the method:
    of normalization method available in TRANSIT.
 - **Covariates:** If additional covariates distinguishing the samples are available, such as library, timepoint, or genotype, they may be incorporated in the test.
 
-Incorporating Covariates and Interactions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Covariates and Interactions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If additional covariates distinguishing the samples are available,
+While ZINB is focus on identifying variability of insertion counts across conditions,
+the linear model also allows you to take other variables into account.
+There are two types of auxilliary variables: *covariates* and *interactions*.
+Covariates are attributes of the individuals samples that could have a systematic
+effect on the insertion counts which we would like to account for and subsequently ignore
+(like nuissance variables).
+Examples include things like batch or library.  These can be provided as extra
+columns in the samples metadata file.
+
+Interactions are extra variables for which we want to test their effect on the 
+main variable (or condition).  For example, suppose we collect TnSeq data at several
+different timepoints (e.g. length of incubation or infection).  If we just test
+time as the condition, we will be identifying genes that vary over time (if timepoints
+are numeric, think of the model as fitting a 'slope' to the counts).
+But suppose we have data both a wild-type and knock-out strain.  Then we might be
+interested in genes for which the time-dependent behavior *differs* between the two
+strains (think: different 'slopes'). In such a case, we would say strain and time interact.
+
+
+If covariates distinguishing the samples are available,
 such as batch or library, they may be
 incorporated in the ZINB model by using the `covars` flag and samples
 metadata file. For example, consider the following samples metadata
@@ -1096,7 +1115,8 @@ replicate.
   chol2   cholesterol  /Users/example_data/cholesterol_rep2.wig     B2
   chol2   cholesterol  /Users/example_data/cholesterol_rep3.wig     B2
 
-This information can be included to eliminate variability due to batch by using the `covars` flag.
+This information can be included to eliminate variability due to batch by using
+the **\\-\\-covars** flag.
 
 ::
 
@@ -1104,7 +1124,7 @@ This information can be included to eliminate variability due to batch by using 
 
 
 Similarly, one or more interaction may be included in the model.
-These are specified by the user with the *interactions* flag,
+These are specified by the user with the **\\-\\-interactions** flag,
 followed by the name of a column in the samples metadata to test as the interaction
 with the condition.  If there are multiple interactions, they may be given as a comma-separated list.
 
@@ -1121,17 +1141,12 @@ differs depending on the strain, we could do this:
  
 In this case, the condition is implicitly assumed to be the column in the samples metadata file
 labeled 'Condition'.  If you want to specify a different column to use as the primary condition to 
-test (for example, if Treatment were a distinct column), you can use the *condition* flag:
+test (for example, if Treatment were a distinct column), you can use the **\\-\\-condition** flag:
 
 ::
 
  python transit.py zinb combined.wig samples.metadata prot.table output.file --condition Treatment --interactions Strain
  
-
-Conceptually, covariates are nuisance variables,
-like batch or library - we want to factor out their influence on insertion counts.
-Interactions are variables that affect the statistical trends in the primary condition,
-which we are more often interest in, such as timepoint or genotype.
 
 
 The difference between how covariates and interactions are handeled in the model 
@@ -1164,9 +1179,10 @@ condition-independent (null) ZINB model (:math:`m_0`).
 
   2 \ ln \frac{L(m_1)}{L(m_0)} \sim \chi^2_{df}
 
-where L() is the ZINB likelihood function, and :math:`\chi^2_{df}` is
+where L(.) is the ZINB likelihood function, and :math:`\chi^2_{df}` is
 the chi-squared distribution with degrees of freedom (df) equal to
-difference in the number of parameters bewteen the two models.
+difference in the number of parameters bewteen the two models.  The p-value is
+calculated based on this distribution.
 
 In a simple case where variability across a set of conditions X is being tested,
 you can think of the model approximately as:
@@ -1177,7 +1193,8 @@ you can think of the model approximately as:
   m_1: ln \ \mu = \alpha_0+\vec\alpha X
 
 where :math:`\mu` is an estimate of the mean (non-zero) insertion
-count in a gene, :math:`\alpha_0` is a constant (the mean across all
+count in a gene (a parameter in the likelihood function for ZINB), 
+:math:`\alpha_0` is a constant (the mean across all
 conditions), and :math:`\vec\alpha` is a vector of coefficients
 representing the deviation of the mean count in each condition.
 (There is a corresponding equation for estimating the saturation as a
