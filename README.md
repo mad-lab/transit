@@ -1,4 +1,4 @@
-# TRANSIT 2.5.0
+# TRANSIT 2.5.1
 
 [![Build Status](https://travis-ci.org/mad-lab/transit.svg?branch=master)](https://travis-ci.org/mad-lab/transit)   [![Documentation Status](https://readthedocs.org/projects/transit/badge/?version=latest)](http://transit.readthedocs.io/en/latest/?badge=latest)   [![Downloads](https://pepy.tech/badge/tnseq-transit)](https://pepy.tech/project/tnseq-transit)
 
