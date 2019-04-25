@@ -1,6 +1,11 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+## Version 2.5.1 2019-04-25
+#### TRANSIT:
+  - Add support for [handling interactions in ZINB](https://transit.readthedocs.io/en/latest/transit_methods.html#covariates-and-interactions)
+  - Fix selection bug for gff3 in GUI
+
 ## Version 2.5.0 2019-03-28
 #### TRANSIT:
   - Added analysis method for Zero-Inflated Negative Binomial ([ZINB](https://transit.readthedocs.io/en/latest/transit_methods.html#zinb))

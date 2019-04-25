@@ -551,9 +551,10 @@ class ZinbMethod(base.MultiConditionMethod):
         -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5.0
         -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5.0
         --condition     :=  columnname (in samples_metadata) to use as the Condition. Default: "Condition"
-        --covars <covar1,...>     :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
-        --interactions <covar1,...>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis. Must be factors
+        --covars <covar1,covar2...>     :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
+        --interactions <covar1,covar2...>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis. Must be factors
         --gene <RV number or Gene name> := Run method for one gene and print model output.
+
         """ % (sys.argv[0])
 
 if __name__ == "__main__":

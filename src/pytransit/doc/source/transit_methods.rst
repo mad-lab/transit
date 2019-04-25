@@ -1012,7 +1012,11 @@ Example
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
         -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5.0
         -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5.0
-        --covars <covar1,covar2>     :=  Comma-separated list of covariates to include, for the analysis.
+        --condition     :=  columnname (in samples_metadata) to use as the Condition. Default: "Condition"
+        --covars <covar1,covar2...>     :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
+        --interactions <covar1,covar2...>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis.
+        --gene <RV number or Gene name> := Run method for one gene and print model output.
+
 
 
 

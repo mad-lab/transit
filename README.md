@@ -3,9 +3,9 @@
 [![Build Status](https://travis-ci.org/mad-lab/transit.svg?branch=master)](https://travis-ci.org/mad-lab/transit)   [![Documentation Status](https://readthedocs.org/projects/transit/badge/?version=latest)](http://transit.readthedocs.io/en/latest/?badge=latest)   [![Downloads](https://pepy.tech/badge/tnseq-transit)](https://pepy.tech/project/tnseq-transit)
 
 
-Welcome! This is the distribution for the TRANSIT and TPP tools developed by the Ioerger Lab at Texas A&M University.
+Welcome! This is the distribution for the TRANSIT and TPP tools developed by the [Ioerger Lab](http://orca2.tamu.edu/tom/iLab.html) at Texas A&M University.
 
-TRANSIT is a tool for processing and statistical analysis of Tn-Seq data. 
+TRANSIT is a tool for processing and statistical analysis of Tn-Seq data.
 It provides an easy to use graphical interface and access to three different analysis methods that allow the user to determine essentiality in a single condition as well as between conditions.
 
 TRANSIT Home page: http://saclab.tamu.edu/essentiality/transit/index.html
@@ -17,8 +17,8 @@ TRANSIT Documentation: https://transit.readthedocs.io/en/latest/transit_overview
 
 ## Features
 TRANSIT offers a variety of features including:
-    
--   More than **8 analysis methods**, including methods for determining **conditional essentiality** as well as **genetic interactions**.
+
+-   More than **10 analysis methods**, including methods for determining **conditional essentiality** as well as **genetic interactions**.
 
 -   Ability to analyze datasets from libraries constructed using  **himar1 or tn5 transposons**.
 
