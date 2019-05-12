@@ -344,7 +344,8 @@ class Tn5GapsMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        #return """python %s resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        return """python %s tn5gaps <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
     
         Optional Arguments:
         -m <integer>    :=  Smallest read-count to consider. Default: -m 1

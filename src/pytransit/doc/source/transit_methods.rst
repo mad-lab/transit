@@ -217,7 +217,7 @@ Charles I, Maskell DJ, Peters SE, Dougan G, Wain J, Parkhill J, Turner
 AK. (2009). `Simultaneous assay of every Salmonella Typhi gene using one million
 transposon mutants. <http://www.ncbi.nlm.nih.gov/pubmed/19826075>`_ *Genome Res.* , 19(12):2308-16.
 
-This data was downloaded from SRA (located `herei <http://trace.ncbi.nlm.nih.gov/Traces/sra/?study=ERP000051>`_) , and used to make
+This data was downloaded from SRA (located `here <http://trace.ncbi.nlm.nih.gov/Traces/sra/?study=ERP000051>`_) , and used to make
 wig files (`base <http://orca1.tamu.edu/essentiality/transit/data/salmonella_base.wig>`_ and `bile <http://orca1.tamu.edu/essentiality/transit/data/salmonella_bile.wig>`_) and the following 4 baseline datasets
 were merged to make a wig file: (IL2_2122_1,3,6,8). Our analysis
 produced 415 genes with adjusted p-values less than 0.05, indicating
@@ -227,15 +227,16 @@ output of our analysis.
 
 |
 
-Example
-~~~~~~~
+Usage
+~~~~~
 ::
 
-    python PATH/src/transit.py tn5gaps genomes/Salmonella-Ty2.prot_table data/salmonella_2122_rep1.wig,data/salmonella_2122_rep2.wig results/test_console_tn5gaps.dat -m 2 -r Sum
+    python ../../../transit.py tn5gaps <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
         Optional Arguments:
         -m <integer>    :=  Smallest read-count to consider. Default: -m 1
         -r <string>     :=  How to handle replicates. Sum or Mean. Default: -r Sum
+
 
 Parameters
 ~~~~~~~~~~
@@ -246,6 +247,13 @@ Parameters
 
 + **Replicates:** Determines how to deal with replicates by averaging the read-counts or suming read counts accross datasets. This should not have an affect for the Gumbel method, aside from potentially affecting spurious reads.
 
+
+
+Example
+~~~~~~~
+::
+
+    python PATH/src/transit.py tn5gaps data/salmonella_2122_rep1.wig,data/salmonella_2122_rep2.wig genomes/Salmonella-Ty2.prot_table results/test_console_tn5gaps.dat -m 2 -r Sum
 
 
 |
@@ -1103,7 +1111,7 @@ strains (think: different 'slopes'). In such a case, we would say strain and tim
 
 If covariates distinguishing the samples are available,
 such as batch or library, they may be
-incorporated in the ZINB model by using the `covars` flag and samples
+incorporated in the ZINB model by using the **\\-\\-covars** flag and samples
 metadata file. For example, consider the following samples metadata
 file, with a column describing the batch information of each
 replicate.

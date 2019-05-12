@@ -162,7 +162,7 @@ class ResamplingGUI(base.AnalysisGUI):
 
 
         # Zeros Check
-        (self.wxobj.resamplingZeroCheckBox, zeroSizer) = self.defineCheckBox(resamplingPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
+        (self.wxobj.resamplingZeroCheckBox, zeroSizer) = self.defineCheckBox(resamplingPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Includes sites that are empty (zero) across all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
         resamplingSizer.Add(zeroSizer, 0, wx.EXPAND, 5 )
 
 
@@ -636,7 +636,7 @@ class ResamplingMethod(base.DualConditionMethod):
         -n <string>     :=  Normalization method. Default: -n TTR
         -h              :=  Output histogram of the permutations for each gene. Default: Turned Off.
         -a              :=  Perform adaptive resampling. Default: Turned Off.
-        -ez             :=  Exclude rows with zero accross conditions. Default: Turned off
+        -ez             :=  Exclude rows with zero across conditions. Default: Turned off
                             (i.e. include rows with zeros).
         -pc             :=  Pseudocounts to be added at each site.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias.
