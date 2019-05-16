@@ -36,7 +36,7 @@ try:
 except Exception as e:
     hasWx = False
 
-from tpp_tools import *
+from pytpp.tpp_tools import *
 
 if hasWx:
 

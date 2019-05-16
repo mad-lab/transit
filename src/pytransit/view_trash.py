@@ -17,7 +17,7 @@ except Exception as e:
     hasWx = False
 
 
-import images
+import pytransit.images
 
 ###########################################################################
 ## Class MainFrame

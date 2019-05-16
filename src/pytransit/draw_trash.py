@@ -18,7 +18,7 @@
 #    along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import view_trash
+import pytransit.view_trash as view_trash
 from math import *
 import os
 import platform

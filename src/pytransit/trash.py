@@ -23,8 +23,8 @@ try:
 except Exception as e:
     hasWx = False
 
-import view_trash
-import draw_trash
+import pytransit.view_trash as view_trash
+import pytransit.draw_trash as draw_trash
 from math import *
 import os
 import ntpath

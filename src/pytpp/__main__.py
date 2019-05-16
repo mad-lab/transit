@@ -30,8 +30,8 @@ import shutil
 import platform
 import gzip
 
-from tpp_tools import *
-from tpp_gui import *
+from pytpp.tpp_tools import *
+from pytpp.tpp_gui import *
 
 
 def run_main():

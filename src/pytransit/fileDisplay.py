@@ -33,7 +33,7 @@ import sys
 
 from functools import partial
 
-import trash
+import pytransit.trash
 
 import wx.grid
 
