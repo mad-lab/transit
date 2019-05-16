@@ -214,8 +214,8 @@ class AnovaMethod(base.MultiConditionMethod):
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
-        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 0
         """ % (sys.argv[0])
 
 

@@ -45,8 +45,8 @@ Example
         -m <integer>    :=  Smallest read-count to consider. Default: -m 1
         -t <integer>    :=  Trims all but every t-th value. Default: -t 1
         -r <string>     :=  How to handle replicates. Sum or Mean. Default: -r Sum
-        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring at given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring at given percentage (as integer) of the C terminus. Default: -iC 0
 
 
 
@@ -236,6 +236,8 @@ Usage
         Optional Arguments:
         -m <integer>    :=  Smallest read-count to consider. Default: -m 1
         -r <string>     :=  How to handle replicates. Sum or Mean. Default: -r Sum
+        -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 0
 
 
 Parameters
@@ -247,13 +249,15 @@ Parameters
 
 + **Replicates:** Determines how to deal with replicates by averaging the read-counts or suming read counts accross datasets. This should not have an affect for the Gumbel method, aside from potentially affecting spurious reads.
 
++ **-iN:** Trimming of insertions in N-terminus (given as percentage of ORF length, e.g. "5" for 5%; default=0)
 
++ **-iC:** Trimming of insertions in C-terminus (given as percentage of ORF length, e.g. "5" for 5%; default=0)
 
 Example
 ~~~~~~~
 ::
 
-    python PATH/src/transit.py tn5gaps data/salmonella_2122_rep1.wig,data/salmonella_2122_rep2.wig genomes/Salmonella-Ty2.prot_table results/test_console_tn5gaps.dat -m 2 -r Sum
+    python PATH/src/transit.py tn5gaps data/salmonella_2122_rep1.wig,data/salmonella_2122_rep2.wig genomes/Salmonella-Ty2.prot_table results/test_console_tn5gaps_trimmed.dat -m 2 -r Sum -iN 5 -iC 5
 
 
 |
@@ -341,8 +345,8 @@ Example
         Optional Arguments:
             -r <string>     :=  How to handle replicates. Sum, Mean. Default: -r Mean
             -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Off.
-            -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-            -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+            -iN <float>     :=  Ignore TAs occuring at given percentage (as integer) of the N terminus. Default: -iN 0
+            -iC <float>     :=  Ignore TAs occuring at given percentage (as integer) of the C terminus. Default: -iC 0
 
 
 Parameters
@@ -496,8 +500,8 @@ Usage
         -pc             :=  Pseudocounts to be added at each site.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias.
                             Default: Turned Off.
-        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring at given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring at given percentage (as integer) of the C terminus. Default: -iC 0
         --ctrl_lib      :=  String of letters representing library of control files in order
                             e.g. 'AABB'. Default empty. Letters used must also be used in --exp_lib
                             If non-empty, resampling will limit permutations to within-libraries.
@@ -765,8 +769,8 @@ Example
         -n <string>     :=  Normalization method. Default: -n TTR
         -iz             :=  Include rows with zero accross conditions.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.
-        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring at given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring at given percentage (as integer) of the C terminus. Default: -iC 0
 
 You can think of 'control' and 'experimental' samples as 'untreated' vs. 'treated'.
 
@@ -891,8 +895,8 @@ Example
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
-        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 0
 
 The output file generated by ZINB identifies which genes exhibit statistically
 significant variability in counts across conditions (see Output and Diagnostics below).
@@ -1018,8 +1022,8 @@ Example
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis.
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
-        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5.0
-        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5.0
+        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5
+        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5
         --condition     :=  columnname (in samples_metadata) to use as the Condition. Default: "Condition"
         --covars <covar1,covar2...>     :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
         --interactions <covar1,covar2...>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis.

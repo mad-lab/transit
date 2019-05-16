@@ -213,8 +213,8 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         normalization = None
         LOESS = False
         ignoreCodon = True
-        NTerminus = 0.0
-        CTerminus = 0.0
+        NTerminus = float(kwargs.get("iN","0"))
+        CTerminus = float(kwargs.get("iC","0"))
 
         return self(ctrldata,
                 annotationPath,
@@ -275,9 +275,15 @@ class Tn5GapsMethod(base.SingleConditionMethod):
             count += 1
             genes = tnseq_tools.get_genes_in_range(pos_hash, run['start'], run['end'])
             for gene_orf in genes:
+                start,end = gene.start,gene.end
+                a,b = self.NTerminus,self.CTerminus
+                if gene.strand=="-": a,b = b,a
+                start = start+int((end-start)*(a/100.))
+                end = end-int((end-start)*(b/100.))
+
                 gene = genes_obj[gene_orf]
-                inter_sz = self.intersect_size([run['start'], run['end']], [gene.start, gene.end]) + 1
-                percent_overlap = self.calc_overlap([run['start'], run['end']], [gene.start, gene.end])
+                inter_sz = self.intersect_size([run['start'], run['end']], [start,end]) + 1
+                percent_overlap = self.calc_overlap([run['start'], run['end']], [start,end])
                 run_len = run['length']
                 B = 1.0/math.log(1.0/pnon)
                 u = math.log(num_sites*pins, 1.0/pnon)
@@ -350,6 +356,8 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         Optional Arguments:
         -m <integer>    :=  Smallest read-count to consider. Default: -m 1
         -r <string>     :=  How to handle replicates. Sum or Mean. Default: -r Sum
+        -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 0
         """ % (sys.argv[0])
 
 

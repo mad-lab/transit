@@ -358,8 +358,8 @@ class RankProductMethod(base.DualConditionMethod):
         -h              :=  Output histogram of the permutations for each gene. Default: Turned Off.
         -a              :=  Perform adaptive rankproduct. Default: Turned Off.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.
-        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring at given fraction (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring at given fraction (as integer) of the C terminus. Default: -iC 0
         """ % (sys.argv[0])
 
 

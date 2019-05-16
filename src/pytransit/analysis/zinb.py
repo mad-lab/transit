@@ -548,8 +548,8 @@ class ZinbMethod(base.MultiConditionMethod):
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis.
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
-        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5.0
-        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5.0
+        -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 5
+        -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 5
         --condition     :=  columnname (in samples_metadata) to use as the Condition. Default: "Condition"
         --covars <covar1,covar2...>     :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
         --interactions <covar1,covar2...>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis. Must be factors
