@@ -327,7 +327,7 @@ class ZinbMethod(base.MultiConditionMethod):
         if (len(unique_counts) < 2):
             return data
         else:
-            n, n_minus_1 = unique_counts[heapq.nlargest(2, xrange(len(unique_counts)), unique_counts.take)]
+            n, n_minus_1 = unique_counts[heapq.nlargest(2, range(len(unique_counts)), unique_counts.take)]
             result = [[ n_minus_1 if count == n else count
                         for count in wig] for wig in data]
         return numpy.array(result)

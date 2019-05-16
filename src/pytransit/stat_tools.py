@@ -353,11 +353,11 @@ def BH_fdr_correction(X):
     pvalues.sort()
     pvalues = pvalues[::-1]
     
-    for i in xrange(n):
+    for i in range(n):
         rank = n - i
         qvalues[i] = n/float(rank) * pvalues[i]
  
-    for i in xrange(0, n-1):
+    for i in range(0, n-1):
         if qvalues[i] < qvalues[i+1]:
             qvalues[i+1] = qvalues[i]
         
@@ -373,7 +373,7 @@ def bayesian_ess_thresholds(Z_raw, ALPHA=0.05):
     N = len(Z)
 
     ess_threshold = 1.00
-    INDEX = range(3, N+1)
+    INDEX = list(range(3, N+1))
     count = 0
     for i in INDEX:
         count +=1
@@ -389,7 +389,7 @@ def bayesian_ess_thresholds(Z_raw, ALPHA=0.05):
 
     noness_threshold = 0.00
     count = 0
-    INDEX = range(0, N+1)
+    INDEX = list(range(0, N+1))
     INDEX.sort(reverse=True)
     for i in INDEX:
         wi = Z[N-i+1]
@@ -439,10 +439,10 @@ def loess(X, Y, h=10000):
 def loess_correction(X, Y, h=10000, window=100):
     #TODO: Write docstring
     Y = numpy.array(Y)
-    size = len(X)/window + 1
+    size = int(len(X)/window) + 1
     x_w = numpy.zeros(size)
     y_w = numpy.zeros(size)
-    for i in range(len(X)/window + 1):
+    for i in range(size):
         x_w[i] = window*i
         y_w[i] = sum(Y[window*i:window*(i+1)])
 

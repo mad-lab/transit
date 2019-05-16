@@ -386,7 +386,7 @@ class Genes:
         if isinstance(i, int):
             return(self.genes[i])
 
-        if isinstance(i, basestring):
+        if isinstance(i, str):
             return self.genes[self.orf2index[i]]
 
 #
@@ -546,7 +546,7 @@ class Genes:
         """
         G = len(self.genes)
         K = numpy.zeros(G)
-        for i in xrange(G):
+        for i in range(G):
             K[i] = self.genes[i].k
         return K
 
@@ -574,7 +574,7 @@ class Genes:
         """
         G = len(self.genes)
         R = numpy.zeros(G)
-        for i in xrange(G):
+        for i in range(G):
             R[i] = self.genes[i].r
         return R
 
@@ -589,7 +589,7 @@ class Genes:
         """
         G = len(self.genes)
         S = numpy.zeros(G)
-        for i in xrange(G):
+        for i in range(G):
             S[i] = self.genes[i].s
         return S
 
@@ -604,7 +604,7 @@ class Genes:
         """
         G = len(self.genes)
         T = numpy.zeros(G)
-        for i in xrange(G):
+        for i in range(G):
             T[i] = self.genes[i].t
         return T
 
@@ -618,7 +618,7 @@ class Genes:
         """
         all_reads = []
         G = len(self.genes)
-        for i in xrange(G):
+        for i in range(G):
             all_reads.extend(self.genes[i].reads)
         return numpy.array(all_reads)
 
@@ -632,7 +632,7 @@ class Genes:
         """
         G = len(self.genes)
         theta = numpy.zeros(G)
-        for i in xrange(G):
+        for i in range(G):
             theta[i] = self.genes[i].theta()
         return theta
 
@@ -656,7 +656,7 @@ class Genes:
         """
         G = len(self.genes)
         total = 0
-        for i in xrange(G):
+        for i in range(G):
             total += self.genes[i].k
         return total
 
@@ -670,7 +670,7 @@ class Genes:
         """
         G = len(self.genes)
         total = 0
-        for i in xrange(G):
+        for i in range(G):
             total += self.genes[i].n
         return total
 

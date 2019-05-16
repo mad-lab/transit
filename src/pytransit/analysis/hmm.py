@@ -356,7 +356,7 @@ class HMMMethod(base.SingleConditionMethod):
         #################
 
         T = len(O); total=0; state2count = dict.fromkeys(range(Nstates),0)
-        for t in xrange(T):
+        for t in range(T):
             state = Q_opt[t]
             state2count[state] +=1
             total+=1
@@ -395,7 +395,7 @@ class HMMMethod(base.SingleConditionMethod):
 
         states = [int(Q_opt[t]) for t in range(T)]
         last_orf = ""
-        for t in xrange(T):
+        for t in range(T):
             s_lab = label.get(states[t], "Unknown State")
             gamma_t = (alpha[:,t] * beta[:,t])/numpy.sum(alpha[:,t] * beta[:,t])
             genes_at_site = hash.get(position[t], [""])
@@ -452,7 +452,7 @@ class HMMMethod(base.SingleConditionMethod):
         C[0] = 1.0/numpy.sum(alpha[:,0])
         alpha[:,0] = C[0] * alpha[:,0]
 
-        for t in xrange(1, T):
+        for t in range(1, T):
             #B[i](O[:,t])  =>  numpy.prod(B[i](O[:,t]))
             #b_o = numpy.array([numpy.prod(B[i](O[:,t])) for i in range(N)])
             b_o = [B[i](O[t]) for i in range(N)]
@@ -482,7 +482,7 @@ class HMMMethod(base.SingleConditionMethod):
         beta[:,T-1] = 1.0
         if C.any(): beta[:,T-1] = beta[:,T-1] * C[T-1]
 
-        for t in xrange(T-2, -1, -1):
+        for t in range(T-2, -1, -1):
             #B[i](O[:,t])  =>  numpy.prod(B[i](O[:,t]))
             #b_o = numpy.array([numpy.prod(B[i](O[:,t])) for i in range(N)])
             b_o = [B[i](O[t]) for i in range(N)]
@@ -514,7 +514,7 @@ class HMMMethod(base.SingleConditionMethod):
         Q = numpy.zeros((N, T), dtype=int)
 
         numpy.seterr(divide='ignore')
-        for t in xrange(1, T):
+        for t in range(1, T):
             b_o = [B[i](O[t]) for i in range(N)]
             #nus = delta[:, t-1] + numpy.log(A)
             nus = delta[:, t-1] + A
@@ -525,7 +525,7 @@ class HMMMethod(base.SingleConditionMethod):
             self.count+=1
 
         Q_opt = [int(numpy.argmax(delta[:,T-1]))]
-        for t in xrange(T-2, -1, -1):
+        for t in range(T-2, -1, -1):
             Q_opt.insert(0, Q[Q_opt[0],t+1])
 
             text = "Running HMM Method... %5.1f%%" % (100.0*self.count/self.maxiterations)
