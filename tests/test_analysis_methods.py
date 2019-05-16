@@ -80,8 +80,8 @@ class TestMethods(TransitTestCase):
                 "sig_pvals expected in range: %s, actual: %d" % ("[35, 39]", len(sig_qvals)))
         self.assertLessEqual(
                 abs(len(sig_qvals) - 35),
-                1,
-                "sig_qvals expected in range: %s, actual: %d" % ("[34, 36]", len(sig_qvals)))
+                2,
+                "sig_qvals expected in range: %s, actual: %d" % ("[33, 37]", len(sig_qvals)))
 
     def test_resampling_combined_wig(self):
         # The conditions in the args should be matched case-insensitively.
@@ -169,7 +169,7 @@ class TestMethods(TransitTestCase):
 
     @unittest.skipUnless(hasR, "requires R, rpy2")
     def test_zinb_covariates(self):
-        args = [combined_wig, samples_metadata_covariates, small_annotation, output, "--covars", "batch"]
+        args = [combined_wig, samples_metadata_covariates, small_annotation, output, "--covars", "batch", "--condition", "NewConditionCol"]
         G = ZinbMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -183,6 +183,23 @@ class TestMethods(TransitTestCase):
             len(sig_qvals),
             10,
             "sig_qvals expected: %d, actual: %d" % (10, len(sig_qvals)))
+
+    @unittest.skipUnless(hasR, "requires R, rpy2")
+    def test_zinb_interactions(self):
+        args = [combined_wig, samples_metadata_interactions, small_annotation, output, "--covars", "batch", "--interactions", "atm"]
+        G = ZinbMethod.fromargs(args)
+        G.Run()
+        self.assertTrue(os.path.exists(output))
+        (sig_pvals, sig_qvals) = (significant_pvals_qvals(output, pcol=-3, qcol=-2))
+        sig_qvals.sort()
+        self.assertEqual(
+            len(sig_pvals),
+            3,
+            "sig_pvals expected: %d, actual: %d" % (3, len(sig_pvals)))
+        self.assertEqual(
+            len(sig_qvals),
+            0,
+            "sig_qvals expected: %d, actual: %d" % (0, len(sig_qvals)))
 
     def test_utest(self):
         args = [ctrl_data_txt, exp_data_txt, small_annotation, output]

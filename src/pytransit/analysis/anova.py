@@ -172,11 +172,11 @@ class AnovaMethod(base.MultiConditionMethod):
         self.transit_message("Normalizing using: %s" % self.normalization)
         (data, factors) = norm_tools.normalize_data(data, self.normalization)
 
-        conditionsByFile, _ = tnseq_tools.read_samples_metadata(self.metadata)
+        conditionsByFile, _, _, _ = tnseq_tools.read_samples_metadata(self.metadata)
         conditions = self.wigs_to_conditions(
             conditionsByFile,
             filenamesInCombWig)
-        data, conditions, _ = self.filter_wigs_by_conditions(data, conditions, ignored_conditions = self.ignored_conditions, included_conditions = self.included_conditions)
+        data, conditions, _, _ = self.filter_wigs_by_conditions(data, conditions, ignored_conditions = self.ignored_conditions, included_conditions = self.included_conditions)
 
         genes = tnseq_tools.read_genes(self.annotation_path)
 
@@ -214,8 +214,8 @@ class AnovaMethod(base.MultiConditionMethod):
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
-        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 0
         """ % (sys.argv[0])
 
 

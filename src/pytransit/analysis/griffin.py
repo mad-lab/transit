@@ -296,8 +296,8 @@ class GriffinMethod(base.SingleConditionMethod):
         -m <integer>    :=  Smallest read-count to consider. Default: -m 1
         -r <string>     :=  How to handle replicates. Sum or Mean. Default: -r Sum
         -sC             :=  Include stop-codon (default is to ignore).
-        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring at given fraction (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring at given fraction (as integer) of the C terminus. Default: -iC 0
         """ % (sys.argv[0])
 
 

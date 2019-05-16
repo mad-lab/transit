@@ -45,8 +45,8 @@ Example
         -m <integer>    :=  Smallest read-count to consider. Default: -m 1
         -t <integer>    :=  Trims all but every t-th value. Default: -t 1
         -r <string>     :=  How to handle replicates. Sum or Mean. Default: -r Sum
-        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring at given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring at given percentage (as integer) of the C terminus. Default: -iC 0
 
 
 
@@ -217,7 +217,7 @@ Charles I, Maskell DJ, Peters SE, Dougan G, Wain J, Parkhill J, Turner
 AK. (2009). `Simultaneous assay of every Salmonella Typhi gene using one million
 transposon mutants. <http://www.ncbi.nlm.nih.gov/pubmed/19826075>`_ *Genome Res.* , 19(12):2308-16.
 
-This data was downloaded from SRA (located `herei <http://trace.ncbi.nlm.nih.gov/Traces/sra/?study=ERP000051>`_) , and used to make
+This data was downloaded from SRA (located `here <http://trace.ncbi.nlm.nih.gov/Traces/sra/?study=ERP000051>`_) , and used to make
 wig files (`base <http://orca1.tamu.edu/essentiality/transit/data/salmonella_base.wig>`_ and `bile <http://orca1.tamu.edu/essentiality/transit/data/salmonella_bile.wig>`_) and the following 4 baseline datasets
 were merged to make a wig file: (IL2_2122_1,3,6,8). Our analysis
 produced 415 genes with adjusted p-values less than 0.05, indicating
@@ -227,15 +227,18 @@ output of our analysis.
 
 |
 
-Example
-~~~~~~~
+Usage
+~~~~~
 ::
 
-    python PATH/src/transit.py tn5gaps genomes/Salmonella-Ty2.prot_table data/salmonella_2122_rep1.wig,data/salmonella_2122_rep2.wig results/test_console_tn5gaps.dat -m 2 -r Sum
+    python ../../../transit.py tn5gaps <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
         Optional Arguments:
         -m <integer>    :=  Smallest read-count to consider. Default: -m 1
         -r <string>     :=  How to handle replicates. Sum or Mean. Default: -r Sum
+        -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 0
+
 
 Parameters
 ~~~~~~~~~~
@@ -246,6 +249,15 @@ Parameters
 
 + **Replicates:** Determines how to deal with replicates by averaging the read-counts or suming read counts accross datasets. This should not have an affect for the Gumbel method, aside from potentially affecting spurious reads.
 
++ **-iN:** Trimming of insertions in N-terminus (given as percentage of ORF length, e.g. "5" for 5%; default=0)
+
++ **-iC:** Trimming of insertions in C-terminus (given as percentage of ORF length, e.g. "5" for 5%; default=0)
+
+Example
+~~~~~~~
+::
+
+    python PATH/src/transit.py tn5gaps data/salmonella_2122_rep1.wig,data/salmonella_2122_rep2.wig genomes/Salmonella-Ty2.prot_table results/test_console_tn5gaps_trimmed.dat -m 2 -r Sum -iN 5 -iC 5
 
 
 |
@@ -333,8 +345,8 @@ Example
         Optional Arguments:
             -r <string>     :=  How to handle replicates. Sum, Mean. Default: -r Mean
             -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Off.
-            -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-            -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+            -iN <float>     :=  Ignore TAs occuring at given percentage (as integer) of the N terminus. Default: -iN 0
+            -iC <float>     :=  Ignore TAs occuring at given percentage (as integer) of the C terminus. Default: -iC 0
 
 
 Parameters
@@ -488,8 +500,8 @@ Usage
         -pc             :=  Pseudocounts to be added at each site.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias.
                             Default: Turned Off.
-        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring at given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring at given percentage (as integer) of the C terminus. Default: -iC 0
         --ctrl_lib      :=  String of letters representing library of control files in order
                             e.g. 'AABB'. Default empty. Letters used must also be used in --exp_lib
                             If non-empty, resampling will limit permutations to within-libraries.
@@ -757,8 +769,8 @@ Example
         -n <string>     :=  Normalization method. Default: -n TTR
         -iz             :=  Include rows with zero accross conditions.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.
-        -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring at given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring at given percentage (as integer) of the C terminus. Default: -iC 0
 
 You can think of 'control' and 'experimental' samples as 'untreated' vs. 'treated'.
 
@@ -883,8 +895,8 @@ Example
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
-        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 0
 
 The output file generated by ZINB identifies which genes exhibit statistically
 significant variability in counts across conditions (see Output and Diagnostics below).
@@ -1010,9 +1022,13 @@ Example
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis.
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
-        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5.0
-        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5.0
-        --covars <covar1,covar2>     :=  Comma-separated list of covariates to include, for the analysis.
+        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5
+        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5
+        --condition     :=  columnname (in samples_metadata) to use as the Condition. Default: "Condition"
+        --covars <covar1,covar2...>     :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
+        --interactions <covar1,covar2...>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis.
+        --gene <RV number or Gene name> := Run method for one gene and print model output.
+
 
 
 
@@ -1077,12 +1093,29 @@ The following parameters are available for the method:
    of normalization method available in TRANSIT.
 - **Covariates:** If additional covariates distinguishing the samples are available, such as library, timepoint, or genotype, they may be incorporated in the test.
 
-Incorporating Covariates
-~~~~~~~~~~~~~~~~~~~~~~~~
+Covariates and Interactions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If additional covariates distinguishing the samples are available,
-such as batch, library, timepoint, or genotype, they may be
-incorporated in the ZINB model by using the `covars` flag and samples
+While ZINB is focus on identifying variability of insertion counts across conditions,
+the linear model also allows you to take other variables into account.
+There are two types of auxilliary variables: *covariates* and *interactions*. These can be provided as extra columns in the samples metadata file.
+Covariates are attributes of the individual samples that could have a systematic
+effect on the insertion counts which we would like to account for and subsequently ignore
+(like nuissance variables). Examples include things like batch or library.
+
+Interactions are extra variables for which we want to test their effect on the 
+main variable (or condition).  For example, suppose we collect TnSeq data at several
+different timepoints (e.g. length of incubation or infection).  If we just test
+time as the condition, we will be identifying genes that vary over time (if timepoints
+are numeric, think of the model as fitting a 'slope' to the counts).
+But suppose we have data for both a wild-type and knock-out strain.  Then we might be
+interested in genes for which the time-dependent behavior *differs* between the two
+strains (think: different 'slopes'). In such a case, we would say strain and time interact.
+
+
+If covariates distinguishing the samples are available,
+such as batch or library, they may be
+incorporated in the ZINB model by using the **\\-\\-covars** flag and samples
 metadata file. For example, consider the following samples metadata
 file, with a column describing the batch information of each
 replicate.
@@ -1096,11 +1129,42 @@ replicate.
   chol2   cholesterol  /Users/example_data/cholesterol_rep2.wig     B2
   chol2   cholesterol  /Users/example_data/cholesterol_rep3.wig     B2
 
-This information can be included to eliminate variability due to batch by using the `covars` flag.
+This information can be included to eliminate variability due to batch by using
+the **\\-\\-covars** flag.
 
 ::
 
- python transit.py zinb <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> --covars Batch
+ python transit.py zinb combined.wig samples.metadata prot.table output.file --covars Batch
+
+
+Similarly, an interaction variable may be included in the model.
+This is specified by the user with the **\\-\\-interactions** flag,
+followed by the name of a column in the samples metadata to test as the interaction
+with the condition. If there are multiple interactions, they may be given as a comma-separated list.
+
+To give an example,
+consider an experiment where the condition represents
+a treatment (e.g. with values 'treated' and 'control'), and we have another column
+called Strain (with values 'wild-type' and 'mutant').
+If we want to test whether the effect of the treatment (versus control)
+differs depending on the strain, we could do this:
+
+::
+
+ python transit.py zinb combined.wig samples.metadata prot.table output.file --interactions Strain
+ 
+In this case, the condition is implicitly assumed to be the column in the samples metadata file
+labeled 'Condition'.  If you want to specify a different column to use as the primary condition to 
+test (for example, if Treatment were a distinct column), you can use the **\\-\\-condition** flag:
+
+::
+
+ python transit.py zinb combined.wig samples.metadata prot.table output.file --condition Treatment --interactions Strain
+ 
+
+
+The difference between how covariates and interactions are handeled in the model 
+is discussed below in the section on Statistical Significance.  
 
 Categorical vs Numeric Covariates
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1116,6 +1180,99 @@ be parsed as numbers, the model interprets them as real values.  In this
 case, the covariate is treated as a linear factor (regressor), and is
 incorporated in the model as a single coefficient, capturing the slope or
 trend in the insertion counts as the covariate value increases.
+
+
+Statistical Significance - What the P-values Mean in the ZINB Output
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Formally, the P-value is from a likelihood ratio test (LRT) between a
+condition-dependent ZINB model (:math:`m_1`) and a
+condition-independent (null) ZINB model (:math:`m_0`).
+
+.. math::
+
+  2 \ ln \frac{L(m_1)}{L(m_0)} \sim \chi^2_{df}
+
+where L(.) is the ZINB likelihood function, and :math:`\chi^2_{df}` is
+the chi-squared distribution with degrees of freedom (df) equal to
+difference in the number of parameters bewteen the two models.  The p-value is
+calculated based on this distribution.
+
+In a simple case where variability across a set of conditions X is being tested,
+you can think of the model approximately as:
+
+
+.. math::
+
+  m_1: ln \ \mu = \alpha_0+\vec\alpha X
+
+where :math:`\mu` is an estimate of the mean (non-zero) insertion
+count in a gene (a parameter in the likelihood function for ZINB), 
+:math:`\alpha_0` is a constant (the mean across all
+conditions), and :math:`\vec\alpha` is a vector of coefficients
+representing the deviation of the mean count in each condition.
+(There is a corresponding equation for estimating the saturation as a
+function of condition.)
+
+To evaluate whether the variability across conditions is significant, we
+compare to a null model, where the counts are estimated by the global mean only
+(dropping the condition variable X).
+
+.. math::
+
+  m_0: ln \ \mu = \alpha_0
+
+When a covariate C is available, it is incorporated in both models (additively),
+to account for the effect of the covariate in :math:`m_1`. Coefficients in :math:`\vec\beta`
+represent systematic effects on the mean count due to the covariate, and effectively
+get subtracted out of the condition coefficients, but :math:`\vec\beta` is also
+included in the null model :math:`m_0`, since we want to discount the effect of C on the
+likelihood and focus on evaluting the effect of X.
+
+
+.. math::
+
+  m_1: ln \ \mu = \alpha_0 + \vec\alpha X + \vec\beta C
+
+  m_0: ln \ \mu = \alpha_0 + \vec\beta C
+
+
+When an interaction I is being tested, it is incorporated *multiplicatively* in
+the main model :math:`m_1` and *additively* in the null model :math:`m_0`:
+
+.. math::
+
+  m_1: ln \ \mu = \alpha_0 + \vec\alpha X + \vec\beta I + \vec\gamma X*I
+
+  m_0: ln \ \mu = \alpha_0 + \vec\alpha X + \vec\beta I
+
+The meaning of this is that the coefficients :math:`\vec\alpha` and
+:math:`\vec\beta` capture the additive effects of how the mean
+insertion count in a gene depends on the condition variable and the
+interaction variable, respectively, and the X*I term captures
+additional (non-additive) deviations (which is the traditional way
+interactions are handled in generalized linear models, GLMs).  Thus,
+if there were no interaction, one would expect the mean in datasets
+representing the *combination* of X and I to be predicted by the
+offsets for each independently.  To the extend that this is not the
+case, we say that X and I interaction, and the coefficients
+:math:`\gamma` for X*I capture these deviations (non-additive
+effects).
+
+For example, think of condition X as Strain (e.g. wild-type vs mutant),
+and interaction I as Treatment (e.g. treated versus control).
+Then the main model would look like this:
+
+.. math::
+
+  m_1: ln \ \mu = \alpha_0 + \alpha_1 WT  + \alpha_2 mutant + \beta_1 control + \beta_2 treated + \gamma mutant * treated
+
+and this would be compared to the following null model (without the interaction term):
+
+.. math::
+
+  m_0: ln \ \mu = \alpha_0 + \alpha_1 WT  + \alpha_2 mutant + \beta_1 control + \beta_2 treated
+
 
 
 

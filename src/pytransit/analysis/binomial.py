@@ -516,8 +516,8 @@ class BinomialMethod(base.SingleConditionMethod):
         Optional Arguments:
             -s <int>        :=  Number of samples to take. Default: -s 10000
             -b <int>        :=  Number of burn-in samples to take. Default: -b 500
-            -iN <float>     :=  Ignore TAs occuring at given fraction of the N terminus. Default: -iN 0.0
-            -iC <float>     :=  Ignore TAs occuring at given fraction of the C terminus. Default: -iC 0.0
+            -iN <float>     :=  Ignore TAs occuring at given percentage (as integer) of the N terminus. Default: -iN 0
+            -iC <float>     :=  Ignore TAs occuring at given percentage (as integer) of the C terminus. Default: -iC 0
 
             Hyper-parameters:
             -pi0 <float>     :=  Hyper-parameters for rho, non-essential genes. Default: -pi0 0.5

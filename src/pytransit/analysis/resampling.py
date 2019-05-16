@@ -162,7 +162,7 @@ class ResamplingGUI(base.AnalysisGUI):
 
 
         # Zeros Check
-        (self.wxobj.resamplingZeroCheckBox, zeroSizer) = self.defineCheckBox(resamplingPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
+        (self.wxobj.resamplingZeroCheckBox, zeroSizer) = self.defineCheckBox(resamplingPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Includes sites that are empty (zero) across all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
         resamplingSizer.Add(zeroSizer, 0, wx.EXPAND, 5 )
 
 
@@ -456,7 +456,7 @@ class ResamplingMethod(base.DualConditionMethod):
 
         if self.combinedWigParams:
             (position, data, filenamesInCombWig) = tnseq_tools.read_combined_wig(self.combinedWigParams['combined_wig'])
-            conditionsByFile, _ = tnseq_tools.read_samples_metadata(self.combinedWigParams['samples_metadata'])
+            conditionsByFile, _, _, _ = tnseq_tools.read_samples_metadata(self.combinedWigParams['samples_metadata'])
             conditions = self.wigs_to_conditions(conditionsByFile, filenamesInCombWig)
             data, conditions = self.filter_wigs_by_conditions(data, conditions, self.combinedWigParams['conditions'])
             data_ctrl = numpy.array([d for i, d in enumerate(data) if conditions[i].lower() == self.combinedWigParams['conditions'][0]])
@@ -636,13 +636,13 @@ class ResamplingMethod(base.DualConditionMethod):
         -n <string>     :=  Normalization method. Default: -n TTR
         -h              :=  Output histogram of the permutations for each gene. Default: Turned Off.
         -a              :=  Perform adaptive resampling. Default: Turned Off.
-        -ez             :=  Exclude rows with zero accross conditions. Default: Turned off
+        -ez             :=  Exclude rows with zero across conditions. Default: Turned off
                             (i.e. include rows with zeros).
         -pc             :=  Pseudocounts to be added at each site.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias.
                             Default: Turned Off.
-        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 0.0
-        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 0.0
+        -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 0
+        -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 0
         --ctrl_lib      :=  String of letters representing library of control files in order
                             e.g. 'AABB'. Default empty. Letters used must also be used in --exp_lib
                             If non-empty, resampling will limit permutations to within-libraries.

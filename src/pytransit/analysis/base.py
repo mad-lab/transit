@@ -521,13 +521,13 @@ class MultiConditionMethod(AnalysisMethod):
         self.ignored_conditions = ignored_conditions
         self.included_conditions = included_conditions
 
-    def filter_wigs_by_conditions(self, data, conditions, covariates = [], ignored_conditions = [], included_conditions = []):
+    def filter_wigs_by_conditions(self, data, conditions, covariates = [], interactions = [], ignored_conditions = [], included_conditions = []):
         """
             Filters conditions that are ignored/included.
             ([[Wigdata]], [Condition], [[Covar]], [Condition], [Condition]) -> Tuple([[Wigdata]], [Condition])
         """
         ignored_conditions, included_conditions = (set(ignored_conditions), set(included_conditions))
-        d_filtered, cond_filtered, covariates_filtered_indexes = [], [], [];
+        d_filtered, cond_filtered, filtered_indexes = [], [], [];
         if len(ignored_conditions) > 0 and len(included_conditions) > 0:
             self.transit_error("Both ignored and included conditions have len > 0", ignored_conditions, included_conditions)
             sys.exit(0)
@@ -537,24 +537,28 @@ class MultiConditionMethod(AnalysisMethod):
               if (c != self.unknown_cond_flag) and (c not in ignored_conditions):
                 d_filtered.append(data[i])
                 cond_filtered.append(conditions[i])
-                covariates_filtered_indexes.append(i)
+                filtered_indexes.append(i)
         elif (len(included_conditions) > 0):
             self.transit_message("conditions included: {0}".format(included_conditions))
             for i, c in enumerate(conditions):
               if (c != self.unknown_cond_flag) and (c in included_conditions):
                 d_filtered.append(data[i])
                 cond_filtered.append(conditions[i])
-                covariates_filtered_indexes.append(i)
+                filtered_indexes.append(i)
         else:
             for i, c in enumerate(conditions):
               if (c != self.unknown_cond_flag):
                 d_filtered.append(data[i])
                 cond_filtered.append(conditions[i])
-                covariates_filtered_indexes.append(i)
+                filtered_indexes.append(i)
 
-        covariates_filtered = [[c[i] for i in covariates_filtered_indexes] for c in covariates]
+        covariates_filtered = [[c[i] for i in filtered_indexes] for c in covariates]
+        interactions_filtered = [[c[i] for i in filtered_indexes] for c in interactions]
 
-        return (numpy.array(d_filtered), numpy.array(cond_filtered), numpy.array(covariates_filtered))
+        return (numpy.array(d_filtered),
+                numpy.array(cond_filtered),
+                numpy.array(covariates_filtered),
+                numpy.array(interactions_filtered))
 
 #
 

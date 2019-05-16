@@ -1,0 +1,6 @@
+Id	Condition	Filename	Atm	Batch
+c1	Cholesterol	src/pytransit/data/cholesterol_H37Rv_rep1.wig	co2	b1
+c2	Cholesterol	src/pytransit/data/cholesterol_H37Rv_rep2.wig	noco2	b1
+c3	Cholesterol	src/pytransit/data/cholesterol_H37Rv_rep3.wig	co2	b2
+g1	Glycerol	src/pytransit/data/glycerol_H37Rv_rep1.wig	co2	b2
+g2	Glycerol	src/pytransit/data/glycerol_H37Rv_rep2.wig	noco2	b2
