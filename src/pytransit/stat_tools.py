@@ -289,7 +289,7 @@ def boxcoxtransform(x, lambdax):
     Fixed: '>' has changed to '<'
     """
     if x <= 0:
-        raise ArgumentError, "Nonpositive value(s) in X vector"
+        raise ValueError("Nonpositive value(s) in X vector")
     if abs(lambdax) < 1.0e-5:
         return(math.log(x))
     else:

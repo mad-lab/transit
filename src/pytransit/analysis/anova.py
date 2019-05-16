@@ -6,7 +6,7 @@ import time
 import sys
 import collections
 
-import base
+import pytransit.analysis.base as base
 import pytransit
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
@@ -52,8 +52,8 @@ class AnovaMethod(base.MultiConditionMethod):
         normalization = kwargs.get("n", "TTR")
         NTerminus = float(kwargs.get("iN", 0.0))
         CTerminus = float(kwargs.get("iC", 0.0))
-        ignored_conditions = filter(None, kwargs.get("-ignore-conditions", "").split(","))
-        included_conditions = filter(None, kwargs.get("-include-conditions", "").split(","))
+        ignored_conditions = list(filter(None, kwargs.get("-ignore-conditions", "").split(",")))
+        included_conditions = list(filter(None, kwargs.get("-include-conditions", "").split(",")))
 
         if len(included_conditions) > 0 and len(ignored_conditions) > 0:
             print(self.transit_error("Cannot use both include-conditions and ignore-conditions flags"))
@@ -136,7 +136,7 @@ class AnovaMethod(base.MultiConditionMethod):
                 status.append("TA sites <= 1")
                 pvals.append(1)
             else:
-                countSum, countsVec = self.group_by_condition(map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data), conditions)
+                countSum, countsVec = self.group_by_condition(list(map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data)), conditions)
 
                 if (countSum == 0):
                     pval = 1

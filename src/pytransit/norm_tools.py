@@ -4,7 +4,7 @@ import scipy.stats
 import scipy.optimize
 import warnings
 
-import tnseq_tools
+import pytransit.tnseq_tools as tnseq_tools
 
 
 class NormMethod:

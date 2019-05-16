@@ -338,7 +338,7 @@ def select_reads(goodreads,infile,outfile):
       header = line
       id = get_id(line)
     else:
-      if hash.has_key(id):
+      if id in hash:
         output.write(header)
         output.write(line)
   output.close()
@@ -515,11 +515,11 @@ def template_counts(ref,sam,bcfile,vars):
       else:
         pos = i+1
         h = hits[replicon_names[replicon_index]].get(pos,[])
-        f = filter(lambda x: x[0]=='F',h)
-        r = filter(lambda x: x[0]=='R',h)
+        f = list(filter(lambda x: x[0]=='F',h))
+        r = list(filter(lambda x: x[0]=='R',h))
         u = list(set(h))
-        uf = filter(lambda x: x[0]=='F',u)
-        ur = filter(lambda x: x[0]=='R',u)
+        uf = list(filter(lambda x: x[0]=='F',u))
+        ur = list(filter(lambda x: x[0]=='R',u))
         data = [pos,len(f),len(uf),len(r),len(ur),len(f)+len(r),len(uf)+len(ur)]
         sites.append(data)    
     sites_list.append(sites)
@@ -1070,7 +1070,7 @@ def generate_output(vars):
     cur_tc = sum(cur_tcounts)
     cur_ratio = cur_rc/float(cur_tc) if (cur_rc != 0 and cur_tc !=0) else 0
     cur_ta_sites = len(cur_rcounts)
-    cur_tas_hit = len(filter(lambda x: x>0,cur_rcounts))
+    cur_tas_hit = len(list(filter(lambda x: x>0,cur_rcounts)))
     cur_density = cur_tas_hit/float(cur_ta_sites) if cur_tas_hit != 0 else 0
     counts[replicon_index].sort(key=lambda x: x[-1])
     cur_max_tc = counts[replicon_index][-1][6]

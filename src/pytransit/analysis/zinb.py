@@ -6,6 +6,7 @@ import statsmodels.stats.multitest
 import time
 import sys
 import collections
+import functools
 
 hasR = False
 try:
@@ -17,7 +18,7 @@ except Exception as e:
 if hasR:
     from rpy2.robjects import r, DataFrame, globalenv, IntVector, FloatVector, StrVector, packages as rpackages
 
-import base
+import pytransit.analysis.base as base
 import pytransit
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
@@ -83,11 +84,11 @@ class ZinbMethod(base.MultiConditionMethod):
         NTerminus = float(kwargs.get("iN", 5.0))
         CTerminus = float(kwargs.get("iC", 5.0))
         condition = kwargs.get("-condition", "Condition")
-        covars = filter(None, kwargs.get("-covars", "").split(","))
-        interactions = filter(None, kwargs.get("-interactions", "").split(","))
-        winz = True if kwargs.has_key("w") else False
-        ignored_conditions = filter(None, kwargs.get("-ignore-conditions", "").split(","))
-        included_conditions = filter(None, kwargs.get("-include-conditions", "").split(","))
+        covars = list(filter(None, kwargs.get("-covars", "").split(",")))
+        interactions = list(filter(None, kwargs.get("-interactions", "").split(",")))
+        winz = True if "w" in kwargs else False
+        ignored_conditions = list(filter(None, kwargs.get("-ignore-conditions", "").split(",")))
+        included_conditions = list(filter(None, kwargs.get("-include-conditions", "").split(",")))
         if len(included_conditions) > 0 and len(ignored_conditions) > 0:
             self.transit_error("Cannot use both include-conditions and ignore-conditions flags")
             print(ZinbMethod.usage_string())
@@ -227,8 +228,8 @@ class ZinbMethod(base.MultiConditionMethod):
         return [
                 numpy.concatenate(readCountsForRv).astype(int),
                 repeatAndFlatten(conditions),
-                map(repeatAndFlatten, covariates),
-                map(repeatAndFlatten, interactions),
+                list(map(repeatAndFlatten, covariates)),
+                list(map(repeatAndFlatten, interactions)),
                 repeatAndFlatten(NZMeanByRep),
                 repeatAndFlatten(LogZPercByRep)
                ]
@@ -381,7 +382,7 @@ class ZinbMethod(base.MultiConditionMethod):
             ## Single gene case for debugging
             if (GENE):
                 Rv = None
-                if RvSiteindexesMap.has_key(GENE):
+                if GENE in RvSiteindexesMap:
                     Rv = GENE
                 else:
                     for g in genes:
@@ -396,8 +397,10 @@ class ZinbMethod(base.MultiConditionMethod):
                 status.append("TA sites <= 1")
                 pvals.append(1)
             else:
-                norm_data = self.winsorize(map(
-                    lambda wigData: wigData[RvSiteindexesMap[Rv]], data)) if self.winz else map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data)
+                # For winsorization
+                # norm_data = self.winsorize((map(
+                #     lambda wigData: wigData[RvSiteindexesMap[Rv]], data))) if self.winz else list(map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data))
+                norm_data = list(map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data))
                 ([ readCounts,
                    condition,
                    covarsData,
@@ -417,8 +420,8 @@ class ZinbMethod(base.MultiConditionMethod):
                         'logitZperc': FloatVector(logitZPerc)
                         }
                     ## Add columns for covariates and interactions if they exist.
-                    df_args.update(map(lambda (i, c): (c, toRFloatOrStrVec(covarsData[i])), enumerate(self.covars)))
-                    df_args.update(map(lambda (i, c): (c, toRFloatOrStrVec(interactionsData[i])), enumerate(self.interactions)))
+                    df_args.update(list(map(lambda t_ic: (t_ic[1], toRFloatOrStrVec(covarsData[t_ic[0]])), enumerate(self.covars))))
+                    df_args.update(list(map(lambda t_ic: (t_ic[1], toRFloatOrStrVec(interactionsData[t_ic[0]])), enumerate(self.interactions))))
 
                     melted = DataFrame(df_args)
                     # r_args = [IntVector(readCounts), StrVector(condition), melted, map(lambda x: StrVector(x), covars), FloatVector(NZmean), FloatVector(logitZPerc)] + [True]
@@ -516,14 +519,14 @@ class ZinbMethod(base.MultiConditionMethod):
                 return (orderingMetadata['interaction'].index(i1) - orderingMetadata['interaction'].index(i2))
             return condDiff
 
-        orderedStatGroupNames = sorted(statGroupNames, orderStats)
+        orderedStatGroupNames = sorted(statGroupNames, key=functools.cmp_to_key(orderStats))
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
         head = ("Rv Gene TAs".split() +
-                map(lambda v: "Mean_" + v, orderedStatGroupNames) +
-                map(lambda v: "NZmean_" + v, orderedStatGroupNames) +
-                map(lambda v: "NZperc_" + v, orderedStatGroupNames) +
+                list(map(lambda v: "Mean_" + v, orderedStatGroupNames)) +
+                list(map(lambda v: "NZmean_" + v, orderedStatGroupNames)) +
+                list(map(lambda v: "NZperc_" + v, orderedStatGroupNames)) +
                 "pval padj".split() + ["status"])
 
         file.write("#Console: python %s\n" % " ".join(sys.argv))

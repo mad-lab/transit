@@ -90,5 +90,5 @@ def significant_pvals_qvals(fname, pcol=-2, qcol=-1):
         pvals.append(float(cols[pcol]))
         qvals.append(float(cols[qcol]))
 
-    return (filter(lambda p: p < 0.05, pvals), filter(lambda q: q < 0.05, qvals))
+    return (list(filter(lambda p: p < 0.05, pvals)), list(filter(lambda q: q < 0.05, qvals)))
 

@@ -23,7 +23,6 @@ from pytransit.analysis.griffin import GriffinMethod
 from pytransit.analysis.hmm import HMMMethod
 from pytransit.analysis.anova import AnovaMethod
 from pytransit.analysis.zinb import ZinbMethod
-from pytransit.analysis.winsorize import WinsorizeMethod
 
 # Comparative methods
 from pytransit.analysis.resampling import ResamplingMethod

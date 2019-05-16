@@ -23,7 +23,7 @@ import numpy
 import scipy.stats
 import datetime
 
-import base
+import pytransit.analysis.base as base
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
 import pytransit.norm_tools as norm_tools
@@ -94,7 +94,7 @@ class NormalizeMethod(base.SingleConditionMethod):
     def fromargs(self, rawargs):
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
-        isCombinedWig = kwargs.has_key('c')
+        isCombinedWig = 'c' in kwargs
         if (not isCombinedWig and len(args) < 2) or (isCombinedWig and len(args) < 1):
             raise base.InvalidArgumentException("Must provide all necessary arguments")
         if isCombinedWig:

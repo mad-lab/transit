@@ -58,7 +58,7 @@ def read_combined_wig(fname):
         cols = line.split("\t")[0:1+len(files)]
         cols = cols[:1+len(files)] # additional columns at end could contain gene info
         # Read in position as int, and readcounts as float
-        cols = map(lambda (i, v): int(v) if i == 0 else float(v), enumerate(cols))
+        cols = list(map(lambda t_iv: int(t_iv[1]) if t_iv[0] == 0 else float(t_iv[1]), enumerate(cols)))
         position, wigCounts = cols[0], cols[1:]
         sites.append(position)
         for i, c in enumerate(wigCounts):

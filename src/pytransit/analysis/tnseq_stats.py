@@ -23,7 +23,7 @@ import numpy
 import scipy.stats
 import datetime
 
-import base
+import pytransit.analysis.base as base
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
 import pytransit.norm_tools as norm_tools
