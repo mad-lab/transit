@@ -847,10 +847,10 @@ def bwa_subprocess(command, outfile):
     #process.wait()
     (pout,perr) = process.communicate()
     #for line in iter(process.stderr.readline, ''):
-    for line in perr.split('\n'): # returned by communicate()
-        if "Permission denied" in line:
+    for line in perr.split(b'\n'): # returned by communicate()
+        if b"Permission denied" in line:
             raise IOError("Error: BWA encountered a permissions error: \n\n%s" % line)
-        if "invalid option" in line:
+        if b"invalid option" in line:
             raise ValueError("Error: Unrecognized flag for BWA: %s" % (line.split()[-1]))
         sys.stderr.write("%s\n" % line.strip())
 
@@ -1308,7 +1308,7 @@ def verify_inputs(vars):
         error('cannot find BWA executable. Please include the full executable name as well as its directory.')
 
 def initialize_globals(vars, args=[], kwargs={}):
-    vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.bwa_alg,vars.replicon_ids,vars.base,vars.maxreads = "","","","","","","",""
+    vars.fq1,vars.fq2,vars.ref,vars.bwa,vars.bwa_alg,vars.replicon_ids,vars.base,vars.maxreads = "","","","","","","",-1
     vars.mm1 = 1 # mismatches allowed in Tn prefix AND adapter prefix on read2
     vars.transposon = 'Himar1'
     vars.protocol = "Sassetti"
