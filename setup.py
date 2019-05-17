@@ -61,6 +61,7 @@ class UploadCommand(Command):
         if not self.yes_or_no("Have you done the following? \n" +
                     "- Updated README/Documentation?\n"
                     "- Are in the master branch, and have you merged version branch into master?\n"
+                    "- Have you run the tests ('pytest tests/')?\n"
                     "- Have you updated CHANGELOG?\n"
                     "- Have you updated Transit Essentiality page?\n"
                     "- Updated version in src/pytransit/__init__.py (used to set git tag)?\n"
