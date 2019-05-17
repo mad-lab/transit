@@ -101,7 +101,7 @@ class TestMethods(TransitTestCase):
                 "sig_qvals expected in range: %s, actual: %d" % ("[34, 36]", len(sig_qvals)))
 
     def test_resampling_adaptive(self):
-        args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-a"]
+        args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-a", "--ctrl_lib", "A", "--exp_lib", "A"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -114,6 +114,7 @@ class TestMethods(TransitTestCase):
                 abs(len(sig_qvals) - 35),
                 1,
                 "sig_qvals expected in range: %s, actual: %d" % ("[34, 36]", len(sig_qvals)))
+        self.assertTrue(False)
 
     def test_resampling_histogram(self):
         args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-s", "1000", "-h"]

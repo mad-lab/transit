@@ -604,8 +604,8 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
     nTAs = 0
     if lib_str1:
         # Get number of TA sites implied
-        nTAs = len(data1.flatten())/len(lib_str1)
-        assert len(data2.flatten())/len(lib_str2) == nTAs, "Datasets do not have matching sites;\
+        nTAs = len(data1.flatten())//len(lib_str1)
+        assert len(data2.flatten())//len(lib_str2) == nTAs, "Datasets do not have matching sites;\
              check input data and library strings."
         # Get data
         perm = get_lib_data_dict(data1, lib_str1, data2, lib_str2, nTAs)
@@ -705,7 +705,7 @@ def text_histogram(X, nBins = 20, resolution=200, obs = None):
 def parse_lib_index(nData, libstr, nTAs):
     full_index = numpy.arange(nData)
     lib_to_index = {}
-    for (k,L) in enumerate(libstr):
+    for k,L in enumerate(libstr):
         if L not in lib_to_index: lib_to_index[L] = []
         lib_to_index[L] += list(full_index[k*nTAs:((k+1)*nTAs)])
     for L,index in lib_to_index.items():
