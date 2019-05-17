@@ -1,6 +1,12 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+
+## Version 2.5.2 2019-05-16
+#### TRANSIT:
+ - Made some improvements in command-line version of 'tn5gaps'
+ - Added flags for trimming insertions in N- and C-termini of genes for tn5gaps (-iN and -iC) 
+
 ## Version 2.5.1 2019-04-25
 #### TRANSIT:
   - Add support for [handling interactions in ZINB](https://transit.readthedocs.io/en/latest/transit_methods.html#covariates-and-interactions)

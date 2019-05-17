@@ -257,8 +257,10 @@ Example
 ~~~~~~~
 ::
 
-    python PATH/src/transit.py tn5gaps data/salmonella_2122_rep1.wig,data/salmonella_2122_rep2.wig genomes/Salmonella-Ty2.prot_table results/test_console_tn5gaps_trimmed.dat -m 2 -r Sum -iN 5 -iC 5
+    python PATH/src/transit.py tn5gaps salmonella_baseline.wig Salmonella-Ty2.prot_table salmonella_baseline_tn5gaps_trimmed.dat -m 2 -r Sum -iN 5 -iC 5
 
+
+These input and output files can be downloaded from the **Example Data** section on the `Transit home page <http://saclab.tamu.edu/essentiality/transit/index.html>`_ .
 
 |
 
