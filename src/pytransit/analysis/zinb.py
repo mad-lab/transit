@@ -58,8 +58,8 @@ class ZinbMethod(base.MultiConditionMethod):
     @classmethod
     def fromargs(self, rawargs):
         if not hasR:
-            print("Error: R and rpy2 (< 2.9.0) required to run ZINB analysis.")
-            print("After installing R, you can install rpy2 using the command \"pip install 'rpy2<2.9.0'\"")
+            print("Error: R and rpy2 (~= 3.0) required to run ZINB analysis.")
+            print("After installing R, you can install rpy2 using the command \"pip install 'rpy2~=3.0'\"")
             sys.exit(0)
 
         (args, kwargs) = transit_tools.cleanargs(rawargs)
