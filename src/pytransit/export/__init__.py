@@ -6,9 +6,9 @@ modules = glob.glob(dirname(__file__)+"/*.py")
 __all__ = [ basename(f)[:-3] for f in modules if isfile(f)]
 
 
-import pytransit.export.combined_wig as combined_wig
-import pytransit.export.igv as igv
-import pytransit.export.mean_counts as mean_counts
+from pytransit.export import combined_wig
+from pytransit.export import igv
+from pytransit.export import mean_counts
 
 # EXPORT METHODS
 methods = {}

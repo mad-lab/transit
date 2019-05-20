@@ -19,7 +19,7 @@ if hasWx:
 import csv
 import traceback
 import pytransit.transit_tools as transit_tools
-import pytransit.convert.base as base
+from pytransit.convert import base
 
 class InvalidArgumentException(Exception):
     def __init__(self, message):

@@ -18,7 +18,7 @@ except Exception as e:
 if hasR:
     from rpy2.robjects import r, DataFrame, globalenv, IntVector, FloatVector, StrVector, packages as rpackages
 
-import pytransit.analysis.base as base
+from pytransit.analysis import base
 import pytransit
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools

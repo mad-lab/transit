@@ -13,8 +13,8 @@ import unittest
 from transit_test import *
 
 import pytransit
-import pytransit.norm_tools as norm_tools
-import pytransit.tnseq_tools as tnseq_tools
+from pytransit import norm_tools
+from pytransit import tnseq_tools
 
 # Single condition methods
 from pytransit.analysis.gumbel import GumbelMethod

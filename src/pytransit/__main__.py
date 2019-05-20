@@ -18,7 +18,7 @@ if hasWx:
 
 
 import pytransit
-import pytransit.transit_tools as transit_tools
+from pytransit import transit_tools
 import pytransit.analysis
 import pytransit.export
 import pytransit.convert

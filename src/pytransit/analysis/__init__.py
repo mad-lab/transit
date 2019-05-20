@@ -5,23 +5,23 @@ import glob
 modules = glob.glob(dirname(__file__)+"/*.py")
 __all__ = [ basename(f)[:-3] for f in modules if isfile(f)]
 
-import pytransit.analysis.base as base
+from pytransit.analysis import base
 
-import pytransit.analysis.gumbel as gumbel
-import pytransit.analysis.example as example
-import pytransit.analysis.tn5gaps as tn5gaps
-import pytransit.analysis.binomial as binomial
-import pytransit.analysis.griffin as griffin
-import pytransit.analysis.resampling as resampling
-import pytransit.analysis.hmm as hmm
-import pytransit.analysis.rankproduct as rankproduct
-import pytransit.analysis.gi as gi
-import pytransit.analysis.utest as utest
-import pytransit.analysis.normalize as normalize
-import pytransit.analysis.pathway_enrichment as pathway_enrichment
-import pytransit.analysis.anova as anova
-import pytransit.analysis.zinb as zinb
-import pytransit.analysis.tnseq_stats as tnseq_stats
+from pytransit.analysis import gumbel
+from pytransit.analysis import example
+from pytransit.analysis import tn5gaps
+from pytransit.analysis import binomial
+from pytransit.analysis import griffin
+from pytransit.analysis import resampling
+from pytransit.analysis import hmm
+from pytransit.analysis import rankproduct
+from pytransit.analysis import gi
+from pytransit.analysis import utest
+from pytransit.analysis import normalize
+from pytransit.analysis import pathway_enrichment
+from pytransit.analysis import anova
+from pytransit.analysis import zinb
+from pytransit.analysis import tnseq_stats
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -44,7 +44,7 @@ methods["pathway_enrichment"]=pathway_enrichment.GSEAAnalysis()
 methods["tnseq_stats"]=tnseq_stats.TnseqStats()
 
 # EXPORT METHODS
-import pytransit.analysis.norm as norm
+from pytransit.analysis import norm
 
 export_methods = {}
 export_methods["norm"] = norm.NormAnalysis()

@@ -8,7 +8,7 @@ from functools import total_ordering
 
 
 try:
-    import pytransit.norm_tools as norm_tools
+    from pytransit import norm_tools
     noNorm = False
 except ImportError:
     noNorm = True
