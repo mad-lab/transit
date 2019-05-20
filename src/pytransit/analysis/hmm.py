@@ -564,6 +564,8 @@ class HMMMethod(base.SingleConditionMethod):
 
         num2label = {0:"ES", 1:"GD", 2:"NE", 3:"GA"}
         output.write("#HMM - Genes\n")        
+
+        lines,counts = [],{}
         for gene in G:
             
             reads_nz = [c for c in gene.reads.flatten() if c > 0]
@@ -584,10 +586,11 @@ class HMMMethod(base.SingleConditionMethod):
 
 
             if gene.n > 0:
-                E = tnseq_tools.ExpectedRuns(gene.n,   1.0 - theta)
-                V = tnseq_tools.VarR(gene.n,   1.0 - theta)
+                # this was intended to call genes ES if have sufficiently long run, but n0 (#ES) not even consecutive
+                #E = tnseq_tools.ExpectedRuns(gene.n,   1.0 - theta)
+                #V = tnseq_tools.VarR(gene.n,   1.0 - theta)
                 if n0 == gene.n: S = "ES"
-                elif n0 >= int(E+(3*math.sqrt(V))): S = "ES"
+                #elif n0 >= int(E+(3*math.sqrt(V))): S = "ES"
                 else:
                     temp = max([(statedist.get(s, 0), s) for s in [0, 1, 2, 3]])[1]
                     S = num2label[temp]
@@ -595,8 +598,14 @@ class HMMMethod(base.SingleConditionMethod):
                 E = 0.0
                 V = 0.0
                 S = "N/A"
-            output.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%1.4f\t%1.2f\t%s\n" % (gene.orf, gene.name, gene.desc, gene.n, n0, n1, n2, n3, gene.theta(), avg_read_nz, S))
+            lines.append("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%1.4f\t%1.2f\t%s\n" % (gene.orf, gene.name, gene.desc, gene.n, n0, n1, n2, n3, gene.theta(), avg_read_nz, S))
+            if S not in counts: counts[S] = 0
+            counts[S] += 1
 
+        output.write("#genes: ES=%s, GD=%s, NE=%s, GA=%s, N/A=%s\n" % tuple([counts.get(x,0) for x in "ES GD NE GA N/A".split()]))
+        output.write("#key: ES=essential, GD=insertions cause growth-defect, NE=non-essential, GA=insertions confer growth-advantage, N/A=not analyzed (genes with 0 TA sites)\n")
+        output.write("#ORF\tgene\tannotation\tTAs\tES sites\tGD sites\tNE sites\tGA sites\tsaturation\tmean\tcall\n")
+        for line in lines: output.write(line)
         output.close()
 
 
