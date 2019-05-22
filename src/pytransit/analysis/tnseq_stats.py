@@ -106,6 +106,14 @@ class TnseqStatsMethod(base.SingleConditionMethod):
 
         return self(self.wigs,outfile=self.outfile)
 
+    def pickands_tail_index(self,vals):
+        srt = sorted(vals,reverse=True)
+        PTIs = []
+        for M in range(10,100):
+          PTI = numpy.log((srt[M]-srt[2*M])/float(srt[2*M]-srt[4*M]))/numpy.log(2.0)
+          PTIs.append(PTI)
+        return numpy.median(PTIs)
+
     def Run(self):
 
         self.transit_message("Starting TnseqStats")
@@ -118,11 +126,15 @@ class TnseqStatsMethod(base.SingleConditionMethod):
         # write table of stats (saturation,NZmean)
         file = sys.stdout
         if self.outfile!=None: file = open(self.outfile,"w")
-        file.write("dataset\tdensity\tmean_ct\tNZmean\tNZmedian\tmax_ct\ttotal_cts\tskewness\tkurtosis\n")
+        PTI = True
+        if PTI==True: file.write("dataset\tdensity\tmean_ct\tNZmean\tNZmedian\tmax_ct\ttotal_cts\tskewness\tkurtosis\tpickands_tail_index\n")
+        else: file.write("dataset\tdensity\tmean_ct\tNZmean\tNZmedian\tmax_ct\ttotal_cts\tskewness\tkurtosis\n")
         for i in range(data.shape[0]):
           density, meanrd, nzmeanrd, nzmedianrd, maxrd, totalrd, skew, kurtosis = tnseq_tools.get_data_stats(data[i,:])
           nzmedianrd = int(nzmedianrd) if numpy.isnan(nzmedianrd)==False else 0
+          pti = self.pickands_tail_index(data[i,:])
           vals = [datasets[i], "%0.3f" % density, "%0.1f" % meanrd, "%0.1f" % nzmeanrd, "%d" % nzmedianrd, maxrd, int(totalrd), "%0.1f" % skew, "%0.1f" % kurtosis]
+          if PTI==True: vals.append("%0.3f" % pti)
           file.write('\t'.join([str(x) for x in vals])+'\n')
         if self.outfile!=None: file.close()
 
