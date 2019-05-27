@@ -374,7 +374,7 @@ class ZinbMethod(base.MultiConditionMethod):
 
         nbMod1 = "cnt~%s" % (comp1a)
         nbMod0 = "cnt~%s" % (comp0a)
-        toRFloatOrStrVec = lambda xs: FloatVector(xs) if self.is_number(xs[0]) else StrVector(xs)
+        toRFloatOrStrVec = lambda xs: FloatVector([float(x) for x in xs]) if self.is_number(xs[0]) else StrVector(xs)
 
         for gene in genes:
             count += 1
