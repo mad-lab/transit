@@ -625,12 +625,12 @@ class GIMethod(base.QuadConditionMethod):
         start_time = time.time()
         self.output.write("#GI\n")
 
-        wiglist = self.ctrldataA + self.expdataA + self.ctrldataB + self.expdataB
+        wiglist = self.ctrldataA + self.ctrldataB + self.expdataA + self.expdataB
 
         Nwig = len(wiglist)
         Na1 = len(self.ctrldataA)
-        Nb1 = len(self.expdataA)
-        Na2 = len(self.ctrldataB)
+        Nb1 = len(self.ctrldataB)
+        Na2 = len(self.expdataA)
         Nb2 = len(self.expdataB)
 
 
@@ -857,7 +857,7 @@ class GIMethod(base.QuadConditionMethod):
         self.output.write("#\n")
 
         # Write column names
-        self.output.write("#ORF\tName\tNumber of TA Sites\tMean count (Strain A Time 1)\tMean count (Strain A Time 2)\tMean count (Strain B Time 1)\tMean count (Strain B Time 2)\tMean logFC (Strain A)\tMean logFC (Strain B) \tMean delta logFC\tLower Bound delta logFC\tUpper Bound delta logFC\tProb. of delta-logFC being within ROPE\tAdjusted Probability (%s)\tIs HDI outside ROPE?\tType of Interaction\n" % adjusted_label)
+        self.output.write("#ORF\tName\tNumber of TA Sites\tMean count (Strain A Condition 1)\tMean count (Strain A Condition 2)\tMean count (Strain B Condition 1)\tMean count (Strain B Condition 2)\tMean logFC (Strain A)\tMean logFC (Strain B) \tMean delta logFC\tLower Bound delta logFC\tUpper Bound delta logFC\tProb. of delta-logFC being within ROPE\tAdjusted Probability (%s)\tIs HDI outside ROPE?\tType of Interaction\n" % adjusted_label)
 
         # Write gene results
         for i,row in enumerate(data):
