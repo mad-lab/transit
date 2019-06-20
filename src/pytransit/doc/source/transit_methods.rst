@@ -1440,7 +1440,7 @@ Example
 
 ::
 
-    python ../../transit.py pathway_enrichment <resampling files> <annotation file> <output file> [-p] [-S] [-M GSEA|HYPE|GSEA-Z|GSEA-CHI]
+    python ../../transit.py pathway_enrichment <resampling_file> <pathway_associations_file> <output_file> [-p] [-S] [-M GSEA|HYPE|GSEA-Z|GSEA-CHI]
 
 |
 
@@ -1449,8 +1449,8 @@ Parameters
 ~~~~~~~~~~
 - **Resampling File**
     The resampling file is the one obtained after using the resampling method in Transit. (It is a tab separated file with 11 columns.) GSEA method makes usage of the last column (adjusted P-value)
-- **Annotation File**
-    This file is a tab-separated text file (which you could open in Excel).  The file format has 3 columns: the id of the pathway (e.g. "GO:0090502"), a description (e.g. "RNA phosphodiester bond hydrolysis"), and a space-separated list of genes (ORF ids, like Rv1339).  Examples for Sanger categories and GO terms for H37Rv are in src/pytransit/data/.
+- **Pathway Associations File**
+    This file is a tab-separated text file (which you could open in Excel).  The file format has 3 columns: the id of the pathway (e.g. "GO:0090502"), a description (e.g. "RNA phosphodiester bond hydrolysis"), and a space-separated list of genes (ORF ids, like Rv1339).  Examples for Sanger categories and GO terms for H37Rv are in src/pytransit/data/. Example: GO_associated_Rvs.csv.
 - **Output File**
     This parameter is used to specify the output file name and the path where it will be created.
 - **p**
