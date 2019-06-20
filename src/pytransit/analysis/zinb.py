@@ -33,6 +33,7 @@ long_desc = """Perform ZINB analysis"""
 EOL = "\n"
 DEBUG = False
 GENE = None
+SEPARATOR = '\1' # for making names that combine conditions and interactions; try not to use a char a user might have in a condition name
 
 transposons = ["", ""]
 columns = []
@@ -178,7 +179,7 @@ class ZinbMethod(base.MultiConditionMethod):
         for i, conditionForWig in enumerate(conditions):
             if (len(interactions) > 0):
                 for interaction in interactions:
-                    groupName = conditionForWig + '_' + interaction[i]
+                    groupName = conditionForWig + SEPARATOR + interaction[i] 
                     groupWigIndexMap[groupName].append(i)
             else:
                 groupName = conditionForWig
@@ -270,7 +271,7 @@ class ZinbMethod(base.MultiConditionMethod):
                     mod = zeroinfl(as.formula(zinbMod1),data=melted,dist="negbin")
                     coeffs = summary(mod)$coefficients
                     # [,1] is col of parms, [,2] is col of stderrs, assume Intercept is always first
-                    #if (coeffs$count[,2][1]>0.5) { status = 'warning: high stderr on Intercept for mod1' }
+                    if (coeffs$count[,2][1]>0.5) { status = 'warning: high stderr on Intercept for mod1' }
                     mod
                   } else {
                     f1 = nbMod1
@@ -501,8 +502,8 @@ class ZinbMethod(base.MultiConditionMethod):
         pvals, qvals, run_status = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions, covariates, interactions)
 
         def orderStats(x, y):
-            ic1 = x.split("_")
-            ic2 = y.split("_")
+            ic1 = x.split(SEPARATOR)
+            ic2 = y.split(SEPARATOR)
             c1, i1 = (ic1[0], ic1[1]) if len(ic1) > 1 else (ic1[0], None)
             c2, i2 = (ic2[0], ic2[1]) if len(ic2) > 1 else (ic2[0], None)
 
@@ -520,13 +521,14 @@ class ZinbMethod(base.MultiConditionMethod):
             return condDiff
 
         orderedStatGroupNames = sorted(statGroupNames, key=functools.cmp_to_key(orderStats))
+        headersStatGroupNames = [x.replace(SEPARATOR,'_') for x in orderedStatGroupNames]
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
         head = ("Rv Gene TAs".split() +
-                list(map(lambda v: "Mean_" + v, orderedStatGroupNames)) +
-                list(map(lambda v: "NZmean_" + v, orderedStatGroupNames)) +
-                list(map(lambda v: "NZperc_" + v, orderedStatGroupNames)) +
+                list(map(lambda v: "Mean_" + v, headersStatGroupNames)) +
+                list(map(lambda v: "NZmean_" + v, headersStatGroupNames)) +
+                list(map(lambda v: "NZperc_" + v, headersStatGroupNames)) +
                 "pval padj".split() + ["status"])
 
         file.write("#Console: python %s\n" % " ".join(sys.argv))
