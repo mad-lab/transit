@@ -254,6 +254,7 @@ class GSEAMethod(base.SingleConditionMethod):
     pairs = [] # pair are: rv and (LFC or Zscore)
     if self.useZscores: 
       self.transit_message("using Z-scores to rank genes")
+      if "Z-score" not in headers: self.transit_error("error: to rank genes by Z-score, you have to have used the -Z flag in resampling"); sys.exit(0)
       for w in data: pairs.append((w[0],float(w[headers.index("Z-score")]))) 
     else: 
       self.transit_message("using LFCs to rank genes")
