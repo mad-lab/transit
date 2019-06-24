@@ -252,8 +252,12 @@ class GSEAMethod(base.SingleConditionMethod):
       genenames[w[0]] = w[1]
 
     pairs = [] # pair are: rv and (LFC or Zscore)
-    #for w in data: pairs.append((w[0],float(w[headers.index("log2FC")]))) # default?
-    for w in data: pairs.append((w[0],float(w[headers.index("Z-score")]))) # add -Z flag? what if Z-score not found?
+    if self.useZscores: 
+      self.transit_message("using Z-scores to rank genes")
+      for w in data: pairs.append((w[0],float(w[headers.index("Z-score")]))) 
+    else: 
+      self.transit_message("using LFCs to rank genes")
+      for w in data: pairs.append((w[0],float(w[headers.index("log2FC")]))) 
     pairs.sort(key=lambda x: x[1])
     sorted_rvs = [x[0] for x in pairs]
     sorted_scores = [x[1] for x in pairs]
@@ -376,6 +380,8 @@ class GSEAMethod(base.SingleConditionMethod):
     p=int(kwargs.get("p", 1))
     N=int(kwargs.get("S", 1000))
     M = kwargs.get("M", "GSEA")
+    if "Z" in kwargs: self.useZscores = True
+    else: self.useZscores = False
     resamplingFile = args[0]    
     geneSetFile = args[1]
     outpath = args[2]
@@ -463,7 +469,7 @@ class GSEAMethod(base.SingleConditionMethod):
 
   @classmethod
   def usage_string(self):
-    return """python %s pathway_enrichment <resampling_file> <pathway_associations_file> <output_file> [-p <float> -S <int> -M <GSEA|HYPE|Z|CHI>] """ % (sys.argv[0])
+    return """python %s pathway_enrichment <resampling_file> <pathway_associations_file> <output_file> [-p <float> -Z -S <int> -M <GSEA|HYPE|Z|CHI>] """ % (sys.argv[0])
 
 
 if __name__ == "__main__":
