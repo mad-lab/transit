@@ -250,6 +250,7 @@ class GSEAMethod(base.SingleConditionMethod):
       w = line.rstrip().split('\t')
       data.append(w)
       genenames[w[0]] = w[1]
+    n2 = int(len(data)/2)
 
     pairs = [] # pair are: rv and (LFC or Zscore)
     if self.useZscores: 
@@ -278,7 +279,7 @@ class GSEAMethod(base.SingleConditionMethod):
       sys.stdout.flush()
       rvs = GOrvs[go]
       ranks = [MainIndex.get(x,2000) for x in rvs]
-      es = self.enrichment_score(rvs,MainIndex,sorted_scores)
+      es = self.enrichment_score(rvs,MainIndex,sorted_scores) # always positive, even if negative deviation, since I take abs
       mr = self.mean_rank(rvs,MainIndex)
       higher = 0
       for n,perm in enumerate(indexes):
@@ -301,7 +302,9 @@ class GSEAMethod(base.SingleConditionMethod):
     self.output.write('\t'.join("GO_term description num_genes mean_rank enrichment_score pval qval".split())+'\n')
     for go,mr,es,pval,qval in results:
       rvs = GOrvs[go]
-      rvs = ["%s/%s (%s)" % (x,genenames.get(x,"?"),MainIndex.get(x,"?")) for x in rvs] # I could sort these
+      rvinfo = [(x,genenames.get(x,"?"),MainIndex.get(x,n2)) for x in rvs]
+      rvinfo.sort(key=lambda x: x[2])
+      rvs = ["%s/%s (%s)" % x for x in rvinfo]
       rvs = ' '.join(rvs)
       vals = [go,ontology.get(go,"?"),len(GOrvs[go]),"%0.1f" % mr]+["%0.6f" % x for x in [es,pval,qval]]+[rvs]
       self.output.write('\t'.join([str(x) for x in vals])+'\n')
