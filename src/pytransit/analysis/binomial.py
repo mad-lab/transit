@@ -439,9 +439,9 @@ class BinomialMethod(base.SingleConditionMethod):
                 Z[:,i] = scipy.stats.bernoulli.rvs(p1)
             except:
                 inan = numpy.isnan(p1)
-                print("K=\t", K[inan], file=sys.stderr)
-                print("N=\t", N[inan], file=sys.stderr)
-                print("theta=", theta[inan,i], file=sys.stderr)
+                sys.stderr.write("K=\t", K[inan],"\n")
+                sys.stderr.write("N=\t", N[inan],"\n")
+                sys.stderr.write("theta=", theta[inan,i],'\n')
                 sys.exit()
             pz1[i] = p1[0]
 
