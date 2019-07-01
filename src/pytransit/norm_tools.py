@@ -4,9 +4,6 @@ import scipy.stats
 import scipy.optimize
 import warnings
 
-from pytransit import tnseq_tools
-
-
 class NormMethod:
     name = "undefined"
     @staticmethod
@@ -235,6 +232,8 @@ class EmpHistNorm(NormMethod):
 
         .. seealso:: :class:`normalize_data`
         """
+        from pytransit import tnseq_tools
+
 
         G = tnseq_tools.Genes(wigList, annotationPath)
         K = len(wigList)
