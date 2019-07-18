@@ -112,12 +112,14 @@ setup(
 
     # Choose your license
     license='GNU GPL',
-
+    python_requires='>=3.6',
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+
     classifiers=[
         #'Development Status :: 3 - Alpha',
         'Development Status :: 5 - Production/Stable',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Operating System :: OS Independent',

@@ -1,6 +1,10 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+## Version 3.0.0 2019-07-18
+#### TRANSIT:
+ - TRANSIT now supports python 3.
+ - To use with python 2, please use releases < 3.0.0.
 
 ## Version 2.5.2 2019-05-16
 #### TRANSIT:
