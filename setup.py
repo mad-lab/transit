@@ -101,6 +101,7 @@ setup(
 
     description='TRANSIT is a tool for the analysis of Tn-Seq data. It provides an easy to use graphical interface and access to three different analysis methods that allow the user to determine essentiality in a single condition as well as between conditions.',
     long_description=long_description,
+    long_description_content_type='text/markdown',
 
     # The project's main homepage.
     url='https://github.com/mad-lab/transit',
