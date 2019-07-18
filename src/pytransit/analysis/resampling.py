@@ -24,7 +24,7 @@ import numpy
 import scipy.stats
 import datetime
 
-import base
+from pytransit.analysis import base
 import pytransit
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
@@ -91,7 +91,7 @@ class ResamplingFile(base.TransitFile):
                 imgWindow.Show()
             else:
                 transit_tools.ShowError(MSG="Error Displaying File. Histogram image not found. Make sure results were obtained with the histogram option turned on.")
-                print "Error Displaying File. Histogram image does not exist."
+                print("Error Displaying File. Histogram image does not exist.")
 
 
 
@@ -435,7 +435,7 @@ class ResamplingMethod(base.DualConditionMethod):
         try:
             import matplotlib.pyplot as plt
         except:
-            print "Error: cannot do histograms"
+            print("Error: cannot do histograms")
             self.doHistogram = False
 
 
@@ -664,8 +664,8 @@ if __name__ == "__main__":
     G.console_message("Printing the member variables:")
     G.print_members()
 
-    print ""
-    print "Running:"
+    print("")
+    print("Running:")
 
     G.Run()
 

@@ -24,7 +24,7 @@ import numpy
 import scipy.stats
 import datetime
 
-import base
+from pytransit.analysis import base
 import pytransit
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
@@ -351,9 +351,9 @@ if hasWx:
                     )
                 if dlg.ShowModal() == wx.ID_OK:
                     paths = dlg.GetPaths()
-                    print "You chose the following Control file(s):"
+                    print("You chose the following Control file(s):")
                     for fullpath in paths:
-                        print "\t%s" % fullpath
+                        print("\t%s" % fullpath)
                         self.loadCtrlFile(fullpath)
                 dlg.Destroy()
             except Exception as e:
@@ -389,9 +389,9 @@ if hasWx:
                     )
                 if dlg.ShowModal() == wx.ID_OK:
                     paths = dlg.GetPaths()
-                    print "You chose the following Experimental file(s):"
+                    print("You chose the following Experimental file(s):")
                     for fullpath in paths:
-                        print "\t%s" % fullpath
+                        print("\t%s" % fullpath)
                         self.loadExpFile(fullpath)
                 dlg.Destroy()
             except Exception as e:
@@ -625,12 +625,12 @@ class GIMethod(base.QuadConditionMethod):
         start_time = time.time()
         self.output.write("#GI\n")
 
-        wiglist = self.ctrldataA + self.expdataA + self.ctrldataB + self.expdataB
+        wiglist = self.ctrldataA + self.ctrldataB + self.expdataA + self.expdataB
 
         Nwig = len(wiglist)
         Na1 = len(self.ctrldataA)
-        Nb1 = len(self.expdataA)
-        Na2 = len(self.ctrldataB)
+        Nb1 = len(self.ctrldataB)
+        Na2 = len(self.expdataA)
         Nb2 = len(self.expdataB)
 
 
@@ -830,7 +830,7 @@ class GIMethod(base.QuadConditionMethod):
 
 
 
-        # Print output
+        # Print(output)
         if self.wxobj:
             members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
             memberstr = ""
@@ -857,7 +857,7 @@ class GIMethod(base.QuadConditionMethod):
         self.output.write("#\n")
 
         # Write column names
-        self.output.write("#ORF\tName\tNumber of TA Sites\tMean count (Strain A Time 1)\tMean count (Strain A Time 2)\tMean count (Strain B Time 1)\tMean count (Strain B Time 2)\tMean logFC (Strain A)\tMean logFC (Strain B) \tMean delta logFC\tLower Bound delta logFC\tUpper Bound delta logFC\tProb. of delta-logFC being within ROPE\tAdjusted Probability (%s)\tIs HDI outside ROPE?\tType of Interaction\n" % adjusted_label)
+        self.output.write("#ORF\tName\tNumber of TA Sites\tMean count (Strain A Condition 1)\tMean count (Strain A Condition 2)\tMean count (Strain B Condition 1)\tMean count (Strain B Condition 2)\tMean logFC (Strain A)\tMean logFC (Strain B) \tMean delta logFC\tLower Bound delta logFC\tUpper Bound delta logFC\tProb. of delta-logFC being within ROPE\tAdjusted Probability (%s)\tIs HDI outside ROPE?\tType of Interaction\n" % adjusted_label)
 
         # Write gene results
         for i,row in enumerate(data):
@@ -919,8 +919,8 @@ if __name__ == "__main__":
     G.console_message("Printing the member variables:")
     G.print_members()
 
-    print ""
-    print "Running:"
+    print("")
+    print("Running:")
 
     G.Run()
 

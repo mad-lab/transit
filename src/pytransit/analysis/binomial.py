@@ -22,7 +22,7 @@ import numpy
 import scipy.stats
 import datetime
 
-import base
+from pytransit.analysis import base
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
 import pytransit.norm_tools as norm_tools
@@ -346,7 +346,7 @@ class BinomialMethod(base.SingleConditionMethod):
             elif K[g]/float(N[g]) == 1: theta[g][0] = 0.001
             else: theta[g][0] = K[g]/float(N[g])
 
-            #print g, ORF[g], K[g], N[g], theta[g][0]
+            #print(g, ORF[g], K[g], N[g], theta[g][0])
             Z[g][0] = scipy.stats.bernoulli.rvs(1-theta[g][0])
 
 
@@ -439,9 +439,9 @@ class BinomialMethod(base.SingleConditionMethod):
                 Z[:,i] = scipy.stats.bernoulli.rvs(p1)
             except:
                 inan = numpy.isnan(p1)
-                print >> sys.stderr, "K=\t", K[inan]
-                print >> sys.stderr, "N=\t", N[inan]
-                print >> sys.stderr, "theta=", theta[inan,i]
+                sys.stderr.write("K=\t", K[inan],"\n")
+                sys.stderr.write("N=\t", N[inan],"\n")
+                sys.stderr.write("theta=", theta[inan,i],'\n')
                 sys.exit()
             pz1[i] = p1[0]
 
@@ -546,8 +546,8 @@ if __name__ == "__main__":
     G.console_message("Printing the member variables:")   
     G.print_members()
 
-    print ""
-    print "Running:"
+    print("")
+    print("Running:")
 
     G.Run()
 

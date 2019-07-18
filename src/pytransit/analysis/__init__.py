@@ -5,24 +5,23 @@ import glob
 modules = glob.glob(dirname(__file__)+"/*.py")
 __all__ = [ basename(f)[:-3] for f in modules if isfile(f)]
 
-import base
+from pytransit.analysis import base
 
-import gumbel
-import example
-import tn5gaps
-import binomial
-import griffin
-import resampling
-import hmm
-import rankproduct
-import gi
-import utest
-import normalize
-import pathway_enrichment #08/22/2018 by Ivan
-import anova
-import zinb
-import tnseq_stats
-import winsorize
+from pytransit.analysis import gumbel
+from pytransit.analysis import example
+from pytransit.analysis import tn5gaps
+from pytransit.analysis import binomial
+from pytransit.analysis import griffin
+from pytransit.analysis import resampling
+from pytransit.analysis import hmm
+from pytransit.analysis import rankproduct
+from pytransit.analysis import gi
+from pytransit.analysis import utest
+from pytransit.analysis import normalize
+from pytransit.analysis import pathway_enrichment
+from pytransit.analysis import anova
+from pytransit.analysis import zinb
+from pytransit.analysis import tnseq_stats
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -43,10 +42,10 @@ methods["zinb"] = zinb.ZinbAnalysis()
 methods["normalize"] = normalize.Normalize()
 methods["pathway_enrichment"]=pathway_enrichment.GSEAAnalysis()
 methods["tnseq_stats"]=tnseq_stats.TnseqStats()
-methods["winsorize"] = winsorize.Winsorize()
 
 # EXPORT METHODS
-import norm
+from pytransit.analysis import norm
+
 export_methods = {}
 export_methods["norm"] = norm.NormAnalysis()
 

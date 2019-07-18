@@ -99,23 +99,23 @@ class ExportMethod:
         try:
             return self.fromargs(sys.argv[3:])
         except InvalidArgumentException as e:
-            print "Error: %s" % str(e)
-            print self.usage_string()
+            print("Error: %s" % str(e))
+            print(self.usage_string())
         except IndexError as e:
-            print "Error: %s" % str(e)
-            print self.usage_string()
+            print("Error: %s" % str(e))
+            print(self.usage_string())
         except TypeError as e:
-            print "Error: %s" % str(e)
+            print("Error: %s" % str(e))
             traceback.print_exc()
-            print self.usage_string()
+            print(self.usage_string())
         except ValueError as e:
-            print "Error: %s" % str(e)
+            print("Error: %s" % str(e))
             traceback.print_exc()
-            print self.usage_string()
+            print(self.usage_string())
         except Exception as e:
-            print "Error: %s" % str(e)
+            print("Error: %s" % str(e))
             traceback.print_exc()
-            print self.usage_string()
+            print(self.usage_string())
         sys.exit()
 
 #

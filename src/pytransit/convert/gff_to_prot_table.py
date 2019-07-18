@@ -19,7 +19,7 @@ if hasWx:
 import csv
 import traceback
 import pytransit.transit_tools as transit_tools
-import base
+from pytransit.convert import base
 
 class InvalidArgumentException(Exception):
     def __init__(self, message):
@@ -85,7 +85,7 @@ class GffProtMethod(base.ConvertMethod):
     def fromargs(self, rawargs):
         (args, kwargs) = transit_tools.cleanargs(rawargs)
         if (len(args) < 2):
-            print "Error: Please specify Input and Output paths"
+            print("Error: Please specify Input and Output paths")
             print(self.usage_string())
             sys.exit(1)
 
@@ -100,23 +100,23 @@ class GffProtMethod(base.ConvertMethod):
         try:
             return self.fromargs(sys.argv[3:])
         except InvalidArgumentException as e:
-            print "Error: %s" % str(e)
-            print self.usage_string()
+            print("Error: %s" % str(e))
+            print(self.usage_string())
         except IndexError as e:
-            print "Error: %s" % str(e)
-            print self.usage_string()
+            print("Error: %s" % str(e))
+            print(self.usage_string())
         except TypeError as e:
-            print "Error: %s" % str(e)
+            print("Error: %s" % str(e))
             traceback.print_exc()
-            print self.usage_string()
+            print(self.usage_string())
         except ValueError as e:
-            print "Error: %s" % str(e)
+            print("Error: %s" % str(e))
             traceback.print_exc()
-            print self.usage_string()
+            print(self.usage_string())
         except Exception as e:
-            print "Error: %s" % str(e)
+            print("Error: %s" % str(e))
             traceback.print_exc()
-            print self.usage_string()
+            print(self.usage_string())
         sys.exit()
 
     def get_description(self, line, parent):

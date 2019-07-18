@@ -18,7 +18,7 @@
 #    along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import view_trash
+import pytransit.view_trash as view_trash
 from math import *
 import os
 import platform
@@ -101,7 +101,7 @@ def draw_ta_sites(draw, ta_sites, start_x=0, start_y=0, width=200, height=0, sta
 
 def draw_scale(draw, start_x, start_y, height, max_read):
 
-    #print "scale", start_x, start_y, height
+    #print("scale", start_x, start_y, height)
     MIDREAD = int(max_read/2.0)
     top_text_w, top_text_h = draw.textsize(str(max_read), font=font)
     draw.text((start_x, start_y), str(max_read), font=font, fill="black")
@@ -262,7 +262,7 @@ def draw_canvas(fulldata, position, hash, orf2data, feature_hashes, feature_data
     READS = []
     nc_count = 1
     for j,data in enumerate(fulldata):
-        #print j
+        #print(j)
         temp = []
         for i,read in enumerate(data):
             pos = position[i]
@@ -286,19 +286,19 @@ def draw_canvas(fulldata, position, hash, orf2data, feature_hashes, feature_data
 
     else:
         for j,s in enumerate(scale):
-            #print j,s
+            #print(j,s)
             if s < 0:
                 max_reads.append(int(numpy.max(READS[j])))
             else:
                 max_reads.append(s)
 
     #Get dynamic text widths
-    #print "Labels:"
+    #print("Labels:")
     max_label_w = 0
     for L in labels:
         label_text_w, label_text_h = temp_draw.textsize(L, font=font)
         max_label_w = max(label_text_w, max_label_w)
-        #print L
+        #print(L)
 
     scale_text_w, scale_text_h = temp_draw.textsize(str(max(max_reads)), font=font)
     
@@ -323,14 +323,14 @@ def draw_canvas(fulldata, position, hash, orf2data, feature_hashes, feature_data
     lwd = 2
 
 
-    #print READS
-    #print "start", start
-    #print "end", end
-    #print len(READS), len(TA_SITES)
-    #print ""
+    #print(READS)
+    #print("start", start)
+    #print("end", end)
+    #print(len(READS), len(TA_SITES))
+    #print("")
     #for rd in READS:
-    #    print rd
-    #print ""
+    #    print(rd)
+    #print("")
 
     start_x = max_label_w + padding_w + 21
     draw.line([(start_x, 0), (start_x, canvas_h)], width=lwd, fill="black")
@@ -376,7 +376,7 @@ def draw_canvas(fulldata, position, hash, orf2data, feature_hashes, feature_data
         label_text_x = (start_x/2.0) - (temp_label_text_w/2.0)
         draw.text((label_text_x, start_y+10),'Feature-%d' % (f+1), font=font, fill="black")
         width = read_w
-        #print FEATURES[f]
+        #print(FEATURES[f])
         #draw_genes(draw, FEATURES[f], feature_data[f], start, end, start_x, start_y, width, gene_h))
         draw_features(draw, FEATURES[f], feature_data[f], start, end, start_x, start_y, width, gene_h)
         start_y +=10

@@ -112,12 +112,14 @@ setup(
 
     # Choose your license
     license='GNU GPL',
-
+    python_requires='>=3.6',
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+
     classifiers=[
         #'Development Status :: 3 - Alpha',
         'Development Status :: 5 - Production/Stable',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Operating System :: OS Independent',
@@ -145,7 +147,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['setuptools', 'numpy~=1.15', 'scipy~=1.2', 'matplotlib~=2.2', 'pillow~=5.0', 'statsmodels~=0.9'],
+    install_requires=['setuptools', 'numpy~=1.16', 'scipy~=1.2', 'matplotlib~=3.0', 'pillow~=6.0', 'statsmodels~=0.9'],
 
     #dependency_links = [
     #	"git+https://github.com/wxWidgets/wxPython.git#egg=wxPython"

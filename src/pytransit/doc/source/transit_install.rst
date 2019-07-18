@@ -32,8 +32,13 @@ If you encounter problems, please :ref:`contact us <developers>` or head to the 
 
 Requirements
 ------------
-The following libraries/modules are required to run TRANSIT:
 
+TRANSIT runs on both python2.7 and python3. But the dependencies vary slightly.
+
+Python 2.7:
+-----------
+
+The following libraries/modules are required to run TRANSIT:
 
 + `Python 2.7 <http://www.python.org>`_
 + `Numpy <http://www.numpy.org/>`_ (tested on 1.15.0)
@@ -54,15 +59,37 @@ Pip and Python are usually preinstalled in most modern operating systems.
 
 |
 
+Python 3:
+-----------
+
+The following libraries/modules are required to run TRANSIT:
+
++ `Python 3+ <http://www.python.org>`_
++ `Numpy <http://www.numpy.org/>`_ (tested on 1.16.0)
++ `Statsmodels <https://pypi.org/project/statsmodels/>`_ (tested on 0.9.0)
++ `Scipy <http://www.scipy.org/>`_ (tested on 1.2)
++ `matplotlib <http://matplotlib.org/users/installing.html>`_ (tested on 3.0)
++ `Pillow 6.0 <https://github.com/python-pillow/Pillow>`_
++ `wxpython 4+ <http://www.wxpython.org/>`_
++ `PyPubSub 4+ <https://pypi.org/project/PyPubSub/>`_ (tested on 4.0.3)
+
+All of these dependencies can be installed using the following command.
+
+::
+
+   pip3 install numpy scipy pillow pypubsub matplotlib statsmodels wxPython
+
+Pip and Python are usually preinstalled in most modern operating systems.
+
+|
 .. _install-zinb:
 
 **Additional requirements for** :ref:`ZINB <zinb>` **method (in addition to the TRANSIT requirements above):**
 
- - `R <https://www.r-project.org/>`_
+ - `R <https://www.r-project.org/>`_ (tested on v3.5.2)
  - R packages: MASS, pscl (run "install.packages(MASS)" etc. in R console)
- - python packages: rpy2 (v<2.9.0) (run "pip install 'rpy2<2.9.0' " on command line)
-
-
+ - For python 2.7: python packages: rpy2 (v<2.9.0) (run "pip install 'rpy2<2.9.0' " on command line)
+ - For python 3: python packages: rpy2 (v3.0) (run "pip install 'rpy2' " on command line)
 
 Use as a Python Package
 -----------------------------------------------------
@@ -75,11 +102,11 @@ TRANSIT can be (optionally) installed as a python package. This can simplify the
         >>> import pytransit.norm_tools as norm_tools
         >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-        >>> print data
+        >>> print(data)
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
         >>> factors = norm_tools.TTR_factors(data)
-        >>> print factors
+        >>> print(factors)
         array([[ 1.        ],
                [ 0.62862886]])
 

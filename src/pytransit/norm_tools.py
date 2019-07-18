@@ -4,9 +4,6 @@ import scipy.stats
 import scipy.optimize
 import warnings
 
-import tnseq_tools
-
-
 class NormMethod:
     name = "undefined"
     @staticmethod
@@ -31,11 +28,11 @@ class NZMeanNorm(NormMethod):
             >>> import pytransit._tools.norm_tools as norm_tools
             >>> import pytransit.tnseq_tools as tnseq_tools
             >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-            >>> print data
+            >>> print(data)
             array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                    [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
             >>> factors = norm_tools.nzmean_factors(data)
-            >>> print factors
+            >>> print(factors)
             array([[ 1.14836149],
                    [ 0.88558737]])
 
@@ -74,11 +71,11 @@ class TotReadsNorm(NormMethod):
             >>> import pytransit.norm_tools as norm_tools
             >>> import pytransit.tnseq_tools as tnseq_tools
             >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-            >>> print data
+            >>> print(data)
             array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                    [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
             >>> factors = norm_tools.totreads_factors(data)
-            >>> print factors
+            >>> print(factors)
             array([[ 1.2988762],
                    [ 0.8129396]])
 
@@ -116,11 +113,11 @@ class TTRNorm(NormMethod):
             >>> import pytransit.tnseq_tools as tnseq_tools
             >>> import pytransit.norm_tools as norm_tools
             >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-            >>> print data
+            >>> print(data)
             array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                    [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
             >>> theta = norm_tools.empirical_theta(data)
-            >>> print theta
+            >>> print(theta)
             0.467133570136
 
 
@@ -145,11 +142,11 @@ class TTRNorm(NormMethod):
             >>> import pytransit.tnseq_tools as tnseq_tools
             >>> import pytransit.norm_tools as norm_tools
             >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-            >>> print data
+            >>> print(data)
             array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                    [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
             >>> mu = norm_tools.trimmed_empirical_mu(data)
-            >>> print mu
+            >>> print(mu)
             120.73077107
 
         .. seealso:: :class:`TTR_factors`
@@ -177,11 +174,11 @@ class TTRNorm(NormMethod):
             >>> import pytransit.norm_tools as norm_tools
             >>> import pytransit.tnseq_tools as tnseq_tools
             >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-            >>> print data
+            >>> print(data)
             array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                    [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
             >>> factors = norm_tools.TTR_factors(data)
-            >>> print factors
+            >>> print(factors)
             array([[ 1.        ],
                    [ 0.62862886]])
 
@@ -225,16 +222,18 @@ class EmpHistNorm(NormMethod):
             >>> import pytransit.norm_tools as norm_tools
             >>> import pytransit.tnseq_tools as tnseq_tools
             >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-            >>> print data
+            >>> print(data)
             array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                    [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
             >>> factors = norm_tools.emphist_factors(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"], "transit/genomes/H37Rv.prot_table")
-            >>> print factors
+            >>> print(factors)
             array([[ 1.        ],
                    [ 0.63464722]])
 
         .. seealso:: :class:`normalize_data`
         """
+        from pytransit import tnseq_tools
+
 
         G = tnseq_tools.Genes(wigList, annotationPath)
         K = len(wigList)
@@ -300,11 +299,11 @@ class AdaptiveBGCNorm(NormMethod):
             >>> import pytransit.norm_tools as norm_tools
             >>> import pytransit.tnseq_tools as tnseq_tools
             >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-            >>> print data
+            >>> print(data)
             array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                    [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
             >>> normdata = norm_tools.aBGC_norm(data)
-            >>> print normdata
+            >>> print(normdata)
             array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                    [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
 
@@ -336,8 +335,8 @@ class AdaptiveBGCNorm(NormMethod):
                     temp = scipy.stats.geom.rvs(scipy.stats.beta.rvs(Kp*rho, Kp*(1-rho), size=S), size=S)
                     bgc_factors.append((rho, Kp))
                 except Except as e:
-                    print "aBGC Error:", str(e)
-                    print "%rho=s\tKp=%s\tA=%s" % (rho, Kp, A)
+                    print("aBGC Error:", str(e))
+                    print("%rho=s\tKp=%s\tA=%s" % (rho, Kp, A))
                     temp = scipy.stats.geom.rvs(0.01, size=S)
 
 
@@ -383,11 +382,11 @@ class ZeroInflatedNBNorm(NormMethod):
             >>> import pytransit.norm_tools as norm_tools
             >>> import pytransit.tnseq_tools as tnseq_tools
             >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-            >>> print data
+            >>> print(data)
             array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                    [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
             >>> factors = norm_tools.zinfnb_factors(data)
-            >>> print factors
+            >>> print(factors)
             [[ 0.0121883 ]
              [ 0.00747111]]
 
@@ -427,11 +426,11 @@ class QuantileNorm(NormMethod):
             >>> import pytransit.norm_tools as norm_tools
             >>> import pytransit.tnseq_tools as tnseq_tools
             >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-            >>> print data
+            >>> print(data)
             array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                    [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
             >>> normdata = norm_tools.quantile_norm(data)
-            >>> print normdata
+            >>> print(normdata)
 
         .. seealso:: :class:`normalize_data`
 
@@ -489,11 +488,11 @@ class BetaGeomNorm(NormMethod):
             >>> import pytransit.norm_tools as norm_tools
             >>> import pytransit.tnseq_tools as tnseq_tools
             >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-            >>> print data
+            >>> print(data)
             array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                    [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
             >>> normdata = norm_tools.betageom_norm(data)
-            >>> print normdata
+            >>> print(normdata)
             [[ 0.  0.  0. ...,  0.  0.  0.]
              [ 0.  0.  0. ...,  0.  0.  0.]]
 
@@ -522,8 +521,8 @@ class BetaGeomNorm(NormMethod):
             try:
                 BGsample = scipy.stats.geom.rvs(scipy.stats.beta.rvs(Kp*rho, Kp*(1-rho), size=bgsamples), size=bgsamples)
             except Exception as e:
-                print "BGC ERROR with rho=%f, Kp=%f, A=%s" % (rho, Kp, A)
-                print str(e)
+                print("BGC ERROR with rho=%f, Kp=%f, A=%s" % (rho, Kp, A))
+                print(str(e))
                 BGsample = scipy.stats.geom.rvs(rho, size=bgsamples)
 
             for i in range(N):
@@ -572,14 +571,14 @@ def normalize_data(data, method="nonorm", wigList=[], annotationPath=""):
         >>> import pytransit.norm_tools as norm_tools
         >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-        >>> print data
+        >>> print(data)
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
         (normdata, normfactors) = norm_tools.normalize_data(data, "TTR")   # Some methods require annotation and path to wig files.
-        >>> print normfactors
+        >>> print(normfactors)
         array([[ 1.        ],
                [ 0.62862886]])
-        >> print normdata
+        >> print(normdata)
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
 
@@ -611,11 +610,11 @@ def empirical_theta(X):
         >>> import pytransit.tnseq_tools as tnseq_tools
         >>> import pytransit.norm_tools as norm_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-        >>> print data
+        >>> print(data)
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
         >>> theta = norm_tools.empirical_theta(data)
-        >>> print theta
+        >>> print(theta)
         0.467133570136
 
 
@@ -640,11 +639,11 @@ def trimmed_empirical_mu(X, t=0.05):
         >>> import pytransit.tnseq_tools as tnseq_tools
         >>> import pytransit.norm_tools as norm_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-        >>> print data
+        >>> print(data)
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
         >>> mu = norm_tools.trimmed_empirical_mu(data)
-        >>> print mu
+        >>> print(mu)
         120.73077107
 
     .. seealso:: :class:`TTR_factors`
@@ -679,11 +678,11 @@ def zinfnb_factors(data):
         >>> import pytransit.norm_tools as norm_tools
         >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-        >>> print data
+        >>> print(data)
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
         >>> factors = norm_tools.zinfnb_factors(data)
-        >>> print factors
+        >>> print(factors)
         [[ 0.0121883 ]
          [ 0.00747111]]
 
@@ -734,11 +733,11 @@ def norm_to_target(data, target):
         >>> import pytransit.norm_tools as norm_tools
         >>> import pytransit.tnseq_tools as tnseq_tools
         >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
-        >>> print data
+        >>> print(data)
         array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
                [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
         >>> factors = norm_tools.norm_to_target(data, 100)
-        >>> print factors
+        >>> print(factors)
         [[ 1.8548104 ]
          [ 1.16088726]]
 

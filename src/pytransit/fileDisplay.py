@@ -33,7 +33,7 @@ import sys
 
 from functools import partial
 
-import trash
+import pytransit.trash
 
 import wx.grid
 
@@ -94,7 +94,7 @@ def unknownColNames(path):
         else:
             final_line = line
     if not final_line:
-        print "Error: file appears to be empty"
+        print("Error: file appears to be empty")
     tmp = final_line.split("\t")
     if len(colNames) < len(tmp):
         colNames = ["Col%d" % (i) for i in range(len(tmp))]

@@ -13,8 +13,8 @@ import unittest
 from transit_test import *
 
 import pytransit
-import pytransit.norm_tools as norm_tools
-import pytransit.tnseq_tools as tnseq_tools
+from pytransit import norm_tools
+from pytransit import tnseq_tools
 
 # Single condition methods
 from pytransit.analysis.gumbel import GumbelMethod
@@ -23,7 +23,6 @@ from pytransit.analysis.griffin import GriffinMethod
 from pytransit.analysis.hmm import HMMMethod
 from pytransit.analysis.anova import AnovaMethod
 from pytransit.analysis.zinb import ZinbMethod
-from pytransit.analysis.winsorize import WinsorizeMethod
 
 # Comparative methods
 from pytransit.analysis.resampling import ResamplingMethod
@@ -102,7 +101,7 @@ class TestMethods(TransitTestCase):
                 "sig_qvals expected in range: %s, actual: %d" % ("[34, 36]", len(sig_qvals)))
 
     def test_resampling_adaptive(self):
-        args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-a"]
+        args = [ctrl_data_txt, exp_data_txt, small_annotation, output, "-a", "--ctrl_lib", "AA", "--exp_lib", "AAA"]
         G = ResamplingMethod.fromargs(args)
         G.Run()
         self.assertTrue(os.path.exists(output))
@@ -113,7 +112,7 @@ class TestMethods(TransitTestCase):
                 "sig_pvals expected in range: %s, actual: %d" % ("[35, 39]", len(sig_qvals)))
         self.assertLessEqual(
                 abs(len(sig_qvals) - 35),
-                1,
+                2,
                 "sig_qvals expected in range: %s, actual: %d" % ("[34, 36]", len(sig_qvals)))
 
     def test_resampling_histogram(self):

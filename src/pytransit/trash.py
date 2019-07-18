@@ -23,8 +23,8 @@ try:
 except Exception as e:
     hasWx = False
 
-import view_trash
-import draw_trash
+import pytransit.view_trash as view_trash
+import pytransit.draw_trash as draw_trash
 from math import *
 import os
 import ntpath
@@ -288,7 +288,7 @@ class TrashFrame(view_trash.MainFrame):
         fi = open(path)
         line = fi.readline()
         tmp = line.split("\t")
-        #print tmp
+        #print(tmp)
         last_state = ""
         start = 0
         end = 0

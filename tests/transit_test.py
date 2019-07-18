@@ -1,5 +1,6 @@
 import unittest
 import os
+import sys
 
 basedir = os.path.dirname(__file__)
 ctrl_rep1 = basedir + "/../src/pytransit/data/glycerol_H37Rv_rep1.wig"
@@ -54,20 +55,20 @@ class TransitTestCase(unittest.TestCase):
 
         # Check if there were output files and remove them
         if os.path.exists(output):
-            print "Removing output file..."
+            print("Removing output file...")
             os.remove(output)
 
         genes_path = output.rsplit(".", 1)[0] + "_genes" + output.rsplit(".", 1)[1]
 
         if os.path.exists(genes_path):
-            print "Removing genes file..."
+            print("Removing genes file...")
             os.remove(genes_path)
 
     def header(self):
-        print "\n"
-        print "#"*20
-        print self.id()
-        print "#"*20
+        print("\n")
+        print("#"*20)
+        print(self.id())
+        print("#"*20)
 
 def count_hits(path):
     hits = 0
@@ -89,5 +90,5 @@ def significant_pvals_qvals(fname, pcol=-2, qcol=-1):
         pvals.append(float(cols[pcol]))
         qvals.append(float(cols[qcol]))
 
-    return (filter(lambda p: p < 0.05, pvals), filter(lambda q: q < 0.05, qvals))
+    return (list(filter(lambda p: p < 0.05, pvals)), list(filter(lambda q: q < 0.05, qvals)))
 

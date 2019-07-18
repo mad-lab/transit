@@ -24,7 +24,7 @@ import numpy
 import scipy.stats
 import datetime
 
-import base
+from pytransit.export import base
 import pytransit
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
@@ -206,17 +206,17 @@ if __name__ == "__main__":
 
     (args, kwargs) = transit_tools.cleanargs(sys.argv[1:])
 
-    print "ARGS:", args
-    print "KWARGS:", kwargs
+    print("ARGS:", args)
+    print("KWARGS:", kwargs)
 
     G = Example.fromargs(sys.argv[1:])
 
-    print G
+    print(G)
     G.console_message("Printing the member variables:")   
     G.print_members()
 
-    print ""
-    print "Running:"
+    print("")
+    print("Running:")
 
     G.Run()
 
