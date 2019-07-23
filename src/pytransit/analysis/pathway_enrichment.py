@@ -177,13 +177,13 @@ class GSEAMethod(base.SingleConditionMethod):
       n = len(dict_n[key])
       I = set(dict_k) & set(dict_n[key])
       k = len(I)
-      result[key] = {"parameters":str(k)+"\t"+str(n),"p-value": hypergeom.sf(k,M,n,N), "Intersection":I}
+      result[key] = {"parameters":str(n)+"\t"+str(k),"p-value": hypergeom.sf(k,M,n,N), "Intersection":I}
     self.padjustForHypergeom(result)
     return result
 
 
   def padjustForHypergeom(self,result):
-    keys = result.keys()
+    keys = list(result.keys())
     pvalues = [result[k]["p-value"] for k in keys]
     b,adj=multitest.fdrcorrection(pvalues, alpha=0.05, method='indep')
     for i in range(len(keys)):
@@ -357,7 +357,7 @@ class GSEAMethod(base.SingleConditionMethod):
     self.output.close()  
 
   def padjustTest(self,test):
-    keys = test.keys()
+    keys = list(test.keys())
     pvals = [test[k][2] for k in keys]
     b,adj=multitest.fdrcorrection(pvals, alpha=0.05, method='indep')
     for i in range(len(keys)):
@@ -453,7 +453,7 @@ class GSEAMethod(base.SingleConditionMethod):
       self.output.write("#%s\n" % "\t".join(columns))
       self.saveExit(gseaVal,PathDict,rank,ORFNameDict,DESCR)
     elif self.M =="HYPE":
-      columns=["cat id descr","Total genes","Total in intersection","pval","padj","genes in intersection"]
+      columns=["cat id", "descr","Total genes","Total in intersection","pval","padj","genes in intersection"]
       self.output.write("#%s\n" % "\t".join(columns))
       self.saveHyperGeometricTest(results,ORFNameDict,DESCR)
     elif self.M =="GSEA-Z":
