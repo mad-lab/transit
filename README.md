@@ -4,6 +4,8 @@
 
 =======
 
+**NOTE: TRANSIT v3.0+ now requires python3.6+. If you want to use TRANSIT with python2, use version < 3.0.**
+
 Welcome! This is the distribution for the TRANSIT and TPP tools developed by the [Ioerger Lab](http://orca2.tamu.edu/tom/iLab.html) at Texas A&M University.
 
 TRANSIT is a tool for processing and statistical analysis of Tn-Seq data.
