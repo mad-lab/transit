@@ -1442,6 +1442,7 @@ def show_help():
   print('    -maxreads <INT>')
   print('    -mismatches <INT>  # when searching for constant regions in reads 1 and 2; default is 1')
   print('    -flags "<STRING>"  # args to pass to BWA')
+  print('    -bwa-alg [aln|mem]  # Default: mem. Algorithm to use for mapping reads with bwa' )
   print('    -primer-start-window INT,INT # position in read to search for start of primer; default is [0,20]')
   print('    -window-size INT   # automatic method to set window')
   print('    -barseq_catalog_in|-barseq_catalog_out <file>')
