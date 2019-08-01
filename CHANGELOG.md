@@ -1,6 +1,11 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+## Version 3.0.1 2019-08-01
+#### TRANSIT:
+ - Add check for python3 (TRANSIT 3+ requires python3.6+)
+ - Minor fixes in GI and Pathway Enrichment
+
 ## Version 3.0.0 2019-07-18
 #### TRANSIT:
  - TRANSIT now supports python 3. (To use with python 2, use releases < 3.0.0)

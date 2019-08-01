@@ -40,10 +40,10 @@ long_name = "Genetic Interactions"
 short_desc = "Genetic interactions analysis for change in enrichment"
 long_desc = """Method for determining genetic interactions based on changes in enrichment (i.e. delta log fold-change in mean read counts).
 
-NOTE: This method requires 4 groups of datasets. Use the main interface to add datasets for the two strain backgrounds under the first condition. A window will allow you to add the datasets under the second condition.
+NOTE: This method requires 4 groups of datasets. Use the main interface to add datasets for the two strain backgrounds under the first condition. After pressing "Run GI", a subsequent window will allow you to add the datasets under the second condition.
 """
 
-transposons = []
+transposons = ["himar1"]
 columns = ["Orf","Name","Number of TA Sites","Mean count (Strain A Condition 1)","Mean count (Strain A Condition 2)","Mean count (Strain B Condition 1)","Mean count (Strain B Condition 2)", "Mean logFC (Strain A)", "Mean logFC (Strain B)", "Mean delta logFC","Lower Bound delta logFC","Upper Bound delta logFC", "Prob. of delta-logFC being within ROPE", "Adjusted Probability (BFDR)", "Is HDI outside ROPE?", "Type of Interaction"]
 
 
