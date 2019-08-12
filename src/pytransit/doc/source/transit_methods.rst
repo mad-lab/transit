@@ -752,19 +752,33 @@ that imply a genetic interaction.
 How does it work?
 ~~~~~~~~~~~~~~~~~
 
+GI performs a comparison among 4 groups of datasets, strain A and B assessed in conditions 1 and 2 (e.g. control vs treatment).
+It looks for interactions where the response to the treatment (i.e. effect on insertion counts) depends on the strain.
+
+If you think of the effect of treatment as a log-fold-change (e.g. of
+the insert counts between control and treatment in strain A), which is
+like a "slope", then the interacting genes are those that exhibit a difference
+in the effect of the treatment between the strains, and hence a difference in the
+slopes between strain A and B (represented by 'delta_LFC' in the output file).
+
 | For a formal description of how this method works, see our paper [DeJesus20170NAR]_:
 |
 |  DeJesus, M.A., Nambi, S., Smith, C.M., Baker, R.E., Sassetti, C.M., Ioerger, T.R. `Statistical analysis of genetic interactions in Tn-Seq data. <https://www.ncbi.nlm.nih.gov/pubmed/28334803>`_ *Nucleic Acids Research.* 2017. 45(11):e93. doi: 10.1093/nar/gkx128.
 
+
+
 |
 
 
-Example
-~~~~~~~
+Usage
+~~~~~
 
 ::
 
-  python transit.py GI <comma-separated .wig control files condition A> <comma-separated .wig control files condition B> <comma-separated .wig experimental files condition A> <comma-separated .wig experimental files condition B> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+  python transit.py GI <wigs_for_strA_cond1> <wigs_for_strA_cond2> <wigs_for_strB_cond1> <wigs_for_strB_cond2> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+
+        Provide replicates in each group as a comma-separated list of wig files.
+
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
         --rope <float>  :=  Region of Practical Equivalence. Area around 0 (i.e. 0 +/- ROPE) that is NOT of interest. Can be thought of similar to the area of the null-hypothesis. Default: --rope 0.5
@@ -775,6 +789,19 @@ Example
         -iC <float>     :=  Ignore TAs occuring at given percentage (as integer) of the C terminus. Default: -iC 0
 
 You can think of 'control' and 'experimental' samples as 'untreated' vs. 'treated'.
+
+Example
+~~~~~~~
+
+In this example, the effect of a knockout of SigB is being evaluated for its effect on tolerance of isoniazid.
+Some genes may become more essential (or less) in the presence of INH in the wild-type strain.
+The genes implied to interact with SigB are those whose response to INH changes in the knock-out strain compared to the wild-type.
+Note there are 2 replicates in each of the 4 groups of datasets.
+
+::
+
+  python transit/src/transit.py GI WT_untreated1.wig,WT_untreated2.wig WT_INH_1.wig,WT_INH_2.wig delta_SigB_untreated1.wig,delta_SigB_untreated2.wig delta_SigB_INH_1.wig,delta_SigB_INH_2.wig mc2_155_tamu.prot_table GI_delta_SigB_INH.txt
+
 
 Parameters
 ~~~~~~~~~~
@@ -857,6 +884,11 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 +-----------------------------------------+----------------------------------------------------+
 
 |
+
+Significant interactions are those with "HDI outside ROPE?"=TRUE.
+
+All genes are sorted by significance using BFDR.
+
 
 
 .. rst-class:: transit_sectionend
