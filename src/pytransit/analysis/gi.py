@@ -580,10 +580,19 @@ class GIMethod(base.QuadConditionMethod):
 
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
+        # ctrl-vs-exp = condition 1-vs-2
+        # originally, MAD defined order of CL args this way: strA/cond1, strB/cond1, strA/cond2, strB/cond
+        #ctrldataA = args[0].split(",")
+        #ctrldataB = args[1].split(",")
+        #expdataA = args[2].split(",")
+        #expdataB = args[3].split(",")
+
+        # TRI changed order of args this way: strA/cond1, strA/cond2, strB/cond1, strB/cond
         ctrldataA = args[0].split(",")
-        ctrldataB = args[1].split(",")
-        expdataA = args[2].split(",")
+        expdataA = args[1].split(",")
+        ctrldataB = args[2].split(",")
         expdataB = args[3].split(",")
+
         annotationPath = args[4]
         output_path = args[5]
         output_file = open(output_path, "w")
@@ -632,7 +641,6 @@ class GIMethod(base.QuadConditionMethod):
         Nb1 = len(self.ctrldataB)
         Na2 = len(self.expdataA)
         Nb2 = len(self.expdataB)
-
 
         # Get data
         self.transit_message("Getting Data")
