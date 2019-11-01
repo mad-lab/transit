@@ -23,6 +23,7 @@ all_data_list = [ctrl_rep1, ctrl_rep2, exp_rep1, exp_rep2, exp_rep3]
 annotation = basedir + "/../src/pytransit/genomes/H37Rv.prot_table"
 small_annotation = basedir + "/data/test.prot_table"
 output = basedir + "/testoutput.txt"
+posthoc_output = basedir + "/testoutput_posthoc.txt"
 hist_path = output.rsplit(".", 1)[0] + "_histograms"
 tpp_output_base = basedir + "/test_tpp_temp"
 tpp_output_paths = [tpp_output_base + i for i in [".counts", ".reads1", ".sam", ".tn_stats", ".trimmed1", ".trimmed1_failed_trim", ".wig", "_a.counts", "_b.counts", "_c.counts", "_1.counts", "_2.counts", "_3.counts"]]
@@ -92,3 +93,14 @@ def significant_pvals_qvals(fname, pcol=-2, qcol=-1):
 
     return (list(filter(lambda p: p < 0.05, pvals)), list(filter(lambda q: q < 0.05, qvals)))
 
+def posthoc_cld_groups(fname):
+    letters = []
+    with open(fname) as f:
+        lines = f.readlines()
+    for line in lines[2:]:
+        if line[0]=='#': continue
+        cols = line.strip().split("\t")
+        # Read in position as int, and readcounts as float
+        letters.append(cols[3:])
+    
+    return(letters)

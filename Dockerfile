@@ -5,6 +5,9 @@ ADD tests/ /tests
 RUN pip3 install pytest 'numpy~=1.16' 'scipy~=1.2' 'matplotlib~=3.0' 'pillow~=6.0' 'statsmodels~=0.9' 'rpy2'
 RUN R -e "install.packages('MASS')"
 RUN R -e "install.packages('pscl')"
+RUN R -e "install.packages('multcomp')"
+RUN R -e "install.packages('multcompView')"
+RUN R -e "install.packages('emmeans')"
 
 CMD [ "pytest", "./tests" ]
 

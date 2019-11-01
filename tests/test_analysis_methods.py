@@ -200,6 +200,46 @@ class TestMethods(TransitTestCase):
             0,
             "sig_qvals expected: %d, actual: %d" % (0, len(sig_qvals)))
 
+    @unittest.skipUnless(hasR, "requires R, rpy2")
+    def test_zinb_posthoc(self):
+        args = [combined_wig, samples_metadata, small_annotation, output, "--posthoc", posthoc_output]
+        G = ZinbMethod.fromargs(args)
+        G.Run()
+        self.assertTrue(os.path.exists(output))
+        self.assertTrue(os.path.exists(posthoc_output))
+        cld_groups = posthoc_cld_groups(posthoc_output)
+        self.assertEqual(
+            len(cld_groups),
+            50,
+            "groups expected: %d, actual: %d" % (2, len(cld_groups))
+        )
+        cld_groups_12 = [x for x in cld_groups if x == ['1', '2']]
+        self.assertEqual(
+            len(cld_groups_12),
+            22,
+            "groups annotated '1, 2' expected: %d, actual: %d" % (10, len(cld_groups_12))
+        )
+    
+    @unittest.skipUnless(hasR, "requires R, rpy2")
+    def test_zinb_interaction_posthoc(self):
+        args = [combined_wig, samples_metadata_interactions, small_annotation, output, "--covars", "batch", "--interactions", "atm", "--posthoc", posthoc_output]
+        G = ZinbMethod.fromargs(args)
+        G.Run()
+        self.assertTrue(os.path.exists(output))
+        self.assertTrue(os.path.exists(posthoc_output))
+        cld_groups = posthoc_cld_groups(posthoc_output)
+        self.assertEqual(
+            len(cld_groups),
+            50,
+            "groups expected: %d, actual: %d" % (2, len(cld_groups))
+        )
+        cld_groups_sig = [x for x in cld_groups if x == ['1', '12', '12', '2'] or x == ['1', '12', '2', '2']]
+        self.assertEqual(
+            len(cld_groups_sig),
+            2,
+            "groups annotated with '12' expected: %d, actual: %d" % (2, len(cld_groups_sig))
+        )
+
     def test_utest(self):
         args = [ctrl_data_txt, exp_data_txt, small_annotation, output]
         G = UTestMethod.fromargs(args)

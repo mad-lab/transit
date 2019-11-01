@@ -48,10 +48,12 @@ class ZinbMethod(base.MultiConditionMethod):
     """
     Zinb
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0, condition="Condition", covars=[], interactions = []):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, posthoc_flag=False, posthoc_output_file="", nterm=5.0, cterm=5.0, condition="Condition", covars=[], interactions = []):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file,
                 normalization=normalization, ignored_conditions=ignored_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
         self.winz = winz
+        self.posthoc_flag = posthoc_flag
+        self.posthoc_output_file = posthoc_output_file
         self.covars = covars
         self.interactions = interactions
         self.condition = condition
@@ -88,6 +90,8 @@ class ZinbMethod(base.MultiConditionMethod):
         covars = list(filter(None, kwargs.get("-covars", "").split(",")))
         interactions = list(filter(None, kwargs.get("-interactions", "").split(",")))
         winz = True if "w" in kwargs else False
+        posthoc_flag = True if "-posthoc" in kwargs else False
+        posthoc_output_file = kwargs.get("-posthoc", "")
         ignored_conditions = list(filter(None, kwargs.get("-ignore-conditions", "").split(",")))
         included_conditions = list(filter(None, kwargs.get("-include-conditions", "").split(",")))
         if len(included_conditions) > 0 and len(ignored_conditions) > 0:
@@ -95,7 +99,7 @@ class ZinbMethod(base.MultiConditionMethod):
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, NTerminus, CTerminus, condition, covars, interactions)
+        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, posthoc_flag, posthoc_output_file, NTerminus, CTerminus, condition, covars, interactions)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -241,14 +245,21 @@ class ZinbMethod(base.MultiConditionMethod):
                 zinbMod1,
                 zinbMod0,
                 nbMod1,
-                nbMod0, DEBUG = F) {
+                nbMod0,
+                posthoc_flag,
+                posthocForm,
+                num_groups, DEBUG = F) {
               suppressMessages(require(pscl))
               suppressMessages(require(MASS))
+              suppressMessages(require(multcomp))
+              suppressMessages(require(multcompView))
+              suppressMessages(require(emmeans))
               melted = df
+              annot <- rep('1', num_groups)
 
               # filter out genes that have low saturation across all conditions, since pscl sometimes does not fit params well (resulting in large negative intercepts and high std errors)
               NZpercs = aggregate(melted$cnt,by=list(melted$cond),FUN=function(x) { sum(x>0)/length(x) })
-              if (max(NZpercs$x)<=0.15) { return(c(pval=1,status="low saturation (near-essential) across all conditions, not analyzed")) }
+              if (max(NZpercs$x)<=0.15) { return(list(pval=1,status="low saturation (near-essential) across all conditions, not analyzed", annot)) }
 
               sums = aggregate(melted$cnt,by=list(melted$cond),FUN=sum)
               # to avoid model failing due to singular condition, add fake counts of 1 to all conds if any cond is all 0s
@@ -310,14 +321,19 @@ class ZinbMethod(base.MultiConditionMethod):
                   print(summary(mod0))
               }
 
-              if (is.null(mod1) | is.null(mod0)) { return (c(1, paste0("Model Error. ", status))) }
-              if ((minCount == 0) && (sum(is.na(coef(summary(mod1))$count[,4]))>0)) { return(c(1, "Has Coefs, pvals are NAs")) } # rare failure mode - has coefs, but pvals are NA
+              if (is.null(mod1) | is.null(mod0)) { return (list(1, paste0("Model Error. ", status), annot)) }
+              if ((minCount == 0) && (sum(is.na(coef(summary(mod1))$count[,4]))>0)) { return(list(1, "Has Coefs, pvals are NAs", annot)) } # rare failure mode - has coefs, but pvals are NA
               df1 = attr(logLik(mod1),"df"); df0 = attr(logLik(mod0),"df") # should be (2*ngroups+1)-3
               pval = pchisq(2*(logLik(mod1)-logLik(mod0)),df=df1-df0,lower.tail=F) # alternatively, could use lrtest()
               # this gives same answer, but I would need to extract the Pvalue...
               #require(lmtest)
               #print(lrtest(mod1,mod0))
-              return (c(pval, status))
+
+              if (posthoc_flag && (pval < 0.05)) {
+                  annot <- cld(emmeans(mod1, as.formula(paste0("~", posthocForm))))$.group
+              }
+              
+              return (list(pval, status, annot))
             }
         ''')
 
@@ -340,7 +356,7 @@ class ZinbMethod(base.MultiConditionMethod):
         except ValueError:
             return False
 
-    def run_zinb(self, data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions, covariates, interactions):
+    def run_zinb(self, data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions, covariates, interactions, num_groups):
         """
             Runs Zinb for each gene across conditions and returns p and q values
             ([[Wigdata]], [Gene], [Number], [Number], {Rv: [SiteIndex]}, [Condition], [Covar], [Interaction]) -> Tuple([Number], [Number], [Status])
@@ -355,7 +371,7 @@ class ZinbMethod(base.MultiConditionMethod):
 
         count = 0
         self.progress_range(len(genes))
-        pvals,Rvs, status = [],[], []
+        pvals,Rvs,annotations,status = [],[],[],[]
         r_zinb_signif = self.def_r_zinb_signif()
         if (self.winz):
             self.transit_message("Winsorizing and running analysis...")
@@ -364,11 +380,12 @@ class ZinbMethod(base.MultiConditionMethod):
 
         comp1a = "1+cond"
         comp1b = "1+cond"
+        posthocForm = "cond"
 
         # include cond in mod0 only if testing interactions
         comp0a = "1" if len(self.interactions)==0 else "1+cond"
         comp0b = "1" if len(self.interactions)==0 else "1+cond"
-        for I in self.interactions: comp1a += "*"+I; comp1b += "*"+I; comp0a += "+"+I; comp0b += "+"+I
+        for I in self.interactions: comp1a += "*"+I; comp1b += "*"+I; comp0a += "+"+I; comp0b += "+"+I; posthocForm += "*"+I
         for C in self.covars: comp1a += "+"+C; comp1b += "+"+C; comp0a += "+"+C; comp0b += "+"+C
         zinbMod1 = "cnt~%s+offset(log(NZmean))|%s+offset(logitZperc)" % (comp1a,comp1b)
         zinbMod0 = "cnt~%s+offset(log(NZmean))|%s+offset(logitZperc)" % (comp0a,comp0b)
@@ -397,6 +414,7 @@ class ZinbMethod(base.MultiConditionMethod):
             if (len(RvSiteindexesMap[Rv]) <= 1):
                 status.append("TA sites <= 1")
                 pvals.append(1)
+                annotations.append(["1"]*num_groups)
             else:
                 # For winsorization
                 # norm_data = self.winsorize((map(
@@ -413,6 +431,7 @@ class ZinbMethod(base.MultiConditionMethod):
                 if (numpy.sum(readCounts) == 0):
                     status.append("No counts in all conditions")
                     pvals.append(1)
+                    annotations.append(["1"]*num_groups)
                 else:
                     df_args = {
                         'cnt': IntVector(readCounts),
@@ -427,9 +446,10 @@ class ZinbMethod(base.MultiConditionMethod):
                     melted = DataFrame(df_args)
                     # r_args = [IntVector(readCounts), StrVector(condition), melted, map(lambda x: StrVector(x), covars), FloatVector(NZmean), FloatVector(logitZPerc)] + [True]
                     debugFlag = True if DEBUG or GENE else False
-                    pval, msg = r_zinb_signif(melted, zinbMod1, zinbMod0, nbMod1, nbMod0, debugFlag)
-                    status.append(msg)
-                    pvals.append(float(pval))
+                    pval, msg, annot = r_zinb_signif(melted, zinbMod1, zinbMod0, nbMod1, nbMod0, self.posthoc_flag, posthocForm, num_groups, debugFlag)
+                    status.append(msg[0])
+                    pvals.append(float(pval[0]))
+                    annotations.append([x.strip() for x in annot])
                 if (DEBUG or GENE):
                     self.transit_message("Pval for Gene {0}: {1}, status: {2}".format(Rv, pvals[-1], status[-1]))
                 if (GENE):
@@ -445,10 +465,10 @@ class ZinbMethod(base.MultiConditionMethod):
         qvals = numpy.full(pvals.shape, numpy.nan)
         qvals[mask] = statsmodels.stats.multitest.fdrcorrection(pvals)[1] # BH, alpha=0.05
 
-        p,q,statusMap = {},{},{}
+        p,q,annotByRv,statusMap = {},{},{},{}
         for i,rv in enumerate(Rvs):
-            p[rv],q[rv],statusMap[rv] = pvals[i],qvals[i],status[i]
-        return (p, q, statusMap)
+            p[rv],q[rv],annotByRv[rv],statusMap[rv] = pvals[i],qvals[i],annotations[i],status[i]
+        return (p, q, annotByRv, statusMap)
 
     def Run(self):
         self.transit_message("Starting ZINB analysis")
@@ -497,9 +517,10 @@ class ZinbMethod(base.MultiConditionMethod):
         RvSiteindexesMap = tnseq_tools.rv_siteindexes_map(genes, TASiteindexMap, nterm=self.NTerminus, cterm=self.CTerminus)
         statsByRv, statGroupNames = self.stats_by_rv(data, RvSiteindexesMap, genes, conditions, interactions)
         LogZPercByRep, NZMeanByRep = self.global_stats_for_rep(data)
+        num_groups = len(statGroupNames)
 
         self.transit_message("Running ZINB")
-        pvals, qvals, run_status = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions, covariates, interactions)
+        pvals, qvals, annotByRv, run_status = self.run_zinb(data, genes, NZMeanByRep, LogZPercByRep, RvSiteindexesMap, conditions, covariates, interactions, num_groups)
 
         def orderStats(x, y):
             ic1 = x.split(SEPARATOR)
@@ -542,6 +563,18 @@ class ZinbMethod(base.MultiConditionMethod):
                     ["%f" % x for x in [pvals[Rv], qvals[Rv]]]) + [run_status[Rv]]
             file.write('\t'.join(vals)+EOL)
         file.close()
+        
+        if self.posthoc_flag:
+            self.transit_message("Adding File: %s" % (self.posthoc_output_file))
+            file = open(self.posthoc_output_file,"w")
+            head = ("Rv Gene TAs".split() + list(map(lambda v: "Annot_" + v, headersStatGroupNames)))
+            file.write('\t'.join(head)+EOL)
+            for gene in genes:
+                Rv = gene["rv"]
+                vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))]) + annotByRv[Rv]
+                file.write('\t'.join(vals)+EOL)
+            file.close()
+
         self.transit_message("Finished Zinb analysis")
         self.transit_message("Time: %0.1fs\n" % (time.time() - start_time))
 
@@ -559,6 +592,7 @@ class ZinbMethod(base.MultiConditionMethod):
         --covars <covar1,covar2...>     :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
         --interactions <covar1,covar2...>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis. Must be factors
         --gene <RV number or Gene name> := Run method for one gene and print model output.
+        --posthoc <posthoc output file> := Run Tukey's HSD posthoc. Save results in <posthoc output file>.
 
         """ % (sys.argv[0])
 
