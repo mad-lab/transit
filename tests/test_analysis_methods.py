@@ -216,7 +216,13 @@ class TestMethods(TransitTestCase):
         cld_groups_12 = [x for x in cld_groups if x == ['1', '2']]
         self.assertEqual(
             len(cld_groups_12),
-            22,
+            18,
+            "groups annotated '1, 2' expected: %d, actual: %d" % (10, len(cld_groups_12))
+        )
+        cld_groups_21 = [x for x in cld_groups if x == ['2', '1']]
+        self.assertEqual(
+            len(cld_groups_21),
+            4,
             "groups annotated '1, 2' expected: %d, actual: %d" % (10, len(cld_groups_12))
         )
     
@@ -233,7 +239,7 @@ class TestMethods(TransitTestCase):
             50,
             "groups expected: %d, actual: %d" % (2, len(cld_groups))
         )
-        cld_groups_sig = [x for x in cld_groups if x == ['1', '12', '12', '2'] or x == ['1', '12', '2', '2']]
+        cld_groups_sig = [x for x in cld_groups if x == ['1', '12', '2', '2'] or x == ['2', '12', '1', '12']]
         self.assertEqual(
             len(cld_groups_sig),
             2,
