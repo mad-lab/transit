@@ -188,7 +188,7 @@ class CombinedWigMethod(base.SingleConditionMethod):
             self.output.write("%d\t%s\t%s\n" % (position[i],vals,",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
             # Update progress
             text = "Running Export Method... %5.1f%%" % (100.0*i/N)
-            self.progress_update(text, i)
+            if i%1000==0: self.progress_update(text, i)
         self.output.close()
 
 
