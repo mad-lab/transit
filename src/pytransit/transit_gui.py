@@ -1757,7 +1757,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         window = 100
         for j in range(K):
 
-            size = len(position)/window + 1
+            size = int(len(position)/window) + 1 # python3 requires explicit rounding to int
             x_w = numpy.zeros(size)
             y_w = numpy.zeros(size)
             for i in range(size):
@@ -1767,7 +1767,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             y_smooth = stat_tools.loess(x_w, y_w, h=10000)
             plt.plot(x_w, y_w, "g+")
             plt.plot(x_w, y_smooth, "b-")
-            plt.xlabel("Genomic Position")
+            plt.xlabel("Genomic Position (TA sites)")
             plt.ylabel("Reads per 100 insertion sites")
 
             plt.title("LOESS Fit - %s" % transit_tools.basename(datasets_selected[j]) )
