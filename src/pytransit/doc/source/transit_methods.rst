@@ -534,7 +534,7 @@ parameters are available for the method:
    which are likely not significant. This dramatically speeds up the
    computation at the cost of less accurate estimates for those genes
    that terminate early (i.e. deemed not significant). This option is
-   OFF by default.
+   OFF by default. (see Notes below)
 
 -  **Include Zeros:** Select to include  sites that are zero. This is the
    preferred behavior, however, unselecting this (thus ignoring sites that)
@@ -547,9 +547,36 @@ parameters are available for the method:
    as real differences. See the :ref:`Normalization <normalization>` section for a description
    of normalization method available in TRANSIT.
 
--  **--ctrl_lib, --exp_lib** These are for doing resampling with datasets from multiple libraries, see below.
+-  **--ctrl_lib, --exp_lib:** These are for doing resampling with datasets from multiple libraries, see below.
+
+-  **-iN, -iC:** Trimming of TA sites near N- and C-terminus.
+   The default for trimming TA sites in the termini of ORFs is 0.
+   However, TA sites in the stop codon (e.g. TAG) are automatically excluded.
+   Trimming is specified as a percentage (as an integer), so, for example,
+   if you want to trim TA sites within 5% of the termini, you would 
+   add the flags '-iN 5 -iC 5' (not 0.05).
+
+-  **-pc**: Pseudocounts for resampling.  By default, pseudocounts are not used.
+   However, if you set '-pc 5', for example, it will add an insertion count of 5
+   at a "fake" site in each condition, which can help smooth out the impact of noise
+   (e.g. large apprarent log-fold-changes (LFCs) due to just a few small counts).
+   Note that, when calculating LFCs, if either the numerator or denominator is 0,
+   a 1 is automatically added to both to prevent numerically undefined results.
+
 
 |
+
+Notes
+~~~~~
+
+I recommend using -a (adaptive resampling). It runs much faster, and the p-values
+will be very close to a full non-adaptive run (all 10,000 samples).
+
+Occasionally, people ask if resampling can be done on intergenic regions as well.
+It could be done pretty easily (for example by making a prot_table with coordinates
+for the regions between genes).  But it is usually not worthwhile, because most
+intergenic regions are small (<100 bp) contain very few TA sites (often 0-2),
+making it difficult to make confident calls on essentiality.
 
 
 Doing resampling with a combined_wig file
@@ -761,7 +788,7 @@ like a "slope", then the interacting genes are those that exhibit a difference
 in the effect of the treatment between the strains, and hence a difference in the
 slopes between strain A and B (represented by 'delta_LFC' in the output file).
 
-| For a formal description of how this method works, see our paper [DeJesus20170NAR]_:
+| For a formal description of how this method works, see our paper [DeJesus2017NAR]_:
 |
 |  DeJesus, M.A., Nambi, S., Smith, C.M., Baker, R.E., Sassetti, C.M., Ioerger, T.R. `Statistical analysis of genetic interactions in Tn-Seq data. <https://www.ncbi.nlm.nih.gov/pubmed/28334803>`_ *Nucleic Acids Research.* 2017. 45(11):e93. doi: 10.1093/nar/gkx128.
 
@@ -1042,7 +1069,9 @@ to be installed on your system.  See :ref:`Installation Instructions <install-zi
 How does it work?
 ~~~~~~~~~~~~~~~~~
 
-| For a formal description of how this method works, see our `paper on bioRxiv <https://www.biorxiv.org/content/10.1101/590281v1>`_.
+| For a formal description of how this method works, see our paper [ZINB]_: 
+|
+|  Subramaniyam S, DeJesus MA, Zaveri A, Smith CM, Baker RE, Ehrt S, Schnappinger D, Sassetti CM, Ioerger TR. (2019).  `Statistical analysis of variability in TnSeq data across conditions using Zero-Inflated Negative Binomial regression. <https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-019-3156-z>`_, *BMC Bioinformatics*. 2019 Nov 21;20(1):603. doi: 10.1186/s12859-019-3156-z.
 
 
 
