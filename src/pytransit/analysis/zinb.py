@@ -248,7 +248,7 @@ class ZinbMethod(base.MultiConditionMethod):
 
               # filter out genes that have low saturation across all conditions, since pscl sometimes does not fit params well (resulting in large negative intercepts and high std errors)
               NZpercs = aggregate(melted$cnt,by=list(melted$cond),FUN=function(x) { sum(x>0)/length(x) })
-              if (max(NZpercs$x)<=0.15) { return(c(pval=1,status="low saturation (near-essential) across all conditions, not analyzed")) }
+              if (max(NZpercs$x)<0.15) { return(c(pval=1,status="low saturation (<15%) across all conditions (pan-growth-defect) - not analyzed")) }
 
               sums = aggregate(melted$cnt,by=list(melted$cond),FUN=sum)
               # to avoid model failing due to singular condition, add fake counts of 1 to all conds if any cond is all 0s
@@ -271,7 +271,7 @@ class ZinbMethod(base.MultiConditionMethod):
                     mod = zeroinfl(as.formula(zinbMod1),data=melted,dist="negbin")
                     coeffs = summary(mod)$coefficients
                     # [,1] is col of parms, [,2] is col of stderrs, assume Intercept is always first
-                    if (coeffs$count[,2][1]>0.5) { status = 'warning: high stderr on Intercept for mod1' }
+                    #if (coeffs$count[,2][1]>0.5) { status = 'warning: high stderr on Intercept for mod1' }
                     mod
                   } else {
                     f1 = nbMod1
@@ -311,8 +311,9 @@ class ZinbMethod(base.MultiConditionMethod):
               }
 
               if (is.null(mod1) | is.null(mod0)) { return (c(1, paste0("Model Error. ", status))) }
-              if ((minCount == 0) && (sum(is.na(coef(summary(mod1))$count[,4]))>0)) { return(c(1, "Has Coefs, pvals are NAs")) } # rare failure mode - has coefs, but pvals are NA
+              if ((minCount == 0) && (sum(is.na(coef(summary(mod1))$count[,4]))>0)) { return(c(1, "Has Coefs, but Pvals are NAs (model failure)")) } # rare failure mode - has coefs, but pvals are NA
               df1 = attr(logLik(mod1),"df"); df0 = attr(logLik(mod0),"df") # should be (2*ngroups+1)-3
+              if (DEBUG) print(sprintf("delta_log_likelihood=%f",logLik(mod1)-logLik(mod0)))
               pval = pchisq(2*(logLik(mod1)-logLik(mod0)),df=df1-df0,lower.tail=F) # alternatively, could use lrtest()
               # this gives same answer, but I would need to extract the Pvalue...
               #require(lmtest)
@@ -394,8 +395,12 @@ class ZinbMethod(base.MultiConditionMethod):
                     self.transit_error("Cannot find gene: {0}".format(GENE))
                     sys.exit(0)
 
+            if (DEBUG):
+               self.transit_message("======================================================================")
+               self.transit_message(gene["rv"]+" "+gene["gene"])
+
             if (len(RvSiteindexesMap[Rv]) <= 1):
-                status.append("TA sites <= 1")
+                status.append("TA sites <= 1, not analyzed")
                 pvals.append(1)
             else:
                 # For winsorization
@@ -411,7 +416,7 @@ class ZinbMethod(base.MultiConditionMethod):
                            norm_data,
                            conditions, covariates, interactions, NZMeanByRep, LogZPercByRep)
                 if (numpy.sum(readCounts) == 0):
-                    status.append("No counts in all conditions")
+                    status.append("pan-essential (no counts in all conditions) - not analyzed")
                     pvals.append(1)
                 else:
                     df_args = {
