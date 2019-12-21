@@ -1080,7 +1080,7 @@ Example
 
 ::
 
-  python transit.py zinb <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
+  python3 transit.py zinb <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis.
@@ -1091,8 +1091,7 @@ Example
         --covars <covar1,covar2...>     :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
         --interactions <covar1,covar2...>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis.
         --gene <RV number or Gene name> := Run method for one gene and print model output.
-
-
+        -v              := verbose, print out the model coefficients for each gene.
 
 
 .. _combined_wig:
@@ -1356,9 +1355,15 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 +---------------------+-----------------------------------------------------------------+
 | TAs                 | Number of TA sites in Gene                                      |
 +---------------------+-----------------------------------------------------------------+
-| <Condition Mean>    | Mean read-counts for the gene, by condition                     |
+| <Mean_Condition>    | Mean read-counts for the gene, by condition                     |
 +---------------------+-----------------------------------------------------------------+
-| <Condition NZMean>  | Non-zero Mean read-counts for the gene, by condition            |
+| <LFC_Condition>     | Log-fold-change (base 2) of mean insertion count relative to    |
+|                     | mean across all conditions. Pseudo-counts of 5 are added.       |
+|                     | If only 2 conditions, LFC is based on ratio of second to first. |
++---------------------+-----------------------------------------------------------------+
+| <NZmean_Condition>  | Mean read-counts for the gene, by condition                     |
++---------------------+-----------------------------------------------------------------+
+| <NZperc_Condition>  | Non-zero Mean read-counts for the gene, by condition            |
 +---------------------+-----------------------------------------------------------------+
 | p-value             | P-value calculated by the ZINB test.                            |
 +---------------------+-----------------------------------------------------------------+

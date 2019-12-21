@@ -1,6 +1,14 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+## Version 3.0.2 2019-12-21
+#### TRANSIT:
+ - Mostly cosmetic fixes
+ - Updated some command-line and GUI messages
+ - Updated documentation (especially for GI and resampling)
+ - Removed "warning: high stderr" from gene status in ZINB
+ - Added LFCs in ZINB output
+
 ## Version 3.0.1 2019-08-01
 #### TRANSIT:
  - Add check for python3 (TRANSIT 3+ requires python3.6+)
