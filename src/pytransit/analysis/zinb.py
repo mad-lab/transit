@@ -530,8 +530,11 @@ class ZinbMethod(base.MultiConditionMethod):
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
+        if len(headersStatGroupNames)==2: lfcNames = ["LFC"] 
+        else: lfcNames = list(map(lambda v: "LFC_"+v,headersStatGroupNames))
         head = ("Rv Gene TAs".split() +
                 list(map(lambda v: "Mean_" + v, headersStatGroupNames)) +
+                lfcNames+
                 list(map(lambda v: "NZmean_" + v, headersStatGroupNames)) +
                 list(map(lambda v: "NZperc_" + v, headersStatGroupNames)) +
                 "pval padj".split() + ["status"])
@@ -540,9 +543,16 @@ class ZinbMethod(base.MultiConditionMethod):
         file.write('\t'.join(head)+EOL)
         for gene in genes:
             Rv = gene["rv"]
+            means = [statsByRv[Rv]['mean'][group] for group in orderedStatGroupNames]
+            PC = 5
+            if len(means)==2: LFCs = [numpy.math.log((means[1]+PC)/(means[0]+PC),2)]
+            else: 
+              m = numpy.mean(means)
+              LFCs = [numpy.math.log((x+PC)/(m+PC),2) for x in means]
             vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
-                    ["%0.2f" % statsByRv[Rv]['mean'][group] for group in orderedStatGroupNames] +
-                    ["%0.2f" % statsByRv[Rv]['nz_mean'][group] for group in orderedStatGroupNames] +
+                    ["%0.1f" % statsByRv[Rv]['mean'][group] for group in orderedStatGroupNames] +
+                    ["%0.3f" % x for x in LFCs]+
+                    ["%0.1f" % statsByRv[Rv]['nz_mean'][group] for group in orderedStatGroupNames] +
                     ["%0.2f" % statsByRv[Rv]['nz_perc'][group] for group in orderedStatGroupNames] +
                     ["%f" % x for x in [pvals[Rv], qvals[Rv]]]) + [run_status[Rv]]
             file.write('\t'.join(vals)+EOL)
