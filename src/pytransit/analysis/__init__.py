@@ -40,7 +40,7 @@ methods["zinb"] = zinb.ZinbAnalysis()
 #methods["mcce2"] = mcce2.MCCE2Analysis()
 #methods["motifhmm"] = motifhmm.MotifHMMAnalysis()
 methods["normalize"] = normalize.Normalize()
-methods["pathway_enrichment"]=pathway_enrichment.GSEAAnalysis()
+methods["pathway_enrichment"]=pathway_enrichment.PathwayAnalysis()
 methods["tnseq_stats"]=tnseq_stats.TnseqStats()
 
 # EXPORT METHODS
