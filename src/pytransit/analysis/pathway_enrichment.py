@@ -79,7 +79,7 @@ class PathwayGUI(base.AnalysisGUI):
 
 class PathwayMethod(base.AnalysisMethod):
 
-  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC):
+  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,N=10000):
     base.AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, open(outputFile,"w"), None) # no annotation file
     self.resamplingFile = resamplingFile
     self.associationsFile = associationsFile
@@ -87,7 +87,9 @@ class PathwayMethod(base.AnalysisMethod):
     self.outputFile = outputFile 
     # self.output is the opened file, which will be set in base class
     self.method = method
-    self.PC = PC
+    self.PC = PC # for FISHER
+    self.N = N # for GSEA
+    self.useZscores = False # for GSEA
 
   @classmethod
   def fromGUI(self, wxobj):
@@ -101,8 +103,9 @@ class PathwayMethod(base.AnalysisMethod):
     pathways = args[2]
     output = args[3]
     method = kwargs.get("M", "FISHER")
+    N = int(kwargs.get("N", "10000"))
     PC = int(kwargs.get("PC","2"))
-    return self(resamplingFile,associations,pathways,output,method,PC)
+    return self(resamplingFile,associations,pathways,output,method,PC=PC,N=N)
 
   @classmethod
   def usage_string(self):
@@ -116,13 +119,8 @@ class PathwayMethod(base.AnalysisMethod):
     self.print("# command: "+' '.join(sys.argv))
     self.print("# date: "+str(datetime.datetime.now()))
 
-    if self.method=="FISHER":
-      self.fisher_exact_test()
-
-    elif self.method =="GSEA":
-      self.GSEA3(self.resamplingFile,self.geneSetFile,self.output,p=0,N=10000) # what if self.N is set by kwargs?
-      sys.exit(0)
-
+    if self.method=="FISHER": self.fisher_exact_test()
+    elif self.method =="GSEA": self.GSEA3()
     else:
       method = "Not a valid method"
       self.progress_update("Not a valid method", 100)
@@ -159,27 +157,44 @@ class PathwayMethod(base.AnalysisMethod):
   def mean_rank(self,A,Bindex): 
     n2 = len(Bindex.keys())/2
     return round(numpy.mean([Bindex.get(x,n2) for x in A]),1)
-    
-    
-  def GSEA3(self,resampling_file,GO_associations_file,output_file,p=1,N=100):
 
-    GOterms,ontology,GOrvs = [],{},{}
-    for line in open(GO_associations_file):
-      w = line.rstrip().split('\t')
-      ontology[w[0]] = w[1]
-      rvs  = w[2].split()
-      GOterms.append(w[0])
-      GOrvs[w[0]] = rvs
+  # during initialization, self.resamplingFile etc have been set, and self.output has been opened    
+    
+  def GSEA3(self):
+#    GOterms,ontology,GOrvs = [],{},{}
+#    for line in open(self.associationsFile):
+#      if line[0]=='#': continue
+#      w = line.rstrip().split('\t')
+#      ontology[w[0]] = w[1]
+#      rvs  = w[2].split()
+#      GOterms.append(w[0])
+#      GOrvs[w[0]] = rvs
+#
+#    data,genenames,headers = [],{},[]
+#    for line in open(self.resamplingFile):
+#      if line[0]=='#': headers = line.rstrip().split('\t'); continue # last header contains col names
+#      w = line.rstrip().split('\t')
+#      data.append(w)
+#      genenames[w[0]] = w[1]
+#    n2 = int(len(data)/2)
 
-    data,genenames,headers = [],{},[]
-    for line in open(resampling_file):
-      if line[0]=='#': headers = line.rstrip().split('\t'); continue # last header contains col names
-      w = line.rstrip().split('\t')
-      data.append(w)
-      genenames[w[0]] = w[1]
+    N = self.N
+    p = 1
+
+    data,hits,headers = self.read_resampling_file(self.resamplingFile) # hits are not used in GSEA3
+    headers = headers[-1].rstrip().split('\t')
+    associations = self.read_associations(self.associationsFile)
+    ontology = self.read_pathways(self.pathwaysFile)
+    genenames = {}
+    for gene in data: genenames[gene[0]] = gene[1]
     n2 = int(len(data)/2)
+    terms = list(ontology.keys())
+    GOrvs = associations
 
-    pairs = [] # pair are: rv and (LFC or Zscore)
+    self.print("# method=GSEA, N=%d" % N)
+    self.print("# total genes: %s, mean rank: %s" % (len(data),n2))
+
+    pairs = [] # pair are: rv and LFC (or Zscore)
     if self.useZscores: 
       self.transit_message("using Z-scores to rank genes")
       if "Z-score" not in headers: self.transit_error("error: to rank genes by Z-score, you have to have used the -Z flag in resampling"); sys.exit(0)
@@ -200,12 +215,13 @@ class PathwayMethod(base.AnalysisMethod):
       permutations.append(lst)
     indexes = [self.makeindex(perm) for perm in permutations]
     
-    results,Total = [],len(GOterms)
-    
-    for i,go in enumerate(GOterms):
+    results,Total = [],len(terms)
+
+    for i,go in enumerate(terms):
       sys.stdout.flush()
-      rvs = GOrvs[go]
-      ranks = [MainIndex.get(x,2000) for x in rvs]
+      rvs = GOrvs.get(go,[])
+      if len(rvs)<=1: continue
+      ranks = [MainIndex.get(x,n2) for x in rvs] # use n2 (avg rank) if gene not found
       es = self.enrichment_score(rvs,MainIndex,sorted_scores) # always positive, even if negative deviation, since I take abs
       mr = self.mean_rank(rvs,MainIndex)
       higher = 0
@@ -226,7 +242,7 @@ class PathwayMethod(base.AnalysisMethod):
     rej,qvals = multitest.fdrcorrection(pvals)
     results = [tuple(list(res)+[q]) for res,q in zip(results,qvals)]
 
-    self.output.write('\t'.join("GO_term description num_genes mean_rank enrichment_score pval qval".split())+'\n')
+    self.output.write('\t'.join("GO_term description num_genes mean_rank GSEA_score pval qval".split())+'\n')
     for go,mr,es,pval,qval in results:
       rvs = GOrvs[go]
       rvinfo = [(x,genenames.get(x,"?"),MainIndex.get(x,n2)) for x in rvs]
@@ -240,14 +256,14 @@ class PathwayMethod(base.AnalysisMethod):
   #################################
 
   def read_resampling_file(self,filename):
-    genes,hits = [],[]
+    genes,hits,headers = [],[],[]
     for line in open(filename):
-      if line[0]=='#': continue
+      if line[0]=='#': headers.append(line); continue
       w = line.rstrip().split('\t')
       genes.append(w)
       qval = float(w[-1])
       if qval<0.05: hits.append(w[0])
-    return genes,hits
+    return genes,hits,headers
 
   # assume these are listed as pairs (tab-sep)
   # return bidirectional hash (genes->[terms], terms->[genes]; each can be one-to-many, hence lists)
@@ -283,9 +299,7 @@ class PathwayMethod(base.AnalysisMethod):
   def print(self,msg): self.output.write(msg+"\n")
 
   def fisher_exact_test(self):
-    #self.output = open(self.outputFile,"w")
-
-    genes,hits = self.read_resampling_file(self.resamplingFile)
+    genes,hits,headers = self.read_resampling_file(self.resamplingFile)
     associations = self.read_associations(self.associationsFile)
     pathways = self.read_pathways(self.pathwaysFile)
 
@@ -298,6 +312,7 @@ class PathwayMethod(base.AnalysisMethod):
     for gene in genes: 
       orf = gene[0]
       if orf in associations: genes_with_associations += 1
+    self.print("# method=FISHER, PC=%s" % self.PC)
     self.print("# genes with associations=%s out of %s total" % (genes_with_associations,len(genes)))
     self.print("# significant genes (qval<0.05): %s" % (len(hits)))
 
@@ -308,7 +323,6 @@ class PathwayMethod(base.AnalysisMethod):
     for term,cnt in zip(terms,term_counts):
       if cnt>1: goodterms.append(term)
     self.print("# %s out of %s pathways have >=1 gene; max has %s" % (len(goodterms),len(terms),term_counts[term_counts.index(max(term_counts))]))
-    self.print("# PC=%s" % self.PC)
 
     results = []
     for term in goodterms:
