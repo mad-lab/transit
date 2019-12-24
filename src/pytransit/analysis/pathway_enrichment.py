@@ -161,23 +161,6 @@ class PathwayMethod(base.AnalysisMethod):
   # during initialization, self.resamplingFile etc have been set, and self.output has been opened    
     
   def GSEA3(self):
-#    GOterms,ontology,GOrvs = [],{},{}
-#    for line in open(self.associationsFile):
-#      if line[0]=='#': continue
-#      w = line.rstrip().split('\t')
-#      ontology[w[0]] = w[1]
-#      rvs  = w[2].split()
-#      GOterms.append(w[0])
-#      GOrvs[w[0]] = rvs
-#
-#    data,genenames,headers = [],{},[]
-#    for line in open(self.resamplingFile):
-#      if line[0]=='#': headers = line.rstrip().split('\t'); continue # last header contains col names
-#      w = line.rstrip().split('\t')
-#      data.append(w)
-#      genenames[w[0]] = w[1]
-#    n2 = int(len(data)/2)
-
     N = self.N
     p = 1
 
@@ -189,7 +172,7 @@ class PathwayMethod(base.AnalysisMethod):
     for gene in data: genenames[gene[0]] = gene[1]
     n2 = int(len(data)/2)
     terms = list(ontology.keys())
-    GOrvs = associations
+    terms2orfs = associations
 
     self.print("# method=GSEA, N=%d" % N)
     self.print("# total genes: %s, mean rank: %s" % (len(data),n2))
@@ -217,9 +200,9 @@ class PathwayMethod(base.AnalysisMethod):
     
     results,Total = [],len(terms)
 
-    for i,go in enumerate(terms):
+    for i,term in enumerate(terms):
       sys.stdout.flush()
-      rvs = GOrvs.get(go,[])
+      rvs = terms2orfs.get(term,[])
       if len(rvs)<=1: continue
       ranks = [MainIndex.get(x,n2) for x in rvs] # use n2 (avg rank) if gene not found
       es = self.enrichment_score(rvs,MainIndex,sorted_scores) # always positive, even if negative deviation, since I take abs
@@ -229,12 +212,12 @@ class PathwayMethod(base.AnalysisMethod):
         if self.enrichment_score(rvs,perm,sorted_scores)>es: higher += 1
         if n>100 and higher>10: break # adaptive
       pval = higher/float(n)
-      vals = ['#',go,len(rvs),mr,es,pval,ontology.get(go,"?")]
+      vals = ['#',term,len(rvs),mr,es,pval,ontology.get(term,"?")]
       #sys.stderr.write(' '.join([str(x) for x in vals])+'\n')
       pctg=(100.0*i)/Total
       text = "Running Pathway Enrichment Method... %5.1f%%" % (pctg)
       self.progress_update(text, i)      
-      results.append((go,mr,es,pval))
+      results.append((term,mr,es,pval))
     
     results.sort(key=lambda x: x[-1])
     
@@ -242,14 +225,14 @@ class PathwayMethod(base.AnalysisMethod):
     rej,qvals = multitest.fdrcorrection(pvals)
     results = [tuple(list(res)+[q]) for res,q in zip(results,qvals)]
 
-    self.output.write('\t'.join("GO_term description num_genes mean_rank GSEA_score pval qval".split())+'\n')
-    for go,mr,es,pval,qval in results:
-      rvs = GOrvs[go]
+    self.output.write('\t'.join("#pathway description num_genes mean_rank GSEA_score pval qval genes".split())+'\n')
+    for term,mr,es,pval,qval in results:
+      rvs = terms2orfs[term]
       rvinfo = [(x,genenames.get(x,"?"),MainIndex.get(x,n2)) for x in rvs]
       rvinfo.sort(key=lambda x: x[2])
       rvs = ["%s/%s (%s)" % x for x in rvinfo]
       rvs = ' '.join(rvs)
-      vals = [go,ontology.get(go,"?"),len(GOrvs[go]),"%0.1f" % mr]+["%0.6f" % x for x in [es,pval,qval]]+[rvs]
+      vals = [term,ontology.get(term,"?"),len(terms2orfs[term]),"%0.1f" % mr]+["%0.6f" % x for x in [es,pval,qval]]+[rvs]
       self.output.write('\t'.join([str(x) for x in vals])+'\n')
     self.output.close()
 
