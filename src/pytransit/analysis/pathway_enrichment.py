@@ -79,7 +79,7 @@ class PathwayGUI(base.AnalysisGUI):
 
 class PathwayMethod(base.AnalysisMethod):
 
-  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,N=10000):
+  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,N=10000,p=1):
     base.AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, open(outputFile,"w"), None) # no annotation file
     self.resamplingFile = resamplingFile
     self.associationsFile = associationsFile
@@ -89,7 +89,7 @@ class PathwayMethod(base.AnalysisMethod):
     self.method = method
     self.PC = PC # for FISHER
     self.N = N # for GSEA
-    self.useZscores = False # for GSEA
+    self.p = p # for GSEA
 
   @classmethod
   def fromGUI(self, wxobj):
@@ -105,7 +105,8 @@ class PathwayMethod(base.AnalysisMethod):
     method = kwargs.get("M", "FISHER")
     N = int(kwargs.get("N", "10000"))
     PC = int(kwargs.get("PC","2"))
-    return self(resamplingFile,associations,pathways,output,method,PC=PC,N=N)
+    p = int(kwargs.get("p","1"))
+    return self(resamplingFile,associations,pathways,output,method,PC=PC,N=N,p=p)
 
   @classmethod
   def usage_string(self):
@@ -120,7 +121,7 @@ class PathwayMethod(base.AnalysisMethod):
     self.print("# date: "+str(datetime.datetime.now()))
 
     if self.method=="FISHER": self.fisher_exact_test()
-    elif self.method =="GSEA": self.GSEA3()
+    elif self.method =="GSEA": self.GSEA()
     else:
       method = "Not a valid method"
       self.progress_update("Not a valid method", 100)
@@ -133,38 +134,38 @@ class PathwayMethod(base.AnalysisMethod):
     return index
     
   # based on GSEA paper (Subramanian et al, 2005, PNAS)
-  # assume that Bindex is a dictionary that maps all genes into ranks
-  # Bscores is a sorted list of values (e.g. correlations coeffs, LFCs, Z-scores)
+  # xxx assume that Bindex is a dictionary that maps all genes into ranks, and Bscores maps all genes to SIPV
+  # ranks and scores are hashes from genes into ranks and SIPV
+  # when p=0, ES(S) reduces to the standard K-S statistic; p=1 is used in PNAS paper
     
-  def enrichment_score(self,A,Bindex,Bscores,p=0):
-    n2 = int(len(Bindex.keys())/2)
-    ranks = [Bindex.get(x,n2) for x in A] # default to middle if not found
-    ranks.sort()
-    scores = [Bscores[i] for i in ranks]
-    powers = [math.pow(abs(x),p) for x in scores]
+  def enrichment_score(self,A,ranks,scores,p=0):
+    n = len(ranks); n2 = int(n/2.0)
+    Aranks = [ranks.get(x,n2) for x in A] # default to middle if not found
+    Ascores = [scores.get(x,0) for x in A] # default to 0 if not found
+    pairs = list(zip(Aranks,Ascores))
+    pairs.sort() # sort A by ranks
+    Aranks,Ascores = [x[0] for x in pairs],[x[1] for x in pairs]
+    powers = [math.pow(abs(x),p) for x in Ascores]
     NR = sum(powers)
-    Nmiss = len(Bscores)-len(ranks)
-    best = -1
-    powersum = 0
-    for i in range(len(ranks)):
+    if NR==0: return 0 # special case
+    Nmiss = n-len(A) # totalGenes-hits
+    powersum,best = 0,-1
+    for i in range(len(powers)):
       powersum += powers[i]    
       Phit = powersum/float(NR)
-      Pmiss = (ranks[i]-i)/float(Nmiss)
+      Pmiss = (Aranks[i]-i)/float(Nmiss)
       es = abs(Phit-Pmiss) # looking for max deviation
       if es>best: best = es
     return best
     
-  def mean_rank(self,A,Bindex): 
-    n2 = len(Bindex.keys())/2
-    return round(numpy.mean([Bindex.get(x,n2) for x in A]),1)
+  def mean_rank(self,A,orfs2ranks): 
+    n2 = len(orfs2ranks.keys())/2
+    return round(numpy.mean([orfs2ranks.get(x,n2) for x in A]),1)
 
   # during initialization, self.resamplingFile etc have been set, and self.output has been opened    
     
-  def GSEA3(self):
-    N = self.N
-    p = 1
-
-    data,hits,headers = self.read_resampling_file(self.resamplingFile) # hits are not used in GSEA3
+  def GSEA(self):
+    data,hits,headers = self.read_resampling_file(self.resamplingFile) # hits are not used in GSEA()
     headers = headers[-1].rstrip().split('\t')
     associations = self.read_associations(self.associationsFile)
     ontology = self.read_pathways(self.pathwaysFile)
@@ -173,46 +174,42 @@ class PathwayMethod(base.AnalysisMethod):
     n2 = int(len(data)/2)
     terms = list(ontology.keys())
     terms2orfs = associations
+    allgenes = [x[0] for x in data]
 
-    self.print("# method=GSEA, N=%d" % N)
+    self.print("# method=GSEA, using SLPV to rank genes, Nperm=%d" % self.N)
     self.print("# total genes: %s, mean rank: %s" % (len(data),n2))
 
-    pairs = [] # pair are: rv and LFC (or Zscore)
-    if self.useZscores: 
-      self.transit_message("using Z-scores to rank genes")
-      if "Z-score" not in headers: self.transit_error("error: to rank genes by Z-score, you have to have used the -Z flag in resampling"); sys.exit(0)
-      for w in data: pairs.append((w[0],float(w[headers.index("Z-score")]))) 
-    else: 
-      self.transit_message("using LFCs to rank genes")
-      for w in data: pairs.append((w[0],float(w[headers.index("log2FC")]))) 
-    pairs.sort(key=lambda x: x[1])
-    sorted_rvs = [x[0] for x in pairs]
-    sorted_scores = [x[1] for x in pairs]
-    MainIndex = self.makeindex(sorted_rvs)
+    # rank by SLPV=sign(LFC)*log10(pval)
+    # note: genes with lowest p-val AND negative LFC have highest scores (like positive correlation)
+    # there could be lots of ties with pval=0 or 1, but that's OK
+    LFC_col = headers.index("log2FC")
+    Pval_col = headers.index("p-value")
+    pairs = [] # pair are: rv and score (SIPV)
+    for w in data:
+      orf,LFC,Pval = w[0],float(w[LFC_col]),float(w[Pval_col])
+      SLPV = (-1 if LFC<0 else 1)*math.log(Pval+0.000001,10)
+      pairs.append((orf,SLPV))
+    pairs.sort(key=lambda x: x[1],reverse=True) # emulate ranking genes with *higher* correlation at top
+    orfs2rank,orfs2score = {},{}
+    for i,(orf,score) in enumerate(pairs): 
+      orfs2score[orf] = score
+      orfs2rank[orf] = i
 
-    Nperm = N
-    permutations = []
-    for i in range(Nperm): 
-      lst = [x for x in sorted_rvs]
-      random.shuffle(lst)
-      permutations.append(lst)
-    indexes = [self.makeindex(perm) for perm in permutations]
-    
+    Nperm = self.N
     results,Total = [],len(terms)
-
     for i,term in enumerate(terms):
       sys.stdout.flush()
-      rvs = terms2orfs.get(term,[])
-      if len(rvs)<=1: continue
-      ranks = [MainIndex.get(x,n2) for x in rvs] # use n2 (avg rank) if gene not found
-      es = self.enrichment_score(rvs,MainIndex,sorted_scores) # always positive, even if negative deviation, since I take abs
-      mr = self.mean_rank(rvs,MainIndex)
+      orfs = terms2orfs.get(term,[])
+      if len(orfs)<=1: continue
+      mr = self.mean_rank(orfs,orfs2rank)
+      es = self.enrichment_score(orfs,orfs2rank,orfs2score,p=self.p) # always positive, even if negative deviation, since I take abs
       higher = 0
-      for n,perm in enumerate(indexes):
-        if self.enrichment_score(rvs,perm,sorted_scores)>es: higher += 1
+      for n in range(Nperm):
+        perm = random.sample(allgenes,len(orfs)) # compare to ES for random sets of genes of same size
+        if self.enrichment_score(perm,orfs2rank,orfs2score,p=self.p)>es: higher += 1
         if n>100 and higher>10: break # adaptive
       pval = higher/float(n)
-      vals = ['#',term,len(rvs),mr,es,pval,ontology.get(term,"?")]
+      vals = ['#',term,len(orfs),mr,es,pval,ontology.get(term,"?")]
       #sys.stderr.write(' '.join([str(x) for x in vals])+'\n')
       pctg=(100.0*i)/Total
       text = "Running Pathway Enrichment Method... %5.1f%%" % (pctg)
@@ -220,7 +217,6 @@ class PathwayMethod(base.AnalysisMethod):
       results.append((term,mr,es,pval))
     
     results.sort(key=lambda x: x[-1])
-    
     pvals = [x[-1] for x in results]
     rej,qvals = multitest.fdrcorrection(pvals)
     results = [tuple(list(res)+[q]) for res,q in zip(results,qvals)]
@@ -228,7 +224,7 @@ class PathwayMethod(base.AnalysisMethod):
     self.output.write('\t'.join("#pathway description num_genes mean_rank GSEA_score pval qval genes".split())+'\n')
     for term,mr,es,pval,qval in results:
       rvs = terms2orfs[term]
-      rvinfo = [(x,genenames.get(x,"?"),MainIndex.get(x,n2)) for x in rvs]
+      rvinfo = [(x,genenames.get(x,"?"),orfs2rank.get(x,n2)) for x in rvs]
       rvinfo.sort(key=lambda x: x[2])
       rvs = ["%s/%s (%s)" % x for x in rvinfo]
       rvs = ' '.join(rvs)
