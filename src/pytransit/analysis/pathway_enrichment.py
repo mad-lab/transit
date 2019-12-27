@@ -117,8 +117,8 @@ class PathwayMethod(base.AnalysisMethod):
     start_time = time.time()
 
     # self.output in base class should be open by now
-    self.print("# command: "+' '.join(sys.argv))
-    self.print("# date: "+str(datetime.datetime.now()))
+    self.write("# command: "+' '.join(sys.argv))
+    self.write("# date: "+str(datetime.datetime.now()))
 
     if self.method=="FISHER": self.fisher_exact_test()
     elif self.method =="GSEA": self.GSEA()
@@ -176,8 +176,8 @@ class PathwayMethod(base.AnalysisMethod):
     terms2orfs = associations
     allgenes = [x[0] for x in data]
 
-    self.print("# method=GSEA, using SLPV to rank genes, Nperm=%d" % self.N)
-    self.print("# total genes: %s, mean rank: %s" % (len(data),n2))
+    self.write("# method=GSEA, using SLPV to rank genes, Nperm=%d" % self.N)
+    self.write("# total genes: %s, mean rank: %s" % (len(data),n2))
 
     # rank by SLPV=sign(LFC)*log10(pval)
     # note: genes with lowest p-val AND negative LFC have highest scores (like positive correlation)
@@ -216,10 +216,25 @@ class PathwayMethod(base.AnalysisMethod):
       self.progress_update(text, i)      
       results.append((term,mr,es,pval))
     
-    results.sort(key=lambda x: x[-1])
+    results.sort(key=lambda x: x[1])
     pvals = [x[-1] for x in results]
     rej,qvals = multitest.fdrcorrection(pvals)
     results = [tuple(list(res)+[q]) for res,q in zip(results,qvals)]
+
+    n2 = int(len(data)/2)
+    up,down = 0,0
+    for term,mr,es,pval,qval in results:
+      if qval<0.05:
+        if mr<n2: up += 1
+        else: down += 1
+
+    self.write("# significant pathways enriched for conditionally ESSENTIAL genes: %s (qval<0.05, mean_rank<%s) (includes genes that are MORE required in condition B than A)" % (up,n2))
+    for term,mr,es,pval,qval in results:
+      if qval<0.05 and mr<n2: self.write("#   %s %s (mean_rank=%s)" % (term,ontology.get(term,"?"),mr))
+    self.write("# significant pathways enriched for conditionally NON-ESSENTIAL genes: %s (qval<0.05, mean_rank>%s) (includes genes that are LESS required in condition B than A)" % (down,n2))
+    for term,mr,es,pval,qval in results:
+      if qval<0.05 and mr>n2: self.write("#   %s %s (mean_rank=%s)" % (term,ontology.get(term,"?"),mr))
+    self.write("# pathways sorted by mean_rank")
 
     self.output.write('\t'.join("#pathway description num_genes mean_rank GSEA_score pval qval genes".split())+'\n')
     for term,mr,es,pval,qval in results:
@@ -275,7 +290,7 @@ class PathwayMethod(base.AnalysisMethod):
   def hypergeometric(self,k,M,n,N):
     return hypergeom.sf(k,M,n,N)
 
-  def print(self,msg): self.output.write(msg+"\n")
+  def write(self,msg): self.output.write(msg+"\n")
 
   def fisher_exact_test(self):
     genes,hits,headers = self.read_resampling_file(self.resamplingFile)
@@ -291,9 +306,9 @@ class PathwayMethod(base.AnalysisMethod):
     for gene in genes: 
       orf = gene[0]
       if orf in associations: genes_with_associations += 1
-    self.print("# method=FISHER, PC=%s" % self.PC)
-    self.print("# genes with associations=%s out of %s total" % (genes_with_associations,len(genes)))
-    self.print("# significant genes (qval<0.05): %s" % (len(hits)))
+    self.write("# method=FISHER, PC=%s" % self.PC)
+    self.write("# genes with associations=%s out of %s total" % (genes_with_associations,len(genes)))
+    self.write("# significant genes (qval<0.05): %s" % (len(hits)))
 
     terms = list(pathways.keys())
     terms.sort()
@@ -301,7 +316,7 @@ class PathwayMethod(base.AnalysisMethod):
     goodterms = []
     for term,cnt in zip(terms,term_counts):
       if cnt>1: goodterms.append(term)
-    self.print("# %s out of %s pathways have >=1 gene; max has %s" % (len(goodterms),len(terms),term_counts[term_counts.index(max(term_counts))]))
+    self.write("# %s out of %s pathways have >=1 gene; max has %s" % (len(goodterms),len(terms),term_counts[term_counts.index(max(term_counts))]))
 
     results = []
     for term in goodterms:
@@ -327,7 +342,7 @@ class PathwayMethod(base.AnalysisMethod):
     for gene in genes: genenames[gene[0]] = gene[1]
 
     header = "#pathway total_genes(M) genes_in_path(n) significant_genes(N) signif_genes_in_path(k) expected k+PC n_adj_by_PC enrichement pval qval description genes"
-    self.print('\t'.join(header.split()))
+    self.write('\t'.join(header.split()))
 
     results.sort(key=lambda x: x[-2]) # pvals
     for res in results:
@@ -337,12 +352,14 @@ class PathwayMethod(base.AnalysisMethod):
       intersection = list(filter(lambda x: x in associations[term],hits))      
       intersection = ["%s/%s" % (x,genenames[x]) for x in intersection]
       vals.append(' '.join(intersection))
-      self.print('\t'.join([str(x) for x in vals]))
+      self.write('\t'.join([str(x) for x in vals]))
 
     self.transit_message("Adding File: %s" % (self.outputFile))
     self.add_file(filetype="Pathway Enrichment")
     self.finish()
     self.transit_message("Finished Pathway Enrichment Method") 
+
+####################################################
 
 if __name__ == "__main__":
 
