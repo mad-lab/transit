@@ -116,7 +116,10 @@ class ZinbMethod(base.MultiConditionMethod):
                         for f in filenamesInCombWig]
                         for covarsByFile in covariatesMap]
         except KeyError:
-            self.transit_error("Error: Covariates not found for file {0}".format(f))
+            #self.transit_error("Error: Covariates not found for file {0}".format(f))
+            self.transit_error("Error: Covariates not found for sample:")
+            for f in filenamesInCombWig:
+              if f not in covariatesMap[0]: print(f)
             sys.exit(0)
 
     def wigs_to_interactions(self, interactionsMap, filenamesInCombWig):
@@ -130,7 +133,8 @@ class ZinbMethod(base.MultiConditionMethod):
                         for f in filenamesInCombWig]
                         for covarsByFile in interactionsMap]
         except KeyError:
-            self.transit_error("Error: Interaction var not found for file {0}".format(f))
+            #self.transit_error("Error: Interaction var not found for file {0}".format(f))
+            self.transit_error("Error: Interaction var not found for sample")
             sys.exit(0)
 
     def stats_for_gene(self, siteIndexes, groupWigIndexMap, data):
@@ -455,6 +459,14 @@ class ZinbMethod(base.MultiConditionMethod):
             p[rv],q[rv],statusMap[rv] = pvals[i],qvals[i],status[i]
         return (p, q, statusMap)
 
+    # from {key->value} return {value->[keys]}
+    def invertDict(self,d):
+      e = {}
+      for k,v in d.items():
+         if v not in e: e[v] = []
+         e[v].append(k)
+      return e 
+
     def Run(self):
         self.transit_message("Starting ZINB analysis")
         start_time = time.time()
@@ -488,6 +500,29 @@ class ZinbMethod(base.MultiConditionMethod):
         interactions = self.wigs_to_interactions(
             interactionsByFileList,
             filenamesInCombWig)
+
+        print()
+        print("Main Condition (%s):" % condition_name)
+        condInv = self.invertDict(conditionsByFile)
+        for k,v in condInv.items(): print("%s: %s" % (k,v))
+        for i,cov in enumerate(covariates):
+          print()
+          print("Covariate (%s):" % self.covars[i])
+          covInv = self.invertDict(covariatesByFileList[i])
+          for k,v in covInv.items(): print("%s: %s" % (k,v))
+        if len(self.covars)>0:
+          if len(self.covars)>1: print("can't evaluate sample counts in cross-product when there are multiple covariates")
+          else: 
+            any_empty = False
+            print()
+            print("Sample counts in cross-product:")
+            for j in condInv.keys():
+              for k in covInv.keys():
+                subset = list(set(condInv[j]).intersection(set(covInv[k])))
+                print("%s: %s=%s & %s=%s" % (len(subset),condition_name,j,self.covars[0],k))
+                if len(subset)==0: any_empty = True
+            if any_empty: print("warning: ZINB requires samples in all combinations of conditions; the fact that one is empty could result in Model Errors")
+
         data, conditions, covariates, interactions = self.filter_wigs_by_conditions(
                 data,
                 conditions,
