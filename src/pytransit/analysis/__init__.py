@@ -22,6 +22,7 @@ from pytransit.analysis import pathway_enrichment
 from pytransit.analysis import anova
 from pytransit.analysis import zinb
 from pytransit.analysis import tnseq_stats
+from pytransit.analysis import corrplot
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -42,6 +43,7 @@ methods["zinb"] = zinb.ZinbAnalysis()
 methods["normalize"] = normalize.Normalize()
 methods["pathway_enrichment"]=pathway_enrichment.PathwayAnalysis()
 methods["tnseq_stats"]=tnseq_stats.TnseqStats()
+methods["corrplot"]=corrplot.Corrplot()
 
 # EXPORT METHODS
 from pytransit.analysis import norm
