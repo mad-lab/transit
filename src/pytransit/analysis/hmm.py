@@ -466,7 +466,7 @@ class HMMMethod(base.SingleConditionMethod):
                 alpha[:,t] = 0.0000000000001
            
             text = "Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations)
-            self.progress_update(text, self.count)
+            if self.count%1000==0: self.progress_update(text, self.count)
             self.count+=1
             #print(t, O[:,t], alpha[:,t])
 
@@ -496,7 +496,7 @@ class HMMMethod(base.SingleConditionMethod):
                 beta[:,t] = beta[:,t] * C[t]
 
             text = "Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations)
-            self.progress_update(text, self.count)
+            if self.count%1000==0: self.progress_update(text, self.count)
             self.count+=1
 
         return(beta)
@@ -521,7 +521,7 @@ class HMMMethod(base.SingleConditionMethod):
             delta[:,t] = nus.max(1) + numpy.log(b_o)
             Q[:,t] = nus.argmax(1)
             text = "Running HMM Method... %5.1f%%" % (100.0*self.count/self.maxiterations)
-            self.progress_update(text, self.count)
+            if self.count%1000==0: self.progress_update(text, self.count)
             self.count+=1
 
         Q_opt = [int(numpy.argmax(delta[:,T-1]))]
@@ -529,7 +529,7 @@ class HMMMethod(base.SingleConditionMethod):
             Q_opt.insert(0, Q[Q_opt[0],t+1])
 
             text = "Running HMM Method... %5.1f%%" % (100.0*self.count/self.maxiterations)
-            self.progress_update(text, self.count)
+            if self.count%1000==0: self.progress_update(text, self.count)
             self.count+=1
 
         numpy.seterr(divide='warn')
