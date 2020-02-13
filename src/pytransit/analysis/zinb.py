@@ -105,6 +105,8 @@ class ZinbMethod(base.MultiConditionMethod):
         """
         return [conditionsByFile.get(f, self.unknown_cond_flag) for f in filenamesInCombWig]
 
+    # the following 2 functions seem redundant and could be merged...
+
     def wigs_to_covariates(self, covariatesMap, filenamesInCombWig):
         """
             Returns list of covariate lists. Each covariate list consists of covariates corresponding to given wigfiles.
@@ -112,7 +114,7 @@ class ZinbMethod(base.MultiConditionMethod):
             Covar :: String
         """
         try:
-            return [[covarsByFile[f]
+            return [[covarsByFile.get(f,"?")
                         for f in filenamesInCombWig]
                         for covarsByFile in covariatesMap]
         except KeyError:
@@ -129,12 +131,14 @@ class ZinbMethod(base.MultiConditionMethod):
             Interaction :: String
         """
         try:
-            return [[covarsByFile[f]
+            return [[covarsByFile.get(f,"?")
                         for f in filenamesInCombWig]
                         for covarsByFile in interactionsMap]
         except KeyError:
             #self.transit_error("Error: Interaction var not found for file {0}".format(f))
             self.transit_error("Error: Interaction var not found for sample")
+            for f in filenamesInCombWig:
+              if f not in interactionsMap[0]: print(f)
             sys.exit(0)
 
     def stats_for_gene(self, siteIndexes, groupWigIndexMap, data):
@@ -511,25 +515,29 @@ class ZinbMethod(base.MultiConditionMethod):
 
         # show the samples associated with each conditions (and covariates or interactions, if defined)
         print()
-        print("Main Condition (%s):" % condition_name)
+        print("Main Condition: %s" % condition_name)
         conditions_used = list(set(conditions))
+        # compute samples_used?
         condInv = self.invertDict(conditionsByFile)
+        vars = self.covars+self.interactions
+        varsByFileList = covariatesByFileList+interactionsByFileList
+        filesByVarList = [self.invertDict(x) for x in varsByFileList]
         for k in conditions_used: print("%s: %s" % (k,condInv[k]))
-        for i,cov in enumerate(covariates):
+        for i,var in enumerate(vars):
           print()
-          print("Covariate (%s):" % self.covars[i])
-          covInv = self.invertDict(covariatesByFileList[i])
-          for k,v in covInv.items(): print("%s: %s" % (k,v)) # should remove samples for conditions not in conditions_used
-        if len(covariates)>0:
-          if len(covariates)>1: print("can't evaluate sample counts in cross-product when there are multiple covariates")
+          print("Covariate/Interaction: %s" % vars[i])
+          filesByVar = filesByVarList[i]
+          for k,v in filesByVar.items(): print("%s: %s" % (k,v)) # should remove samples for conditions not in conditions_used
+        if len(vars)>0:
+          if len(vars)>1: print("can't evaluate sample counts in cross-product when there are multiple covariates/interactions")
           else: 
             any_empty = False
             print()
             print("Sample counts in cross-product:")
-            for j in conditions_used:
-              for k in covInv.keys():
-                subset = list(set(condInv[j]).intersection(set(covInv[k])))
-                print("%s: %s=%s & %s=%s" % (len(subset),condition_name,j,self.covars[0],k))
+            for cond in conditions_used:
+              for val,covSamples in filesByVarList[0].items():
+                subset = list(set(condInv[cond]).intersection(set(covSamples)))
+                print("%s: %s=%s & %s=%s" % (len(subset),condition_name,cond,vars[0],val))
                 if len(subset)==0: any_empty = True
             if any_empty: print("warning: ZINB requires samples in all combinations of conditions; the fact that one is empty could result in Model Errors")
         #sys.exit(0)
