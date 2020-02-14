@@ -471,6 +471,26 @@ class ZinbMethod(base.MultiConditionMethod):
          e[v].append(k)
       return e 
 
+    # pairs is a list of (var,val); samples is a set; varsByFileList is a list of dictionaries mapping values to samples for each var (parallel to vars)
+    # recursive: keep calling till vars reduced to empty
+
+    def expandVar(self,pairs,vars,varsByFileList,vars2vals,samples):
+      if len(vars)==0:
+        s = "%s=%s" % (pairs[0][0],pairs[0][1])
+        for i in range(1,len(pairs)): s += " & %s=%s" % (pairs[i][0],pairs[i][1])
+        s += ": %s" % len(samples)
+        print(s)
+        if len(samples)==0: return True
+      else:
+        var,valsDict = vars[0],varsByFileList[0]
+        inv = self.invertDict(valsDict)
+        any_empty = False
+        for val in vars2vals[var]:
+          subset = samples.intersection(set(inv[val]))
+          res = self.expandVar(pairs+[(var,val)],vars[1:],varsByFileList[1:],vars2vals,subset)
+          any_empty = any_empty or res
+        return any_empty
+
     def Run(self):
         self.transit_message("Starting ZINB analysis")
         start_time = time.time()
@@ -513,34 +533,27 @@ class ZinbMethod(base.MultiConditionMethod):
                 ignored_conditions = self.ignored_conditions,
                 included_conditions = self.included_conditions)
 
-        # show the samples associated with each conditions (and covariates or interactions, if defined)
-        print()
-        print("Main Condition: %s" % condition_name)
+        # show the samples associated with each condition (and covariates or interactions, if defined), and count samples in each cross-product of vars
         conditions_used = list(set(conditions))
-        # compute samples_used?
-        condInv = self.invertDict(conditionsByFile)
-        vars = self.covars+self.interactions
-        varsByFileList = covariatesByFileList+interactionsByFileList
-        filesByVarList = [self.invertDict(x) for x in varsByFileList]
-        for k in conditions_used: print("%s: %s" % (k,condInv[k]))
+        filesByCondition  = self.invertDict(conditionsByFile)
+        samples_used = set()
+        for cond in conditions_used: samples_used.update(filesByCondition[cond])
+        vars = [condition_name]+self.covars+self.interactions
+        vars2vals = {}
+        vars2vals[condition_name] = list(set(conditions))
+        for i,var in enumerate(self.covars): vars2vals[var] = list(set(covariates[i]))
+        for i,var in enumerate(self.interactions): vars2vals[var] = list(set(interactions[i]))
+        varsByFileList = [conditionsByFile]+covariatesByFileList+interactionsByFileList
         for i,var in enumerate(vars):
-          print()
-          print("Covariate/Interaction: %s" % vars[i])
-          filesByVar = filesByVarList[i]
-          for k,v in filesByVar.items(): print("%s: %s" % (k,v)) # should remove samples for conditions not in conditions_used
-        if len(vars)>0:
-          if len(vars)>1: print("can't evaluate sample counts in cross-product when there are multiple covariates/interactions")
-          else: 
-            any_empty = False
-            print()
-            print("Sample counts in cross-product:")
-            for cond in conditions_used:
-              for val,covSamples in filesByVarList[0].items():
-                subset = list(set(condInv[cond]).intersection(set(covSamples)))
-                print("%s: %s=%s & %s=%s" % (len(subset),condition_name,cond,vars[0],val))
-                if len(subset)==0: any_empty = True
-            if any_empty: print("warning: ZINB requires samples in all combinations of conditions; the fact that one is empty could result in Model Errors")
-        #sys.exit(0)
+          print("\nCondition/Covariate/Interaction: %s" % vars[i])
+          filesByVar = self.invertDict(varsByFileList[i])
+          for k,v in filesByVar.items():
+            samples = list(samples_used.intersection(set(v)))
+            if k in vars2vals.get(var,[]): print("%s: %s" % (k,' '.join(samples))) 
+        pairs = []
+        print("\nsamples in cross-product:")
+        any_empty = self.expandVar([],vars,varsByFileList,vars2vals,set(samples_used))
+        if any_empty: print("warning: ZINB requires samples in all combinations of conditions; the fact that one is empty could result in Model Errors")
 
         genes = tnseq_tools.read_genes(self.annotation_path)
 
