@@ -385,7 +385,7 @@ def read_genome(filename, replicon_index):
       if cur_index == replicon_index:
         s += line.strip()
     first_iteration = False
-  return s
+  return s.upper()
 
 
 def parse_sam_header(sam_filename):
