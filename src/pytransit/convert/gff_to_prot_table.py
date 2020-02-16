@@ -149,6 +149,7 @@ class GffProtMethod(base.ConvertMethod):
                 sys.stderr.write(("Ignoring invalid row with entries: {0}\n".format(cols)))
                 continue
             if (cols[2]) == "CDS": # if you also want tRNAs and rRNAs, modify here
+                if "locus_tag" not in line: print("warning: skipping lines that do not contain 'locus_tag'"); continue
                 start = int(cols[3])
                 end = int(cols[4])
                 strand = cols[6].strip()
