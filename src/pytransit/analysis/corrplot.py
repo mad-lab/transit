@@ -116,6 +116,9 @@ class CorrplotMethod(base.SingleConditionMethod):
         if len(args)<2: print(self.usage_string()); sys.exit(0)
         self.gene_means = args[0]
         self.outfile = args[1]
+        self.filetype = "gene_means"
+        if "-anova" in rawargs: self.filetype = "anova"
+        if "-zinb" in rawargs: self.filetype = "zinb"
         return self(self.gene_means,outfile=self.outfile)
 
     def Run(self):
@@ -126,12 +129,38 @@ class CorrplotMethod(base.SingleConditionMethod):
         # assume first non-comment line is header; samples are 
         headers = None
         data,counts = [],[]
-        for line in open(self.gene_means):
-          w = line.rstrip().split('\t')
-          if line[0]=='#': headers = w[3:]; continue # last comment line has names of samples
-          data.append(w)
-          cnts = [float(x) for x in w[3:]]
-          counts.append(cnts)
+
+        if self.filetype=="gene_means":
+          for line in open(self.gene_means):
+            w = line.rstrip().split('\t')
+            if line[0]=='#': headers = w[3:]; continue # last comment line has names of samples
+            data.append(w)
+            cnts = [float(x) for x in w[3:]]
+            counts.append(cnts)
+        elif self.filetype=="anova":
+          skip = 2 # assume one comment line and then column headers
+          for line in open(self.gene_means):
+            w = line.rstrip().split('\t')
+            if skip>0: skip -= 1; headers = w[3:-3]; continue # second line has names of conditions
+            data.append(w)
+            cnts = [float(x) for x in w[3:-3]] # ignore first and last 3 columns
+            qval = float(w[-2])
+            if qval<0.05: counts.append(cnts)
+        elif self.filetype=="zinb":
+          skip,n = 2,-1 # assume one comment line and then column headers
+          for line in open(self.gene_means):
+            w = line.rstrip().split('\t')
+            if skip>0: skip -= 1; headers = w; continue 
+            if n==-1: 
+              # second line has names of conditions, organized as 3+4*n+3 (4 groups X n conditions)
+              n = int((len(headers)-6)/4)
+              headers = headers[3:3+n]
+              headers = [x.replace("Mean_","") for x in headers]
+            data.append(w)
+            cnts = [float(x) for x in w[3:3+n]] # take just the columns of means
+            qval = float(w[-2])
+            if qval<0.05: counts.append(cnts)
+        else: print("filetype not recognized: %s" % self.filetype); sys.exit(-1)
 
         d = pd.DataFrame(data=counts,columns=headers)
         corr = d.corr()
@@ -142,9 +171,12 @@ class CorrplotMethod(base.SingleConditionMethod):
         f, ax = plt.subplots(figsize=(11, 9))
         # Generate a custom diverging colormap
         cmap = sns.diverging_palette(10, 240, as_cmap=True)
-        sns.heatmap(corr, cmap=cmap, vmin=min(a,0.5),vmax=1,# vmin=-1, vmax=1, center=0,
-            square=True, linewidths=.5, cbar_kws={"shrink": .5})
+        ax = sns.heatmap(corr, cmap=cmap, vmin=min(a,0.5),vmax=1,# vmin=-1, vmax=1, center=0,
+            square=False, linewidths=.5, cbar_kws={"shrink": .5})
+        ax.xaxis.tick_top() # put labels on top
+        ax.set_xticklabels(ax.get_xticklabels(),rotation=90)
         print("generating corrplot %s" % self.outfile)
+        plt.tight_layout()
         #plt.show()
         plt.savefig(self.outfile)
 
@@ -153,7 +185,8 @@ class CorrplotMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return "usage: python %s corrplot <gene_means> <output.png>" % sys.argv[0]
+        return "usage: python %s corrplot <gene_means> <output.png> [-anova|-zinb]" % sys.argv[0]
+        # could add a flag for padj cutoff (or top n most signif genes)
 
 
 if __name__ == "__main__":
