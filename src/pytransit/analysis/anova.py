@@ -172,7 +172,7 @@ class AnovaMethod(base.MultiConditionMethod):
         self.transit_message("Normalizing using: %s" % self.normalization)
         (data, factors) = norm_tools.normalize_data(data, self.normalization)
 
-        conditionsByFile, _, _, _ = tnseq_tools.read_samples_metadata(self.metadata)
+        conditionsByFile, _, _, orderingMetadata = tnseq_tools.read_samples_metadata(self.metadata)
         conditions = self.wigs_to_conditions(
             conditionsByFile,
             filenamesInCombWig)
@@ -189,7 +189,12 @@ class AnovaMethod(base.MultiConditionMethod):
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
-        conditionsList = self.included_conditions if len(self.included_conditions) > 0 else list(set(conditions))
+        #conditionsList = self.included_conditions if len(self.included_conditions) > 0 else list(set(conditions))
+        if len(self.included_conditions) > 0: conditionsList = self.included_conditions
+        else:
+          conditionsList = []
+          for c in orderingMetadata['condition']: # the order conds appear in metadata file, duplicated for each sample
+            if c not in conditionsList: conditionsList.append(c)
         heads = ("Rv Gene TAs".split() +
                 conditionsList +
                 "pval padj".split() + ["status"])
