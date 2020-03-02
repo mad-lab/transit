@@ -535,6 +535,9 @@ class ZinbMethod(base.MultiConditionMethod):
 
         # show the samples associated with each condition (and covariates or interactions, if defined), and count samples in each cross-product of vars
         conditions_used = list(set(conditions))
+        # I should do the same thing as in anova.py for selecting conditions
+        # also, print out conditoins in the desired order below
+
         filesByCondition  = self.invertDict(conditionsByFile)
         samples_used = set()
         for cond in conditions_used: samples_used.update(filesByCondition[cond])

@@ -103,14 +103,14 @@ class PathwayMethod(base.AnalysisMethod):
     pathways = args[2]
     output = args[3]
     method = kwargs.get("M", "FISHER")
-    N = int(kwargs.get("N", "10000"))
+    N = int(kwargs.get("N", "10000")) # for GSEA?
+    p = int(kwargs.get("p","1")) # for GSEA?
     PC = int(kwargs.get("PC","2"))
-    p = int(kwargs.get("p","1"))
     return self(resamplingFile,associations,pathways,output,method,PC=PC,N=N,p=p)
 
   @classmethod
   def usage_string(self):
-    return """python %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FISHER|GSEA|GO>] """ % (sys.argv[0])
+    return """python %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FISHER|GSEA|GO>] [-PC <int>]""" % (sys.argv[0])
 
   def Run(self):
     self.transit_message("Starting Pathway Enrichment Method")
@@ -134,8 +134,8 @@ class PathwayMethod(base.AnalysisMethod):
     return index
     
   # based on GSEA paper (Subramanian et al, 2005, PNAS)
-  # xxx assume that Bindex is a dictionary that maps all genes into ranks, and Bscores maps all genes to SIPV
-  # ranks and scores are hashes from genes into ranks and SIPV
+  # xxx assume that Bindex is a dictionary that maps all genes into ranks, and Bscores maps all genes to SLPV
+  # ranks and scores are hashes from genes into ranks and SLPV
   # when p=0, ES(S) reduces to the standard K-S statistic; p=1 is used in PNAS paper
     
   def enrichment_score(self,A,ranks,scores,p=0):
@@ -184,7 +184,7 @@ class PathwayMethod(base.AnalysisMethod):
     # there could be lots of ties with pval=0 or 1, but that's OK
     LFC_col = headers.index("log2FC")
     Pval_col = headers.index("p-value")
-    pairs = [] # pair are: rv and score (SIPV)
+    pairs = [] # pair are: rv and score (SLPV)
     for w in data:
       orf,LFC,Pval = w[0],float(w[LFC_col]),float(w[Pval_col])
       SLPV = (-1 if LFC<0 else 1)*math.log(Pval+0.000001,10)

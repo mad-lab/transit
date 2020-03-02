@@ -167,7 +167,8 @@ W = 300+C*30
 H = 300+R*15
 
 png(outfilename,width=W,height=H)
-heatmap.2(as.matrix(lfcs),col=colors,margin=c(12,12),lwid=c(1,8),lhei=c(1,8),trace="none",cexCol=1.4,cexRow=1.4,key=F) # make sure white=0
+#defaults are lwid=lhei=c(1.5,4)
+heatmap.2(as.matrix(lfcs),col=colors,margin=c(12,12),lwid=c(2,6),lhei=c(0.1,2),trace="none",cexCol=1.4,cexRow=1.4,key=F) # make sure white=0
 dev.off()
 }
       ''')

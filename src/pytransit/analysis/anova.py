@@ -1,5 +1,6 @@
 import scipy
 import numpy
+import math
 import statsmodels.stats.multitest
 
 import time
@@ -33,9 +34,10 @@ class AnovaMethod(base.MultiConditionMethod):
     """
     anova
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], nterm=0.0, cterm=0.0):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], nterm=0.0, cterm=0.0, PC=1):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file,
                 normalization=normalization, ignored_conditions=ignored_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
+        self.PC = PC
 
     @classmethod
     def fromargs(self, rawargs):
@@ -54,13 +56,14 @@ class AnovaMethod(base.MultiConditionMethod):
         CTerminus = float(kwargs.get("iC", 0.0))
         ignored_conditions = list(filter(None, kwargs.get("-ignore-conditions", "").split(",")))
         included_conditions = list(filter(None, kwargs.get("-include-conditions", "").split(",")))
+        PC = 5
 
         if len(included_conditions) > 0 and len(ignored_conditions) > 0:
             print(self.transit_error("Cannot use both include-conditions and ignore-conditions flags"))
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, NTerminus, CTerminus)
+        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, NTerminus, CTerminus, PC)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -162,6 +165,11 @@ class AnovaMethod(base.MultiConditionMethod):
             p[rv],q[rv],statusMap[rv] = pvals[i],qvals[i],status[i]
         return (p, q, statusMap)
 
+    def calcLFCs(self,means,PC=1):
+      grandmean = numpy.mean(means)
+      lfcs = [math.log((x+PC)/float(grandmean+PC),2) for x in means]
+      return lfcs
+
     def Run(self):
         self.transit_message("Starting Anova analysis")
         start_time = time.time()
@@ -189,22 +197,33 @@ class AnovaMethod(base.MultiConditionMethod):
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
+
         #conditionsList = self.included_conditions if len(self.included_conditions) > 0 else list(set(conditions))
-        if len(self.included_conditions) > 0: conditionsList = self.included_conditions
+        # do it this way in zinb.py too...
+        if len(self.included_conditions)>0: condition = self.included_conditions
         else:
           conditionsList = []
           for c in orderingMetadata['condition']: # the order conds appear in metadata file, duplicated for each sample
             if c not in conditionsList: conditionsList.append(c)
+        if len(self.included_conditions) > 0: conditionsList = self.included_conditions
+        for c in self.ignored_conditions:  
+          if c in conditionsList: conditionsList.remove(c)
+
         heads = ("Rv Gene TAs".split() +
-                conditionsList +
+                ["mean_%s" % x for x in conditionsList] +
+                ["LFC_%s" % x for x in conditionsList] +
                 "pval padj".split() + ["status"])
         file.write("#Console: python %s\n" % " ".join(sys.argv))
+        file.write("#parameters: normalization=%s, trimming=%s/%s%% (N/C), pseudocounts=%s\n" % (self.normalization,self.NTerminus,self.CTerminus,self.PC))
         file.write('\t'.join(heads)+EOL)
         for gene in genes:
             Rv = gene["rv"]
             if Rv in MeansByRv:
+              means = [MeansByRv[Rv][c] for c in conditionsList]
+              LFCs = self.calcLFCs(means,self.PC)
               vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
-                      ["%0.2f" % MeansByRv[Rv][c] for c in conditionsList] +
+                      ["%0.2f" % x for x in means] + 
+                      ["%0.3f" % x for x in LFCs] + 
                       ["%f" % x for x in [pvals[Rv], qvals[Rv]]] + [run_status[Rv]])
               file.write('\t'.join(vals)+EOL)
         file.close()
@@ -213,17 +232,25 @@ class AnovaMethod(base.MultiConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
+        usage =  """Usage: python3 transit.py anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
+ Optional Arguments:
+  -n <string>         :=  Normalization method. Default: -n TTR
+  --include-conditions <cond1,...> := Comma-separated list of conditions to use for analysis (Default: all)
+  --ignore-conditions <cond1,...> := Comma-separated list of conditions to ignore (Default: none)
+  -iN <int> :=  Ignore TAs within given percentage of N terminus. Default: -iN 0
+  -iC <int> :=  Ignore TAs within given percentage of C terminus. Default: -iC 0
+  -PC <int> := pseudocounts to use for calculating LFC. Default: -PC 5"""
+        return usage
 
-        Optional Arguments:
-        -n <string>         :=  Normalization method. Default: -n TTR
-        --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
-        --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
-        -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 0
-        -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 0
-        """ % (sys.argv[0])
-
-
+#        return """python %s anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
+#
+#        Optional Arguments:
+#        -n <string>         :=  Normalization method. Default: -n TTR
+#        --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
+#        --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
+#        -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 0
+#        -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 0
+#        """ % (sys.argv[0])
 
 if __name__ == "__main__":
     main()

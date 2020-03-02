@@ -138,12 +138,12 @@ class CorrplotMethod(base.SingleConditionMethod):
             cnts = [float(x) for x in w[3:]]
             counts.append(cnts)
         elif self.filetype=="anova":
-          skip = 2 # assume one comment line and then column headers
+          skip = 3 # assume two comment lines and then column headers (not prefixed by #)
           for line in open(self.gene_means):
             w = line.rstrip().split('\t')
-            if skip>0: skip -= 1; headers = w[3:-3]; continue # second line has names of conditions
+            if skip>0: skip -= 1; n = int((len(w)-6)/2); headers = w[3:3+n]; continue # third line has names of conditions
             data.append(w)
-            cnts = [float(x) for x in w[3:-3]] # ignore first and last 3 columns
+            cnts = [float(x) for x in w[3:3+n]] # organization of columns: 3+means+LFCs+3
             qval = float(w[-2])
             if qval<0.05: counts.append(cnts)
         elif self.filetype=="zinb":
