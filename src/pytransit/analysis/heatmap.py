@@ -142,6 +142,7 @@ class HeatmapMethod(base.SingleConditionMethod):
 
         genenames = ["%s/%s" % (w[0],w[1]) for w in data]
         hash = {}
+        headers = [h.replace("Mean_","") for h in headers]
         for i,col in enumerate(headers): hash[col] = FloatVector([x[i] for x in LFCs])
         df = DataFrame(hash)
         heatmapFunc = self.make_heatmapFunc()

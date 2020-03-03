@@ -162,6 +162,7 @@ class CorrplotMethod(base.SingleConditionMethod):
             if qval<0.05: means.append(cnts)
         else: print("filetype not recognized: %s" % self.filetype); sys.exit(-1)
 
+        headers = [h.replace("Mean_","") for h in headers]
         d = pd.DataFrame(data=means,columns=headers)
         corr = d.corr()
         cc = corr.unstack()

@@ -207,7 +207,7 @@ class AnovaMethod(base.MultiConditionMethod):
         file = open(self.output,"w")
 
         heads = ("Rv Gene TAs".split() +
-                ["mean_%s" % x for x in conditionsList] +
+                ["Mean_%s" % x for x in conditionsList] +
                 ["LFC_%s" % x for x in conditionsList] +
                 "pval padj".split() + ["status"])
         file.write("#Console: python %s\n" % " ".join(sys.argv))
