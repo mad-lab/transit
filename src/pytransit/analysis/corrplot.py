@@ -128,7 +128,7 @@ class CorrplotMethod(base.SingleConditionMethod):
 
         # assume first non-comment line is header; samples are 
         headers = None
-        data,counts = [],[]
+        data,means = [],[]
 
         if self.filetype=="gene_means":
           for line in open(self.gene_means):
@@ -136,7 +136,7 @@ class CorrplotMethod(base.SingleConditionMethod):
             if line[0]=='#': headers = w[3:]; continue # last comment line has names of samples
             data.append(w)
             cnts = [float(x) for x in w[3:]]
-            counts.append(cnts)
+            means.append(cnts)
         elif self.filetype=="anova":
           skip = 3 # assume two comment lines and then column headers (not prefixed by #)
           for line in open(self.gene_means):
@@ -145,7 +145,7 @@ class CorrplotMethod(base.SingleConditionMethod):
             data.append(w)
             cnts = [float(x) for x in w[3:3+n]] # organization of columns: 3+means+LFCs+3
             qval = float(w[-2])
-            if qval<0.05: counts.append(cnts)
+            if qval<0.05: means.append(cnts)
         elif self.filetype=="zinb":
           skip,n = 2,-1 # assume one comment line and then column headers
           for line in open(self.gene_means):
@@ -159,10 +159,10 @@ class CorrplotMethod(base.SingleConditionMethod):
             data.append(w)
             cnts = [float(x) for x in w[3:3+n]] # take just the columns of means
             qval = float(w[-2])
-            if qval<0.05: counts.append(cnts)
+            if qval<0.05: means.append(cnts)
         else: print("filetype not recognized: %s" % self.filetype); sys.exit(-1)
 
-        d = pd.DataFrame(data=counts,columns=headers)
+        d = pd.DataFrame(data=means,columns=headers)
         corr = d.corr()
         cc = corr.unstack()
         a,b = min(cc),max(cc)

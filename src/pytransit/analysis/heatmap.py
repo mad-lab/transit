@@ -115,16 +115,16 @@ class HeatmapMethod(base.SingleConditionMethod):
 
         # assume first non-comment line is header; samples are 
         headers = None
-        data,counts = [],[]
+        data,LFCs = [],[]
 
         if self.filetype=="anova":
-          skip = 2 # assume one comment line and then column headers
+          skip = 3 # assume two comment lines and then column headers (not prefixed by #)
           for line in open(self.infile):
             w = line.rstrip().split('\t')
-            if skip>0: skip -= 1; headers = w[3:-3]; continue # second line has names of conditions
-            cnts = [float(x) for x in w[3:-3]] # ignore first and last 3 columns
+            if skip>0: skip -= 1; n = int((len(w)-6)/2); headers = w[3:3+n]; continue # third line has names of conditions
+            lfcs = [float(x) for x in w[3+n:3+n+n]] # organization of columns: 3+means+LFCs+3
             qval = float(w[-2])
-            if qval<0.05: counts.append(cnts); data.append(w)
+            if qval<0.05: data.append(w); LFCs.append(lfcs)
         elif self.filetype=="zinb":
           skip,n = 2,-1 # assume one comment line and then column headers
           for line in open(self.infile):
@@ -135,19 +135,12 @@ class HeatmapMethod(base.SingleConditionMethod):
               n = int((len(headers)-6)/4)
               headers = headers[3:3+n]
               headers = [x.replace("Mean_","") for x in headers]
-            cnts = [float(x) for x in w[3:3+n]] # take just the columns of means
+            lfcs = [float(x) for x in w[3+n:3+n+n]] # take just the columns of means
             qval = float(w[-2])
-            if qval<0.05: counts.append(cnts); data.append(w)
+            if qval<0.05: data.append(w); LFCs.append(lfcs)
         else: print("filetype not recognized: %s" % self.filetype); sys.exit(-1)
 
         genenames = ["%s/%s" % (w[0],w[1]) for w in data]
-        LFCs = []
-        for row in counts:
-          grandmean = numpy.mean(row)
-          PC = 5
-          lfcs = [math.log((x+PC)/(grandmean+PC),2) for x in row]
-          LFCs.append(lfcs)
-
         hash = {}
         for i,col in enumerate(headers): hash[col] = FloatVector([x[i] for x in LFCs])
         df = DataFrame(hash)
