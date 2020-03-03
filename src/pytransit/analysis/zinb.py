@@ -42,7 +42,7 @@ class ZinbAnalysis(base.TransitAnalysis):
     def __init__(self):
         base.TransitAnalysis.__init__(self, short_name, long_name, short_desc, long_desc, transposons, ZinbMethod)
 def main():
-    print("ZINB example")
+  print("ZINB example")
 
 class ZinbMethod(base.MultiConditionMethod):
     """
@@ -55,6 +55,9 @@ class ZinbMethod(base.MultiConditionMethod):
         self.covars = covars
         self.interactions = interactions
         self.condition = condition
+
+    @classmethod
+    def transit_error(self,msg): print("error: %s" % msg) # for some reason, transit_error() in base class or transit_tools doesn't work right; needs @classmethod
 
     @classmethod
     def fromargs(self, rawargs):
@@ -90,8 +93,12 @@ class ZinbMethod(base.MultiConditionMethod):
         winz = True if "w" in kwargs else False
         ignored_conditions = list(filter(None, kwargs.get("-ignore-conditions", "").split(",")))
         included_conditions = list(filter(None, kwargs.get("-include-conditions", "").split(",")))
-        if len(included_conditions) > 0 and len(ignored_conditions) > 0:
-            self.transit_error("Cannot use both include-conditions and ignore-conditions flags")
+
+        # check for unrecognized flags
+        flags = "-n --ignore-conditions --include-conditions -iN -iC --condition --covars --interactions --gene".split()
+        for arg in rawargs:
+          if arg[0]=='-' and arg not in flags:
+            self.transit_error("flag unrecognized: %s" % arg)
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
@@ -510,6 +517,7 @@ class ZinbMethod(base.MultiConditionMethod):
         (data, factors) = norm_tools.normalize_data(data, self.normalization)
 
         condition_name = self.condition
+        # if a covar is not found, this crashes; check for it?
         conditionsByFile, covariatesByFileList, interactionsByFileList, orderingMetadata = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions, condition_name=condition_name)
 
         ## [Condition] in the order of files in combined wig
@@ -525,22 +533,19 @@ class ZinbMethod(base.MultiConditionMethod):
             interactionsByFileList,
             filenamesInCombWig)
 
-        data, conditions, covariates, interactions = self.filter_wigs_by_conditions(
+        conditionsList = self.select_conditions(conditions,self.included_conditions,self.ignored_conditions,orderingMetadata)
+        data, conditions, covariates, interactions = self.filter_wigs_by_conditions2(
                 data,
                 conditions,
+                conditionsList,
                 covariates = covariates,
-                interactions = interactions,
-                ignored_conditions = self.ignored_conditions,
-                included_conditions = self.included_conditions)
+                interactions = interactions)
 
         # show the samples associated with each condition (and covariates or interactions, if defined), and count samples in each cross-product of vars
-        conditions_used = list(set(conditions))
-        # I should do the same thing as in anova.py for selecting conditions
-        # also, print out conditoins in the desired order below
 
         filesByCondition  = self.invertDict(conditionsByFile)
         samples_used = set()
-        for cond in conditions_used: samples_used.update(filesByCondition[cond])
+        for cond in conditionsList: samples_used.update(filesByCondition[cond])
         vars = [condition_name]+self.covars+self.interactions
         vars2vals = {}
         vars2vals[condition_name] = list(set(conditions))

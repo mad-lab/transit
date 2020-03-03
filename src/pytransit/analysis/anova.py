@@ -40,6 +40,9 @@ class AnovaMethod(base.MultiConditionMethod):
         self.PC = PC
 
     @classmethod
+    def transit_error(self,msg): print("error: %s" % msg) # for some reason, transit_error() in base class or transit_tools doesn't work right; needs @classmethod
+
+    @classmethod
     def fromargs(self, rawargs):
         (args, kwargs) = transit_tools.cleanargs(rawargs)
 
@@ -54,13 +57,16 @@ class AnovaMethod(base.MultiConditionMethod):
         normalization = kwargs.get("n", "TTR")
         NTerminus = float(kwargs.get("iN", 0.0))
         CTerminus = float(kwargs.get("iC", 0.0))
+        PC = int(kwargs.get("PC", 5))
         ignored_conditions = list(filter(None, kwargs.get("-ignore-conditions", "").split(",")))
         included_conditions = list(filter(None, kwargs.get("-include-conditions", "").split(",")))
-        PC = 5
 
-        if len(included_conditions) > 0 and len(ignored_conditions) > 0:
-            print(self.transit_error("Cannot use both include-conditions and ignore-conditions flags"))
-            print(ZinbMethod.usage_string())
+        # check for unrecognized flags
+        flags = "-n --ignore-conditions --include-conditions -iN -iC -PC".split()
+        for arg in rawargs:
+          if arg[0]=='-' and arg not in flags:
+            self.transit_error("flag unrecognized: %s" % arg)
+            print(AnovaMethod.usage_string())
             sys.exit(0)
 
         return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, NTerminus, CTerminus, PC)
@@ -184,7 +190,9 @@ class AnovaMethod(base.MultiConditionMethod):
         conditions = self.wigs_to_conditions(
             conditionsByFile,
             filenamesInCombWig)
-        data, conditions, _, _ = self.filter_wigs_by_conditions(data, conditions, ignored_conditions = self.ignored_conditions, included_conditions = self.included_conditions)
+
+        conditionsList = self.select_conditions(conditions,self.included_conditions,self.ignored_conditions,orderingMetadata)
+        data, conditions, _, _ = self.filter_wigs_by_conditions2(data, conditions, conditionsList)
 
         genes = tnseq_tools.read_genes(self.annotation_path)
 
@@ -197,17 +205,6 @@ class AnovaMethod(base.MultiConditionMethod):
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
-
-        #conditionsList = self.included_conditions if len(self.included_conditions) > 0 else list(set(conditions))
-        # do it this way in zinb.py too...
-        if len(self.included_conditions)>0: condition = self.included_conditions
-        else:
-          conditionsList = []
-          for c in orderingMetadata['condition']: # the order conds appear in metadata file, duplicated for each sample
-            if c not in conditionsList: conditionsList.append(c)
-        if len(self.included_conditions) > 0: conditionsList = self.included_conditions
-        for c in self.ignored_conditions:  
-          if c in conditionsList: conditionsList.remove(c)
 
         heads = ("Rv Gene TAs".split() +
                 ["mean_%s" % x for x in conditionsList] +

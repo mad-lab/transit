@@ -528,8 +528,9 @@ class MultiConditionMethod(AnalysisMethod):
         """
         ignored_conditions, included_conditions = (set(ignored_conditions), set(included_conditions))
         d_filtered, cond_filtered, filtered_indexes = [], [], [];
+
         if len(ignored_conditions) > 0 and len(included_conditions) > 0:
-            self.transit_error("Both ignored and included conditions have len > 0", ignored_conditions, included_conditions)
+            self.transit_error("Both ignored and included conditions have len > 0")
             sys.exit(0)
         elif (len(ignored_conditions) > 0):
             self.transit_message("conditions ignored: {0}".format(ignored_conditions))
@@ -551,6 +552,41 @@ class MultiConditionMethod(AnalysisMethod):
                 d_filtered.append(data[i])
                 cond_filtered.append(conditions[i])
                 filtered_indexes.append(i)
+
+        covariates_filtered = [[c[i] for i in filtered_indexes] for c in covariates]
+        interactions_filtered = [[c[i] for i in filtered_indexes] for c in interactions]
+
+
+        return (numpy.array(d_filtered),
+                numpy.array(cond_filtered),
+                numpy.array(covariates_filtered),
+                numpy.array(interactions_filtered))
+
+    # input: conditions are per wig; orderingMetdata comes from tnseq_tools.read_samples_metadata()
+    # output: conditionsList is selected subset of conditions (unique, in preferred order)
+
+    def select_conditions(self,conditions,included_conditions,ignored_conditions,orderingMetadata): 
+        if len(included_conditions)>0: conditionsList = included_conditions
+        else:
+          conditionsList = []
+          for c in orderingMetadata['condition']: # the order conds appear in metadata file, duplicated for each sample
+            if c not in conditionsList: conditionsList.append(c)
+        for c in ignored_conditions:  
+          if c in conditionsList: conditionsList.remove(c)
+        return conditionsList
+
+    def filter_wigs_by_conditions2(self, data, conditions, conditionsList, covariates = [], interactions = []):
+        """
+            Filters conditions that are ignored/included.
+            ([[Wigdata]], [Condition], [[Covar]], [Condition], [Condition]) -> Tuple([[Wigdata]], [Condition])
+        """
+        d_filtered, cond_filtered, filtered_indexes = [], [], [];
+
+        for i, c in enumerate(conditions):
+          if (c != self.unknown_cond_flag) and (c in conditionsList):
+            d_filtered.append(data[i])
+            cond_filtered.append(conditions[i])
+            filtered_indexes.append(i)
 
         covariates_filtered = [[c[i] for i in filtered_indexes] for c in covariates]
         interactions_filtered = [[c[i] for i in filtered_indexes] for c in interactions]
