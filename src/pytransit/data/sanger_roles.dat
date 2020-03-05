@@ -1,0 +1,123 @@
+I	Small-molecule metabolism
+I.A	Degradation
+I.A.1	Carbon compounds
+I.A.2	Amino acids and amines
+I.A.3	Fatty acids
+I.A.4	Phosphorous compounds
+I.B	Energy Metabolism
+I.B.1	Glycolysis
+I.B.2	Pyruvate dehydrogenase
+I.B.3	TCA cycle
+I.B.4	Glyoxylate bypass
+I.B.5	Pentose phosphate pathway
+I.B.6	Respiration
+I.B.6.a	aerobic
+I.B.6.b	anaerobic
+I.B.6.c	Electron transport
+I.B.7	Miscellaneous oxidoreductases and oxygenases
+I.B.8	ATP-proton motive force
+I.C	Central intermediary metabolism
+I.C.1	General
+I.C.2	Gluconeogenesis
+I.C.3	Sugar nucleotides
+I.C.4	Amino sugars
+I.C.5	Sulphur metabolism
+I.D	Amino acid biosynthesis
+I.D.1	Glutamate family
+I.D.2	Aspartate family
+I.D.3	Serine family
+I.D.4	Aromatic amino acid family
+I.D.5	Histidine
+I.D.6	Pyruvate family
+I.D.7	Branched amino acid family
+I.E	Polyamine synthesis
+I.F	Purines, pyrimidines, nucleosides and nucleotides
+I.F.1	Purine ribonucleotide biosynthesis
+I.F.2	Pyrimidine ribonucleotide biosynthesis
+I.F.3	2'-deoxyribonucleotide metabolism
+I.F.4	Salvage of nucleosides and nucleotides
+I.F.5	Miscellaneous nucleoside/nucleotide reactions
+I.G	Biosynthesis of cofactors, prosthetic groups and carriers
+I.G.1	Biotin
+I.G.2	Folic acid
+I.G.3	Lipoate
+I.G.4	Molybdopterin
+I.G.5	Pantothenate
+I.G.6	Pyridoxine
+I.G.7	Pyridine nucleotide
+I.G.8	Thiamine
+I.G.9	Riboflavin
+I.G.10	Thioredoxin, glutaredoxin and mycothiol
+I.G.11	Menaquinone, PQQ, ubiquinone and other terpenoids
+I.G.12	Heme and porphyrin
+I.G.13	Cobalamin
+I.G.14	Iron utilisation
+I.H	Lipid Biosynthesis
+I.H.1	Synthesis of fatty and mycolic acids
+I.H.2	Modification of fatty and mycolic acids
+I.H.3	Acyltransferases, Mycoloyltransferases, and phospholipid synthesis
+I.I	Polyketide and non-ribosomal peptide synthesis
+I.J	Broad regulatory functions
+I.J.1	Repressors/activators
+I.J.2	Two component systems
+I.J.3	Serine-Threonine protein kinases and phosphoprotein phosphatases
+II	Macromolecule metabolism
+II.A	Synthesis and modification of macromolecules
+II.A.1	Ribosomal protein synthesis and modification
+II.A.2	Ribosome modification and maturation
+II.A.3	Aminoacyl tRNA synthases and their modification
+II.A.4	Nucleoproteins
+II.A.5	DNA replication, repair, recombination and restriction/modification
+II.A.6	Protein translation and modification
+II.A.7	RNA synthesis, RNA modification and DNA transcription
+II.A.8	Polysaccharides (cytoplasmic)
+II.B	Degradation of macromolecules
+II.B.1	RNA
+II.B.2	DNA
+II.B.3	Proteins, peptides and glycopeptides
+II.B.4	Polysaccharides, lipopolysaccharides and phospholipids
+II.B.5	Esterases and lipases
+II.B.6	Aromatic hydrocarbons
+II.C	Cell envelope
+II.C.1	Lipoproteins(lppA-lpr0)
+II.C.2	Surface polysaccharides, lipopolysaccharides, proteins and antigens
+II.C.3	Murein sacculus and peptidoglycan
+II.C.4	Conserved membrane proteins
+II.C.5	Other membrane proteins
+III	Cell Processes
+III.A	Transport/binding proteins
+III.A.1	Amino acids
+III.A.2	Cations
+III.A.3	Carbohydrates, organic acids and alcohols
+III.A.4	Anions
+III.A.5	Fatty acid transport
+III.A.6	Efflux proteins
+III.B	Chaperones/Heat shock
+III.C	Cell division
+III.D	Protein and peptide secretion
+III.E	Adaptations and atypical conditions
+III.F	Detoxification
+IV	Other
+IV.A	Virulence
+IV.B	IS elements, Repeated sequences, and Phage
+IV.B.1	IS elements
+IV.B.1.a	IS6110
+IV.B.1.b	IS1081
+IV.B.1.c	Others
+IV.B.2	REP13E12 family
+IV.B.3	Phage-related functions
+IV.C	PE and PPE families
+IV.C.1	PE family
+IV.C.1.a	PE subfamily
+IV.C.1.b	PE_PGRS subfamily
+IV.C.2	PPE family
+IV.D	Antibiotic production and resistance
+IV.E	Bacteriocin-like proteins
+IV.F	Cytochrome P450 enzymes
+IV.G	Coenzyme F420-dependent enzymes
+IV.H	Miscellaneous transferases
+IV.I	Miscellaneous phosphatases, lyases, and hydrolases
+IV.J	Cyclases
+IV.K	Chelatases
+V	Conserved hypotheticals
+VI	Unknowns
