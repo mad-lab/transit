@@ -125,8 +125,9 @@ class ResamplingGUI(base.AnalysisGUI):
         (resamplingSampleLabel, self.wxobj.resamplingSampleText, sampleSizer) = self.defineTextBox(resamplingPanel, u"Samples:", u"10000", "Number of samples to take when estimating the resampling histogram. More samples give more accurate estimates of the p-values at the cost of computation time.")
         mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
-        # Pseudocount
-        (resamplingPseudocountLabel, self.wxobj.resamplingPseudocountText, pseudoSizer) = self.defineTextBox(resamplingPanel, u"Pseudocount:", u"0.0", "Adds pseudo-counts to the each data-point. Useful to dampen the effects of small counts which may lead to deceptively high log-FC.")
+        # Pseudocount - changing the semantics on 3/5/20
+        #(resamplingPseudocountLabel, self.wxobj.resamplingPseudocountText, pseudoSizer) = self.defineTextBox(resamplingPanel, u"Pseudocount:", u"0.0", "Adds pseudo-counts to the each data-point. Useful to dampen the effects of small counts which may lead to deceptively high log-FC.")
+        (resamplingPseudocountLabel, self.wxobj.resamplingPseudocountText, pseudoSizer) = self.defineTextBox(resamplingPanel, u"Pseudocount:", u"0.0", "Pseudo-counts used in calculating log-fold-chnage. Useful to dampen the effects of small counts which may lead to deceptively high LFC.")
         mainSizer1.Add(pseudoSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 
         # Norm
@@ -207,7 +208,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 adaptive=False,
                 doHistogram=False,
                 includeZeros=False,
-                pseudocount=0.0,
+                pseudocount=1,
                 replicates="Sum",
                 LOESS=False,
                 ignoreCodon=True,
@@ -280,10 +281,11 @@ class ResamplingMethod(base.DualConditionMethod):
 
 
         #Get output path
-        defaultFileName = "resampling_output_s%d_pc%1.2f" % (samples, pseudocount)
-        if adaptive: defaultFileName+= "_adaptive"
-        if includeZeros: defaultFileName+= "_iz"
-        defaultFileName+=".dat"
+        #defaultFileName = "resampling_output_s%d_pc%1.2f" % (samples, pseudocount)
+        #if adaptive: defaultFileName+= "_adaptive"
+        #if includeZeros: defaultFileName+= "_iz"
+        #defaultFileName+=".dat"
+        defaultFileName = "resampling_output.dat" # simplified
 
         defaultDir = os.getcwd()
         output_path = wxobj.SaveFile(defaultDir, defaultFileName)
@@ -351,6 +353,14 @@ class ResamplingMethod(base.DualConditionMethod):
 
         output_file = open(output_path, "w")
 
+        # check for unrecognized flags
+        flags = "-s -n -h -a -ez -PC -l -iN -iC --ctrl_lib --exp_lib -Z".split()
+        for arg in rawargs:
+          if arg[0]=='-' and arg not in flags:
+            self.transit_error("flag unrecognized: %s" % arg)
+            print(ZinbMethod.usage_string())
+            sys.exit(0)
+
         normalization = kwargs.get("n", "TTR")
         samples = int(kwargs.get("s", 10000))
         adaptive = kwargs.get("a", False)
@@ -358,14 +368,14 @@ class ResamplingMethod(base.DualConditionMethod):
         replicates = kwargs.get("r", "Sum")
         excludeZeros = kwargs.get("ez", False)
         includeZeros = not excludeZeros
-        pseudocount = float(kwargs.get("pc", 0.00))
+        pseudocount = float(kwargs.get("PC", 1.0)) # use -PC (new semantics: for LFCs) instead of -pc (old semantics: fake counts)
 
         Z = True if "Z" in kwargs else False
 
         LOESS = kwargs.get("l", False)
         ignoreCodon = True
 
-        NTerminus = float(kwargs.get("iN", 0.00))
+        NTerminus = float(kwargs.get("iN", 0.00)) # integer interpreted as percentage
         CTerminus = float(kwargs.get("iC", 0.00))
         ctrl_lib_str = kwargs.get("-ctrl_lib", "")
         exp_lib_str = kwargs.get("-exp_lib", "")
@@ -520,6 +530,7 @@ class ResamplingMethod(base.DualConditionMethod):
             self.output.write("#GUI with: norm=%s, samples=%s, pseudocounts=%1.2f, adaptive=%s, histogram=%s, includeZeros=%s, output=%s\n" % (self.normalization, self.samples, self.pseudocount, self.adaptive, self.doHistogram, self.includeZeros, self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python %s\n" % " ".join(sys.argv))
+        self.output.write("#Parameters: samples=%s, norm=%s, histograms=%s, adaptive=%s, excludeZeros=%s, pseudocounts=%s, LOESS=%s, trim_Nterm=%s, trim_Cterm=%s\n" % (self.samples,self.normalization, self.doHistogram, self.adaptive,not self.includeZeros,self.pseudocount,self.LOESS,self.NTerminus,self.CTerminus))
         self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata).encode('utf-8')))
         self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata).encode('utf-8')))
         self.output.write("#Annotation path: %s %s\n" % (self.annotation_path.encode('utf-8'), self.annotation_path_exp.encode('utf-8') if self.diffStrains else ''))
@@ -577,13 +588,14 @@ class ResamplingMethod(base.DualConditionMethod):
                     ii_ctrl = numpy.ones(gene.n) == 1
                     ii_exp = numpy.ones(gene_exp.n) == 1
 
-                data1 = gene.reads[:,ii_ctrl].flatten() + self.pseudocount
-                data2 = gene_exp.reads[:,ii_exp].flatten() + self.pseudocount
+                #data1 = gene.reads[:,ii_ctrl].flatten() + self.pseudocount # we used to have an option to add pseudocounts to each observation, like this
+                data1 = gene.reads[:,ii_ctrl].flatten() 
+                data2 = gene_exp.reads[:,ii_exp].flatten()
 
                 if doLibraryResampling:
-                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_dict, permFunc=stat_tools.F_shuffle_dict_libraries, adaptive=self.adaptive, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str)
+                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_dict, permFunc=stat_tools.F_shuffle_dict_libraries, adaptive=self.adaptive, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str,PC=self.pseudocount)
                 else:
-                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_flat, permFunc=stat_tools.F_shuffle_flat, adaptive=self.adaptive, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str)
+                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_flat, permFunc=stat_tools.F_shuffle_flat, adaptive=self.adaptive, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str,PC=self.pseudocount)
 
 
             if self.doHistogram:
@@ -638,7 +650,7 @@ class ResamplingMethod(base.DualConditionMethod):
         -a              :=  Perform adaptive resampling. Default: Turned Off.
         -ez             :=  Exclude rows with zero across conditions. Default: Turned off
                             (i.e. include rows with zeros).
-        -pc             :=  Pseudocounts to be added at each site.
+        -PC <float>     :=  Pseudocounts used in calculating LFC. (default: 1)
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias.
                             Default: Turned Off.
         -iN <int>       :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 0
