@@ -1478,39 +1478,48 @@ If the input file is a combined_wig file, indicate it with a '-c' flag.
 Pathway Enrichment Analysis
 ---------------------------
 
-How does it work?
-~~~~~~~~~~~~~~~~~
 Pathway Enrichment Analysis provides a method to
 identify enrichment of functionally-related genes among those that are
 conditionally essential (i.e.
 significantly more or less essential between two conditions).
 The analysis is typically applied as post-processing step to the hits identified
-by a comparative analysis, such as resampling.
-Four analytical method are provided:
-a Hypergeometric approach, GSEA by `Subramanian et al (2005) <https://www.ncbi.nlm.nih.gov/pubmed/16199517>`_, and GSEA-Z, GSEA-Chi proposed by `Irizarry et al. (2009) <https://www.ncbi.nlm.nih.gov/pubmed/20048385>`_.
-For the Hypergeometic test, genes in the resampling output file with adjusted p-value < 0.05 are taken as hits,
+by a comparative analysis, such as *resampling*.
+Several analytical method are provided:
+Fisher's exact test (hypergeometric distribution), GSEA (Gene Set Enrichment Analysis)
+by `Subramanian et al (2005) <https://www.ncbi.nlm.nih.gov/pubmed/16199517>`_,
+and `Ontologizer <https://www.ncbi.nlm.nih.gov/pubmed/17848398>`_.
+For the Fisher exact test, 
+genes in the resampling output file with adjusted p-value < 0.05 are taken as hits,
 and evaluated for overlap with functional categories of genes.
 The GSEA methods use the whole list of genes, ranked in order of statistical significance
-(without requiring a cutoff), to calculated enrichment.
+(without requiring a cutoff), to calculate enrichment.
 
-Two systems of categories are provided for *M. tuberculosis* (but you can add your own):
-the Sanger functional categories of genes determined by Stewart Cole in the
-original annotation of the H37Rv genome (1998, with updates), and
-also GO terms (Gene Ontology).  They are in the src/pytransit/data/ directory.
+Three systems of categories are provided for (but you can add your own):
+the Sanger functional categories of genes determined in the
+original annotation of the H37Rv genome (`Cole et al, 1998 <https://www.ncbi.nlm.nih.gov/pubmed/9634230>`_,
+with subsequent updates), 
+COG categories (`Clusters of Orthologous Genes <https://www.ncbi.nlm.nih.gov/pubmed/25428365>`_) and
+also GO terms (Gene Ontology).  The supporting files for *M. tuberculosis* 
+H37Rv are in the src/pytransit/data/ directory.
 
-For now, pathway enrichment analysis is only implemented as a command-line function,
+For other organisms, it might be possible to download COG categories from 
+`http://www.ncbi.nlm.nih.gov/COG/ <http://www.ncbi.nlm.nih.gov/COG/>`_
+and GO terms from `http://www.geneontology.org <http://www.geneontology.org>`_
+or `http://patricbrc.org <http://patricbrc.org>`_.
+If these files can be obtained for your organism, they will have to be converted into
+the *associations* file format described below. (The *pathways* files for COG categories and GO terms
+in the Transit data directory should still work, because they just encode pathways names for all terms/ids.)
+
+At present, pathway enrichment analysis is only implemented as a command-line function,
 and is not available in the Transit GUI.
 
-GSEA is very slow, which is why we included
-two faster methods that use approximations (GSEA-Z and GSEA-Chi).
 
-
-Example
+Usage
 ~~~~~~~
 
 ::
 
-    python3 ../../transit.py pathway_enrichment <resampling_file> <pathway_associations_file> <output_file> [-p] [-S] [-M GSEA|HYPE|GSEA-Z|GSEA-CHI]
+    python3 src/transit.py pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FISHER|GSEA|GO>] [-PC <int>]
 
 |
 
@@ -1519,89 +1528,89 @@ Parameters
 ~~~~~~~~~~
 - **Resampling File**
     The resampling file is the one obtained after using the resampling method in Transit. (It is a tab separated file with 11 columns.) GSEA method makes usage of the last column (adjusted P-value)
-- **Pathway Associations File**
-    This file is a tab-separated text file (which you could open in Excel).  The file format has 3 columns: the id of the pathway (e.g. "GO:0090502"), a description (e.g. "RNA phosphodiester bond hydrolysis"), and a space-separated list of genes (ORF ids, like Rv1339).  Examples for Sanger categories and GO terms for H37Rv are in src/pytransit/data/. Example: GO_associated_Rvs.csv.
-- **Output File**
-    This parameter is used to specify the output file name and the path where it will be created.
-- **p**
-   This parameter is optional, and can be used to adjust the stringency of the GSEA calculation. GSEA method calculates a weighted Kolgomorov-Smirnov statistics. The default value is 1, when p=0, the enrichment score is the Kolgomorov-Smirnov statistics.
-- **S**
-   Number of samples for generating the null distribution.  In order to estimate the significance, the enrichment score is compared to a null distribution computed with S randomly assigned phenotypes. The default S value is 1000.  Changing S affects the speed of the calculation linearly.
-- **M**
-    Methodology to be used. (HYPE, or hypergeometric test, is the default)
-  -**GSEA**
-    This method was proposed by Subramanian in:
+- **Associations File**
+   This is a tab-separated text file with 2 columns: pathway id, and pathway name. If a gene is in multiple pathways, the associated ids should be listed on separate lines.  It is OK if there are no associations listed for some genes.  Important: if pathways are hierarchical, you should expand this file to explicitly include associations of each gene with all parent nodes. Files with GO term associations will have to be pre-processed this way too.
 
-    Subramanian, A., Tamayo, P., Mootha, V. K., Mukherjee, S., Ebert, B. L., Gillette, M. A., ... & Mesirov, J. P. (2005).  `Gene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles <http://www.pnas.org/content/102/43/15545.short>`_ . Proceedings of the National Academy of Sciences, 102(43), 15545-15550.
-  -**HYPE**
-    This is a traditional Hypergeometric approach, which test whether the
-proportion of genes with a given function/pathway among the list of hits from resampling
-is significantly higher or lower than expected, relative to the background distribution (proportion of the category/pathway among all the ORFS in the genome)
-  -**GSEA-Z**
-    A faster approximation of GSEA.  This method is the one proposed by Irizarry, R. A et al in :
+::
 
-    Irizarry, R. A., Wang, C., Zhou, Y., & Speed, T. P. (2009). `Gene set enrichment analysis made simple  <http://journals.sagepub.com/doi/abs/10.1177/0962280209351908>`_. Statistical methods in medical research, 18(6), 565-575.
-  -**GSEA-CHI**
-    A faster approximation of GSEA.  This method is the one proposed by Irizarry, R. A et al in :
+  Example: H37Rv_sanger_roles.dat
 
-    Irizarry, R. A., Wang, C., Zhou, Y., & Speed, T. P. (2009). `Gene set enrichment analysis made simple  <http://journals.sagepub.com/doi/abs/10.1177/0962280209351908>`_. Statistical methods in medical research, 18(6), 565-575.
+  Rv3823c	II.C.4
+  Rv3823c	II.C
+  Rv3823c	II
+  Rv0337c	I.D.2
+  Rv0337c	I.D
+  Rv0337c	I
+  ...
 
-Run-time
+- **Pathways File**
+   This is a tab-separated text file with 2 columns: pathway id, and pathway name. 
+
+::
+
+  Example: sanger_roles.dat
+
+  I	Small-molecule metabolism
+  I.A	Degradation
+  I.A.1	Carbon compounds
+  I.A.2	Amino acids and amines
+  I.A.3	Fatty acids
+  I.A.4	Phosphorous compounds
+  ...
+
+- **-M**
+    Methodology to be used. FISHER is used by default (even without specifying -M).
+
+  **FISHER**
+    This implements Fisher's Exact Test (hypergeometric distribution) to determine a p-value for each pathway, based on the proportion of pathway member observed in list of hits (conditionally essential gene by resampling, padj<0.05) compared to the background proportion in the overall genome, and p-values are adjusted post-hoc by the Benjamini-Hochberg procedure to limit the FDR to 5%.  
+
+    In the output file, an "enrichment score" is reported, which is the ratio of the observed number of pathway members among the hits to the expected number.  Pseudocounts of 2 are included in the calculation to reduce the bias toward small pathways with only a few genes; this can be adjusted with the -PC flag (below).
+
+    FISHER can be used with GO terms.
+
+  **GSEA**
+    Gene Set Enrichment Analysis. GSEA assess the significance of a pathway by looking at how the members fall in the ranking of all genes.  The genes are first ranked by significance from resampling.  Specifically, they are sorted by signed-log-p-value, SLPV=sign(LFC)*(log(pval)), which puts them in order so that the most significant genes with negative LFC are at the top, the most significant with positive LFC are at the bottom, and insignificant genes fall in the middle.  Roughly, GSEA computes the mean rank of pathway members, and evaluates significance based on a simulated a null distribution.  p-values are again adjusted at the end by BH.
+
+    `Subramanian, A., Tamayo, P., Mootha, V. K., Mukherjee, S., Ebert, B. L., Gillette, M. A., ... & Mesirov, J. P. (2005).  `ene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles. Proceedings of the National Academy of Sciences, 102(43), 15545-15550. <http://www.pnas.org/content/102/43/15545.short>`_ 
+
+    GSEA can be used with GO terms.
+
+  **ONT**
+    Ontologizer is a specialized method for GO terms that takes parent-child relationships into account among nodes in the GO hierarchy.  This can enhance the specificity of pathways detected as significant.  Hierarhical relationships among GO terms are encoded in an OBO file, which is included in the src/pytransit/data/ directory.
+
+    `Grossmann S, Bauer S, Robinson PN, Vingron M. Improved detection of overrepresentation of Gene-Ontology annotations with parent child analysis. Bioinformatics. 2007 Nov 15;23(22):3024-31. <https://www.ncbi.nlm.nih.gov/pubmed/17848398>`_
+
+- **-PC**
+   Pseudocounts used in calculating enrichment score in output file for FISHER. Default: PC=2.
+
+
+Examples
 ~~~~~~~~
-The GSEA method, proposed by Subramanian, might take some hours to calculate the p-value.
-The other methods are much faster.
 
+::
 
-Outputs and diagnostics
-~~~~~~~~~~~~~~~~~~~~~~~
-The output file is a tab separated file and according to the method, the file has specific columns.
+    # uses Fisher's exact test by default (with PC=2 as pseudocounts)
+    > transit pathway_enrichment resampling_glyc_chol.txt $DATA/H37Rv_sanger_roles.dat $DATA/sanger_roles.dat pathways_glyc_chol_Sanger.txt
 
--*Output File*
-   -*GSEA*
-      - ID descr: ID of the pathway, functional category, or GO term, with its description. This information comes from the annotation file
+    # can do this with GO terms too
+    > transit pathway_enrichment resampling_glyc_chol.txt $DATA/H37Rv_GO_terms.txt $DATA/GO_term_names.dat pathways_glyc_chol_GO.txt
 
-      - Total genes: The number of genes in the pathway
+    # with COG categories
+    > transit pathway_enrichment resampling_glyc_chol.txt $DATA/H37Rv_COG_roles.dat $DATA/COG_roles.dat pathways_glyc_chol_COG.txt
 
-      - score: Enrichment Score
+    # can also do GSEA method (on any system of functional categories)
+    > transit pathway_enrichment resampling_glyc_chol.txt $DATA/H37Rv_sanger_roles.dat $DATA/sanger_roles.dat pathways_Sanger_GSEA.txt -M GSEA
 
-      - P-Value: Statistical Significance
+    # Ontologizer is a specialized method for GO terms
+    > transit pathway_enrichment resampling_glyc_chol.txt $DATA/H37Rv_GO_terms.txt $DATA/GO_term_names.dat pathways_Ontologizer.txt -M ONT
 
-      - P-Adjust : FDR Correction
-
-      - list of genes in the category, ranked by their log-fold-change (from resampling). Rank values near 0 or near N (total number of genes in genome) are the most interesting (representing pathways with high enrichment)
-
-   -*HYPE*
-
-      - ID descr: ID of the pathway, functional category, or GO term, with its description. This information comes from the annotation file
-
-      - Total genes, The number of genes in the pathway. The genes considered hits are those with p-value < 0.05
-
-      - Total in the intersection, The number of genes that are in the pathway and the whole genome
-
-      - P-Value, the statistical significance
-
-      - P-Adjust, FDR correction of the p-value (using Benjamini-Hochberg)
-
-      - genes in intersection of the pathway and list of hits (conditional essentials)
-
-   -*GSEA-Z, GSEA-CHI*
-
-      - ID descr: ID of the pathway, functional category, or GO term, with its description. This information comes from the annotation file
-
-      - Total genes, The number of genes in the pathway
-
-      - Score, Either Z or Chi, according to the one selected to calculate
-
-      - P-Value, the statistical significance
-
-      - P-Adjust, FDR correction of the p-value
-
-      - Rank of Genes, list of genes in the pathway and their position in the resampling file (LFC order).
-
+The $DATA environment variable is these examples refers to the Transit data directory, e.g. src/pytransit/data/.
 
 
 .. rst-class:: transit_sectionend
-----
+------
+
+    
 
 .. _tnseq_stats:
 
@@ -1663,18 +1672,20 @@ Here is an example of making a corrplot:
 ::
 
   > transit corrplot glyc_chol_combined.wig.txt glyc_chol_corrplot.png
+  correlations based on 3990 genes
 
 .. image:: _images/glyc_chol_corrplot.png
    :width: 300
    :align: center
 
 
-One can also use the output of ANOVA or ZINB analysis to make a corrplot
-among the conditions themselves (with replicates merged, not among all individual samples).
-Importantly, the correlations are based only on the subset of genes
-identified as significantly varying (Padj < 0:05, typically only a few
-hundred) in order to enhance the patterns, since otherwise they would
-be washed out by the rest of the genes in the genome, the majority of
+A corrplot can also be generated from the output of ANOVA or ZINB
+analysis, showing relationships among the conditions themselves
+(i.e. with replicates merged, rather than correlations among
+individual samples).  Importantly, the correlations are based only on
+the *subset* of genes identified as significantly varying (Padj <
+0:05) in order to enhance the patterns, since otherwise they would be
+washed out by the rest of the genes in the genome, the majority of
 which usually do not exhibit significant variation in counts.
 
 Here is an example which generates the following image showing the corrplot among
@@ -1682,8 +1693,8 @@ several different growth conditions:
 
 ::
 
-  > python3 src/transit.py corrplot anova_iron.txt corrplot_iron_anova.png -anova
-
+  > python3 src/transit.py corrplot anova_iron.txt iron_corrplot_anova.png -anova
+  correlations based on 229 genes
 
 .. image:: _images/iron_corrplot_anova.png
    :width: 300
