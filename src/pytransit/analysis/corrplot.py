@@ -29,24 +29,19 @@ import pytransit.tnseq_tools as tnseq_tools
 import pytransit.norm_tools as norm_tools
 import pytransit.stat_tools as stat_tools
 
-# stuff specific to corrplot.py
 
-import pandas as pd
-import seaborn as sns
+### because corrplot.py depends on R...
 
-# filterwarnings is need to suppress this message: 
-#   matplotlib.use() has no effect because the backend has already been chosen; 
-#   matplotlib.use() must be called *before* pylab, matplotlib.pyplot, or matplotlib.backends is imported for the first time. 
-#   The backend was *originally* set to 'TkAgg' (see pytransit.__main__)
+hasR = False
+try:
+    import rpy2.robjects
+    hasR = True
+except Exception as e:
+    hasR = False
 
-import warnings
-warnings.filterwarnings('ignore') 
+if hasR:
+    from rpy2.robjects import r, DataFrame, globalenv, IntVector, FloatVector, StrVector, packages as rpackages
 
-import matplotlib
-import matplotlib.pyplot as plt
-
-# might need this if logged in remotely with no X...
-# setenv DISPLAY :0.0
 
 ############# Description ##################
 
@@ -141,11 +136,10 @@ class CorrplotMethod(base.SingleConditionMethod):
           skip = 3 # assume two comment lines and then column headers (not prefixed by #)
           for line in open(self.gene_means):
             w = line.rstrip().split('\t')
-            if skip>0: skip -= 1; n = int((len(w)-6)/2); headers = w[3:3+n]; continue # third line has names of conditions
-            data.append(w)
+            if skip>0: skip -= 1; n = int((len(w)-6)/2); headers = w[3:3+n]; continue # third line has names of conditions            
             cnts = [float(x) for x in w[3:3+n]] # organization of columns: 3+means+LFCs+3
             qval = float(w[-2])
-            if qval<0.05: means.append(cnts)
+            if qval<0.05: means.append(cnts); data.append(w)
         elif self.filetype=="zinb":
           skip,n = 2,-1 # assume one comment line and then column headers
           for line in open(self.gene_means):
@@ -155,37 +149,39 @@ class CorrplotMethod(base.SingleConditionMethod):
               # second line has names of conditions, organized as 3+4*n+3 (4 groups X n conditions)
               n = int((len(headers)-6)/4)
               headers = headers[3:3+n]
-              headers = [x.replace("Mean_","") for x in headers]
-            data.append(w)
+              headers = [x.replace("Mean_","") for x in headers]          
             cnts = [float(x) for x in w[3:3+n]] # take just the columns of means
             qval = float(w[-2])
-            if qval<0.05: means.append(cnts)
+            if qval<0.05: means.append(cnts); data.append(w)
         else: print("filetype not recognized: %s" % self.filetype); sys.exit(-1)
-        print("correlations base on %s genes" % len(means))
+        print("correlations based on %s genes" % len(means))
 
+        genenames = ["%s/%s" % (w[0],w[1]) for w in data]
+        hash = {}
         headers = [h.replace("Mean_","") for h in headers]
-        d = pd.DataFrame(data=means,columns=headers)
-        corr = d.corr()
-        cc = corr.unstack()
-        a,b = min(cc),max(cc)
-        # Generate a mask for the upper triangle
-        #mask = np.triu(np.ones_like(corr, dtype=np.bool))
-        f, ax = plt.subplots(figsize=(11, 9))
-        # Generate a custom diverging colormap
-        cmap = sns.diverging_palette(10, 240, as_cmap=True)
-        #ax = sns.heatmap(corr, cmap=cmap, vmax=1, vmin=min(a,0),
-        #ax = sns.heatmap(corr, cmap=cmap, vmax=1, vmin=-1, center=0,
-        ax = sns.heatmap(corr, cmap=cmap,
-            square=False, linewidths=.5, cbar_kws={"shrink": .5})
-        ax.xaxis.tick_top() # put labels on top
-        ax.set_xticklabels(ax.get_xticklabels(),rotation=90)
-        print("generating corrplot %s" % self.outfile)
-        plt.tight_layout()
-        #plt.show()
-        plt.savefig(self.outfile)
+        for i,col in enumerate(headers): hash[col] = FloatVector([x[i] for x in means])
+        df = DataFrame(hash) # can't figure out how to set rownames
+
+        corrplotFunc = self.make_corrplotFunc()
+        corrplotFunc(df,StrVector(headers),StrVector(genenames),self.outfile) # pass headers to put cols in order, since df comes from dict
 
         self.finish()
         self.transit_message("Finished Corrplot") 
+
+    
+    def make_corrplotFunc(self):
+      r(''' # R function...
+make_corrplot = function(means,headers,genenames,outfilename) { 
+means = means[,headers] # put cols in correct order
+rownames(means) = genenames
+suppressMessages(require(corrplot))
+png(outfilename)
+corrplot(cor(means))
+dev.off()
+}
+      ''')
+      return globalenv['make_corrplot']
+
 
     @classmethod
     def usage_string(self):

@@ -229,25 +229,15 @@ class AnovaMethod(base.MultiConditionMethod):
 
     @classmethod
     def usage_string(self):
-        usage =  """Usage: python33 transit.py anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
+        usage =  """Usage: python3 transit.py anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
  Optional Arguments:
   -n <string>         :=  Normalization method. Default: -n TTR
   --include-conditions <cond1,...> := Comma-separated list of conditions to use for analysis (Default: all)
   --ignore-conditions <cond1,...> := Comma-separated list of conditions to ignore (Default: none)
-  -iN <int> :=  Ignore TAs within given percentage of N terminus. Default: -iN 0
-  -iC <int> :=  Ignore TAs within given percentage of C terminus. Default: -iC 0
-  -PC <int> := pseudocounts to use for calculating LFC. Default: -PC 5"""
+  -iN <N> :=  Ignore TAs within given percentage (e.g. 5) of N terminus. Default: -iN 0
+  -iC <N> :=  Ignore TAs within given percentage (e.g. 5) of C terminus. Default: -iC 0
+  -PC <N> := pseudocounts to use for calculating LFC. Default: -PC 5"""
         return usage
-
-#        return """python3 %s anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
-#
-#        Optional Arguments:
-#        -n <string>         :=  Normalization method. Default: -n TTR
-#        --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
-#        --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
-#        -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 0
-#        -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 0
-#        """ % (sys.argv[0])
 
 if __name__ == "__main__":
     main()

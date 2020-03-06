@@ -1697,6 +1697,9 @@ mean_counts, the *last* argument of corrplot must be set to either
 first argument.
 
 
+Note: corrplot requires R (statistical analysis software)
+to be installed on your system.  See :ref:`Installation Instructions <install-zinb>`.
+
 .. rst-class:: transit_sectionend
 ----
 
@@ -1743,6 +1746,9 @@ identified as significantly varying (Padj < 0:05, typically only a few
 hundred) in order to enhance the patterns, since otherwise they would
 be washed out by the rest of the genes in the genome, the majority of
 which usually do not exhibit significant variation in counts.
+
+Note: heatmap requires R (statistical analysis software)
+to be installed on your system.  See :ref:`Installation Instructions <install-zinb>`.
 
 
 .. rst-class:: transit_sectionend
