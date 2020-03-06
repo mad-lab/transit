@@ -143,11 +143,11 @@ class NormalizeMethod(base.SingleConditionMethod):
     @classmethod
     def usage_string(self):
         return """
-python %s normalize <input.wig> <output.wig> [-n TTR|betageom]
+python3 %s normalize <input.wig> <output.wig> [-n TTR|betageom]
 ---
 OR
 ---
-python %s normalize -c <input combined_wig> <output.wig> [-n TTR|betageom]
+python3 %s normalize -c <input combined_wig> <output.wig> [-n TTR|betageom]
 
         Optional Arguments:
         -n <string>     :=  Normalization method. Default: -n TTR

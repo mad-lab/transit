@@ -161,6 +161,7 @@ class CorrplotMethod(base.SingleConditionMethod):
             qval = float(w[-2])
             if qval<0.05: means.append(cnts)
         else: print("filetype not recognized: %s" % self.filetype); sys.exit(-1)
+        print("correlations base on %s genes" % len(means))
 
         headers = [h.replace("Mean_","") for h in headers]
         d = pd.DataFrame(data=means,columns=headers)
@@ -172,7 +173,9 @@ class CorrplotMethod(base.SingleConditionMethod):
         f, ax = plt.subplots(figsize=(11, 9))
         # Generate a custom diverging colormap
         cmap = sns.diverging_palette(10, 240, as_cmap=True)
-        ax = sns.heatmap(corr, cmap=cmap, vmin=min(a,0.5),vmax=1,# vmin=-1, vmax=1, center=0,
+        #ax = sns.heatmap(corr, cmap=cmap, vmax=1, vmin=min(a,0),
+        #ax = sns.heatmap(corr, cmap=cmap, vmax=1, vmin=-1, center=0,
+        ax = sns.heatmap(corr, cmap=cmap,
             square=False, linewidths=.5, cbar_kws={"shrink": .5})
         ax.xaxis.tick_top() # put labels on top
         ax.set_xticklabels(ax.get_xticklabels(),rotation=90)
@@ -186,7 +189,7 @@ class CorrplotMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return "usage: python %s corrplot <gene_means> <output.png> [-anova|-zinb]" % sys.argv[0]
+        return "usage: python3 %s corrplot <gene_means> <output.png> [-anova|-zinb]" % sys.argv[0]
         # could add a flag for padj cutoff (or top n most signif genes)
 
 

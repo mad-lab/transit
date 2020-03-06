@@ -210,7 +210,7 @@ class AnovaMethod(base.MultiConditionMethod):
                 ["Mean_%s" % x for x in conditionsList] +
                 ["LFC_%s" % x for x in conditionsList] +
                 "pval padj".split() + ["status"])
-        file.write("#Console: python %s\n" % " ".join(sys.argv))
+        file.write("#Console: python3 %s\n" % " ".join(sys.argv))
         file.write("#parameters: normalization=%s, trimming=%s/%s%% (N/C), pseudocounts=%s\n" % (self.normalization,self.NTerminus,self.CTerminus,self.PC))
         file.write('\t'.join(heads)+EOL)
         for gene in genes:
@@ -229,7 +229,7 @@ class AnovaMethod(base.MultiConditionMethod):
 
     @classmethod
     def usage_string(self):
-        usage =  """Usage: python3 transit.py anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
+        usage =  """Usage: python33 transit.py anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
  Optional Arguments:
   -n <string>         :=  Normalization method. Default: -n TTR
   --include-conditions <cond1,...> := Comma-separated list of conditions to use for analysis (Default: all)
@@ -239,7 +239,7 @@ class AnovaMethod(base.MultiConditionMethod):
   -PC <int> := pseudocounts to use for calculating LFC. Default: -PC 5"""
         return usage
 
-#        return """python %s anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
+#        return """python3 %s anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
 #
 #        Optional Arguments:
 #        -n <string>         :=  Normalization method. Default: -n TTR

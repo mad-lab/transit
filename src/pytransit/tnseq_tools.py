@@ -85,7 +85,7 @@ def read_samples_metadata(metadata_file, covarsToRead = [], interactionsToRead =
         headIndexes = [i
                 for h in headersToRead
                 for i, c in enumerate(lines[0].split())
-                if c.lower() == h]
+                if c.lower() == h.lower()]
         covarIndexes = [i
                 for h in covarsToRead
                 for i, c in enumerate(lines[0].split())

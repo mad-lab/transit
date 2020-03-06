@@ -110,7 +110,7 @@ class PathwayMethod(base.AnalysisMethod):
 
   @classmethod
   def usage_string(self):
-    return """python %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FISHER|GSEA|GO>] [-PC <int>]""" % (sys.argv[0])
+    return """python3 %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FISHER|GSEA|GO>] [-PC <int>]""" % (sys.argv[0])
 
   def Run(self):
     self.transit_message("Starting Pathway Enrichment Method")

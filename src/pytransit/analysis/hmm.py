@@ -373,7 +373,7 @@ class HMMMethod(base.SingleConditionMethod):
                 memberstr += "%s = %s, " % (m, getattr(self, m))
             self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8')))
         else:
-            self.output.write("#Console: python %s\n" % " ".join(sys.argv))
+            self.output.write("#Console: python3 %s\n" % " ".join(sys.argv))
        
         self.output.write("# \n")
         self.output.write("# Mean:\t%2.2f\n" % (numpy.average(reads_nz)))
@@ -429,7 +429,7 @@ class HMMMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output file>
+        return """python3 %s hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output file>
 
         Optional Arguments:
             -r <string>     :=  How to handle replicates. Sum, Mean. Default: -r Mean

@@ -38,7 +38,7 @@ Example
 
 ::
 
- python transit.py gumbel <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+ python3 transit.py gumbel <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
         -b <integer>    :=  Number of Burn-in samples. Default -b 500
@@ -149,6 +149,7 @@ replicates; replicate datasets will be automatically merged.
 .. rst-class:: transit_sectionend
 ----
 
+
 griffin
 -------
 
@@ -170,6 +171,7 @@ of estimating internal parameters.
 
 .. rst-class:: transit_sectionend
 ----
+
 
 .. _`tn5gaps`:
 
@@ -231,7 +233,7 @@ Usage
 ~~~~~
 ::
 
-    python ../../../transit.py tn5gaps <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+    python3 ../../../transit.py tn5gaps <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
         Optional Arguments:
         -m <integer>    :=  Smallest read-count to consider. Default: -m 1
@@ -257,7 +259,7 @@ Example
 ~~~~~~~
 ::
 
-    python PATH/src/transit.py tn5gaps salmonella_baseline.wig Salmonella-Ty2.prot_table salmonella_baseline_tn5gaps_trimmed.dat -m 2 -r Sum -iN 5 -iC 5
+    python3 PATH/src/transit.py tn5gaps salmonella_baseline.wig Salmonella-Ty2.prot_table salmonella_baseline_tn5gaps_trimmed.dat -m 2 -r Sum -iN 5 -iC 5
 
 
 These input and output files can be downloaded from the **Example Data** section on the `Transit home page <http://saclab.tamu.edu/essentiality/transit/index.html>`_ .
@@ -315,6 +317,7 @@ datasets will be automatically merged.
 .. rst-class:: transit_sectionend
 ----
 
+
 .. _HMM:
 
 HMM
@@ -343,7 +346,7 @@ Example
 ::
 
 
-  python transit.py hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output file>
+  python3 transit.py hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output file>
         Optional Arguments:
             -r <string>     :=  How to handle replicates. Sum, Mean. Default: -r Mean
             -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Off.
@@ -448,6 +451,7 @@ Run-time
 .. rst-class:: transit_sectionend
 ----
 
+
 .. _resampling:
 
 Resampling
@@ -474,11 +478,11 @@ How does it work?
 
 This technique has yet to be formally published in the context of
 differential essentiality analysis. Briefly, the read-counts at each
-genes are determined for each replicate of each condition. The total
-read-counts in condition A is subtracted from the total read counts at
-condition B, to obtain an observed difference in read counts. The TA
+genes are determined for each replicate of each condition. The mean
+read-count in condition A is subtracted from the mean read-count in
+condition B, to obtain an observed difference in means. The TA
 sites are then permuted for a given number of "samples". For each one of
-these permutations, the difference is read-counts is determined. This
+these permutations, the difference in read-counts is determined. This
 forms a null distribution, from which a p-value is calculated for the
 original, observed difference in read-counts.
 
@@ -491,7 +495,7 @@ Usage
 
 ::
 
-  python transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+  python3 transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
         -n <string>     :=  Normalization method. Default: -n TTR
@@ -592,11 +596,11 @@ If you want to compare more than two conditions, see :ref:`ZINB <zinb>`.
 
   usage: 
 
-  python transit.py resampling -c <combined_wig> <samples_metadata> <control_condition_name> <experimental_condition_name> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+  python3 transit.py resampling -c <combined_wig> <samples_metadata> <control_condition_name> <experimental_condition_name> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
   example:
 
-  python transit.py resampling -c antibiotic_combined_wig.txt antibiotic_samples_metadata.txt Untreated Isoniazid H37Rv.prot_table results.txt -a
+  python3 transit.py resampling -c antibiotic_combined_wig.txt antibiotic_samples_metadata.txt Untreated Isoniazid H37Rv.prot_table results.txt -a
 
 
 Doing resampling with datasets from different libraries.
@@ -667,7 +671,7 @@ command-line), as a comma-separated list.  For example:
 
 ::
 
-  > python transit.py resampling Rv_1_H37Rv.wig,Rv_2_H37Rv.wig 632_1_632WGS.wig,632_2_632WGS.wig H37Rv.prot_table,632WGS.prot_table resampling_output.txt -a
+  > python3 transit.py resampling Rv_1_H37Rv.wig,Rv_2_H37Rv.wig 632_1_632WGS.wig,632_2_632WGS.wig H37Rv.prot_table,632WGS.prot_table resampling_output.txt -a
 
 In this example, 2 replicates from H37Rv (which had been mapped to
 H37Rv.fna by TPP) were compared to 2 replicates from strain 632 (which
@@ -802,7 +806,7 @@ Usage
 
 ::
 
-  python transit.py GI <wigs_for_strA_cond1> <wigs_for_strA_cond2> <wigs_for_strB_cond1> <wigs_for_strB_cond2> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+  python3 transit.py GI <wigs_for_strA_cond1> <wigs_for_strA_cond2> <wigs_for_strB_cond1> <wigs_for_strB_cond2> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
         Provide replicates in each group as a comma-separated list of wig files.
 
@@ -827,7 +831,7 @@ Note there are 2 replicates in each of the 4 groups of datasets.
 
 ::
 
-  python transit/src/transit.py GI WT_untreated1.wig,WT_untreated2.wig WT_INH_1.wig,WT_INH_2.wig delta_SigB_untreated1.wig,delta_SigB_untreated2.wig delta_SigB_INH_1.wig,delta_SigB_INH_2.wig mc2_155_tamu.prot_table GI_delta_SigB_INH.txt
+  python3 transit/src/transit.py GI WT_untreated1.wig,WT_untreated2.wig WT_INH_1.wig,WT_INH_2.wig delta_SigB_untreated1.wig,delta_SigB_untreated2.wig delta_SigB_INH_1.wig,delta_SigB_INH_2.wig mc2_155_tamu.prot_table GI_delta_SigB_INH.txt
 
 
 Parameters
@@ -951,7 +955,7 @@ Example
 
 ::
 
-  python transit.py anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
+  python3 transit.py anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis. Default --ignore-conditions Unknown
@@ -1080,7 +1084,7 @@ Example
 
 ::
 
-  python3 transit.py zinb <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
+  python33 transit.py zinb <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis.
@@ -1111,11 +1115,11 @@ TTR is the default, but other relevant normalization options would be 'nonorm'
 
 ::
 
-  > python src/transit.py export combined_wig --help
+  > python3 src/transit.py export combined_wig --help
 
-  usage: python src/transit.py export combined_wig <comma-separated .wig files> <annotation .prot_table> <output file>
+  usage: python3 src/transit.py export combined_wig <comma-separated .wig files> <annotation .prot_table> <output file>
 
-  > python ../transit/src/transit.py export combined_wig Rv_1_H37RvRef.wig,Rv_2_H37RvRef.wig,Rv_3_H37RvRef.wig H37Rv.prot_table clinicals_combined_TTR.wig -n TTR
+  > python3 ../transit/src/transit.py export combined_wig Rv_1_H37RvRef.wig,Rv_2_H37RvRef.wig,Rv_3_H37RvRef.wig H37Rv.prot_table clinicals_combined_TTR.wig -n TTR
 
 
 
@@ -1196,7 +1200,7 @@ the **\\-\\-covars** flag.
 
 ::
 
- python transit.py zinb combined.wig samples.metadata prot.table output.file --covars Batch
+ python3 transit.py zinb combined.wig samples.metadata prot.table output.file --covars Batch
 
 
 Similarly, an interaction variable may be included in the model.
@@ -1213,7 +1217,7 @@ differs depending on the strain, we could do this:
 
 ::
 
- python transit.py zinb combined.wig samples.metadata prot.table output.file --interactions Strain
+ python3 transit.py zinb combined.wig samples.metadata prot.table output.file --interactions Strain
  
 In this case, the condition is implicitly assumed to be the column in the samples metadata file
 labeled 'Condition'.  If you want to specify a different column to use as the primary condition to 
@@ -1221,7 +1225,7 @@ test (for example, if Treatment were a distinct column), you can use the **\\-\\
 
 ::
 
- python transit.py zinb combined.wig samples.metadata prot.table output.file --condition Treatment --interactions Strain
+ python3 transit.py zinb combined.wig samples.metadata prot.table output.file --condition Treatment --interactions Strain
  
 
 
@@ -1451,14 +1455,14 @@ Example
 
 ::
 
-  > python src/transit.py normalize --help
+  > python3 src/transit.py normalize --help
 
-  usage: python src/transit.py normalize <input.wig> <output.wig> [-n TTR|betageom]
-     or: python src/transit.py normalize -c <combined_wig> <output> [-n TTR|betageom]
+  usage: python3 src/transit.py normalize <input.wig> <output.wig> [-n TTR|betageom]
+     or: python3 src/transit.py normalize -c <combined_wig> <output> [-n TTR|betageom]
 
-  > python src/transit.py normalize Rv_1_H37RvRef.wig Rv_1_H37RvRef_TTR.wig -n TTR
+  > python3 src/transit.py normalize Rv_1_H37RvRef.wig Rv_1_H37RvRef_TTR.wig -n TTR
 
-  > python src/transit.py normalize Rv_1_H37RvRef.wig Rv_1_H37RvRef_BG.wig -n betageom
+  > python3 src/transit.py normalize Rv_1_H37RvRef.wig Rv_1_H37RvRef_BG.wig -n betageom
 
 The normalize command now also works on combined_wig_ files too.
 If the input file is a combined_wig file, indicate it with a '-c' flag.
@@ -1506,7 +1510,7 @@ Example
 
 ::
 
-    python ../../transit.py pathway_enrichment <resampling_file> <pathway_associations_file> <output_file> [-p] [-S] [-M GSEA|HYPE|GSEA-Z|GSEA-CHI]
+    python3 ../../transit.py pathway_enrichment <resampling_file> <pathway_associations_file> <output_file> [-p] [-S] [-M GSEA|HYPE|GSEA-Z|GSEA-CHI]
 
 |
 
@@ -1601,20 +1605,21 @@ The output file is a tab separated file and according to the method, the file ha
 
 .. _tnseq_stats:
 
-tnseq_stats command
-~~~~~~~~~~~~~~~~~~~
+.. rst-class:: transit_clionly
+tnseq_stats
+-----------
 
 You can generate the same table to statistics as on the Quality Control panel in the GUI
 from the command-line using the 'tnseq_stats' command.  Here is an example:
 
 ::
 
-  > python src/transit.py tnseq_stats --help
+  > python3 src/transit.py tnseq_stats --help
 
-  usage: python src/transit.py tnseq_stats <file.wig>+ [-o <output_file>]
-         python src/transit.py tnseq_stats -c <combined_wig> [-o <output_file>]
+  usage: python3 src/transit.py tnseq_stats <file.wig>+ [-o <output_file>]
+         python3 src/transit.py tnseq_stats -c <combined_wig> [-o <output_file>]
 
-  > python src/transit.py tnseq_stats -c src/pytransit/data/cholesterol_glycerol_combined.dat
+  > python3 src/transit.py tnseq_stats -c src/pytransit/data/cholesterol_glycerol_combined.dat
 
   dataset density mean_ct NZmean  NZmedian        max_ct  total_cts       skewness        kurtosis
   src/pytransit/data/cholesterol_H37Rv_rep1.wig   0.44    139.6   317.6   147     125355.5        10414005.0      54.8    4237.7
@@ -1624,7 +1629,122 @@ from the command-line using the 'tnseq_stats' command.  Here is an example:
   src/pytransit/data/glycerol_H37Rv_rep2.wig      0.52    123.8   240.1   127     8542.5  9235984.2       4.0     33.5
 
 
+.. rst-class:: transit_sectionend
+----
 
 
 
+.. _corrplot:
+
+.. rst-class:: transit_clionly
+corrplot
+-------
+
+A useful tool when evaluating the quality of a collection of TnSeq datasets is to make a 
+*correlation plot* of the mean insertion counts (averaged at the gene-level) among samples.  
+While it is difficult to state unequivocally
+how much correlation there should be between samples from different conditions 
+(or even between replicates of the same condition), 
+the corrplot can often reveal individual samples which stand out as being far less
+correlated with all the others (which subsequently might be excluded from analyses).
+
+Usage:
+
+::
+
+  python3 src/transit.py corrplot <mean_counts> <output.png> [-anova|-zinb]
+
+The simplest usage is without the flags at the end.
+The mean_counts file is generated by the 'export mean_counts' command, and gives
+the mean insertion count for each gene in each sample.
+
+Here is an example of making a corrplot:
+
+::
+
+  > transit corrplot glyc_chol_combined.wig.txt glyc_chol_corrplot.png
+
+.. image:: _images/glyc_chol_corrplot.png
+   :width: 300
+   :align: center
+
+
+One can also use the output of ANOVA or ZINB analysis to make a corrplot
+among the conditions themselves (with replicates merged, not among all individual samples).
+Importantly, the correlations are based only on the subset of genes
+identified as significantly varying (Padj < 0:05, typically only a few
+hundred) in order to enhance the patterns, since otherwise they would
+be washed out by the rest of the genes in the genome, the majority of
+which usually do not exhibit significant variation in counts.
+
+Here is an example which generates the following image showing the corrplot among
+several different growth conditions:
+
+::
+
+  > python3 src/transit.py corrplot anova_iron.txt corrplot_iron_anova.png -anova
+
+
+.. image:: _images/iron_corrplot_anova.png
+   :width: 300
+   :align: center
+
+
+Note that is an ANOVA or ZINB output file (both of which contain mean
+counts for each gene in each condition) is supplied in place of
+mean_counts, the *last* argument of corrplot must be set to either
+'-anova' or '-zinb' to indicate the type of file being provided as the
+first argument.
+
+
+.. rst-class:: transit_sectionend
+----
+
+
+
+
+
+
+.. _heatmap:
+
+.. rst-class:: transit_clionly
+heatmap
+-------
+
+The output of ANOVA or ZINB can be used to generate a heatmap that
+simultaneously clusters the significant genes and clusters the conditions,
+which is especially useful for shedding light on the relationships
+among the conditions apparent in the data.
+
+
+Usage:
+
+::
+
+  python3 src/transit.py heatmap -anova|-zinb <anova_or_zinb_output> <heatmap.png>
+
+Note that the *first* argument is required to be either '-anova' or '-zinb', a flag to
+indicate the type of file being provided as the second argument.
+
+Here is an example which generates the following image showing the similarities among
+several different growth conditions:
+
+::
+
+  > python3 src/transit.py heatmap -anova anova_iron.txt heatmap_iron_anova.png
+
+.. image:: _images/iron_heatmap_anova_rotated.png
+   :width: 1000
+   :align: center
+
+
+Importantly, the heatmap is based only on the subset of genes
+identified as significantly varying (Padj < 0:05, typically only a few
+hundred) in order to enhance the patterns, since otherwise they would
+be washed out by the rest of the genes in the genome, the majority of
+which usually do not exhibit significant variation in counts.
+
+
+.. rst-class:: transit_sectionend
+----
 

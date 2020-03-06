@@ -606,7 +606,7 @@ class ZinbMethod(base.MultiConditionMethod):
                 list(map(lambda v: "NZperc_" + v, headersStatGroupNames)) +
                 "pval padj".split() + ["status"])
 
-        file.write("#Console: python %s\n" % " ".join(sys.argv))
+        file.write("#Console: python3 %s\n" % " ".join(sys.argv))
         file.write('\t'.join(head)+EOL)
         for gene in genes:
             Rv = gene["rv"]
@@ -629,7 +629,7 @@ class ZinbMethod(base.MultiConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s zinb <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
+        return """python3 %s zinb <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
 
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR

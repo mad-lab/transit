@@ -170,7 +170,7 @@ dev.off()
 
     @classmethod
     def usage_string(self):
-        return "usage: python %s heatmap -anova|-zinb <anova_or_zinb_output> <heatmap.png>" % sys.argv[0]
+        return "usage: python3 %s heatmap -anova|-zinb <anova_or_zinb_output> <heatmap.png>" % sys.argv[0]
         # could add a flag for padj cutoff (or top n most signif genes)
 
 

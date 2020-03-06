@@ -472,7 +472,7 @@ class BinomialMethod(base.SingleConditionMethod):
                 memberstr += "%s = %s, " % (m, getattr(self, m))
             self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s, samples=%s, burnin=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8'), self.samples, self.burnin))
         else:
-            self.output.write("#Console: python %s\n" % " ".join(sys.argv))
+            self.output.write("#Console: python3 %s\n" % " ".join(sys.argv))
 
         self.output.write("#Thresholds: (%1.5f, %1.5f)\n" % (ess_threshold,noness_threshold))
         self.output.write("#rho0 Acceptance Rate:\t%f%%\n" % ((100.0*acc_p0)/sample_size))
@@ -511,7 +511,7 @@ class BinomialMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s binomial <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        return """python3 %s binomial <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
         Optional Arguments:
             -s <int>        :=  Number of samples to take. Default: -s 10000
