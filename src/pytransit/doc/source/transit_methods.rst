@@ -560,12 +560,15 @@ parameters are available for the method:
    if you want to trim TA sites within 5% of the termini, you would 
    add the flags '-iN 5 -iC 5' (not 0.05).
 
--  **-pc**: Pseudocounts for resampling.  By default, pseudocounts are not used.
-   However, if you set '-pc 5', for example, it will add an insertion count of 5
-   at a "fake" site in each condition, which can help smooth out the impact of noise
-   (e.g. large apprarent log-fold-changes (LFCs) due to just a few small counts).
-   Note that, when calculating LFCs, if either the numerator or denominator is 0,
-   a 1 is automatically added to both to prevent numerically undefined results.
+-  **-PC**: Pseudocounts used in calculation of LFCs (log-fold-changes, see Output and Diagnostics) in 
+   resampling output file.  
+   To suppress the appearance of artifacts due to high-magnitude of LFCs from 
+   genes with low insertion counts (which
+   are more susceptible to noise), one can increase the pseudocounts using `-PC'. 
+   Increasing PC to a value like 5 (which is
+   reasonable, given that TTR normalization scales data so average insertion counts is around 100) 
+   can further reduce the appearance of artifacts (genes with low counts but large LFCs).
+
 
 
 |
@@ -701,6 +704,7 @@ gene in the genome. P-values are adjusted for multiple comparisons using
 the Benjamini-Hochberg procedure (called "q-values" or "p-adj."). A
 typical threshold for conditional essentiality on is q-value < 0.05.
 
+
 +-----------------+-----------------------------------------------------------------+
 | Column Header   | Column Definition                                               |
 +=================+=================================================================+
@@ -710,20 +714,39 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 +-----------------+-----------------------------------------------------------------+
 | Description     | Gene description.                                               |
 +-----------------+-----------------------------------------------------------------+
-| N               | Number of TA sites in the gene.                                 |
+| Sites           | Number of TA sites in the gene.                                 |
 +-----------------+-----------------------------------------------------------------+
-| TAs Hit         | Number of TA sites with at least one insertion.                 |
+| Mean Ctrl       | Mean of read counts in condition 1. (avg over TA sites and reps)|
 +-----------------+-----------------------------------------------------------------+
-| Sum Rd 1        | Sum of read counts in condition 1.                              |
+| Mean Exp        | Mean of read counts in condition 2.                             |
 +-----------------+-----------------------------------------------------------------+
-| Sum Rd 2        | Sum of read counts in condition 2.                              |
+| log2FC          | Log-fold-change of exp (treatment) over ctrl (untreated)        |
 +-----------------+-----------------------------------------------------------------+
-| Delta Rd        | Difference in the sum of read counts.                           |
+| Sum Ctrl        | Sum of read counts in condition 1.                              |
++-----------------+-----------------------------------------------------------------+
+| Sum Exp         | Sum of read counts in condition 2.                              |
++-----------------+-----------------------------------------------------------------+
+| Delta Mean      | Difference in the MEAN insertion counts.                        |
 +-----------------+-----------------------------------------------------------------+
 | p-value         | P-value calculated by the permutation test.                     |
 +-----------------+-----------------------------------------------------------------+
-| p-adj.          | Adjusted p-value controlling for the FDR (Benjamini-Hochberg)   |
+| Adj. p-value    | Adjusted p-value controlling for the FDR (Benjamini-Hochberg)   |
 +-----------------+-----------------------------------------------------------------+
+
+
+**log2FC:** (log-fold-change, LFC)
+For each gene, the LFC is calculated as the log-base-2 of the
+ratio of mean insertion counts in the experimental (treated) condition vs. the
+control condition (untreated, reference).  
+The default is PC=1, which avoids the result being undefined
+for genes with means of 0 in either condition.  Pseudocounts can be
+changed using the -PC flag (above).
+
+::
+
+  LFC = log2((mean_insertions_in_exp + PC)/(mean_insertions_in_ctrl + PC))
+
+
 
 |
 
@@ -1066,7 +1089,8 @@ occasionally identifies genes with variability not detectable by
 resampling analysis.
 
 Note: ZINB analysis requires R (statistical analysis software)
-to be installed on your system.  See :ref:`Installation Instructions <install-zinb>`.
+to be installed on your system, along with the 'pscl' R package.  
+See :ref:`Installation Instructions <install-zinb>`.
 
 |
 
@@ -1657,7 +1681,12 @@ how much correlation there should be between samples from different conditions
 the corrplot can often reveal individual samples which stand out as being far less
 correlated with all the others (which subsequently might be excluded from analyses).
 
+**Note**: The *corrplot* command calls R, which must be installed on your system,
+and relies on the 'corrplot' R package. 
+See :ref:`Installation Instructions <install-zinb>`.
+
 Usage:
+~~~~~~
 
 ::
 
@@ -1730,8 +1759,12 @@ simultaneously clusters the significant genes and clusters the conditions,
 which is especially useful for shedding light on the relationships
 among the conditions apparent in the data.
 
+**Note:** The *heatmap* command calls R, which must be installed on your system,
+and relies on the 'gplots' R package. 
+See :ref:`Installation Instructions <install-zinb>`.
 
 Usage:
+~~~~~~
 
 ::
 
@@ -1757,9 +1790,6 @@ identified as significantly varying (Padj < 0:05, typically only a few
 hundred) in order to enhance the patterns, since otherwise they would
 be washed out by the rest of the genes in the genome, the majority of
 which usually do not exhibit significant variation in counts.
-
-Note: heatmap requires R (statistical analysis software)
-to be installed on your system.  See :ref:`Installation Instructions <install-zinb>`.
 
 
 .. rst-class:: transit_sectionend
