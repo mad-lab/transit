@@ -48,13 +48,14 @@ class ZinbMethod(base.MultiConditionMethod):
     """
     Zinb
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0, condition="Condition", covars=[], interactions = []):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0, condition="Condition", covars=[], interactions = [], PC=1):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file,
                 normalization=normalization, ignored_conditions=ignored_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
         self.winz = winz
         self.covars = covars
         self.interactions = interactions
         self.condition = condition
+        self.PC = PC
 
     @classmethod
     def transit_error(self,msg): print("error: %s" % msg) # for some reason, transit_error() in base class or transit_tools doesn't work right; needs @classmethod
@@ -87,6 +88,7 @@ class ZinbMethod(base.MultiConditionMethod):
         normalization = kwargs.get("n", "TTR")
         NTerminus = float(kwargs.get("iN", 5.0))
         CTerminus = float(kwargs.get("iC", 5.0))
+        PC = float(kwargs.get("PC", 5.0))
         condition = kwargs.get("-condition", "Condition")
         covars = list(filter(None, kwargs.get("-covars", "").split(",")))
         interactions = list(filter(None, kwargs.get("-interactions", "").split(",")))
@@ -95,14 +97,14 @@ class ZinbMethod(base.MultiConditionMethod):
         included_conditions = list(filter(None, kwargs.get("-include-conditions", "").split(",")))
 
         # check for unrecognized flags
-        flags = "-n --ignore-conditions --include-conditions -iN -iC --condition --covars --interactions --gene".split()
+        flags = "-n --ignore-conditions --include-conditions -iN -iC -PC --condition --covars --interactions --gene".split()
         for arg in rawargs:
           if arg[0]=='-' and arg not in flags:
             self.transit_error("flag unrecognized: %s" % arg)
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, NTerminus, CTerminus, condition, covars, interactions)
+        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, NTerminus, CTerminus, condition, covars, interactions, PC)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -607,11 +609,12 @@ class ZinbMethod(base.MultiConditionMethod):
                 "pval padj".split() + ["status"])
 
         file.write("#Console: python3 %s\n" % " ".join(sys.argv))
+        file.write("#parameters: normalization=%s, trimming=%s/%s%% (N/C), pseudocounts=%s\n" % (self.normalization,self.NTerminus,self.CTerminus,self.PC))
         file.write('\t'.join(head)+EOL)
         for gene in genes:
             Rv = gene["rv"]
             means = [statsByRv[Rv]['mean'][group] for group in orderedStatGroupNames]
-            PC = 5
+            PC = self.PC
             if len(means)==2: LFCs = [numpy.math.log((means[1]+PC)/(means[0]+PC),2)]
             else: 
               m = numpy.mean(means)
@@ -637,6 +640,7 @@ class ZinbMethod(base.MultiConditionMethod):
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
         -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 5
         -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 5
+        -PC <N>         := pseudocounts to use for calculating LFCs. Default: -PC 5
         --condition     :=  columnname (in samples_metadata) to use as the Condition. Default: "Condition"
         --covars <covar1,covar2...>     :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
         --interactions <covar1,covar2...>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis. Must be factors

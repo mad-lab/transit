@@ -132,27 +132,22 @@ class CorrplotMethod(base.SingleConditionMethod):
             data.append(w)
             cnts = [float(x) for x in w[3:]]
             means.append(cnts)
-        elif self.filetype=="anova":
-          skip = 3 # assume two comment lines and then column headers (not prefixed by #)
+        elif self.filetype=="anova" or self.filetype=="zinb":
+          n = -1 # number of conditions
           for line in open(self.gene_means):
             w = line.rstrip().split('\t')
-            if skip>0: skip -= 1; n = int((len(w)-6)/2); headers = w[3:3+n]; continue # third line has names of conditions            
-            cnts = [float(x) for x in w[3:3+n]] # organization of columns: 3+means+LFCs+3
-            qval = float(w[-2])
-            if qval<0.05: means.append(cnts); data.append(w)
-        elif self.filetype=="zinb":
-          skip,n = 2,-1 # assume one comment line and then column headers
-          for line in open(self.gene_means):
-            w = line.rstrip().split('\t')
-            if skip>0: skip -= 1; headers = w; continue 
+            if line[0]=='#' or ('pval' in line and 'padj' in line): # check for 'pval' for backwards compatibility
+              headers = w; continue # keep last comment line as headers
             if n==-1: 
-              # second line has names of conditions, organized as 3+4*n+3 (4 groups X n conditions)
-              n = int((len(headers)-6)/4)
+              # ANOVA header line has names of conditions, organized as 3+2*n+3 (2 groups (means, LFCs) X n conditions)
+              # ZINB header line has names of conditions, organized as 3+4*n+3 (4 groups X n conditions)
+              if self.filetype=="anova": n = int((len(w)-6)/2) 
+              elif self.filetype=="zinb": n = int((len(headers)-6)/4) 
               headers = headers[3:3+n]
-              headers = [x.replace("Mean_","") for x in headers]          
-            cnts = [float(x) for x in w[3:3+n]] # take just the columns of means
+              headers = [x.replace("Mean_","") for x in headers]
+            vals = [float(x) for x in w[3:3+n]] # take just the columns of means
             qval = float(w[-2])
-            if qval<0.05: means.append(cnts); data.append(w)
+            if qval<0.05: data.append(w); means.append(vals)
         else: print("filetype not recognized: %s" % self.filetype); sys.exit(-1)
         print("correlations based on %s genes" % len(means))
 
