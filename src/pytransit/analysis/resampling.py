@@ -354,7 +354,7 @@ class ResamplingMethod(base.DualConditionMethod):
         output_file = open(output_path, "w")
 
         # check for unrecognized flags
-        flags = "-s -n -h -a -ez -PC -l -iN -iC --ctrl_lib --exp_lib -Z".split()
+        flags = "-c -s -n -h -a -ez -PC -l -iN -iC --ctrl_lib --exp_lib -Z".split()
         for arg in rawargs:
           if arg[0]=='-' and arg not in flags:
             self.transit_error("flag unrecognized: %s" % arg)
