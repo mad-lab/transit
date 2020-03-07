@@ -610,7 +610,7 @@ class ZinbMethod(base.MultiConditionMethod):
 
         file.write("#Console: python3 %s\n" % " ".join(sys.argv))
         file.write("#parameters: normalization=%s, trimming=%s/%s%% (N/C), pseudocounts=%s\n" % (self.normalization,self.NTerminus,self.CTerminus,self.PC))
-        file.write('\t'.join(head)+EOL)
+        file.write('#'+'\t'.join(head)+EOL)
         for gene in genes:
             Rv = gene["rv"]
             means = [statsByRv[Rv]['mean'][group] for group in orderedStatGroupNames]

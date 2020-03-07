@@ -212,7 +212,7 @@ class AnovaMethod(base.MultiConditionMethod):
                 "pval padj".split() + ["status"])
         file.write("#Console: python3 %s\n" % " ".join(sys.argv))
         file.write("#parameters: normalization=%s, trimming=%s/%s%% (N/C), pseudocounts=%s\n" % (self.normalization,self.NTerminus,self.CTerminus,self.PC))
-        file.write('\t'.join(heads)+EOL)
+        file.write('#'+'\t'.join(heads)+EOL)
         for gene in genes:
             Rv = gene["rv"]
             if Rv in MeansByRv:
