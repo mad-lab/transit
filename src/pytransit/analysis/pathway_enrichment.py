@@ -106,6 +106,13 @@ class PathwayMethod(base.AnalysisMethod):
     N = int(kwargs.get("N", "10000")) # for GSEA?
     p = int(kwargs.get("p","1")) # for GSEA?
     PC = int(kwargs.get("PC","2"))
+
+    if method not in "FISHER GSEA ONT".split(): 
+      print("error: method %s not recognized" % method)
+      print(self.usage_string()); 
+      sys.exit(0)
+    if method=="ONT": print("error: Ontologizer is not implemented yet"); sys.exit(0)
+
     return self(resamplingFile,associations,pathways,output,method,PC=PC,N=N,p=p)
 
   @classmethod

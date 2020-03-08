@@ -1,6 +1,25 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+## Version 3.1.0 2020-03-08
+#### TRANSIT:
+ - added 'corrplot' and 'heatmap' commands
+ - pathway_enrichment: 
+  - completely re-done so it is faster and simpler
+  - now implements Fisher's exact test and GSEA
+  - can be used with COG categories and GO terms
+  - switch to 2-column format for associations files
+ - resampling: 
+  - changed semantics of pseudocounts from "fake sites" (-pc, dropped) to calculation of log-fold-changes (-PC, new)
+ - anova: 
+  - put columns for condition means in correct order
+  - added columns for log-fold-changes for each condition to output
+ - zinb: 
+  - improved handling of --include-conditions and --ignore-conditions
+  - now prints out a summary of how many samples are in each condition (including cross-product with covars and interactions)
+ - make pseudocounts flag (-PC) work uniformly for resampling, anova, and zinb
+
+	
 ## Version 3.0.2 2019-12-21
 #### TRANSIT:
  - Mostly cosmetic fixes
@@ -8,6 +27,7 @@ All notable changes to this project will be documented in this file.
  - Updated documentation (especially for GI and resampling)
  - Removed "warning: high stderr" from gene status in ZINB
  - Added LFCs in ZINB output
+ - updated 'convert gff_to_prot_table' so it works with gff3 files downloaded from NCBI
 
 ## Version 3.0.1 2019-08-01
 #### TRANSIT:
