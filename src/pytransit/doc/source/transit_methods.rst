@@ -1582,7 +1582,7 @@ Usage
 
 ::
 
-    python3 src/transit.py pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FISHER|GSEA|GO>] [-PC <int>]
+    python3 src/transit.py pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FISHER|GSEA|ONT>] [-PC <int>]
 
 |
 
