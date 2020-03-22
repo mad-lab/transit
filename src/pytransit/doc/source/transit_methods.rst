@@ -1667,7 +1667,7 @@ Examples
     # Ontologizer is a specialized method for GO terms
     > transit pathway_enrichment resampling_glyc_chol.txt $DATA/H37Rv_GO_terms.txt $DATA/GO_term_names.dat pathways_Ontologizer.txt -M ONT
 
-The $DATA environment variable is these examples refers to the Transit data directory, e.g. src/pytransit/data/.
+The $DATA environment variable in these examples refers to the Transit data directory, e.g. src/pytransit/data/.
 
 
 .. rst-class:: transit_sectionend
@@ -1826,7 +1826,7 @@ several different growth conditions:
 
 Importantly, the heatmap is based only on the subset of genes
 identified as significantly varying (Padj < 0:05, typically only a few
-hundred) in order to enhance the patterns, since otherwise they would
+hundred genes) in order to enhance the patterns, since otherwise they would
 be washed out by the rest of the genes in the genome, the majority of
 which usually do not exhibit significant variation in counts.
 
