@@ -79,7 +79,7 @@ class PathwayGUI(base.AnalysisGUI):
 
 class PathwayMethod(base.AnalysisMethod):
 
-  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,N=10000,p=1):
+  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,N=10000,p=1,ranking="SLPV"):
     base.AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, open(outputFile,"w"), None) # no annotation file
     self.resamplingFile = resamplingFile
     self.associationsFile = associationsFile
@@ -90,6 +90,7 @@ class PathwayMethod(base.AnalysisMethod):
     self.PC = PC # for FISHER
     self.N = N # for GSEA
     self.p = p # for GSEA
+    self.ranking = ranking
 
   @classmethod
   def fromGUI(self, wxobj):
@@ -103,9 +104,10 @@ class PathwayMethod(base.AnalysisMethod):
     pathways = args[2]
     output = args[3]
     method = kwargs.get("M", "FISHER")
-    N = int(kwargs.get("N", "10000")) # for GSEA?
-    p = int(kwargs.get("p","1")) # for GSEA?
+    N = int(kwargs.get("N", "10000")) # for GSEA
+    p = int(kwargs.get("p","1")) # for GSEA
     PC = int(kwargs.get("PC","2"))
+    ranking = kwargs.get("ranking","SLPV")
 
     if method not in "FISHER GSEA ONT".split(): 
       print("error: method %s not recognized" % method)
@@ -113,11 +115,11 @@ class PathwayMethod(base.AnalysisMethod):
       sys.exit(0)
     if method=="ONT": print("error: Ontologizer is not implemented yet"); sys.exit(0)
 
-    return self(resamplingFile,associations,pathways,output,method,PC=PC,N=N,p=p)
+    return self(resamplingFile,associations,pathways,output,method,PC=PC,N=N,p=p,ranking=ranking)
 
   @classmethod
   def usage_string(self):
-    return """python3 %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FISHER|GSEA|GO>] [-PC <int>]""" % (sys.argv[0])
+    return """python3 %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FISHER|GSEA|GO>] [-PC <int>] [-ranking [SLPV|LFC]""" % (sys.argv[0])
 
   def Run(self):
     self.transit_message("Starting Pathway Enrichment Method")
@@ -141,7 +143,6 @@ class PathwayMethod(base.AnalysisMethod):
     return index
     
   # based on GSEA paper (Subramanian et al, 2005, PNAS)
-  # xxx assume that Bindex is a dictionary that maps all genes into ranks, and Bscores maps all genes to SLPV
   # ranks and scores are hashes from genes into ranks and SLPV
   # when p=0, ES(S) reduces to the standard K-S statistic; p=1 is used in PNAS paper
     
@@ -185,6 +186,7 @@ class PathwayMethod(base.AnalysisMethod):
 
     self.write("# method=GSEA, using SLPV to rank genes, Nperm=%d" % self.N)
     self.write("# total genes: %s, mean rank: %s" % (len(data),n2))
+    self.write("# ranking genes by %s" % self.ranking)
 
     # rank by SLPV=sign(LFC)*log10(pval)
     # note: genes with lowest p-val AND negative LFC have highest scores (like positive correlation)
@@ -195,7 +197,14 @@ class PathwayMethod(base.AnalysisMethod):
     for w in data:
       orf,LFC,Pval = w[0],float(w[LFC_col]),float(w[Pval_col])
       SLPV = (-1 if LFC<0 else 1)*math.log(Pval+0.000001,10)
-      pairs.append((orf,SLPV))
+      if self.ranking=="SLPV": pairs.append((orf,SLPV))
+      elif self.ranking=="LFC": pairs.append((orf,LFC))
+
+    # pre-randomize ORFs, to avoid genome-position bias in case of ties in pvals (e.g. 1.0)
+    indexes = range(len(pairs))
+    indexes = numpy.random.permutation(indexes).tolist() 
+    pairs = [pairs[i] for i in indexes]
+
     pairs.sort(key=lambda x: x[1],reverse=True) # emulate ranking genes with *higher* correlation at top
     orfs2rank,orfs2score = {},{}
     for i,(orf,score) in enumerate(pairs): 
