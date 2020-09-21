@@ -79,7 +79,7 @@ class PathwayGUI(base.AnalysisGUI):
 
 class PathwayMethod(base.AnalysisMethod):
 
-  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,N=10000,p=1,ranking="SLPV"):
+  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,N=10000,p=0,ranking="SLPV"):
     base.AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, open(outputFile,"w"), None) # no annotation file
     self.resamplingFile = resamplingFile
     self.associationsFile = associationsFile
@@ -87,10 +87,10 @@ class PathwayMethod(base.AnalysisMethod):
     self.outputFile = outputFile 
     # self.output is the opened file, which will be set in base class
     self.method = method
-    self.PC = PC # for FISHER
+    self.PC = PC # for FET
     self.N = N # for GSEA
     self.p = p # for GSEA
-    self.ranking = ranking
+    self.ranking = ranking # for GSEA
 
   @classmethod
   def fromGUI(self, wxobj):
@@ -103,13 +103,13 @@ class PathwayMethod(base.AnalysisMethod):
     associations = args[1]
     pathways = args[2]
     output = args[3]
-    method = kwargs.get("M", "FISHER")
+    method = kwargs.get("M", "FET")
     N = int(kwargs.get("N", "10000")) # for GSEA
-    p = int(kwargs.get("p","1")) # for GSEA
+    p = int(kwargs.get("p","0")) # for GSEA
     PC = int(kwargs.get("PC","2"))
     ranking = kwargs.get("ranking","SLPV")
 
-    if method not in "FISHER GSEA ONT".split(): 
+    if method not in "FET GSEA ONT".split(): 
       print("error: method %s not recognized" % method)
       print(self.usage_string()); 
       sys.exit(0)
@@ -119,7 +119,7 @@ class PathwayMethod(base.AnalysisMethod):
 
   @classmethod
   def usage_string(self):
-    return """python3 %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FISHER|GSEA|GO>] [-PC <int>] [-ranking [SLPV|LFC]""" % (sys.argv[0])
+    return """python3 %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FET|GSEA|GO>] [-PC <int>] [-ranking [SLPV|LFC]""" % (sys.argv[0])
 
   def Run(self):
     self.transit_message("Starting Pathway Enrichment Method")
@@ -129,7 +129,7 @@ class PathwayMethod(base.AnalysisMethod):
     self.write("# command: "+' '.join(sys.argv))
     self.write("# date: "+str(datetime.datetime.now()))
 
-    if self.method=="FISHER": self.fisher_exact_test()
+    if self.method=="FET": self.fisher_exact_test()
     elif self.method =="GSEA": self.GSEA()
     else:
       method = "Not a valid method"
@@ -184,9 +184,9 @@ class PathwayMethod(base.AnalysisMethod):
     terms2orfs = associations
     allgenes = [x[0] for x in data]
 
-    self.write("# method=GSEA, using SLPV to rank genes, Nperm=%d" % self.N)
-    self.write("# total genes: %s, mean rank: %s" % (len(data),n2))
+    self.write("# method=GSEA, Nperm=%d, p=%d" % (self.N,self.p))
     self.write("# ranking genes by %s" % self.ranking)
+    self.write("# total genes: %s, mean rank: %s" % (len(data),n2))
 
     # rank by SLPV=sign(LFC)*log10(pval)
     # note: genes with lowest p-val AND negative LFC have highest scores (like positive correlation)
@@ -322,7 +322,7 @@ class PathwayMethod(base.AnalysisMethod):
     for gene in genes: 
       orf = gene[0]
       if orf in associations: genes_with_associations += 1
-    self.write("# method=FISHER, PC=%s" % self.PC)
+    self.write("# method=FET, PC=%s" % self.PC)
     self.write("# genes with associations=%s out of %s total" % (genes_with_associations,len(genes)))
     self.write("# significant genes (qval<0.05): %s" % (len(hits)))
 

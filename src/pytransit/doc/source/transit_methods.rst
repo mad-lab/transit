@@ -1548,10 +1548,10 @@ significantly more or less essential between two conditions).
 The analysis is typically applied as post-processing step to the hits identified
 by a comparative analysis, such as *resampling*.
 Several analytical method are provided:
-Fisher's exact test (hypergeometric distribution), GSEA (Gene Set Enrichment Analysis)
+Fisher's exact test (FET, hypergeometric distribution), GSEA (Gene Set Enrichment Analysis)
 by `Subramanian et al (2005) <https://www.ncbi.nlm.nih.gov/pubmed/16199517>`_,
 and `Ontologizer <https://www.ncbi.nlm.nih.gov/pubmed/17848398>`_.
-For the Fisher exact test, 
+For Fisher's exact test, 
 genes in the resampling output file with adjusted p-value < 0.05 are taken as hits,
 and evaluated for overlap with functional categories of genes.
 The GSEA methods use the whole list of genes, ranked in order of statistical significance
@@ -1582,7 +1582,7 @@ Usage
 
 ::
 
-    python3 src/transit.py pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FISHER|GSEA|ONT>] [-PC <int>]
+    python3 src/transit.py pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FET|GSEA|ONT>] [-PC <int>]
 
 |
 
@@ -1622,14 +1622,14 @@ Parameters
   ...
 
 - **-M**
-    Methodology to be used. FISHER is used by default (even without specifying -M).
+    Methodology to be used. FET is used by default (even without specifying -M).
 
-  **FISHER**
+  **FET**
     This implements Fisher's Exact Test (hypergeometric distribution) to determine a p-value for each pathway, based on the proportion of pathway member observed in list of hits (conditionally essential gene by resampling, padj<0.05) compared to the background proportion in the overall genome, and p-values are adjusted post-hoc by the Benjamini-Hochberg procedure to limit the FDR to 5%.  
 
     In the output file, an "enrichment score" is reported, which is the ratio of the observed number of pathway members among the hits to the expected number.  Pseudocounts of 2 are included in the calculation to reduce the bias toward small pathways with only a few genes; this can be adjusted with the -PC flag (below).
 
-    FISHER can be used with GO terms.
+    FET can be used with GO terms.
 
   **GSEA**
     Gene Set Enrichment Analysis. GSEA assess the significance of a pathway by looking at how the members fall in the ranking of all genes.  The genes are first ranked by significance from resampling.  Specifically, they are sorted by signed-log-p-value, SLPV=sign(LFC)*(log(pval)), which puts them in order so that the most significant genes with negative LFC are at the top, the most significant with positive LFC are at the bottom, and insignificant genes fall in the middle.  Roughly, GSEA computes the mean rank of pathway members, and evaluates significance based on a simulated a null distribution.  p-values are again adjusted at the end by BH.
@@ -1644,7 +1644,7 @@ Parameters
     `Grossmann S, Bauer S, Robinson PN, Vingron M. Improved detection of overrepresentation of Gene-Ontology annotations with parent child analysis. Bioinformatics. 2007 Nov 15;23(22):3024-31. <https://www.ncbi.nlm.nih.gov/pubmed/17848398>`_
 
 - **-PC**
-   Pseudocounts used in calculating enrichment score in output file for FISHER. Default: PC=2.
+   Pseudocounts used in calculating enrichment score in output file for FET. Default: PC=2.
 
 
 Examples
