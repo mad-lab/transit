@@ -382,10 +382,14 @@ class MainFrame ( wx.Frame ):
         expLibSizer.Add(self.expLibTip, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
-        globalSizerVT.Add( nTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
-        globalSizerVT.Add( cTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
-        globalSizerVT.Add( ctrlLibSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
-        globalSizerVT.Add( expLibSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        #globalSizerVT.Add( nTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        #globalSizerVT.Add( cTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        #globalSizerVT.Add( ctrlLibSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        #globalSizerVT.Add( expLibSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        globalSizerVT.Add( nTermSizer, 1, wx.EXPAND, 5 )
+        globalSizerVT.Add( cTermSizer, 1, wx.EXPAND, 5 )
+        globalSizerVT.Add( ctrlLibSizer, 1, wx.EXPAND, 5 )
+        globalSizerVT.Add( expLibSizer, 1, wx.EXPAND, 5 )
 
 
 
