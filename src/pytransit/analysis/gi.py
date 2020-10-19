@@ -143,7 +143,7 @@ class GIGUI(base.AnalysisGUI):
 
 
         # Zeros Check
-        (self.wxobj.giZeroCheckBox, zeroSizer) = self.defineCheckBox(giPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Includes sites that are empty (zero) accross all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
+        (self.wxobj.giZeroCheckBox, zeroSizer) = self.defineCheckBox(giPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Includes sites that are empty (zero) across all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
         giSizer.Add(zeroSizer, 0, wx.EXPAND, 5 )
 
 
@@ -674,7 +674,7 @@ class GIMethod(base.QuadConditionMethod):
         var_list_b2 = []
 
 
-        # Base priors on empirical observations accross genes.
+        # Base priors on empirical observations across genes.
         for gene in sorted(G_A1):
             if gene.n > 1:
                 A1_data = G_A1[gene.orf].reads.flatten()
@@ -913,7 +913,7 @@ class GIMethod(base.QuadConditionMethod):
         -s <integer>    :=  Number of samples. Default: -s 10000
         --rope <float>  :=  Region of Practical Equivalence. Area around 0 (i.e. 0 +/- ROPE) that is NOT of interest. Can be thought of similar to the area of the null-hypothesis. Default: --rope 0.5
         -n <string>     :=  Normalization method. Default: -n TTR
-        -iz             :=  Include rows with zero accross conditions.
+        -iz             :=  Include rows with zero across conditions.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.
         -iN <float>     :=  Ignore TAs occuring at given percentage (as integer) of the N terminus. Default: -iN 0
         -iC <float>     :=  Ignore TAs occuring at given percentage (as integer) of the C terminus. Default: -iC 0

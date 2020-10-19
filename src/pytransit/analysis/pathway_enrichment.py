@@ -79,7 +79,7 @@ class PathwayGUI(base.AnalysisGUI):
 
 class PathwayMethod(base.AnalysisMethod):
 
-  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,N=10000,p=0,ranking="SLPV"):
+  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,Nperm=10000,p=0,ranking="SLPV"):
     base.AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, open(outputFile,"w"), None) # no annotation file
     self.resamplingFile = resamplingFile
     self.associationsFile = associationsFile
@@ -88,7 +88,7 @@ class PathwayMethod(base.AnalysisMethod):
     # self.output is the opened file, which will be set in base class
     self.method = method
     self.PC = PC # for FET
-    self.N = N # for GSEA
+    self.Nperm = Nperm # for GSEA
     self.p = p # for GSEA
     self.ranking = ranking # for GSEA
 
@@ -104,22 +104,22 @@ class PathwayMethod(base.AnalysisMethod):
     pathways = args[2]
     output = args[3]
     method = kwargs.get("M", "FET")
-    N = int(kwargs.get("N", "10000")) # for GSEA
-    p = int(kwargs.get("p","0")) # for GSEA
-    PC = int(kwargs.get("PC","2"))
-    ranking = kwargs.get("ranking","SLPV")
+    PC = int(kwargs.get("PC","2")) # for FET
+    Nperm = int(kwargs.get("Nperm", "10000")) # for GSEA
+    p = float(kwargs.get("p","0")) # for GSEA
+    ranking = kwargs.get("ranking","SLPV") # for GSEA
 
     if method not in "FET GSEA ONT".split(): 
       print("error: method %s not recognized" % method)
       print(self.usage_string()); 
       sys.exit(0)
-    if method=="ONT": print("error: Ontologizer is not implemented yet"); sys.exit(0)
+    #if method=="ONT": print("error: Ontologizer is not implemented yet"); sys.exit(0)
 
-    return self(resamplingFile,associations,pathways,output,method,PC=PC,N=N,p=p,ranking=ranking)
+    return self(resamplingFile,associations,pathways,output,method,PC=PC,Nperm=Nperm,p=p,ranking=ranking)
 
   @classmethod
   def usage_string(self):
-    return """python3 %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FET|GSEA|GO>] [-PC <int>] [-ranking [SLPV|LFC]""" % (sys.argv[0])
+    return """python3 %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FET|GSEA|GO>] [-PC <int>] [-ranking SLPV|LFC] [-p <float>] [-Nperm <int>]""" % (sys.argv[0])
 
   def Run(self):
     self.transit_message("Starting Pathway Enrichment Method")
@@ -131,9 +131,43 @@ class PathwayMethod(base.AnalysisMethod):
 
     if self.method=="FET": self.fisher_exact_test()
     elif self.method =="GSEA": self.GSEA()
+    elif self.method =="ONT": self.Ontologizer()
     else:
       method = "Not a valid method"
       self.progress_update("Not a valid method", 100)
+
+  def write(self,msg): self.output.write(msg+"\n")
+
+  def read_resampling_file(self,filename):
+    genes,hits,headers = [],[],[]
+    for line in open(filename):
+      if line[0]=='#': headers.append(line); continue
+      w = line.rstrip().split('\t')
+      genes.append(w)
+      qval = float(w[-1])
+      if qval<0.05: hits.append(w[0])
+    return genes,hits,headers
+
+  # assume these are listed as pairs (tab-sep)
+  # return bidirectional hash (genes->[terms], terms->[genes]; each can be one-to-many, hence lists)
+  def read_associations(self,filename):
+    associations = {}
+    for line in open(filename):
+      if line[0]=='#': continue
+      w = line.rstrip().split('\t')
+      # store mappings in both directions
+      for (a,b) in [(w[0],w[1]),(w[1],w[0])]:
+        if a not in associations: associations[a] = []
+        associations[a].append(b)
+    return associations
+
+  def read_pathways(self,filename):
+    pathways = {}
+    for line in open(filename):
+      if line[0]=='#': continue
+      w = line.rstrip().split('\t')
+      pathways[w[0]] = w[1]    
+    return pathways
 
   ############### GSEA ######################
 
@@ -184,7 +218,7 @@ class PathwayMethod(base.AnalysisMethod):
     terms2orfs = associations
     allgenes = [x[0] for x in data]
 
-    self.write("# method=GSEA, Nperm=%d, p=%d" % (self.N,self.p))
+    self.write("# method=GSEA, Nperm=%d, p=%d" % (self.Nperm,self.p))
     self.write("# ranking genes by %s" % self.ranking)
     self.write("# total genes: %s, mean rank: %s" % (len(data),n2))
 
@@ -211,7 +245,7 @@ class PathwayMethod(base.AnalysisMethod):
       orfs2score[orf] = score
       orfs2rank[orf] = i
 
-    Nperm = self.N
+    Nperm = self.Nperm
     results,Total = [],len(terms)
     for i,term in enumerate(terms):
       sys.stdout.flush()
@@ -263,38 +297,7 @@ class PathwayMethod(base.AnalysisMethod):
       self.output.write('\t'.join([str(x) for x in vals])+'\n')
     self.output.close()
 
-  #################################
-
-  def read_resampling_file(self,filename):
-    genes,hits,headers = [],[],[]
-    for line in open(filename):
-      if line[0]=='#': headers.append(line); continue
-      w = line.rstrip().split('\t')
-      genes.append(w)
-      qval = float(w[-1])
-      if qval<0.05: hits.append(w[0])
-    return genes,hits,headers
-
-  # assume these are listed as pairs (tab-sep)
-  # return bidirectional hash (genes->[terms], terms->[genes]; each can be one-to-many, hence lists)
-  def read_associations(self,filename):
-    associations = {}
-    for line in open(filename):
-      if line[0]=='#': continue
-      w = line.rstrip().split('\t')
-      # store mappings in both directions
-      for (a,b) in [(w[0],w[1]),(w[1],w[0])]:
-        if a not in associations: associations[a] = []
-        associations[a].append(b)
-    return associations
-
-  def read_pathways(self,filename):
-    pathways = {}
-    for line in open(filename):
-      if line[0]=='#': continue
-      w = line.rstrip().split('\t')
-      pathways[w[0]] = w[1]    
-    return pathways
+  ########## Fisher Exact Test ###############
 
   # HYPERGEOMETRIC 
   # scipy.stats.hypergeom.sf() is survival function (1-cdf), so only enriched genes will be significant
@@ -305,8 +308,6 @@ class PathwayMethod(base.AnalysisMethod):
 
   def hypergeometric(self,k,M,n,N):
     return hypergeom.sf(k,M,n,N)
-
-  def write(self,msg): self.output.write(msg+"\n")
 
   def fisher_exact_test(self):
     genes,hits,headers = self.read_resampling_file(self.resamplingFile)
