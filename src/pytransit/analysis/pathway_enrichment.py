@@ -119,15 +119,26 @@ class PathwayMethod(base.AnalysisMethod):
 
   @classmethod
   def usage_string(self):
-    return """python3 %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FET|GSEA|GO>] [-PC <int>] [-ranking SLPV|LFC] [-p <float>] [-Nperm <int>]""" % (sys.argv[0])
+    return """python3 %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FET|GSEA|GO>] [-PC <int>] [-ranking SLPV|LFC] [-p <float>] [-Nperm <int>]
+
+Optional parameters:
+ -M FET|GSEA|ONT:     method to use, FET for Fisher's Exact Test (default), GSEA for Gene Set Enrichment Analysis (Subramaniam et al, 2005), or ONT for Ontologizer (Grossman et al, 2007)
+ -ranking (for GSEA): SLPV is signed-log-p-value (default); LFC is log2-fold-change from resampling
+ -p       (for GSEA): exponent to use in calculating enrichment score; recommend trying 0 or 1 (as in Subramaniam et al, 2005)
+ -Nperm   (for GSEA): number of permutations to simulate for null distribution to determine p-value (default=10000)
+ -PC      (for FET):  pseudo-counts to use in calculating p-value based on hypergeometric distribution (default=5)
+""" % (sys.argv[0])
 
   def Run(self):
     self.transit_message("Starting Pathway Enrichment Method")
     start_time = time.time()
 
     # self.output in base class should be open by now
-    self.write("# command: "+' '.join(sys.argv))
-    self.write("# date: "+str(datetime.datetime.now()))
+    self.write("# command: python3 "+' '.join(sys.argv))
+    now = str(datetime.datetime.now())
+    now = now[:now.rfind('.')]
+    self.write("# date: "+now)
+    self.write("# pathway method: "+self.method)
 
     if self.method=="FET": self.fisher_exact_test()
     elif self.method =="GSEA": self.GSEA()
@@ -375,6 +386,142 @@ class PathwayMethod(base.AnalysisMethod):
     self.add_file(filetype="Pathway Enrichment")
     self.finish()
     self.transit_message("Finished Pathway Enrichment Method") 
+
+  ########## Ontologizer ###############
+
+  # this method is restricted to GO terms
+
+  # this implements the union method of:
+  #  Grossman et al (2007). Improved Detection of overrepresentation of Gene-Ontology 
+  #  annotation with parent-child analysis. Bioinformatics, 23(22):3024-3031.
+
+  def Ontologizer(self):
+
+    def warning(s): sys.stderr.write("%s\n" % s) # use self.warning? prepend method name?
+  
+    # returns True if ch is a descendant of GO (as GO terms, like "GO:0006810")
+    
+    def descendant_of(ch,GO):
+      if ch==GO: return True
+      for node in parents.get(ch,[]):
+        if descendant_of(node,GO)==True: return True
+      return False
+    
+    # visited is a hash
+    # assume B is above A
+    # do upward DFS following parent pointers till hit NULL
+    # return all nodes on all paths? include A and B?
+    
+    def get_ancestors(A,visited):
+      if A in visited: return visited
+      visited[A] = 1
+      for parent in parents.get(A,[]): get_ancestors(parent,visited)
+      return visited
+    
+    def depth(go):
+      if go not in parents: return 0
+      return 1+min([depth(x) for x in parents[go]])
+    
+    ontology,parents = {},{}
+  
+    OBOfile = "/pacific/home/ioerger/U19/gene_ontology.1_2.obo-3-11-18"
+    GOannot = "/pacific/home/ioerger/U19/GO_terms_for_each_Rv.2col.txt" # same file used by Ontologizer
+
+    for line in open(OBOfile):
+      if line[:3]=="id:": id = line[4:-1]
+      if line[:5]=="is_a:":
+        parent = line.split()[1]
+        if id not in parents: parents[id] = []
+        parents[id].append(parent)
+      if len(line)<2: id = None
+      if line[:5]=="name:": ontology[id] = line[6:-1]
+  
+    rv2gos,go2rvs = {},{}
+    MINTERMS,MAXTERMS = 2,300
+  
+    for line in open(GOannot):
+      w = line.rstrip().split('\t')
+      rv,go = w[0],w[1]
+      if rv not in rv2gos: rv2gos[rv] = []
+      if go not in rv2gos[rv]: rv2gos[rv].append(go)
+      if go not in go2rvs: go2rvs[go] = []
+      if rv not in go2rvs[go]: go2rvs[go].append(rv)
+      # expand to all parents...
+      BP,CC,MF = ["GO:0008150","GO:0005575","GO:0003674"]
+      for g in get_ancestors(go,{}):
+        if g not in rv2gos[rv]: 
+          rv2gos[rv].append(g)
+          if g not in go2rvs: go2rvs[g] = []
+          go2rvs[g].append(rv)
+  
+    warning("GO terms with at least one ORF: %s" % len(go2rvs.keys())) # what about between MIN and MAX?
+    for go in go2rvs.keys():
+      if go not in ontology: warning("not found: %s" % go) # also indicate which gene?
+
+    # could use class method, but would have to adapt it: 
+    # genes,hits,headers = self.read_resampling_file(self.resamplingFile)
+  
+    genes,pvals = {},[]
+    allorfs,studyset = [],[]
+    for line in open(self.resamplingFile):
+      if line[0]=="#": continue
+      w = line.rstrip().split()
+      genes[w[0]] = w
+      allorfs.append(w[0])
+      pval,qval = float(w[-2]),float(w[-1])
+      if qval<0.05: studyset.append(w[0])
+      pvals.append((w[0],pval))
+    pvals.sort(key=lambda x: x[1])
+    ranks = {}
+    for i,(rv,pval) in enumerate(pvals): ranks[rv] = i+1
+    self.write("# number of resampling hits (qval<0.05): %s" % len(studyset))
+  
+    counts = []
+    n,a = len(allorfs),len(studyset)
+    for go in go2rvs.keys():
+      if go not in ontology: continue
+      m = len(go2rvs[go]) # orfs in the GO terms in the genome overall
+      if m>=MINTERMS and m<=MAXTERMS:
+        b = len(list(filter(lambda x: x in go2rvs[go],studyset))) # orfs with GO term in studyset
+        if b==0: continue
+        # calc p=len(rvs for parents of go), q=len(subset of parent rvs in studyset)
+        P = set()
+        if go not in parents: continue
+        npar = len(parents[go])
+        for par in parents[go]: P = P.union(go2rvs[par])
+        p,q = len(P),len(P.intersection(studyset))
+        enrich = ((b+1)/float(q+1))/((m+1)/float(p+1)) # enrichment
+        # parents: p overall, q in studyset; GO in studyset: b out of q (subset of studyset labeled with a parent GO term)
+        # assume m orfs have GO term inside parent (same as overall)         
+        # subtract 1 from b possibly because we are using 1-cdf? this is needed to get same numeric results as 'phypergeometric' in Ontologizer
+        pval = 1.0-scipy.stats.hypergeom.cdf(b-1,p,m,q) 
+        counts.append([go,n,m,p,q,a,b,npar,enrich,pval])
+    
+    pvals = [x[-1] for x in counts]
+    qvals = multitest.fdrcorrection(pvals)[1]
+  
+    counts = [x+[y] for x,y in zip(counts,qvals)]
+    counts.sort(key=lambda x: x[-1])
+
+    self.write("# number of GO terms that are significantly enriched (qval<0.05): %s" % len(list(filter(lambda x: x[-1]<0.05,counts))))
+  
+    # 1-sided pvals, only report enriched terms, not depleted
+  
+    self.write('\t'.join("GO_term description total_orfs orfs_in_GO orfs_in_parents hits_in_parents hits GO_in_hits num_parent_nodes enrichment pval qval genes_in_intersection_of_hits_and_GO_term".split())) # assume self.outputFile has already been opened
+    for (go,n,m,p,q,a,b,npar,enrich,pval,qval) in counts:
+      hits = filter(lambda x: x in go2rvs[go],studyset)
+      hits = [(x,genes[x][1],ranks[x]) for x in hits]
+      hits.sort(key=lambda x: x[2]) # sort on ranks
+      hits = ["%s/%s(%s)" % (rv,gene,rank) for (rv,gene,rank) in hits]
+      hits = ','.join(hits)    # add gene names
+      vals = [go,ontology[go],n,m,a,b,p,q,npar,round(enrich,3),round(pval,6),round(qval,6),hits]
+      self.write('\t'.join([str(x) for x in vals]))
+
+    self.transit_message("Adding File: %s" % (self.outputFile))
+    self.add_file(filetype="Pathway Enrichment")
+    self.finish()
+    self.transit_message("Finished Pathway Enrichment Method") 
+
 
 ####################################################
 
