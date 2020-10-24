@@ -1631,6 +1631,10 @@ Parameters
 
     FET can be used with GO terms.
 
+    Additional flags for FET:
+
+    - **-PC <int>**: Pseudocounts used in calculating the enrichment score and p-value by hypergeometic distribution. Default: PC=2.
+
   **GSEA**
     Gene Set Enrichment Analysis. GSEA assess the significance of a pathway by looking at how the members fall in the ranking of all genes.  The genes are first ranked by significance from resampling.  Specifically, they are sorted by signed-log-p-value, SLPV=sign(LFC)*(log(pval)), which puts them in order so that the most significant genes with negative LFC are at the top, the most significant with positive LFC are at the bottom, and insignificant genes fall in the middle.  Roughly, GSEA computes the mean rank of pathway members, and evaluates significance based on a simulated a null distribution.  p-values are again adjusted at the end by BH.
 
@@ -1638,13 +1642,54 @@ Parameters
 
     GSEA can be used with GO terms.
 
+    Additional flags for GSEA:
+
+    - **-ranking SLPV|LFC**: method used to rank all genes; SLPV is signed-log-p-value (default); LFC is log2-fold-change from resampling
+
+    - **-p <float>**: exponent to use in calculating enrichment score; recommend trying '-p 0' (default) or '-p 1' (as used in Subramaniam et al, 2005)
+
+    - **-Nperm <int>**: number of permutations to simulate for null distribution to determine p-value (default=10000)
+
+
   **ONT**
-    Ontologizer is a specialized method for GO terms that takes parent-child relationships into account among nodes in the GO hierarchy.  This can enhance the specificity of pathways detected as significant.  Hierarhical relationships among GO terms are encoded in an OBO file, which is included in the src/pytransit/data/ directory.
+    Ontologizer is a specialized method for GO terms that takes parent-child relationships into account among nodes in the GO hierarchy.  This can enhance the specificity of pathways detected as significant.  (The problem is that there are many GO terms in the hierarchy covering similar or identical sets of genes, and often, if one node is significantly enriched, then several of its ancestors will be too, which obscures the results with redundant hits; Ontologizer reduces the significance of nodes if their probability distribution among hits can be explained by their parents.) Hierarhical relationships among GO terms are encoded in an OBO file, which is included in the src/pytransit/data/ directory.
 
     `Grossmann S, Bauer S, Robinson PN, Vingron M. Improved detection of overrepresentation of Gene-Ontology annotations with parent child analysis. Bioinformatics. 2007 Nov 15;23(22):3024-31. <https://www.ncbi.nlm.nih.gov/pubmed/17848398>`_
 
-- **-PC**
-   Pseudocounts used in calculating enrichment score in output file for FET. Default: PC=2.
+
+
+
+Auxilliary Pathway Files in Transit Data Directory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+These files for pathway analysis are distributed in the Transit data directory 
+(e.g. transit/src/pytransit/data/).
+
++----------+---------+--------------------+--------------------------------------+--------------------------------+
+| system   | num cats| applicable methods | associations of genes with roles     | pathway definitions/role names |
++==========+=========+====================+======================================+================================+
+| COG      | 20      | FET*, GSEA         | H37Rv_COG_roles.dat                  | COG_roles.dat                  |
++----------+---------+--------------------+--------------------------------------+--------------------------------+
+| Sanger   | 153     | FET*, GSEA*        | H37Rv_sanger_roles.dat               | sanger_roles.dat               |
++----------+---------+--------------------+--------------------------------------+--------------------------------+
+| GO       | 2545    | FET, GSEA          | H37Rv_GO_terms.txt                   | GO_term_names.dat              |
++----------+---------+--------------------+--------------------------------------+--------------------------------+
+|          |         | ONT*               | GO_terms_for_each_Rv.obo-3-11-18.txt | gene_ontology.1_2.3-11-18.obo  |
++----------+---------+--------------------+--------------------------------------+--------------------------------+
+
+asterisk means 'recommended' combination of method with system of functional categories
+
+
+Current Recommendations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Here are the recommended combinations of pathway methods to use for different systems of functional categories:
+
+ * For COG, use '-M FET'
+ * For Sanger roles, try both FET and GSEA
+ * For GO terms, use 'M -ONT'
 
 
 Examples

@@ -113,7 +113,6 @@ class PathwayMethod(base.AnalysisMethod):
       print("error: method %s not recognized" % method)
       print(self.usage_string()); 
       sys.exit(0)
-    #if method=="ONT": print("error: Ontologizer is not implemented yet"); sys.exit(0)
 
     return self(resamplingFile,associations,pathways,output,method,PC=PC,Nperm=Nperm,p=p,ranking=ranking)
 
@@ -126,7 +125,7 @@ Optional parameters:
  -ranking (for GSEA): SLPV is signed-log-p-value (default); LFC is log2-fold-change from resampling
  -p       (for GSEA): exponent to use in calculating enrichment score; recommend trying 0 or 1 (as in Subramaniam et al, 2005)
  -Nperm   (for GSEA): number of permutations to simulate for null distribution to determine p-value (default=10000)
- -PC      (for FET):  pseudo-counts to use in calculating p-value based on hypergeometric distribution (default=5)
+ -PC      (for FET):  pseudo-counts to use in calculating p-value based on hypergeometric distribution (default=2)
 """ % (sys.argv[0])
 
   def Run(self):
@@ -424,8 +423,8 @@ Optional parameters:
     
     ontology,parents = {},{}
   
-    OBOfile = "/pacific/home/ioerger/U19/gene_ontology.1_2.obo-3-11-18"
-    GOannot = "/pacific/home/ioerger/U19/GO_terms_for_each_Rv.2col.txt" # same file used by Ontologizer
+    GOannot = self.associationsFile
+    OBOfile = self.pathwaysFile
 
     for line in open(OBOfile):
       if line[:3]=="id:": id = line[4:-1]
