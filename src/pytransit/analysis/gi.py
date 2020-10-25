@@ -22,7 +22,7 @@ import math
 import random
 import numpy
 import scipy.stats
-import datetime
+import datetime 
 
 from pytransit.analysis import base
 import pytransit
@@ -44,7 +44,7 @@ NOTE: This method requires 4 groups of datasets. Use the main interface to add d
 """
 
 transposons = ["himar1"]
-columns = ["Orf","Name","Number of TA Sites","Mean count (Strain A Condition 1)","Mean count (Strain A Condition 2)","Mean count (Strain B Condition 1)","Mean count (Strain B Condition 2)", "Mean logFC (Strain A)", "Mean logFC (Strain B)", "Mean delta logFC","Lower Bound delta logFC","Upper Bound delta logFC", "Prob. of delta-logFC being within ROPE", "Adjusted Probability (BFDR)", "Is HDI outside ROPE?", "Type of Interaction"]
+columns = ["Orf","Name","Number of TA Sites","Mean count (Strain A Condition 1)","Mean count (Strain A Condition 2)","Mean count (Strain B Condition 1)","Mean count (Strain B Condition 2)", "Mean logFC (Strain A)", "Mean logFC (Strain B)", "Mean delta logFC","Lower Bound delta logFC","Upper Bound delta logFC", "Prob. of delta-logFC being within ROPE", "Adjusted Probability", "Is HDI outside ROPE?", "Type of Interaction"]
 
 
 class GIAnalysis(base.TransitAnalysis):
@@ -474,6 +474,7 @@ class GIMethod(base.QuadConditionMethod):
                 normalization="TTR",
                 samples=10000,
                 rope=0.5,
+                signif="HDI",
                 includeZeros=False,
                 replicates="Sum",
                 LOESS=False,
@@ -486,8 +487,7 @@ class GIMethod(base.QuadConditionMethod):
         self.samples = samples
         self.includeZeros = includeZeros
         self.rope = rope
-        self.doBFDR = True # TRI
-        self.doFWER = True # TRI
+        self.signif = signif
         self.NTerminus = NTerminus
         self.CTerminus = CTerminus
 
@@ -558,6 +558,7 @@ class GIMethod(base.QuadConditionMethod):
         if not output_path: return None
         output_file = open(output_path, "w")
 
+        signif = "HDI" # need to add choice for this to the GUI
 
         return self(ctrldataA,
                 ctrldataB,
@@ -568,6 +569,7 @@ class GIMethod(base.QuadConditionMethod):
                 normalization,
                 samples,
                 rope,
+                signif,
                 includeZeros,
                 replicates,
                 LOESS,
@@ -600,9 +602,9 @@ class GIMethod(base.QuadConditionMethod):
         normalization = kwargs.get("n", "TTR")
         samples = int(kwargs.get("s", 10000))
         rope = float(kwargs.get("-rope", 0.5)) # fixed! changed int to float
+        signif = kwargs.get("signif","HDI")
         replicates = kwargs.get("r", "Sum")
         includeZeros = kwargs.get("iz", False)
-
 
         LOESS = kwargs.get("l", False)
         ignoreCodon = True
@@ -618,6 +620,7 @@ class GIMethod(base.QuadConditionMethod):
                 normalization,
                 samples,
                 rope,
+                signif,
                 includeZeros,
                 replicates,
                 LOESS,
@@ -764,7 +767,7 @@ class GIMethod(base.QuadConditionMethod):
                 mean_logFC_B = numpy.mean(logFC_B_post)
                 mean_delta_logFC = numpy.mean(delta_logFC_post)
 
-                # Is HDI significantly different than ROPE?
+                # Is HDI significantly different than ROPE? (i.e. no overlap)
                 not_HDI_overlap_bit = l_delta_logFC > self.rope or u_delta_logFC < -self.rope
 
                 # Probability of posterior overlaping with ROPE
@@ -816,25 +819,35 @@ class GIMethod(base.QuadConditionMethod):
             self.transit_message_inplace("Running Export Method... %1.1f%%" % (100.0*count/(N-1)))
             count+=1
 
-        data.sort(key=lambda x: x[-2])
+        # for HDI, maybe I should sort on abs(mean_delta_logFC); however, need to sort by prob to calculate BFDR
+        probcol = -2 # probROPEs
+        data.sort(key=lambda x: x[probcol]) 
+        sortedprobs = numpy.array([x[probcol] for x in data]) 
 
-        if self.doBFDR or not self.doFWER:
-            postprob = numpy.array(postprob)
-            postprob.sort()
-            bfdr = numpy.cumsum(postprob)/numpy.arange(1, len(postprob)+1)
-            adjusted_prob = bfdr
+        # BFDR method: Newton M.A., Noueiry A., Sarkar D., Ahlquist P. (2004). Detecting differential gene expression with a semiparametric hierarchical mixture method. Biostatistics, 5:155–176.
+
+        if self.signif=="BFDR":
+            sortedprobs = numpy.array(sortedprobs) 
+            #sortedprobs.sort() # why, since already sorted?
+            bfdr = numpy.cumsum(sortedprobs)/numpy.arange(1, len(sortedprobs)+1)
+            adjusted_prob = bfdr # should be same order as sorted above by probROPE
             adjusted_label = "BFDR"
-        elif doFWER:
-            fwer = FWER_Bayes(postprob)
-            fwer.sort()
+
+        elif self.signif=="FWER":
+            fwer = FWER_Bayes(sortedprobs)
+            #fwer.sort() # should not need this if monotonic
             adjusted_prob = fwer
             adjusted_label = "FWER"
 
         # If not using adjustment for classification, sort correctly
-        if not self.doBFDR and not self.doFWER:
-            sorted_index = numpy.argsort([d[-1] for d in data])[::-1][:len(data)]
-            adjusted_prob = [adjusted_prob[ii] for ii in sorted_index]
-            data = [data[ii] for ii in sorted_index]
+        else:
+          adjusted_prob = sortedprobs
+          adjusted_label = "un"
+          # should I stable-sort by overlap_bit?
+
+#            sorted_index = numpy.argsort([d[-1] for d in data])[::-1][:len(data)]
+#            adjusted_prob = [adjusted_prob[ii] for ii in sorted_index]
+#            data = [data[ii] for ii in sorted_index]
 
 
 
@@ -848,37 +861,40 @@ class GIMethod(base.QuadConditionMethod):
         else:
             self.output.write("#Console: python3 %s\n" % " ".join(sys.argv))
 
+        now = str(datetime.datetime.now())
+        now = now[:now.rfind('.')]
+        self.output.write("#Date: "+now+"\n")
+        #self.output.write("#Runtime: %s s\n" % (time.time() - start_time))
+
 
         self.output.write("#Control Data-A: %s\n" % (",".join(self.ctrldataA).encode('utf-8')))
         self.output.write("#Control Data-B: %s\n" % (",".join(self.ctrldataB).encode('utf-8')))
         self.output.write("#Experimental Data-A: %s\n" % (",".join(self.expdataA).encode('utf-8')))
         self.output.write("#Experimental Data-B: %s\n" % (",".join(self.expdataB).encode('utf-8')))
         self.output.write("#Annotation path: %s\n" % (self.annotation_path.encode('utf-8')))
-        self.output.write("#Time: %s\n" % (time.time() - start_time))
-        self.output.write("#%s\n" % "\t".join(columns))
+        self.output.write("#ROPE=%s, method for significance=%s\n" % (self.rope,self.signif))
+        #self.output.write("#%s\n" % "\t".join(columns))
 
+        if self.signif=="HDI":
+            self.output.write("#Significant interactions are those genes whose delta-logFC HDI does not overlap the ROPE\n")
+        elif self.signif in "prob BDFR FWER":
+            self.output.write("#Significant interactions are those whose %s-adjusted probability of the delta-logFC falling within ROPE is < 0.05.\n" % (adjusted_label))
 
-        if self.doBFDR or self.doFWER:
-            self.output.write("# Significant interactions are those whose adjusted probability of the delta-logFC falling within ROPE is < 0.05 (Adjusted using %s)\n" % (adjusted_label))
-        else:
-            self.output.write("# Significant interactions are those genes whose delta-logFC HDI does not overlap the ROPE\n")
-        self.output.write("#\n")
-
-        # Write column names
-        self.output.write("#ORF\tName\tNumber of TA Sites\tMean count (Strain A Condition 1)\tMean count (Strain A Condition 2)\tMean count (Strain B Condition 1)\tMean count (Strain B Condition 2)\tMean logFC (Strain A)\tMean logFC (Strain B) \tMean delta logFC\tLower Bound delta logFC\tUpper Bound delta logFC\tProb. of delta-logFC being within ROPE\tAdjusted Probability (%s)\tIs HDI outside ROPE?\tType of Interaction\n" % adjusted_label)
+        # Write column names (redundant with self.columns)
+        self.output.write("#ORF\tName\tNumber of TA Sites\tMean count (Strain A Condition 1)\tMean count (Strain A Condition 2)\tMean count (Strain B Condition 1)\tMean count (Strain B Condition 2)\tMean logFC (Strain A)\tMean logFC (Strain B) \tMean delta logFC\tLower Bound delta logFC\tUpper Bound delta logFC\tIs HDI outside ROPE?\tProb. of delta-logFC being within ROPE\t%s-Adjusted Probability\tType of Interaction\n" % adjusted_label)
 
         # Write gene results
         for i,row in enumerate(data):
-        #1   2    3        4                5              6               7                8            9            10              11             12            13         14
-            orf, name, n, mean_muA1_post, mean_muA2_post, mean_muB1_post, mean_muB2_post, mean_logFC_A, mean_logFC_B, mean_delta_logFC, l_delta_logFC, u_delta_logFC, probROPE, not_HDI_overlap_bit = row
-            type_of_interaction = "No Interaction"
-            if ((self.doBFDR or self.doFWER) and adjusted_prob[i] < 0.05):
-                type_of_interaction = self.classify_interaction(mean_delta_logFC, mean_logFC_B, mean_logFC_A)
-            elif not (self.doBFDR or self.doFWER) and not_HDI_overlap_bit:
-                type_of_interaction = self.classify_interaction(mean_delta_logFC, mean_logFC_B, mean_logFC_A)
+          #1   2    3        4                5              6               7                8            9            10              11             12            13         14
+          orf, name, n, mean_muA1_post, mean_muA2_post, mean_muB1_post, mean_muB2_post, mean_logFC_A, mean_logFC_B, mean_delta_logFC, l_delta_logFC, u_delta_logFC, probROPE, not_HDI_overlap_bit = row
 
-            new_row = tuple(list(row[:-1])+[adjusted_prob[i], not_HDI_overlap_bit, type_of_interaction])
-            self.output.write("%s\t%s\t%d\t%1.2f\t%1.2f\t%1.2f\t%1.2f\t%1.2f\t%1.2f\t%1.2f\t%1.2f\t%1.2f\t%1.8f\t%1.8f\t%s\t%s\n" % new_row)
+          interaction = self.classify_interaction(mean_delta_logFC, mean_logFC_B, mean_logFC_A)
+          type_of_interaction = "No Interaction"
+          if self.signif in "prob BFDR FWER" and adjusted_prob[i] < 0.05: type_of_interaction = interaction
+          if self.signif=="HDI" and not_HDI_overlap_bit: type_of_interaction = interaction
+
+          new_row = tuple(list(row[:-2])+[not_HDI_overlap_bit, probROPE, adjusted_prob[i], type_of_interaction])
+          self.output.write("%s\t%s\t%d\t%1.2f\t%1.2f\t%1.2f\t%1.2f\t%1.2f\t%1.2f\t%1.2f\t%1.2f\t%1.2f\t%s\t%1.8f\t%1.8f\t%s\n" % new_row)
 
 
         self.transit_message("Adding File: %s" % (self.output.name))
@@ -907,7 +923,11 @@ class GIMethod(base.QuadConditionMethod):
         GI performs a comparison among 4 groups of datasets, strain A and B assessed in conditions 1 and 2 (e.g. control vs treatment).
         It looks for interactions where the response to the treatment (i.e. effect on insertion counts) depends on the strain (output variable: delta_LFC).
         Provide replicates in each group as a comma-separated list of wig files.
-        Significant interactions are those with "HDI outside ROPE?"=TRUE, and all genes are sorted by significance using BFDR."
+        HDI is highest density interval for posterior distribution of delta_LFC, which is like a confidence interval on difference of slopes.
+        Genes are sorted by probability of HDI overlapping with ROPE. (genes with the highest abs(mean_delta_logFC) are near the top, approximately)
+        Significant genes are indicated by 'Type of Interaction' column (No Interaction, Aggravating, Alleviating, Suppressive).
+          By default, hits are defined as "Is HDI outside of ROPE?"=TRUE (i.e. non-overlap of delta_LFC posterior distritbuion with Region of Probably Equivalence around 0)
+          Alternative methods for significance: use -signif flag with prob, BFDR, or FWER. These affect 'Type of Interaction' (i.e. which genes are labeled 'No Interaction')
 
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
@@ -917,6 +937,10 @@ class GIMethod(base.QuadConditionMethod):
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.
         -iN <float>     :=  Ignore TAs occuring at given percentage (as integer) of the N terminus. Default: -iN 0
         -iC <float>     :=  Ignore TAs occuring at given percentage (as integer) of the C terminus. Default: -iC 0
+        -signif HDI     :=  (default) Significant if HDI does not overlap ROPE; if HDI overlaps ROPE, 'Type of Interaction' is set to 'No Interaction'
+        -signif prob    :=  Optionally, significant hits are re-defined based on probability (degree) of overlap of HDI with ROPE, prob<0.05 (no adjustment)
+        -signif BFDR    :=  Apply "Bayesian" FDR correction (see doc) to adjust HDI-ROPE overlap probabilities so that significant hits are re-defined as BFDR<0.05
+        -signif FWER    :=  Apply "Bayesian" FWER correction (see doc) to adjust HDI-ROPE overlap probabilities so that significant hits are re-defined as FWER<0.05
         """ % (sys.argv[0])
 
 
