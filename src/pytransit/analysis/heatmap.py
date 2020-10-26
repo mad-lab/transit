@@ -102,13 +102,14 @@ class HeatmapMethod(base.SingleConditionMethod):
 
     @classmethod
     def fromargs(self, rawargs): 
+        (args, kwargs) = transit_tools.cleanargs(rawargs)
         if len(rawargs)<3: print(self.usage_string()); sys.exit(-1)
         self.filetype = None
-        if rawargs[0]=="-anova": self.filetype = "anova"
-        elif rawargs[0]=="-zinb": self.filetype = "zinb"
+        if kwargs.get("anova",False): self.filetype = "anova"
+        elif kwargs.get("zinb",False): self.filetype = "zinb"
         else: print(self.usage_string()); sys.exit(-1)
-        self.infile = rawargs[1]
-        self.outfile = rawargs[2]
+        self.infile = args[0]
+        self.outfile = args[1]
         return self(self.infile,outfile=self.outfile)
 
     def Run(self):
@@ -167,7 +168,7 @@ dev.off()
 
     @classmethod
     def usage_string(self):
-        return "usage: python3 %s heatmap -anova|-zinb <anova_or_zinb_output> <heatmap.png>" % sys.argv[0]
+        return "usage: python3 %s heatmap <anova_or_zinb_output> <heatmap.png> -anova|-zinb" % sys.argv[0]
         # could add a flag for padj cutoff (or top n most signif genes)
 
 

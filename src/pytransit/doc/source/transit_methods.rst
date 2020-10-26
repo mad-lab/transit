@@ -1919,7 +1919,7 @@ Usage:
 
 ::
 
-  python3 src/transit.py heatmap -anova|-zinb <anova_or_zinb_output> <heatmap.png>
+  python3 src/transit.py heatmap <anova_or_zinb_output> <heatmap.png> -anova|-zinb 
 
 Note that the *first* argument is required to be either '-anova' or '-zinb', a flag to
 indicate the type of file being provided as the second argument.
@@ -1929,7 +1929,7 @@ several different growth conditions:
 
 ::
 
-  > python3 src/transit.py heatmap -anova anova_iron.txt heatmap_iron_anova.png
+  > python3 src/transit.py heatmap anova_iron.txt heatmap_iron_anova.png -anova
 
 .. image:: _images/iron_heatmap_anova_rotated.png
    :width: 1000
