@@ -61,6 +61,7 @@ class MeanCountsMethod(base.SingleConditionMethod):
  
     """
     def __init__(self,
+                combined_wig,
                 ctrldata,
                 annotation_path,
                 output_file,
@@ -72,7 +73,7 @@ class MeanCountsMethod(base.SingleConditionMethod):
 
         base.SingleConditionMethod.__init__(self, short_name, long_name, description, label, ctrldata, annotation_path, output_file, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
 
-
+        self.combined_wig = combined_wig # boolean, interprete ctrldata as combined_wig file or comma-separated list of wig files?
 
 
     @classmethod
@@ -110,9 +111,10 @@ class MeanCountsMethod(base.SingleConditionMethod):
         if not output_path: return None
         output_file = open(output_path, "w")
 
+        # could add a checkbox for combined_wig
+        combined_wig = False
 
-
-        return self(ctrldata,
+        return self(combined_wig,ctrldata,
                 annotationPath,
                 output_file,
                 normalization,
@@ -124,8 +126,11 @@ class MeanCountsMethod(base.SingleConditionMethod):
     @classmethod
     def fromargs(self, rawargs): 
         (args, kwargs) = transit_tools.cleanargs(rawargs)
+        print("ARGS="+str(args))
+        print("KWARGS="+str(kwargs))
 
-        ctrldata = args[0].split(",")
+        combined_wig = kwargs.get("c",False)
+        ctrldata = args[0].split(",") 
         annotationPath = args[1]
         outpath = args[2]
         output_file = open(outpath, "w")
@@ -136,7 +141,7 @@ class MeanCountsMethod(base.SingleConditionMethod):
         NTerminus = 0.0
         CTerminus = 0.0
 
-        return self(ctrldata,
+        return self(combined_wig,ctrldata,
                 annotationPath,
                 output_file,
                 normalization,
@@ -152,9 +157,9 @@ class MeanCountsMethod(base.SingleConditionMethod):
         
         #Get orf data
         self.transit_message("Getting Data")
-        (fulldata, position) = tnseq_tools.get_data(self.ctrldata)
-        (fulldata, factors) = norm_tools.normalize_data(fulldata, self.normalization, 
-            self.ctrldata, self.annotation_path)
+        if self.combined_wig: (position, fulldata, datasets) = tnseq_tools.read_combined_wig(self.ctrldata[0])
+        else: (fulldata, position) = tnseq_tools.get_data(self.ctrldata)
+        (fulldata, factors) = norm_tools.normalize_data(fulldata, self.normalization, self.ctrldata, self.annotation_path)
         position = position.astype(int)
 
         hash = transit_tools.get_pos_hash(self.annotation_path)
@@ -171,16 +176,19 @@ class MeanCountsMethod(base.SingleConditionMethod):
 
 
         self.output.write("#Files:\n")
-        for f in self.ctrldata:
+        names = datasets if self.combined_wig else self.ctrldata 
+        for f in names:
             self.output.write("#%s\n" % f)
 
 
         K,Nsites = fulldata.shape
         # Get Gene objects
-        G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, norm=self.normalization)
+        if self.combined_wig: G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, norm=self.normalization,data=fulldata,position=position)
+        else: G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, norm=self.normalization)
         N = len(G)
         self.progress_range(N)
-        dataset_header = "\t".join([transit_tools.fetch_name(D) for D in self.ctrldata])
+        if self.combined_wig: dataset_header = '\t'.join(datasets)
+        else: dataset_header = "\t".join([transit_tools.fetch_name(D) for D in self.ctrldata])
         self.output.write("#Orf\tName\tNumber of TA sites\t%s\n" % dataset_header)
         for i,gene in enumerate(G):
             if gene.n > 0:
@@ -204,7 +212,7 @@ class MeanCountsMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s export mean_counts <comma-separated .wig files> <annotation .prot_table> <output file>""" % (sys.argv[0])
+        return """python %s export mean_counts <comma-separated .wig files>|<combined_wig> <annotation .prot_table> <output file> [-c]\n note: append -c if inputing a combined_wig file\n""" % (sys.argv[0])
 
 
 if __name__ == "__main__":
