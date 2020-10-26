@@ -1,8 +1,9 @@
 
 .. _`analysis_methods`:
 
-Analysis Methods
-================
+==================
+ Analysis Methods
+==================
 
 
 TRANSIT has analysis methods capable of analyzing **Himar1** and **Tn5** datasets.
@@ -13,7 +14,7 @@ Below is a description of some of the methods.
 .. _gumbel:
 
 Gumbel
-------
+======
 
 The Gumbel can be used to determine which genes are essential in a
 single condition. It does a gene-by-gene analysis of the insertions at
@@ -25,7 +26,7 @@ probability of this using a Bayesian model.
    Intended only for **Himar1** datasets.
 
 How does it work?
-~~~~~~~~~~~~~~~~~
+-----------------
 
 | For a formal description of how this method works, see our paper [DeJesus2013]_:
 
@@ -34,7 +35,7 @@ How does it work?
 | `Bayesian analysis of gene essentiality based on sequencing of transposon insertion libraries. <http://www.ncbi.nlm.nih.gov/pubmed/23361328>`_ *Bioinformatics*, 29(6):695-703.
 
 Example
-~~~~~~~
+-------
 
 ::
 
@@ -52,7 +53,7 @@ Example
 
 
 Parameters
-~~~~~~~~~~
+----------
 
 -  **Samples:** Gumbel uses Metropolis-Hastings (MH) to generate samples
    of posterior distributions. The default setting is to run the
@@ -87,7 +88,7 @@ Parameters
 |
 
 Outputs and diagnostics
-~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
 The Gumbel method generates a tab-separated output file at the location
 chosen by the user. This file will automatically be loaded into the
@@ -137,7 +138,7 @@ defined as follows:
 |
 
 Run-time
-~~~~~~~~
+--------
 
 The Gumbel method takes on the order of 10 minutes for 10,000 samples.
 Run-time is linearly proportional to the 'samples' parameter, or length
@@ -151,7 +152,7 @@ replicates; replicate datasets will be automatically merged.
 
 
 griffin
--------
+=======
 
 This is an earlier version of the Gumbel method that
 identifies essential genes based on how unlikely 'gaps'
@@ -176,7 +177,7 @@ of estimating internal parameters.
 .. _`tn5gaps`:
 
 Tn5Gaps
---------
+=======
 
 The Tn5Gaps method can be used to determine which genes are essential
 in a single condition for **Tn5** datasets. It does an analysis of the
@@ -193,7 +194,7 @@ the Gumbel distribution.
 |
 
 How does it work?
-~~~~~~~~~~~~~~~~~
+-----------------
 
 This method is loosely is based on the original gumbel analysis
 method described in this paper:
@@ -230,7 +231,7 @@ output of our analysis.
 |
 
 Usage
-~~~~~
+-----
 ::
 
     python3 ../../../transit.py tn5gaps <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
@@ -243,7 +244,7 @@ Usage
 
 
 Parameters
-~~~~~~~~~~
+----------
 
 
 + **Minimum Read:** The minimum read count that is considered a true read. Because the Gumbel method depends on determining gaps of TA sites lacking insertions, it may be suceptible to spurious reads (e.g. errors). The default value of 1 will consider all reads as true reads. A value of 2, for example, will ignore read counts of 1.
@@ -256,7 +257,7 @@ Parameters
 + **-iC:** Trimming of insertions in C-terminus (given as percentage of ORF length, e.g. "5" for 5%; default=0)
 
 Example
-~~~~~~~
+-------
 ::
 
     python3 PATH/src/transit.py tn5gaps salmonella_baseline.wig Salmonella-Ty2.prot_table salmonella_baseline_tn5gaps_trimmed.dat -m 2 -r Sum -iN 5 -iC 5
@@ -267,7 +268,7 @@ These input and output files can be downloaded from the **Example Data** section
 |
 
 Outputs and diagnostics
-~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
 The Tn5Gaps method generates a tab-separated output file at the
 location chosen by the user. This file will automatically be loaded
@@ -306,7 +307,7 @@ file are defined as follows:
 |
 
 Run-time
-~~~~~~~~
+--------
 The Tn5Gaps method takes on the order of 10 minutes.
 Other notes: Tn5Gaps can be run on multiple replicates; replicate
 datasets will be automatically merged.
@@ -321,7 +322,7 @@ datasets will be automatically merged.
 .. _HMM:
 
 HMM
----
+===
 
 The HMM method can be used to determine the essentiality of the entire genome, as opposed to gene-level analysis of the other methods. It is capable of identifying regions that have unusually high or unusually low read counts (i.e. growth advantage or growth defect regions), in addition to the more common categories of essential and non-essential.
 
@@ -331,7 +332,7 @@ The HMM method can be used to determine the essentiality of the entire genome, a
 |
 
 How does it work?
-~~~~~~~~~~~~~~~~~
+-----------------
 
 | For a formal description of how this method works, see our paper [DeJesus2013HMM]_:
 |
@@ -341,7 +342,7 @@ How does it work?
 
 
 Example
-~~~~~~~
+-------
 
 ::
 
@@ -355,7 +356,7 @@ Example
 
 
 Parameters
-~~~~~~~~~~
+----------
 
 The HMM method automatically estimates the necessary statistical
 parameters from the datasets. You can change how the method handles
@@ -370,7 +371,7 @@ replicate datasets:
 |
 
 Output and Diagnostics
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 | The HMM method outputs two files. The first file provides the most
   likely assignment of states for all the TA sites in the genome. Sites
@@ -441,7 +442,7 @@ Output and Diagnostics
 |
 
 Run-time
-~~~~~~~~
+--------
 
 | The HMM method takes less than 10 minutes to complete. The parameters
   of the method should not affect the running-time.
@@ -455,7 +456,7 @@ Run-time
 .. _resampling:
 
 Resampling
-----------
+==========
 
 The resampling method is a comparative analysis the allows that can be
 used to determine conditional essentiality of genes. It is based on a
@@ -474,7 +475,7 @@ of genes or known biological pathway.
 |
 
 How does it work?
-~~~~~~~~~~~~~~~~~
+-----------------
 
 This technique has yet to be formally published in the context of
 differential essentiality analysis. Briefly, the read-counts at each
@@ -490,7 +491,7 @@ original, observed difference in read-counts.
 
 
 Usage
-~~~~~
+-----
 
 
 ::
@@ -518,7 +519,7 @@ Usage
 
 
 Parameters
-~~~~~~~~~~
+----------
 
 The resampling method is non-parametric, and therefore does not require
 any parameters governing the distributions or the model. The following
@@ -575,7 +576,7 @@ parameters are available for the method:
 |
 
 Notes
-~~~~~
+-----
 
 I recommend using -a (adaptive resampling). It runs much faster, and the p-values
 will be very close to a full non-adaptive run (all 10,000 samples).
@@ -588,7 +589,7 @@ making it difficult to make confident calls on essentiality.
 
 
 Doing resampling with a combined_wig file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------------
 
 Resampling can also now take a combined_wig_ file as input (containing insertion counts
 for multiple sample), along with a samples_metadata_ file
@@ -608,7 +609,7 @@ If you want to compare more than two conditions, see :ref:`ZINB <zinb>`.
 
 
 Doing resampling with datasets from different libraries.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------------------------
 
 In most cases, comparisons are done among samples (replicates) from
 the same library evaluated in two different conditions.  But if the
@@ -626,7 +627,7 @@ from each library in each condition.
 
 
 Doing resampling between different strains.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------
 
 The most common case is that resampling is done among replicates all
 from the same Tn library, and hence all the datasets (fastq files) are
@@ -698,7 +699,7 @@ replicates in condition B will be from another library (another strain).
 |
 
 Output and Diagnostics
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 The resampling method outputs a tab-delimited file with results for each
 gene in the genome. P-values are adjusted for multiple comparisons using
@@ -752,7 +753,7 @@ changed using the -PC flag (above).
 |
 
 Run-time
-~~~~~~~~
+--------
 
 A typical run of the resampling method with 10,000 samples will take
 around 45 minutes (with the histogram option ON). Using the *adaptive
@@ -764,7 +765,7 @@ resampling* option (-a), the run-time is reduced to around 10 minutes.
 ----
 
 Mann-Whitney U-test (utest)
----------------------------
+===========================
 
 This is a method for comparing datasets from a TnSeq library evaluated in
 two different conditions, analogous to resampling.
@@ -788,13 +789,13 @@ A reference for this method is `(Santa Maria et al., 2014)
 .. _genetic-interactions:
 
 Genetic Interactions
---------------------
+====================
 
 The genetic interactions (GI) method is a comparative analysis used
 used to determine genetic interactions. It is a Bayesian method
 that estimates the distribution of log fold-changes (logFC) in two
 strain backgrounds under different conditions, and identifies significantly
-large changes in enrichment (delta-logFC) to identify those genes
+large changes in enrichment (delta_logFC) to identify those genes
 that imply a genetic interaction.
 
 
@@ -805,7 +806,7 @@ that imply a genetic interaction.
 |
 
 How does it work?
-~~~~~~~~~~~~~~~~~
+-----------------
 
 GI performs a comparison among 4 groups of datasets, strain A and B assessed in conditions 1 and 2 (e.g. control vs treatment).
 It looks for interactions where the response to the treatment (i.e. effect on insertion counts) depends on the strain.
@@ -825,28 +826,92 @@ slopes between strain A and B (represented by 'delta_LFC' in the output file).
 |
 
 
+Statistical Significance
+------------------------
+
+
+The computation that is done by GI is to compute the posterior distribution of the delta_LFC (or mean change in slopes)
+through Bayesian sampling.
+The primary method to determine significance of genes is whethter this the mean_delta_LFC is significantly differnt than 0.
+However, since the mean_delta_LFC is a distribution, we represent it by a Highest Density Interval, HDI, which is 
+similar to a 95% confidence interval.  Furthermore, rather than asking whether the HDI overlaps 0 exactly, we expand the interval
+around 0 to a Region of Probable Equivalence (ROPE), which is set to [-0.5,0.5] by default.  Hence the significant genes
+are those for which the HDI does not overlap the ROPE.  GI has a flag to  adjust the size of the ROPE, if desired.
+
+In the GI output file, the final column give the significance call, along with type of interaction.
+If a gene is not significant, it will be marked with "**No Interaction**" (for the HDI method, meaning HDI overlaps the ROPE).
+If a gene IS significant, then its interaction will be cateogrized in 3 types (see NAR paper):
+
+ * **Aggravating** - mean_delta_LFC is negative; gene is more required in treatment than control in the B strain, compared to the A strain
+ * **Suppressive** - mean_delta_LFC is positive, and the gene was not conditionally essential in strain A (flat slope), but becomes conditionally non-essential in strain B when treated (positive slope)
+ * **Alleviating** - mean_delta_LFC is positive, but the conditional requirement (negative slope) of the gene in strain A with treatment is "cancelled" by the modification in strain B
+
+**show slide**
+
+A limitation of this HDI approach is that it is discrete (i.e. overlap is either True or False), but does not provide a quantitative metric
+for the degree of overlap.  Thus a second method for assessing significance of genetic interactions is to compute
+the probability of overlap.  The lower the probability, the more differnt the delta_LFC is from 0, indicating a more
+significant interaction.  In this case, genes with prob < 0.05 are considered interactions and classified by the 3 types above,
+while genes with prob >= 0.05 are marked as "No Interaction".
+
+In addition, since we are calculating significance for thousands of genes in parallel, 
+many researchers prefer to have some method for correcting for multiple tests, to control the false discovery rate.
+However, FDR correction is generally used only for frequentist analyses, and he GI method is fundamentally a Bayesian approach.
+Technically, in a Bayesian framework, FDR correction is not needed.  Any adjustment for expectations about number of hits
+would be achieved through adjusting parameters for prior distributions.  Nonetheless, GI includes options for 
+two methods that approximate FDR correction: **BFDR** (Bayesian False Discovery Rate correction,
+`Newton M.A., Noueiry A., Sarkar D., Ahlquist P. (2004). Detecting differential gene expression with a semiparametric hierarchical 
+mixture method. Biostatistics, 5:155–176. <https://pubmed.ncbi.nlm.nih.gov/15054023/>`_) and FWER (Familty-Wise
+Error Rate control).  When these corrections are applied, a threshold of 0.05 for the adjusted probability of overlap 
+is used for each, and this determines which
+genes are classified as interacting (1 of 3 types) or  marked as "No Interaction", as above.
+
+In order to enable users to evaluate these various methods for determining significance of interactions,
+a '-signif' flag is provided for the GI method.  The options are:
+
+ * **-signif HDI**: significant genes are those for which the HDI does not overlap the ROPE
+ * **-signif prob**: significant genes are those with prob < 0.05, where 'prob' is porbability that HDI overlap the ROPE (default)
+ * **-signif BFDR**: significant genes are those with adjusted prob < 0.05, where prob is adjusted by the BFDR method
+ * **-signif FWER**: significant genes are those with adjusted prob < 0.05, where prob is adjusted by the FWER method
+
+'-signif prob' is the default method.
+
+In the output file, the genes are sorted by the probability that the HDI overlaps the ROPE.
+The genes at the top are rougly the genes with the highest absolute value of mean_delta_LFC.
+
+
 Usage
-~~~~~
+-----
 
 ::
 
-  python3 transit.py GI <wigs_for_strA_cond1> <wigs_for_strA_cond2> <wigs_for_strB_cond1> <wigs_for_strB_cond2> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+  python3 /pacific/home/ioerger/transit/src/transit.py GI <wigs_for_strA_cond1> <wigs_for_strA_cond2> <wigs_for_strB_cond1> <wigs_for_strB_cond2> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
+        GI performs a comparison among 4 groups of datasets, strain A and B assessed in conditions 1 and 2 (e.g. control vs treatment).
+        It looks for interactions where the response to the treatment (i.e. effect on insertion counts) depends on the strain (output variable: delta_LFC).
         Provide replicates in each group as a comma-separated list of wig files.
+        HDI is highest density interval for posterior distribution of delta_LFC, which is like a confidence interval on difference of slopes.
+        Genes are sorted by probability of HDI overlapping with ROPE. (genes with the highest abs(mean_delta_logFC) are near the top, approximately)
+        Significant genes are indicated by 'Type of Interaction' column (No Interaction, Aggravating, Alleviating, Suppressive).
+          By default, hits are defined as "Is HDI outside of ROPE?"=TRUE (i.e. non-overlap of delta_LFC posterior distritbuion with Region of Probably Equivalence around 0)
+          Alternative methods for significance: use -signif flag with prob, BFDR, or FWER. These affect 'Type of Interaction' (i.e. which genes are labeled 'No Interaction')
 
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
         --rope <float>  :=  Region of Practical Equivalence. Area around 0 (i.e. 0 +/- ROPE) that is NOT of interest. Can be thought of similar to the area of the null-hypothesis. Default: --rope 0.5
         -n <string>     :=  Normalization method. Default: -n TTR
-        -iz             :=  Include rows with zero accross conditions.
+        -iz             :=  Include rows with zero across conditions.
         -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Turned Off.
         -iN <float>     :=  Ignore TAs occuring at given percentage (as integer) of the N terminus. Default: -iN 0
         -iC <float>     :=  Ignore TAs occuring at given percentage (as integer) of the C terminus. Default: -iC 0
+        -signif HDI     :=  (default) Significant if HDI does not overlap ROPE; if HDI overlaps ROPE, 'Type of Interaction' is set to 'No Interaction'
+        -signif prob    :=  Optionally, significant hits are re-defined based on probability (degree) of overlap of HDI with ROPE, prob<0.05 (no adjustment)
+        -signif BFDR    :=  Apply "Bayesian" FDR correction (see doc) to adjust HDI-ROPE overlap probabilities so that significant hits are re-defined as BFDR<0.05
+        -signif FWER    :=  Apply "Bayesian" FWER correction (see doc) to adjust HDI-ROPE overlap probabilities so that significant hits are re-defined as FWER<0.05
 
-You can think of 'control' and 'experimental' samples as 'untreated' vs. 'treated'.
 
 Example
-~~~~~~~
+-------
 
 In this example, the effect of a knockout of SigB is being evaluated for its effect on tolerance of isoniazid.
 Some genes may become more essential (or less) in the presence of INH in the wild-type strain.
@@ -859,7 +924,7 @@ Note there are 2 replicates in each of the 4 groups of datasets.
 
 
 Parameters
-~~~~~~~~~~
+----------
 
 The resampling method is non-parametric, and therefore does not require
 any parameters governing the distributions or the model. The following
@@ -890,17 +955,23 @@ parameters are available for the method:
    as real differences. See the :ref:`Normalization <normalization>` section for a description
    of normalization method available in TRANSIT.
 
+-  **Significance Method:**
 
+ * -signif HDI: significant genes are those for which the HDI does not overlap the ROPE
+ * -signif prob: significant genes are those with prob < 0.05, where 'prob' is porbability that HDI overlap the ROPE (default)
+ * -signif BFDR: significant genes are those with adjusted prob < 0.05, where prob is adjusted by the BFDR method
+ * -signif FWER: significant genes are those with adjusted prob < 0.05, where prob is adjusted by the FWER method
 
 
 
 Output and Diagnostics
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 The GI method outputs a tab-delimited file with results for each
-gene in the genome. P-values are adjusted for multiple comparisons using
-the Benjamini-Hochberg procedure (called "q-values" or "p-adj."). A
-typical threshold for conditional essentiality on is q-value < 0.05.
+gene in the genome.
+All genes are sorted by significance using the probability that the HDI overlaps the ROPE.
+Significant genes are those NOT marked with 'No Interaction' in the last column.
+
 
 +-----------------------------------------+----------------------------------------------------+
 | Column Header                           | Column Definition                                  |
@@ -940,10 +1011,6 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 
 |
 
-Significant interactions are those with "HDI outside ROPE?"=TRUE.
-
-All genes are sorted by significance using BFDR.
-
 
 
 .. rst-class:: transit_sectionend
@@ -954,7 +1021,7 @@ All genes are sorted by significance using BFDR.
 .. _anova:
 
 ANOVA
------
+=====
 
 The Anova (Analysis of variance) method is used to determine which genes
 exhibit statistically significant variability of insertion counts across multiple conditions.
@@ -966,7 +1033,7 @@ to which experimental conditions).
 |
 
 How does it work?
-~~~~~~~~~~~~~~~~~
+-----------------
 
 The method performs the `One-way anova test <https://en.wikipedia.org/wiki/Analysis_of_variance?oldformat=true#The_F-test>`_ for each gene across conditions.
 It takes into account variability of normalized transposon insertion counts among TA sites
@@ -975,7 +1042,7 @@ to determine if the differences among the mean counts for each condition are sig
 
 
 Example
-~~~~~~~
+-------
 
 ::
 
@@ -1014,7 +1081,7 @@ The filenames should match what is shown in the header of the combined_wig (incl
 
 
 Parameters
-~~~~~~~~~~
+----------
 
 The following parameters are available for the method:
 
@@ -1030,7 +1097,7 @@ The following parameters are available for the method:
 -  **-PC** Pseudocounts to use in calculating LFCs (see below). Default: -PC 5
 
 Output and Diagnostics
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 The anova method outputs a tab-delimited file with results for each
 gene in the genome. P-values are adjusted for multiple comparisons using
@@ -1077,7 +1144,7 @@ Changing the pseudocounts will not affect the analysis of statistical significan
 |
 
 Run-time
-~~~~~~~~
+--------
 
 A typical run of the anova method takes less than 1 minute for a combined wig file with 6 conditions, 3 replicates per condition.
 
@@ -1092,7 +1159,7 @@ A typical run of the anova method takes less than 1 minute for a combined wig fi
 .. _zinb:
 
 ZINB
-----
+====
 
 The ZINB (Zero-Inflated Negative Binomial) method is used to determine
 which genes exhibit statistically significant variability in either
@@ -1118,7 +1185,7 @@ See :ref:`Installation Instructions <install-zinb>`.
 |
 
 How does it work?
-~~~~~~~~~~~~~~~~~
+-----------------
 
 | For a formal description of how this method works, see our paper [ZINB]_: 
 |
@@ -1127,7 +1194,7 @@ How does it work?
 
 
 Example
-~~~~~~~
+-------
 
 ::
 
@@ -1149,7 +1216,7 @@ Example
 .. _combined_wig:
 
 Combined wig files
-~~~~~~~~~~~~~~~~~~
+------------------
 
 Transit now supports a new file format called 'combined_wig' which basically
 combines multiple wig files into one file (with multiple columns).  This is
@@ -1174,7 +1241,7 @@ TTR is the default, but other relevant normalization options would be 'nonorm'
 .. _samples_metadata:
 
 Samples Metadata File
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 Format of the *samples_metadata* file: a tab-separated file (which you
 can edit in Excel) with 3 columns: Id, Condition, and Filename (it
@@ -1194,7 +1261,7 @@ of the combined_wig (including pathnames, if present).
   chol2   cholesterol  /Users/example_data/cholesterol_rep3.wig
 
 Parameters
-~~~~~~~~~~
+----------
 
 The following parameters are available for the method:
 
@@ -1208,7 +1275,7 @@ The following parameters are available for the method:
 - **Covariates:** If additional covariates distinguishing the samples are available, such as library, timepoint, or genotype, they may be incorporated in the test.
 
 Covariates and Interactions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
 While ZINB is focus on identifying variability of insertion counts across conditions,
 the linear model also allows you to take other variables into account.
@@ -1281,7 +1348,7 @@ The difference between how covariates and interactions are handeled in the model
 is discussed below in the section on Statistical Significance.  
 
 Categorical vs Numeric Covariates
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------
 
 In some cases, covariates are intended to be treated as categorical
 variables, like 'batch' or 'library' or 'medium'.
@@ -1297,7 +1364,7 @@ trend in the insertion counts as the covariate value increases.
 
 
 Statistical Significance - What the P-values Mean in the ZINB Output
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------------------------------------
 
 Formally, the P-value is from a likelihood ratio test (LRT) between a
 condition-dependent ZINB model (:math:`m_1`) and a
@@ -1391,7 +1458,7 @@ and this would be compared to the following null model (without the interaction 
 
 
 Output and Diagnostics
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 The ZINB method outputs a tab-delimited file with results for each
 gene in the genome. P-values are adjusted for multiple comparisons using
@@ -1442,7 +1509,7 @@ Changing the pseudocounts will not affect the analysis of statistical significan
 |
 
 Run-time
-~~~~~~~~
+--------
 
 A typical run of the ZINB method takes ~5 minutes to analze a combined wig
 file with 6 conditions, 3 replicates per condition. It will, of
@@ -1457,7 +1524,7 @@ course, run more slowly if you have many more conditions.
 .. _normalization:
 
 Normalization
--------------
+=============
 
 
 Proper normalization is important as it ensures that other sources of
@@ -1507,14 +1574,14 @@ briefly described below:
     No normalization is performed.
 
 Command-line
-~~~~~~~~~~~~
+------------
 
 In addition to choosing normalization for various analyses in the GUI,
 you can also call Transit to normalize wig files from the command-line,
 as shown in this example:
 
 Example
-~~~~~~~
+-------
 
 ::
 
@@ -1539,7 +1606,7 @@ If the input file is a combined_wig file, indicate it with a '-c' flag.
 
 .. rst-class:: transit_clionly
 Pathway Enrichment Analysis
----------------------------
+===========================
 
 Pathway Enrichment Analysis provides a method to
 identify enrichment of functionally-related genes among those that are
@@ -1578,7 +1645,7 @@ and is not available in the Transit GUI.
 
 
 Usage
-~~~~~~~
+-----
 
 ::
 
@@ -1588,7 +1655,7 @@ Usage
 
 
 Parameters
-~~~~~~~~~~
+----------
 - **Resampling File**
     The resampling file is the one obtained after using the resampling method in Transit. (It is a tab separated file with 11 columns.) GSEA method makes usage of the last column (adjusted P-value)
 - **Associations File**
@@ -1660,7 +1727,7 @@ Parameters
 
 
 Auxilliary Pathway Files in Transit Data Directory
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------------------
 
 ::
 
@@ -1683,7 +1750,7 @@ asterisk means 'recommended' combination of method with system of functional cat
 
 
 Current Recommendations
-~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
 Here are the recommended combinations of pathway methods to use for different systems of functional categories:
 
@@ -1693,7 +1760,7 @@ Here are the recommended combinations of pathway methods to use for different sy
 
 
 Examples
-~~~~~~~~
+--------
 
 ::
 
@@ -1724,7 +1791,7 @@ The $DATA environment variable in these examples refers to the Transit data dire
 
 .. rst-class:: transit_clionly
 tnseq_stats
------------
+===========
 
 You can generate the same table to statistics as on the Quality Control panel in the GUI
 from the command-line using the 'tnseq_stats' command.  Here is an example:
@@ -1755,7 +1822,7 @@ from the command-line using the 'tnseq_stats' command.  Here is an example:
 
 .. rst-class:: transit_clionly
 corrplot
--------
+========
 
 A useful tool when evaluating the quality of a collection of TnSeq datasets is to make a 
 *correlation plot* of the mean insertion counts (averaged at the gene-level) among samples.  
@@ -1770,7 +1837,7 @@ and relies on the 'corrplot' R package.
 See :ref:`Installation Instructions <install-zinb>`.
 
 Usage:
-~~~~~~
+------
 
 ::
 
@@ -1836,7 +1903,7 @@ to be installed on your system.  See :ref:`Installation Instructions <install-zi
 
 .. rst-class:: transit_clionly
 heatmap
--------
+=======
 
 The output of ANOVA or ZINB can be used to generate a heatmap that
 simultaneously clusters the significant genes and clusters the conditions,
@@ -1848,7 +1915,7 @@ and relies on the 'gplots' R package.
 See :ref:`Installation Instructions <install-zinb>`.
 
 Usage:
-~~~~~~
+------
 
 ::
 

@@ -834,7 +834,7 @@ class GIMethod(base.QuadConditionMethod):
             adjusted_label = "BFDR"
 
         elif self.signif=="FWER":
-            fwer = FWER_Bayes(sortedprobs)
+            fwer = stat_tools.FWER_Bayes(sortedprobs)
             #fwer.sort() # should not need this if monotonic
             adjusted_prob = fwer
             adjusted_label = "FWER"
