@@ -154,6 +154,8 @@ class CorrplotMethod(base.SingleConditionMethod):
         genenames = ["%s/%s" % (w[0],w[1]) for w in data]
         hash = {}
         headers = [h.replace("Mean_","") for h in headers]
+        headers = [h.replace("-",".") for h in headers] # because of R conversion
+        headers = ["X"+x if x[0].isdigit() else x for x in headers] # because R prepends 'X' to column names starting with a digit
         for i,col in enumerate(headers): hash[col] = FloatVector([x[i] for x in means])
         df = DataFrame(hash) # can't figure out how to set rownames
 
