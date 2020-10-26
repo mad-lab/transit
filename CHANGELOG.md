@@ -1,6 +1,16 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+## Version 3.2.0 2020-10-26
+#### TRANSIT:
+ - improvements to pathway_enrichment analysis
+  - added '--ranking' flag for GSEA to sort genes based on LFC or SLPV
+  - implemented Ontologizer method (-M ONT), which works better for GO terms
+  - updated auxilliary files in transit data directory for different systems of functional categories (COG, Sanger, GO)
+ - added '-signif' flag to GI (Genetic Interaction analysis) (options: HDI, prob, BFDR, FWER)
+  - updated description of methods for determining significant interactions in documentation
+ - various improvements to other methods, including corrplot and heatmap
+
 ## Version 3.1.0 2020-03-08
 #### TRANSIT:
  - added 'corrplot' and 'heatmap' commands
