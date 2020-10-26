@@ -1919,10 +1919,16 @@ Usage:
 
 ::
 
-  python3 src/transit.py heatmap <anova_or_zinb_output> <heatmap.png> -anova|-zinb 
+  python3 src/transit.py heatmap <anova_or_zinb_output> <heatmap.png> -anova|-zinb [-topk <int>] [-qval <float]
 
-Note that the *first* argument is required to be either '-anova' or '-zinb', a flag to
+Note that the first optional argument (flag) is required to be either '-anova' or '-zinb', a flag to
 indicate the type of file being provided as the second argument.
+
+By default, genes are selected for the heatmap based on qval<0.05.
+However, the user may change the selection of genes through 2 flags:
+
+ * **-qval <float>**: change qval threshold for selecting genes (default=0.05)
+ * **-topk <int>**: select top k genes ranked by significance (qval)
 
 Here is an example which generates the following image showing the similarities among
 several different growth conditions:

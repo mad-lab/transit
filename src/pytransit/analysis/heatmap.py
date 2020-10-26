@@ -110,34 +110,43 @@ class HeatmapMethod(base.SingleConditionMethod):
         else: print(self.usage_string()); sys.exit(-1)
         self.infile = args[0]
         self.outfile = args[1]
+        self.qval = float(kwargs.get("qval",0.05))
+        self.topk = int(kwargs.get("topk",-1))
         return self(self.infile,outfile=self.outfile)
 
     def Run(self):
 
-        # assume first non-comment line is header; samples are 
+        if self.filetype!="anova" and self.filetype!="zinb":
+          print("filetype not recognized: %s" % self.filetype); sys.exit(-1)
+        
         headers = None
-        data,LFCs = [],[]
+        data,hits = [],[]
+        n = -1 # number of conditions
 
-        if self.filetype=="anova" or self.filetype=="zinb":
-          n = -1 # number of conditions
-          for line in open(self.infile):
-            w = line.rstrip().split('\t')
-            if line[0]=='#' or ('pval' in line and 'padj' in line): # check for 'pval' for backwards compatibility
-              headers = w; continue # keep last comment line as headers
-            if n==-1: 
-              # ANOVA header line has names of conditions, organized as 3+2*n+3 (2 groups (means, LFCs) X n conditions)
-              # ZINB header line has names of conditions, organized as 3+4*n+3 (4 groups X n conditions)
-              if self.filetype=="anova": n = int((len(w)-6)/2) 
-              elif self.filetype=="zinb": n = int((len(headers)-6)/4) 
-              headers = headers[3:3+n]
-              headers = [x.replace("Mean_","") for x in headers]
+        for line in open(self.infile):
+          w = line.rstrip().split('\t')
+          if line[0]=='#' or ('pval' in line and 'padj' in line): # check for 'pval' for backwards compatibility
+            headers = w; continue # keep last comment line as headers
+          # assume first non-comment line is header
+          if n==-1: 
+            # ANOVA header line has names of conditions, organized as 3+2*n+3 (2 groups (means, LFCs) X n conditions)
+            # ZINB header line has names of conditions, organized as 3+4*n+3 (4 groups X n conditions)
+            if self.filetype=="anova": n = int((len(w)-6)/2) 
+            elif self.filetype=="zinb": n = int((len(headers)-6)/4) 
+            headers = headers[3:3+n]
+            headers = [x.replace("Mean_","") for x in headers]
+          else:
             lfcs = [float(x) for x in w[3+n:3+n+n]] # take just the columns of means
             qval = float(w[-2])
-            if qval<0.05: data.append(w); LFCs.append(lfcs)
-        else: print("filetype not recognized: %s" % self.filetype); sys.exit(-1)
-        print("heatmap based on %s genes" % len(LFCs))
+            data.append((w,lfcs,qval))
 
-        genenames = ["%s/%s" % (w[0],w[1]) for w in data]
+        data.sort(key=lambda x: x[-1])
+        hits,LFCs = [],[]
+        for k,(w,lfcs,qval) in enumerate(data):
+          if (self.topk==-1 and qval<self.qval) or (self.topk!=-1 and k<self.topk): hits.append(w); LFCs.append(lfcs)
+
+        print("heatmap based on %s genes" % len(hits))
+        genenames = ["%s/%s" % (w[0],w[1]) for w in hits]
         hash = {}
         headers = [h.replace("Mean_","") for h in headers]
         for i,col in enumerate(headers): hash[col] = FloatVector([x[i] for x in LFCs])
@@ -168,8 +177,7 @@ dev.off()
 
     @classmethod
     def usage_string(self):
-        return "usage: python3 %s heatmap <anova_or_zinb_output> <heatmap.png> -anova|-zinb" % sys.argv[0]
-        # could add a flag for padj cutoff (or top n most signif genes)
+        return "usage: python3 %s heatmap <anova_or_zinb_output> <heatmap.png> -anova|-zinb [-topk <int>] [-qval <float>]\n note: genes are selected based on qval<0.05 by default" % sys.argv[0]
 
 
 if __name__ == "__main__":
