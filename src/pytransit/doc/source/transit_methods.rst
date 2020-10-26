@@ -846,7 +846,7 @@ If a gene IS significant, then its interaction will be cateogrized in 3 types (s
  * **Suppressive** - mean_delta_LFC is positive, and the gene was not conditionally essential in strain A (flat slope), but becomes conditionally non-essential in strain B when treated (positive slope)
  * **Alleviating** - mean_delta_LFC is positive, but the conditional requirement (negative slope) of the gene in strain A with treatment is "cancelled" by the modification in strain B
 
-**show slide**
+.. image:: _images/genetic_interaction_types.png
 
 A limitation of this HDI approach is that it is discrete (i.e. overlap is either True or False), but does not provide a quantitative metric
 for the degree of overlap.  Thus a second method for assessing significance of genetic interactions is to compute
