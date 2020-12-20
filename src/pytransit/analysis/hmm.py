@@ -129,18 +129,18 @@ class HMMGUI(base.AnalysisGUI):
         hmmSizer1 = wx.BoxSizer( wx.VERTICAL )
 
         #(, , Sizer) = self.defineChoiceBox(hmmPanel, u"", hmmNormChoiceChoices, "")
-        #hmmSizer1.Add(Sizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        #hmmSizer1.Add(Sizer, 1, wx.EXPAND, 5 )
 
         # NORMALIZATION
         hmmNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
         (hmmNormLabel, self.wxobj.hmmNormChoice, normSizer) = self.defineChoiceBox(hmmPanel, u"Normalization:", hmmNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods.")
-        hmmSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        hmmSizer1.Add(normSizer, 1, wx.EXPAND, 5 )
 
 
         # REPLICATE
         hmmRepChoiceChoices = [ u"Sum", u"Mean" ]
         (hmmRepLabel, self.wxobj.hmmRepChoice, repSizer) = self.defineChoiceBox(hmmPanel, u"Replicates:", hmmRepChoiceChoices, "Determines how to handle replicates, and their read-counts. When using many replicates, using 'Mean' may be recommended over 'Sum'")
-        hmmSizer1.Add(repSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        hmmSizer1.Add(repSizer, 1, wx.EXPAND, 5 )
 
 
         # LOESS

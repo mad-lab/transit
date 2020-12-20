@@ -107,12 +107,12 @@ class UTestGUI(base.AnalysisGUI):
         mainSizer1 = wx.BoxSizer( wx.VERTICAL )
 
         #(, , Sizer) = self.defineChoiceBox(utestPanel, u"", u"", "")
-        #mainSizer1.Add(Sizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        #mainSizer1.Add(Sizer, 1, wx.EXPAND, 5 )
 
         # Norm
         utestNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
         (utestNormLabel, self.wxobj.utestNormChoice, normSizer) = self.defineChoiceBox(utestPanel, u"Normalization:", utestNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods. ")
-        mainSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(normSizer, 1, wx.EXPAND, 5 )
 
 
         utestSizer.Add( mainSizer1, 1, wx.EXPAND, 5 )

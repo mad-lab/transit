@@ -80,14 +80,14 @@ class RankProductGUI(base.AnalysisGUI):
         
         # SAMPLES
         (rankproductSampleLabel, self.wxobj.rankproductSampleText, sampleSizer) = self.defineTextBox(rankproductPanel, u"Samples:", u"10000", "Number of samples to take when estimating the theoretical rankproduct distribution. Larger samples give more accurate estimates at the cost of computation time.")
-        mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(sampleSizer, 1, wx.EXPAND, 5 )
 
     
         # NORMALIZATION
         # Norm 
         rankproductNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
         (rankproductNormLabel, self.wxobj.rankproductNormChoice, normSizer) = self.defineChoiceBox(rankproductPanel, u"Normalization:", rankproductNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods. ") 
-        mainSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(normSizer, 1, wx.EXPAND, 5 )
 
         rankproductSizer.Add( mainSizer1, 1, wx.EXPAND, 5 )
 

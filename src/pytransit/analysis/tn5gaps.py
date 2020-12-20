@@ -93,13 +93,13 @@ class Tn5GapsGUI(base.AnalysisGUI):
         # Min Read
         tn5GapsReadChoiceChoices = [ u"1", u"2", u"3", u"4", u"5" ]
         (tn5GapsReadLabel, self.wxobj.tn5GapsReadChoice, readSizer) = self.defineChoiceBox(tn5GapsPanel, u"Minimum Read:", tn5GapsReadChoiceChoices, "This is the minimum number of reads to consider a 'true' insertion. Value of 1 will consider all insertions. Larger values allow the method to ignore spurious insertions which might interrupt a run of non-insertions. Noisy datasets or those with many replicates can beneffit from increasing this.")
-        mainSizer1.Add(readSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(readSizer, 1, wx.EXPAND, 5 )
    
 
         # Replicates
         tn5GapsRepChoiceChoices = [ u"Sum", u"Mean" ]
         (tn5GapsRepLabel, self.wxobj.tn5GapsRepChoice, repSizer) = self.defineChoiceBox(tn5GapsPanel, u"Replicates:", tn5GapsRepChoiceChoices, "Determines how to handle replicates, and their read-counts. When using many replicates, summing read-counts may make spurious counts appear to be significantly large and interrupt a run of non-insertions.")
-        mainSizer1.Add(repSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(repSizer, 1, wx.EXPAND, 5 )
 
 
         tn5GapsSection.Add( mainSizer1, 1, wx.EXPAND, 5 )

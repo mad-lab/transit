@@ -119,21 +119,21 @@ class ResamplingGUI(base.AnalysisGUI):
         mainSizer1 = wx.BoxSizer( wx.VERTICAL )
 
         #(, , Sizer) = self.defineChoiceBox(resamplingPanel, u"", u"", "")
-        #mainSizer1.Add(Sizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        #mainSizer1.Add(Sizer, 1, wx.EXPAND, 5 )
 
         # Samples
         (resamplingSampleLabel, self.wxobj.resamplingSampleText, sampleSizer) = self.defineTextBox(resamplingPanel, u"Samples:", u"10000", "Number of samples to take when estimating the resampling histogram. More samples give more accurate estimates of the p-values at the cost of computation time.")
-        mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(sampleSizer, 1, wx.EXPAND, 5 )
 
         # Pseudocount - changing the semantics on 3/5/20
         #(resamplingPseudocountLabel, self.wxobj.resamplingPseudocountText, pseudoSizer) = self.defineTextBox(resamplingPanel, u"Pseudocount:", u"0.0", "Adds pseudo-counts to the each data-point. Useful to dampen the effects of small counts which may lead to deceptively high log-FC.")
         (resamplingPseudocountLabel, self.wxobj.resamplingPseudocountText, pseudoSizer) = self.defineTextBox(resamplingPanel, u"Pseudocount:", u"0.0", "Pseudo-counts used in calculating log-fold-chnage. Useful to dampen the effects of small counts which may lead to deceptively high LFC.")
-        mainSizer1.Add(pseudoSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(pseudoSizer, 1, wx.EXPAND, 5 )
 
         # Norm
         resamplingNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
         (resamplingNormLabel, self.wxobj.resamplingNormChoice, normSizer) = self.defineChoiceBox(resamplingPanel, u"Normalization: ", resamplingNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods. ")
-        mainSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(normSizer, 1, wx.EXPAND, 5 )
 
 
 
