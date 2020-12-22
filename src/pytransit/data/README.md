@@ -20,10 +20,11 @@ These files can be used for pathway_enrichment analysis.
 +----------+---------+--------------------+--------------------------------------+--------------------------------+
 ```
 
-These file are to be used as inputs for the transit pathway_enrichment command (see the documentation:
-https://transit.readthedocs.io/en/latest/transit_methods.html#pathway-enrichment-analysis)
+These file are to be used as inputs for the transit pathway_enrichment 
+command (see the [documentation](https://transit.readthedocs.io/en/latest/transit_methods.html#pathway-enrichment-analysis)).
 
-A file with GO terms for Mycobacterim smegmatis is also included: smeg_GO_terms.txt.
+
+A file with GO terms for Mycobacterium smegmatis is also included: smeg_GO_terms.txt.
 
 
 
@@ -31,8 +32,7 @@ Test files for resampling
 -------------------------
 
 These wig files are from the 
-[Griffin et al (2011) paper in PLOS Pathogens]
-(http://www.ncbi.nlm.nih.gov/pubmed/21980284>).
+[Griffin et al (2011) paper in PLOS Pathogens](http://www.ncbi.nlm.nih.gov/pubmed/21980284).
 on M. tuberculosis genes required for growth on glycerol.
 
  * glycerol_H37Rv_rep1.wig, glycerol_H37Rv_rep2.wig, glycerol_H37Rv_rep3.wig
