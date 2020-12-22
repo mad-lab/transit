@@ -1,6 +1,13 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+
+## Version 3.2.1 2020-12-22
+#### TRANSIT:
+ - maintenance release
+  - fixed a bug in the GUI caused by changes in wxPython 4.1.0
+  - added GO terms for M. smegmatis in the data directory for doing pathway analysis
+
 ## Version 3.2.0 2020-10-26
 #### TRANSIT:
  - improvements to pathway_enrichment analysis
