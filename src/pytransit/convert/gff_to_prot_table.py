@@ -143,7 +143,7 @@ class GffProtMethod(base.ConvertMethod):
 
         for i, line in enumerate(lines):
             line = line.strip()
-            if line.startswith('#'): continue
+            if len(line)==0 or line.startswith('#'): continue
             cols = line.split('\t')
             if (len(cols) < 9): 
                 sys.stderr.write(("Ignoring invalid row with entries: {0}\n".format(cols)))
@@ -160,6 +160,7 @@ class GffProtMethod(base.ConvertMethod):
                     labels[k.strip()] = v.strip()
                 Rv = labels["locus_tag"].strip() # error out if not found
                 gene = labels.get('gene', '') # or Name?
+                if gene=="": gene = '-'
                 desc = labels.get('product', '') 
                 vals = [desc, start, end, strand, size, '-', '-', gene, Rv, '-']
                 writer.writerow(vals)
