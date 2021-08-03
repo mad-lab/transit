@@ -160,11 +160,14 @@ Optional parameters:
 
   # assume these are listed as pairs (tab-sep)
   # return bidirectional hash (genes->[terms], terms->[genes]; each can be one-to-many, hence lists)
-  def read_associations(self,filename):
+  # filter could be a subset of genes we want to focus on (throw out the rest)
+
+  def read_associations(self,filename,filter=None):
     associations = {}
     for line in open(filename):
       if line[0]=='#': continue
       w = line.rstrip().split('\t')
+      if filter!=None and w[0] not in filter: continue # skip genes in association file that are not relevant (i.e. not in resampling file)
       # store mappings in both directions
       for (a,b) in [(w[0],w[1]),(w[1],w[0])]:
         if a not in associations: associations[a] = []
@@ -218,8 +221,11 @@ Optional parameters:
     
   def GSEA(self):
     data,hits,headers = self.read_resampling_file(self.resamplingFile) # hits are not used in GSEA()
+    orfs_in_resampling_file = [w[0] for w in data]
     headers = headers[-1].rstrip().split('\t')
-    associations = self.read_associations(self.associationsFile)
+    associations = self.read_associations(self.associationsFile,filter=orfs_in_resampling_file) # bidirectional map; includes term->genelist and gene->termlist
+    # filter: project associations (of orfs to pathways) onto only those orfs appearing in the resampling file
+
     ontology = self.read_pathways(self.pathwaysFile)
     genenames = {}
     for gene in data: genenames[gene[0]] = gene[1]
@@ -235,14 +241,18 @@ Optional parameters:
     # rank by SLPV=sign(LFC)*log10(pval)
     # note: genes with lowest p-val AND negative LFC have highest scores (like positive correlation)
     # there could be lots of ties with pval=0 or 1, but that's OK
-    LFC_col = headers.index("log2FC")
-    Pval_col = headers.index("p-value")
     pairs = [] # pair are: rv and score (SLPV)
     for w in data:
-      orf,LFC,Pval = w[0],float(w[LFC_col]),float(w[Pval_col])
-      SLPV = (-1 if LFC<0 else 1)*math.log(Pval+0.000001,10)
-      if self.ranking=="SLPV": pairs.append((orf,SLPV))
-      elif self.ranking=="LFC": pairs.append((orf,LFC))
+      orf = w[0]
+      if self.ranking=="SLPV": 
+        Pval_col = headers.index("p-value")
+        Pval = float(w[Pval_col])
+        SLPV = (-1 if LFC<0 else 1)*math.log(Pval+0.000001,10)
+        pairs.append((orf,SLPV))
+      elif self.ranking=="LFC": 
+        LFC_col = headers.index("log2FC")
+        LFC = float(w[LFC_col])
+        pairs.append((orf,LFC))
 
     # pre-randomize ORFs, to avoid genome-position bias in case of ties in pvals (e.g. 1.0)
     indexes = range(len(pairs))
@@ -260,16 +270,17 @@ Optional parameters:
     for i,term in enumerate(terms):
       sys.stdout.flush()
       orfs = terms2orfs.get(term,[])
-      if len(orfs)<=1: continue
+      num_genes_in_pathway = len(orfs)
+      if num_genes_in_pathway<=1: continue # skip pathways with less than 2 genes
       mr = self.mean_rank(orfs,orfs2rank)
       es = self.enrichment_score(orfs,orfs2rank,orfs2score,p=self.p) # always positive, even if negative deviation, since I take abs
       higher = 0
       for n in range(Nperm):
-        perm = random.sample(allgenes,len(orfs)) # compare to ES for random sets of genes of same size
+        perm = random.sample(allgenes,num_genes_in_pathway) # compare to enrichment score for random sets of genes of same size
         if self.enrichment_score(perm,orfs2rank,orfs2score,p=self.p)>es: higher += 1
         if n>100 and higher>10: break # adaptive
       pval = higher/float(n)
-      vals = ['#',term,len(orfs),mr,es,pval,ontology.get(term,"?")]
+      vals = ['#',term,num_genes_in_pathway,mr,es,pval,ontology.get(term,"?")]
       #sys.stderr.write(' '.join([str(x) for x in vals])+'\n')
       pctg=(100.0*i)/Total
       text = "Running Pathway Enrichment Method... %5.1f%%" % (pctg)
