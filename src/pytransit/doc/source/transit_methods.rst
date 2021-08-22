@@ -221,7 +221,7 @@ AK. (2009). `Simultaneous assay of every Salmonella Typhi gene using one million
 transposon mutants. <http://www.ncbi.nlm.nih.gov/pubmed/19826075>`_ *Genome Res.* , 19(12):2308-16.
 
 This data was downloaded from SRA (located `here <http://trace.ncbi.nlm.nih.gov/Traces/sra/?study=ERP000051>`_) , and used to make
-wig files (`base <http://orca1.tamu.edu/essentiality/transit/data/salmonella_base.wig>`_ and `bile <http://orca1.tamu.edu/essentiality/transit/data/salmonella_bile.wig>`_) and the following 4 baseline datasets
+wig files (`baseline <http://orca1.tamu.edu/essentiality/transit/data/salmonella_baseline.wig>`_ and `bile <http://orca1.tamu.edu/essentiality/transit/data/salmonella_bile.wig>`_) and the following 4 baseline datasets
 were merged to make a wig file: (IL2_2122_1,3,6,8). Our analysis
 produced 415 genes with adjusted p-values less than 0.05, indicating
 essentiality, and the analysis from the above paper produced 356
