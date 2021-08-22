@@ -271,14 +271,15 @@ Optional parameters:
       sys.stdout.flush()
       orfs = terms2orfs.get(term,[])
       num_genes_in_pathway = len(orfs)
-      if num_genes_in_pathway<=1: continue # skip pathways with less than 2 genes
+      if num_genes_in_pathway<2: continue # skip pathways with less than 2 genes
       mr = self.mean_rank(orfs,orfs2rank)
       es = self.enrichment_score(orfs,orfs2rank,orfs2score,p=self.p) # always positive, even if negative deviation, since I take abs
       higher = 0
       for n in range(Nperm):
         perm = random.sample(allgenes,num_genes_in_pathway) # compare to enrichment score for random sets of genes of same size
-        if self.enrichment_score(perm,orfs2rank,orfs2score,p=self.p)>es: higher += 1
-        if n>100 and higher>10: break # adaptive
+        e2 = self.enrichment_score(perm,orfs2rank,orfs2score,p=self.p)
+        if e2>es: higher += 1
+        if n>100 and higher>10: break # adaptive: can stop after seeing 10 events (permutations with higher ES)
       pval = higher/float(n)
       vals = ['#',term,num_genes_in_pathway,mr,es,pval,ontology.get(term,"?")]
       #sys.stderr.write(' '.join([str(x) for x in vals])+'\n')
@@ -287,7 +288,7 @@ Optional parameters:
       self.progress_update(text, i)      
       results.append((term,mr,es,pval))
     
-    results.sort(key=lambda x: x[1])
+    results.sort(key=lambda x: x[1]) # sort on mean rank
     pvals = [x[-1] for x in results]
     rej,qvals = multitest.fdrcorrection(pvals)
     results = [tuple(list(res)+[q]) for res,q in zip(results,qvals)]
