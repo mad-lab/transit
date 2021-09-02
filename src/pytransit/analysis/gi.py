@@ -824,7 +824,7 @@ class GIMethod(base.QuadConditionMethod):
         data.sort(key=lambda x: x[probcol]) 
         sortedprobs = numpy.array([x[probcol] for x in data]) 
 
-        # BFDR method: Newton M.A., Noueiry A., Sarkar D., Ahlquist P. (2004). Detecting differential gene expression with a semiparametric hierarchical mixture method. Biostatistics, 5:155–176.
+        # BFDR method: Newton et al (2004). Detecting differential gene expression with a semiparametric hierarchical mixture method.  Biostatistics, 5:155-176.
 
         if self.signif=="BFDR":
             sortedprobs = numpy.array(sortedprobs) 

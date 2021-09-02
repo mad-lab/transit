@@ -48,7 +48,7 @@ class ZinbMethod(base.MultiConditionMethod):
     """
     Zinb
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0, condition="Condition", covars=[], interactions = [], PC=1):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0, condition="Condition", covars=[], interactions = [], PC=1, refs=[]):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file,
                 normalization=normalization, ignored_conditions=ignored_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
         self.winz = winz
@@ -56,6 +56,7 @@ class ZinbMethod(base.MultiConditionMethod):
         self.interactions = interactions
         self.condition = condition
         self.PC = PC
+        self.refs = refs
 
     @classmethod
     def transit_error(self,msg): print("error: %s" % msg) # for some reason, transit_error() in base class or transit_tools doesn't work right; needs @classmethod
@@ -92,19 +93,21 @@ class ZinbMethod(base.MultiConditionMethod):
         condition = kwargs.get("-condition", "Condition")
         covars = list(filter(None, kwargs.get("-covars", "").split(",")))
         interactions = list(filter(None, kwargs.get("-interactions", "").split(",")))
+        refs = kwargs.get("-ref",[]) # list of condition names to use a reference for calculating LFCs
+        if refs!=[]: refs = refs.split(',')
         winz = True if "w" in kwargs else False
         ignored_conditions = list(filter(None, kwargs.get("-ignore-conditions", "").split(",")))
         included_conditions = list(filter(None, kwargs.get("-include-conditions", "").split(",")))
 
         # check for unrecognized flags
-        flags = "-n --ignore-conditions --include-conditions -iN -iC -PC --condition --covars --interactions --gene".split()
+        flags = "-n --ignore-conditions --include-conditions -iN -iC -PC --condition --covars --interactions --gene --ref".split()
         for arg in rawargs:
           if arg[0]=='-' and arg not in flags:
             self.transit_error("flag unrecognized: %s" % arg)
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, NTerminus, CTerminus, condition, covars, interactions, PC)
+        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, NTerminus, CTerminus, condition, covars, interactions, PC, refs)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -615,9 +618,10 @@ class ZinbMethod(base.MultiConditionMethod):
             Rv = gene["rv"]
             means = [statsByRv[Rv]['mean'][group] for group in orderedStatGroupNames]
             PC = self.PC
-            if len(means)==2: LFCs = [numpy.math.log((means[1]+PC)/(means[0]+PC),2)]
+            if len(means)==2: LFCs = [numpy.math.log((means[1]+PC)/(means[0]+PC),2)] # still need to adapt this to use --ref if defined
             else: 
-              m = numpy.mean(means)
+              if len(self.refs)==0: m = numpy.mean(means) # grand mean across all conditions
+              else: m = numpy.mean([statsByRv[Rv]['mean'][group] for group in self.refs]) ###TRI
               LFCs = [numpy.math.log((x+PC)/(m+PC),2) for x in means]
             vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
                     ["%0.1f" % statsByRv[Rv]['mean'][group] for group in orderedStatGroupNames] +
@@ -638,6 +642,7 @@ class ZinbMethod(base.MultiConditionMethod):
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis.
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
+        --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if multiple conditions)
         -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 5
         -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 5
         -PC <N>         := pseudocounts to use for calculating LFCs. Default: -PC 5

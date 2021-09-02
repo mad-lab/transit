@@ -34,10 +34,11 @@ class AnovaMethod(base.MultiConditionMethod):
     """
     anova
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], nterm=0.0, cterm=0.0, PC=1):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], nterm=0.0, cterm=0.0, PC=1, refs=[]):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file,
                 normalization=normalization, ignored_conditions=ignored_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
         self.PC = PC
+        self.refs = refs
 
     @classmethod
     def transit_error(self,msg): print("error: %s" % msg) # for some reason, transit_error() in base class or transit_tools doesn't work right; needs @classmethod
@@ -58,18 +59,20 @@ class AnovaMethod(base.MultiConditionMethod):
         NTerminus = float(kwargs.get("iN", 0.0))
         CTerminus = float(kwargs.get("iC", 0.0))
         PC = int(kwargs.get("PC", 5))
+        refs = kwargs.get("-ref",[]) # list of condition names to use a reference for calculating LFCs
+        if refs!=[]: refs = refs.split(',')
         ignored_conditions = list(filter(None, kwargs.get("-ignore-conditions", "").split(",")))
         included_conditions = list(filter(None, kwargs.get("-include-conditions", "").split(",")))
 
         # check for unrecognized flags
-        flags = "-n --ignore-conditions --include-conditions -iN -iC -PC".split()
+        flags = "-n --ignore-conditions --include-conditions -iN -iC -PC --ref".split()
         for arg in rawargs:
           if arg[0]=='-' and arg not in flags:
             self.transit_error("flag unrecognized: %s" % arg)
             print(AnovaMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, NTerminus, CTerminus, PC)
+        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, NTerminus, CTerminus, PC, refs)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -171,8 +174,9 @@ class AnovaMethod(base.MultiConditionMethod):
             p[rv],q[rv],statusMap[rv] = pvals[i],qvals[i],status[i]
         return (p, q, statusMap)
 
-    def calcLFCs(self,means,PC=1):
-      grandmean = numpy.mean(means)
+    def calcLFCs(self,means,refs=[],PC=1):
+      if len(refs)==0: refs = means # if ref condition(s) not explicitly defined, use mean of all
+      grandmean = numpy.mean(refs)
       lfcs = [math.log((x+PC)/float(grandmean+PC),2) for x in means]
       return lfcs
 
@@ -217,7 +221,8 @@ class AnovaMethod(base.MultiConditionMethod):
             Rv = gene["rv"]
             if Rv in MeansByRv:
               means = [MeansByRv[Rv][c] for c in conditionsList]
-              LFCs = self.calcLFCs(means,self.PC)
+              refs = [MeansByRv[Rv][c] for c in self.refs]
+              LFCs = self.calcLFCs(means,refs,self.PC)
               vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
                       ["%0.2f" % x for x in means] + 
                       ["%0.3f" % x for x in LFCs] + 
@@ -234,6 +239,7 @@ class AnovaMethod(base.MultiConditionMethod):
   -n <string>         :=  Normalization method. Default: -n TTR
   --include-conditions <cond1,...> := Comma-separated list of conditions to use for analysis (Default: all)
   --ignore-conditions <cond1,...> := Comma-separated list of conditions to ignore (Default: none)
+  --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if multiple conditions)
   -iN <N> :=  Ignore TAs within given percentage (e.g. 5) of N terminus. Default: -iN 0
   -iC <N> :=  Ignore TAs within given percentage (e.g. 5) of C terminus. Default: -iC 0
   -PC <N> := pseudocounts to use for calculating LFC. Default: -PC 5"""
