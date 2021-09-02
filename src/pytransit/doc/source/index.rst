@@ -8,7 +8,13 @@ Welcome to TRANSIT's documentation!
     :target: https://github.com/mad-lab/transit
     :alt: GitHub last tag
 
-This page contains the documentation for TRANSIT. Below are a few quick links to some of the most important sections of the documentation, followed by a brief overview of TRANSIT's features.
+Transit is python-based software for analyzing TnSeq data
+(sequencing data from transposon mutant libraries)
+to determine essentiality of bacterial genes under different conditions.
+
+This page contains the documentation for TRANSIT. Below are a few
+quick links to some of the most important sections of the
+documentation, followed by a brief overview of TRANSIT's features.
 
 Quick Links
 ~~~~~~~~~~~
@@ -20,7 +26,7 @@ Quick Links
 * :ref:`tutorial-link`
 * :ref:`tpp-link`
 * :ref:`code-link`
-
+* `PDF manual with overview of analysis methods in Transit <https://orca1.tamu.edu/essentiality/transit/transit-manual.pdf>`_
 
 Features
 ~~~~~~~~
@@ -57,8 +63,8 @@ TRANSIT offers a variety of features including:
 .. _manual-link:
 
 .. toctree::
-   :maxdepth: 2
-   :caption: TRANSIT Manual
+   :maxdepth: 3
+   :caption: TRANSIT MANUAL
 
    transit_overview
    transit_install
@@ -70,7 +76,7 @@ TRANSIT offers a variety of features including:
 .. _tutorial-link:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: TRANSIT Tutorials
 
    transit_essentiality_tutorial
@@ -83,7 +89,7 @@ TRANSIT offers a variety of features including:
 .. _tpp-link:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: TPP Manual
 
    tpp.rst
@@ -91,7 +97,7 @@ TRANSIT offers a variety of features including:
 .. _code-link:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Code Documentation
 
    transit

@@ -2,12 +2,16 @@
 .. _`analysis_methods`:
 
 ==================
- Analysis Methods
+ Analysis Methods (Expand Me First!)
 ==================
 
 
-TRANSIT has analysis methods capable of analyzing **Himar1** and **Tn5** datasets.
-Below is a description of some of the methods.
+TRANSIT has analysis methods capable of analyzing **Himar1** and
+**Tn5** datasets.  Below is a description of some of the methods.  
+
+The analysis methods in Transit are also described in this `PDF manual
+<https://orca1.tamu.edu/essentiality/transit/transit-manual.pdf>`_ .
+
 
 |
 
@@ -530,7 +534,7 @@ parameters are available for the method:
    calculated will have, at the expense of longer computation time. The
    resampling method runs on 10,000 samples by default.
 
--  **Output Histograms:**\ Determines whether to output .png images of
+-  **Output Histograms:** Determines whether to output .png images of
    the histograms obtained from resampling the difference in
    read-counts.
 
@@ -552,7 +556,7 @@ parameters are available for the method:
    as real differences. See the :ref:`Normalization <normalization>` section for a description
    of normalization method available in TRANSIT.
 
--  **--ctrl_lib, --exp_lib:** These are for doing resampling with datasets from multiple libraries, see below.
+-  **\-\-ctrl_lib, \-\-exp_lib:** These are for doing resampling with datasets from multiple libraries, see below.
 
 -  **-iN, -iC:** Trimming of TA sites near N- and C-terminus.
    The default for trimming TA sites in the termini of ORFs is 0.
@@ -1051,6 +1055,7 @@ Example
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,...> :=  Comma separated list of conditions to ignore, for the analysis. Default: None
         --include-conditions <cond1,...> :=  Comma separated list of conditions to include, for the analysis. Default: All
+        --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if multiple conditions)
         -iN <float> :=  Ignore TAs occurring within given percentage (as integer) of the N terminus. Default: -iN 0
         -iC <float> :=  Ignore TAs occurring within given percentage (as integer) of the C terminus. Default: -iC 0
         -PC         := Pseudocounts to use in calculating LFCs. Default: -PC 5
@@ -1083,18 +1088,30 @@ The filenames should match what is shown in the header of the combined_wig (incl
 Parameters
 ----------
 
-The following parameters are available for the method:
+The following parameters are available for the ANOVA method:
 
--  **Ignore Conditions, Include Conditions:** Can use this to drop
-   conditions not of interest or specify a particular subset of conditions to use for ANOVA analysis.
+-  **\-\-include-conditions:** Includes the given set of conditions from the ZINB test. Conditions not in this list are ignored. Note: this is useful for specifying the order in which the columns are listed in the output file.
 
--  **Normalization Method:** Determines which normalization method to
+-  **\-\-ignore-conditions:** Can use this to drop conditions not of interest.
+
+-  **\-\-ref:** Specify which condition to use as a reference for computing LFCs.
+   By default, LFCs for each gene in each condition are calculated with respect
+   to the *grand mean* count across all conditions (so conditions with higher counts will be balanced
+   with conditions with lower counts).  However, if there is a defined reference condition
+   in the data, it may be specified using **\-\-ref** (in which case LFCs for that condition will
+   be around 0, and will be positive or negative for the other conditions, depending on whether
+   counts are higher or lower than the reference condintion.  If there is more than one
+   condition to use as reference (i.e. pooled), they may be given as a comma-separated list.
+
+-  **-n** Normalization Method. Determines which normalization method to
    use when comparing datasets. Proper normalization is important as it
    ensures that other sources of variability are not mistakenly treated
    as real differences. See the :ref:`Normalization <normalization>` section for a description
    of normalization method available in TRANSIT.
 
 -  **-PC** Pseudocounts to use in calculating LFCs (see below). Default: -PC 5
+
+
 
 Output and Diagnostics
 ----------------------
@@ -1203,6 +1220,7 @@ Example
         -n <string>         :=  Normalization method. Default: -n TTR
         --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis. Default: None
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Default: All
+        --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if more than one)
         -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5
         -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5
         -PC <N>         :=  Pseudocounts used in calculating LFCs in output file. Default: -PC 5
@@ -1265,8 +1283,9 @@ Parameters
 
 The following parameters are available for the method:
 
--  **Ignore Conditions:** Ignores the given set of conditions from the ZINB test.
--  **Include Conditions:** Includes the given set of conditions from the ZINB test. Conditions not in this list are ignored.
+-  **\-\-include-conditions:** Includes the given set of conditions from the ZINB test. Conditions not in this list are ignored. Note: this is useful for specifying the order in which the columns are listed in the output file.
+-  **\-\-ignore-conditions:** Ignores the given set of conditions from the ZINB test.
+-  **\-\-ref:** which condition to use as a reference when computing LFCs in the output file
 -  **Normalization Method:** Determines which normalization method to
    use when comparing datasets. Proper normalization is important as it
    ensures that other sources of variability are not mistakenly treated
@@ -1296,7 +1315,7 @@ strains (think: different 'slopes'). In such a case, we would say strain and tim
 
 If covariates distinguishing the samples are available,
 such as batch or library, they may be
-incorporated in the ZINB model by using the **\\-\\-covars** flag and samples
+incorporated in the ZINB model by using the **\-\-covars** flag and samples
 metadata file. For example, consider the following samples metadata
 file, with a column describing the batch information of each
 replicate.
@@ -1311,7 +1330,7 @@ replicate.
   chol2   cholesterol  /Users/example_data/cholesterol_rep3.wig     B2
 
 This information can be included to eliminate variability due to batch by using
-the **\\-\\-covars** flag.
+the **\-\-covars** flag.
 
 ::
 
@@ -1319,7 +1338,7 @@ the **\\-\\-covars** flag.
 
 
 Similarly, an interaction variable may be included in the model.
-This is specified by the user with the **\\-\\-interactions** flag,
+This is specified by the user with the **\-\-interactions** flag,
 followed by the name of a column in the samples metadata to test as the interaction
 with the condition. If there are multiple interactions, they may be given as a comma-separated list.
 
@@ -1336,7 +1355,7 @@ differs depending on the strain, we could do this:
  
 In this case, the condition is implicitly assumed to be the column in the samples metadata file
 labeled 'Condition'.  If you want to specify a different column to use as the primary condition to 
-test (for example, if Treatment were a distinct column), you can use the **\\-\\-condition** flag:
+test (for example, if Treatment were a distinct column), you can use the **\-\-condition** flag:
 
 ::
 
@@ -1495,7 +1514,10 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 **LFCs** (log-fold-changes):
 For each condition, the LFC is calculated as the log-base-2 of the
 ratio of mean insertion count in that condition **relative to the 
-mean of means across all the conditions**.
+mean of means across all the conditions** (by default).
+However, you can change this by desginating a specific reference condition using the flag **\-\-ref**.
+(If there are multiple reference conditions, they may be given as a comma separated list.)
+(If you are using interactions, it is more complicated to specify a reference condition by name because they have to include the interactions, e.g. as shown in the column headers in the output file.)
 Pseudocount are incorporated to reduce the impact of noise on LFCs, based on the formula below.
 The pseudocounts can be adjusted using the -PC flag.
 Changing the pseudocounts (via -PC) can reduce the artifactual appearance of genes with
@@ -1723,7 +1745,26 @@ Parameters
 
     `Grossmann S, Bauer S, Robinson PN, Vingron M. Improved detection of overrepresentation of Gene-Ontology annotations with parent child analysis. Bioinformatics. 2007 Nov 15;23(22):3024-31. <https://www.ncbi.nlm.nih.gov/pubmed/17848398>`_
 
+  For the ONT method in pathway_enrichment, the enrichment for a given
+  GO term can be expressed (in a simplified way, leaving out the
+  pseudocounts) as:
 
+::
+
+  enrichment = log (  (b/q) / (m/p)  )
+|
+
+  where:
+
+*    b is the number of genes with this GO term in the subset of hits (e.g. conditional essentials from resampling, with qval<0.05)
+*    q is the number of genes in the subset of hits with a parent of this GO term
+*    m is the total number of genes with this GO term in the genome
+*    p is the number of genes in the genome with a parent of this GO term 
+
+  So enrichment is the log of the ratio of 2 ratios:
+
+  1. the relative abundance of genes with this GO term compared to those with a parent GO term   among the hits
+  2. the relative abundance of genes with this GO term compared to those with a parent GO term   in the whole genome
 
 
 Auxilliary Pathway Files in Transit Data Directory

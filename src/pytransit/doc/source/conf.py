@@ -34,7 +34,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
-    'sphinx.ext.mathbase',
+    #'sphinx.ext.mathbase',
     'sphinx.ext.mathjax',
 ]
 
@@ -143,6 +143,15 @@ html_theme = 'sphinx_rtd_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
+
+#html_theme_options = {
+#    'collapse_navigation': False,
+#    'sticky_navigation': True,
+#    'navigation_depth': 4,
+#    'includehidden': True,
+#    'titles_only': False
+#}
+
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -384,5 +393,6 @@ epub_exclude_files = ['search.html']
 # If false, no index is generated.
 #epub_use_index = True
 def setup(app):
-    app.add_stylesheet('css/default.css')
+    #app.add_stylesheet('css/default.css')
+    app.add_css_file('css/default.css')
 
