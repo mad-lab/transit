@@ -1960,7 +1960,7 @@ Usage:
 
 ::
 
-  python3 src/transit.py heatmap <anova_or_zinb_output> <heatmap.png> -anova|-zinb [-topk <int>] [-qval <float]
+  python3 src/transit.py heatmap <anova_or_zinb_output> <heatmap.png> -anova|-zinb [-topk <int>] [-qval <float] [-low_mean_filter <int>]
 
 Note that the first optional argument (flag) is required to be either '-anova' or '-zinb', a flag to
 indicate the type of file being provided as the second argument.
@@ -1970,6 +1970,7 @@ However, the user may change the selection of genes through 2 flags:
 
  * **-qval <float>**: change qval threshold for selecting genes (default=0.05)
  * **-topk <int>**: select top k genes ranked by significance (qval)
+ * **-low_mean_filter <int>**: filter out genes with grand mean count (across all conditions) below this threshold (even if qval<0.05); default is to exclude genes with mean count<5
 
 Here is an example which generates the following image showing the similarities among
 several different growth conditions:
@@ -1984,7 +1985,7 @@ several different growth conditions:
 
 
 Importantly, the heatmap is based only on the subset of genes
-identified as significantly varying (Padj < 0:05, typically only a few
+identified as *significantly varying* (Padj < 0:05, typically only a few
 hundred genes) in order to enhance the patterns, since otherwise they would
 be washed out by the rest of the genes in the genome, the majority of
 which usually do not exhibit significant variation in counts.

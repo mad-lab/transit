@@ -112,6 +112,7 @@ class HeatmapMethod(base.SingleConditionMethod):
         self.outfile = args[1]
         self.qval = float(kwargs.get("qval",0.05))
         self.topk = int(kwargs.get("topk",-1))
+        self.low_mean_filter = int(kwargs.get("low_mean_filter",5)) # filter out genes with grandmean<5 by default
         return self(self.infile,outfile=self.outfile)
 
     def Run(self):
@@ -136,14 +137,18 @@ class HeatmapMethod(base.SingleConditionMethod):
             headers = headers[3:3+n]
             headers = [x.replace("Mean_","") for x in headers]
           else:
-            lfcs = [float(x) for x in w[3+n:3+n+n]] # take just the columns of means
+            means = [float(x) for x in w[3:3+n]] # take just the columns of means
+            lfcs = [float(x) for x in w[3+n:3+n+n]] # take just the columns of LFCs
             qval = float(w[-2])
-            data.append((w,lfcs,qval))
+            data.append((w,means,lfcs,qval))
 
         data.sort(key=lambda x: x[-1])
         hits,LFCs = [],[]
-        for k,(w,lfcs,qval) in enumerate(data):
-          if (self.topk==-1 and qval<self.qval) or (self.topk!=-1 and k<self.topk): hits.append(w); LFCs.append(lfcs)
+        for k,(w,means,lfcs,qval) in enumerate(data):
+          if (self.topk==-1 and qval<self.qval) or (self.topk!=-1 and k<self.topk): 
+            mm = round(numpy.mean(means),1)
+            if mm<self.low_mean_filter: print("excluding %s/%s, mean(means)=%s" % (w[0],w[1],mm))
+            else: hits.append(w); LFCs.append(lfcs)
 
         print("heatmap based on %s genes" % len(hits))
         genenames = ["%s/%s" % (w[0],w[1]) for w in hits]
@@ -177,7 +182,7 @@ dev.off()
 
     @classmethod
     def usage_string(self):
-        return "usage: python3 %s heatmap <anova_or_zinb_output> <heatmap.png> -anova|-zinb [-topk <int>] [-qval <float>]\n note: genes are selected based on qval<0.05 by default" % sys.argv[0]
+        return "usage: python3 %s heatmap <anova_or_zinb_output> <heatmap.png> -anova|-zinb [-topk <int>] [-qval <float>] [-low_mean_filter <int>]\n note: genes are selected based on qval<0.05 by default" % sys.argv[0]
 
 
 if __name__ == "__main__":
