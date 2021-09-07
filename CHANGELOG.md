@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file.
 
 
+
+## Version 3.2.2 2022-09-08
+#### TRANSIT:
+ - fixed bug in converting gff_to_prot_table
+ - fixed bug in tn5gaps (fixes some false negative calls)
+ - fixed some bugs in pathway_enrichment (GSEA calculations)
+ - fixed links to Salmonella Tn5 data in docs
+ - fixed problem with margins in heatmap.py that was causing R to fail 
+ - added --ref to anova.py and zinb.py (for computing LFCs relative to designated reference condition)
+ - added --low_mean_filter for heatmap.py (for excluding genes with low counts, even if they are significant by ANOVA or ZINB)
+ - add dependency on pypubsub<4.0
+	
 ## Version 3.2.1 2020-12-22
 #### TRANSIT:
  - maintenance release
