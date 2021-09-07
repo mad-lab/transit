@@ -91,11 +91,9 @@ def main(*args, **kwargs):
 
     # Tried GUI mode but has no wxPython
     elif not (args or kwargs) and not hasWx:
-        print("Please install wxPython to run in GUI Mode.")
-        print("To run in Console Mode please follow these instructions:")
+        print("Please install wxPython to run in GUI Mode. (pip install wxPython)")
         print("")
-        print("Usage: python %s <method>" % sys.argv[0])
-        print("List of known methods:")
+        print("To run in Console Mode, try 'transit <method>' with one of the following methods:")
         for m in methods:
             print("\t - %s" % m)
     # Running in Console mode
