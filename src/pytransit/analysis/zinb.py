@@ -48,9 +48,9 @@ class ZinbMethod(base.MultiConditionMethod):
     """
     Zinb
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0, condition="Condition", covars=[], interactions = [], PC=1, refs=[]):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, excluded_conditions=[], included_conditions=[], winz=False, nterm=5.0, cterm=5.0, condition="Condition", covars=[], interactions = [], PC=1, refs=[]):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file,
-                normalization=normalization, ignored_conditions=ignored_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
+                normalization=normalization, excluded_conditions=excluded_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
         self.winz = winz
         self.covars = covars
         self.interactions = interactions
@@ -96,18 +96,18 @@ class ZinbMethod(base.MultiConditionMethod):
         refs = kwargs.get("-ref",[]) # list of condition names to use a reference for calculating LFCs
         if refs!=[]: refs = refs.split(',')
         winz = True if "w" in kwargs else False
-        ignored_conditions = list(filter(None, kwargs.get("-ignore-conditions", "").split(",")))
+        excluded_conditions = list(filter(None, kwargs.get("-exclude-conditions", "").split(",")))
         included_conditions = list(filter(None, kwargs.get("-include-conditions", "").split(",")))
 
         # check for unrecognized flags
-        flags = "-n --ignore-conditions --include-conditions -iN -iC -PC --condition --covars --interactions --gene --ref".split()
+        flags = "-n --exclude-conditions --include-conditions -iN -iC -PC --condition --covars --interactions --gene --ref".split()
         for arg in rawargs:
           if arg[0]=='-' and arg not in flags:
             self.transit_error("flag unrecognized: %s" % arg)
             print(ZinbMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, winz, NTerminus, CTerminus, condition, covars, interactions, PC, refs)
+        return self(combined_wig, metadata, annotation, normalization, output_file, excluded_conditions, included_conditions, winz, NTerminus, CTerminus, condition, covars, interactions, PC, refs)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -523,6 +523,8 @@ class ZinbMethod(base.MultiConditionMethod):
 
         condition_name = self.condition
         # if a covar is not found, this crashes; check for it?
+        # read it first with no condition specified, to get original Condition names
+        conditionsByFile1, covariatesByFileList1, interactionsByFileList1, orderingMetadata1 = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions) # without specifiying condition
         conditionsByFile, covariatesByFileList, interactionsByFileList, orderingMetadata = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions, condition_name=condition_name)
 
         ## [Condition] in the order of files in combined wig
@@ -538,19 +540,37 @@ class ZinbMethod(base.MultiConditionMethod):
             interactionsByFileList,
             filenamesInCombWig)
 
-        conditionsList = self.select_conditions(conditions,self.included_conditions,self.ignored_conditions,orderingMetadata)
-        data, conditions, covariates, interactions = self.filter_wigs_by_conditions2(
+        # this was the old way to filter samples, where --include/exclude-conditions depended on which --condition was specified
+        #conditionsList = self.select_conditions(conditions,self.included_conditions,self.excluded_conditions,orderingMetadata)
+        #data, conditions, covariates, interactions = self.filter_wigs_by_conditions2(
+        #        data,
+        #        conditions,
+        #        conditionsList,
+        #        covariates = covariates,
+        #        interactions = interactions)
+        #filesByCondition  = self.invertDict(conditionsByFile)
+        #samples_used = set()
+        #for cond in conditionsList: samples_used.update(filesByCondition[cond])
+
+        metadata = self.get_samples_metadata()
+        conditionNames = metadata['Condition'] # original Condition names for each sample, as ordered list        
+        fileNames = metadata['Filename'] 
+
+        # this is the new way to filter samples, where --include/exclude-conditions refers to Condition column in metadata, regardless of whether --condition was specified
+        data, fileNames, conditionNames, conditions, covariates, interactions = self.filter_wigs_by_conditions3(
                 data,
-                conditions,
-                conditionsList,
+                fileNames,
+                conditionNames, # original Condition column in samples metadata file
+                self.included_conditions,
+                self.excluded_conditions,
+                conditions = conditions, # user might have specified a column other than Condition
                 covariates = covariates,
                 interactions = interactions)
-
+        conditionsList = list(set(conditions)) # unique condition labels, filtered
+        samples_used = set(fileNames)
+        
         # show the samples associated with each condition (and covariates or interactions, if defined), and count samples in each cross-product of vars
 
-        filesByCondition  = self.invertDict(conditionsByFile)
-        samples_used = set()
-        for cond in conditionsList: samples_used.update(filesByCondition[cond])
         vars = [condition_name]+self.covars+self.interactions
         vars2vals = {}
         vars2vals[condition_name] = list(set(conditions))
@@ -558,7 +578,7 @@ class ZinbMethod(base.MultiConditionMethod):
         for i,var in enumerate(self.interactions): vars2vals[var] = list(set(interactions[i]))
         varsByFileList = [conditionsByFile]+covariatesByFileList+interactionsByFileList
         for i,var in enumerate(vars):
-          print("\nCondition/Covariate/Interaction: %s" % vars[i])
+          print("\nsamples for Condition/Covariate/Interaction: %s" % vars[i])
           filesByVar = self.invertDict(varsByFileList[i])
           for k,v in filesByVar.items():
             samples = list(samples_used.intersection(set(v)))
@@ -584,7 +604,11 @@ class ZinbMethod(base.MultiConditionMethod):
             c1, i1 = (ic1[0], ic1[1]) if len(ic1) > 1 else (ic1[0], None)
             c2, i2 = (ic2[0], ic2[1]) if len(ic2) > 1 else (ic2[0], None)
 
-            if len(self.included_conditions) > 0:
+            # use --include-conditions to determine order of columns in output file
+            # this only works if an alternative --condition was not specified
+            # otherwise don't try to order them this way because it gets too complicated
+            # possibly should require --covars and --interactions to be unspecified too
+            if self.condition=="Condition" and len(self.included_conditions) > 0 and len(self.excluded_conditions)==0:
                 condDiff = (self.included_conditions.index(c1) - self.included_conditions.index(c2))
                 ## Order by interaction, if stat belongs to same condition
                 if condDiff == 0 and i1 is not None and i2 is not None:
@@ -640,8 +664,8 @@ class ZinbMethod(base.MultiConditionMethod):
 
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
-        --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis.
-        --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be ignored.
+        --exclude-conditions <cond1,cond2> :=  Comma separated list of conditions to exclude, for the analysis.
+        --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be excluded.
         --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if multiple conditions)
         -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 5
         -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 5

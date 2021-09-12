@@ -34,9 +34,9 @@ class AnovaMethod(base.MultiConditionMethod):
     """
     anova
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, ignored_conditions=[], included_conditions=[], nterm=0.0, cterm=0.0, PC=1, refs=[]):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, excluded_conditions=[], included_conditions=[], nterm=0.0, cterm=0.0, PC=1, refs=[]):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file,
-                normalization=normalization, ignored_conditions=ignored_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
+                normalization=normalization, excluded_conditions=excluded_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
         self.PC = PC
         self.refs = refs
 
@@ -61,18 +61,18 @@ class AnovaMethod(base.MultiConditionMethod):
         PC = int(kwargs.get("PC", 5))
         refs = kwargs.get("-ref",[]) # list of condition names to use a reference for calculating LFCs
         if refs!=[]: refs = refs.split(',')
-        ignored_conditions = list(filter(None, kwargs.get("-ignore-conditions", "").split(",")))
+        excluded_conditions = list(filter(None, kwargs.get("-exclude-conditions", "").split(",")))
         included_conditions = list(filter(None, kwargs.get("-include-conditions", "").split(",")))
 
         # check for unrecognized flags
-        flags = "-n --ignore-conditions --include-conditions -iN -iC -PC --ref".split()
+        flags = "-n --exclude-conditions --include-conditions -iN -iC -PC --ref".split()
         for arg in rawargs:
           if arg[0]=='-' and arg not in flags:
             self.transit_error("flag unrecognized: %s" % arg)
             print(AnovaMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, ignored_conditions, included_conditions, NTerminus, CTerminus, PC, refs)
+        return self(combined_wig, metadata, annotation, normalization, output_file, excluded_conditions, included_conditions, NTerminus, CTerminus, PC, refs)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -195,8 +195,20 @@ class AnovaMethod(base.MultiConditionMethod):
             conditionsByFile,
             filenamesInCombWig)
 
-        conditionsList = self.select_conditions(conditions,self.included_conditions,self.ignored_conditions,orderingMetadata)
-        data, conditions, _, _ = self.filter_wigs_by_conditions2(data, conditions, conditionsList)
+        conditionsList = self.select_conditions(conditions,self.included_conditions,self.excluded_conditions,orderingMetadata)
+        #data, conditions, _, _ = self.filter_wigs_by_conditions2(data, conditions, conditionsList)
+
+        metadata = self.get_samples_metadata()
+        conditionNames = metadata['Condition'] # original Condition names for each sample, as ordered list        
+        fileNames = metadata['Filename'] 
+
+        data, fileNames, conditionNames, conditions, _, _ = self.filter_wigs_by_conditions3(
+                data,
+                fileNames,
+                conditionNames, # original Condition column in samples metadata file
+                self.included_conditions,
+                self.excluded_conditions,
+                conditions = conditionNames) # this is kind of redundant for ANOVA, but it is here because condition, covars, and interactions could have been manipulated for ZINB
 
         genes = tnseq_tools.read_genes(self.annotation_path)
 
@@ -238,7 +250,7 @@ class AnovaMethod(base.MultiConditionMethod):
  Optional Arguments:
   -n <string>         :=  Normalization method. Default: -n TTR
   --include-conditions <cond1,...> := Comma-separated list of conditions to use for analysis (Default: all)
-  --ignore-conditions <cond1,...> := Comma-separated list of conditions to ignore (Default: none)
+  --exclude-conditions <cond1,...> := Comma-separated list of conditions to exclude (Default: none)
   --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if multiple conditions)
   -iN <N> :=  Ignore TAs within given percentage (e.g. 5) of N terminus. Default: -iN 0
   -iC <N> :=  Ignore TAs within given percentage (e.g. 5) of C terminus. Default: -iC 0

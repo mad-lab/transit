@@ -1053,7 +1053,7 @@ Example
   python3 transit.py anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
-        --ignore-conditions <cond1,...> :=  Comma separated list of conditions to ignore, for the analysis. Default: None
+        --exclude-conditions <cond1,...> :=  Comma separated list of conditions to ignore, for the analysis. Default: None
         --include-conditions <cond1,...> :=  Comma separated list of conditions to include, for the analysis. Default: All
         --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if multiple conditions)
         -iN <float> :=  Ignore TAs occurring within given percentage (as integer) of the N terminus. Default: -iN 0
@@ -1092,7 +1092,7 @@ The following parameters are available for the ANOVA method:
 
 -  **\-\-include-conditions:** Includes the given set of conditions from the ZINB test. Conditions not in this list are ignored. Note: this is useful for specifying the order in which the columns are listed in the output file.
 
--  **\-\-ignore-conditions:** Can use this to drop conditions not of interest.
+-  **\-\-exclude-conditions:** Can use this to drop conditions not of interest.
 
 -  **\-\-ref:** Specify which condition to use as a reference for computing LFCs.
    By default, LFCs for each gene in each condition are calculated with respect
@@ -1218,8 +1218,8 @@ Example
   python3 transit.py zinb <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
-        --ignore-conditions <cond1,cond2> :=  Comma separated list of conditions to ignore, for the analysis. Default: None
-        --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Default: All
+        --exclude-conditions <cond1,...> :=  Comma separated list of conditions to ignore, for the analysis. Default: None
+        --include-conditions <cond1,...> :=  Comma separated list of conditions to include, for the analysis. Default: All
         --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if more than one)
         -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5
         -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5
@@ -1281,10 +1281,10 @@ of the combined_wig (including pathnames, if present).
 Parameters
 ----------
 
-The following parameters are available for the method:
+The following parameters are available for the ZINB method:
 
 -  **\-\-include-conditions:** Includes the given set of conditions from the ZINB test. Conditions not in this list are ignored. Note: this is useful for specifying the order in which the columns are listed in the output file.
--  **\-\-ignore-conditions:** Ignores the given set of conditions from the ZINB test.
+-  **\-\-exclude-conditions:** Ignores the given set of conditions from the ZINB test.
 -  **\-\-ref:** which condition to use as a reference when computing LFCs in the output file
 -  **Normalization Method:** Determines which normalization method to
    use when comparing datasets. Proper normalization is important as it
