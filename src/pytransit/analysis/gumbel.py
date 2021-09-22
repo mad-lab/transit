@@ -418,7 +418,8 @@ class GumbelMethod(base.SingleConditionMethod):
 
         ZBAR = numpy.apply_along_axis(numpy.mean, 1, Z_sample)
         (ess_t, non_t) = stat_tools.bayesian_ess_thresholds(ZBAR)
-
+        binomial_n = math.log10(0.05)/math.log10(G.global_phi())
+        
         #Orf    k   n   r   s   zbar
         self.output.write("#Gumbel\n")
         if self.wxobj:
@@ -441,13 +442,15 @@ class GumbelMethod(base.SingleConditionMethod):
         self.output.write("#%s\n" % "\t".join(columns))
         i = 0
         data = []
-        for g in G:
+        for j,g in enumerate(G):
             if not self.good_orf(g):
                 zbar = -1.0
             else:
                 zbar = ZBAR[i]
                 i+=1
-            if zbar > ess_t:
+            if G.local_sites()[j]>binomial_n and G.local_thetas()[j]==0.0:
+                call = "EB"
+            elif zbar > ess_t:
                 call = "E"
             elif non_t <= zbar <= ess_t:
                 call = "U"
@@ -460,7 +463,7 @@ class GumbelMethod(base.SingleConditionMethod):
         for line in data:
             self.output.write(line)
         self.output.close()
-
+        self.transit_message("getting Binomial")
         self.transit_message("") # Printing empty line to flush stdout 
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file(filetype="Gumbel")
@@ -494,7 +497,8 @@ class GumbelMethod(base.SingleConditionMethod):
         BetaGamma = B*tnseq_tools.getGamma()
         if n<EXACT: # estimate more accurately based on expected run len, using exact calc for small genes
           exprun = self.ExpectedRuns_cached(n,p)
-          u = exprun-BetaGamma # u is mu of Gumbel (mean=mu+gamma*beta); matching of moments
+          u = exprun-BetaGamma # u is mu of Gumbel (mean=mu+gamma*beta); matching of moments 
+          #https://github.blog/2020-12-15-token-authentication-requirements-for-git-operations/
         pval = 1 - scipy.exp(scipy.stats.gumbel_r.logcdf(r,u,B))
         if pval < 0.05: return(1)
         else: return(0)
