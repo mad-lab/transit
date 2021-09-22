@@ -412,7 +412,7 @@ class GumbelMethod(base.SingleConditionMethod):
             
             phi_old = phi_new
             #Update progress
-            text = "Running Gumbel Method... %5.1f%%" % (100.0*(count+1)/(self.samples+self.burnin))
+            text = "Running Gumbel Method with Binomial Essentiality Calls... %5.1f%%" % (100.0*(count+1)/(self.samples+self.burnin))
             self.progress_update(text, count)
 
 
@@ -463,7 +463,6 @@ class GumbelMethod(base.SingleConditionMethod):
         for line in data:
             self.output.write(line)
         self.output.close()
-        self.transit_message("getting Binomial")
         self.transit_message("") # Printing empty line to flush stdout 
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file(filetype="Gumbel")
