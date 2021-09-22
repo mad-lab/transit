@@ -438,6 +438,7 @@ class GumbelMethod(base.SingleConditionMethod):
         self.output.write("#Total Iterations Performed:\t%d\n" % count)
         self.output.write("#Sample Size:\t%d\n" % i)
         self.output.write("#phi estimate:\t%f\n" % numpy.average(phi_sample))
+        self.output.write("#Min Number of TA sites with 0 counts to be classified as essential by Binomial: \t%f\n"%binomial_n)
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         self.output.write("#%s\n" % "\t".join(columns))
         i = 0
