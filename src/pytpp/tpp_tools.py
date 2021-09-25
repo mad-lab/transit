@@ -511,7 +511,7 @@ def template_counts(ref,sam,bcfile,vars):
     genome = read_genome(ref, replicon_index)
     for i in range(len(genome)-1):
       #if genome[i:i+2].upper()=="TA":
-      if vars.transposon=="Himar1" and genome[i:i+2].upper()!="TA": continue
+      if vars.transposon=="Himar1" and genome[i:i+2].upper()!="TA": continue 
       else:
         pos = i+1
         h = hits[replicon_names[replicon_index]].get(pos,[])
@@ -1187,6 +1187,8 @@ def generate_output(vars):
     output.write("# FR_corr (Fwd templates vs. Rev templates): %0.3f\n" % FR_corr[0])
     output.write("# BC_corr (reads vs. templates, summed over both strands): %0.3f\n" % BC_corr[0])
 
+  output.write("# Break-down of total reads:\n")
+  output.write("# lack_Tn_prefix: %s reads (%0.1f%%) lack the expected Tn prefix\n" % (tot_reads-vars.tot_tgtta,(tot_reads-vars.tot_tgtta)*100/float(tot_reads)))
   output.write("# primer_matches: %s reads (%0.1f%%) contain %s (Himar1)\n" % (nprimer,nprimer*100/float(tot_reads),primer))
   output.write("# vector_matches: %s reads (%0.1f%%) contain %s (phiMycoMarT7)\n" % (nvector,nvector*100/float(tot_reads),vector))
   output.write("# adapter_matches: %s reads (%0.1f%%) contain %s (Illumina/TruSeq index)\n" % (nadapter,nadapter*100/float(tot_reads),adapter))
