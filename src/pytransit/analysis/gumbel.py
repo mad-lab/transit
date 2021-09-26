@@ -333,6 +333,9 @@ class GumbelMethod(base.SingleConditionMethod):
         self.transit_message("Getting Data")
         (data, position) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
         (K,N) = data.shape
+        merged = numpy.sum(data,axis=0)
+        nsites,nzeros = merged.shape[0],numpy.sum(merged==0) # perhaps I should say >minCount
+        sat = (nsites-nzeros)/float(nsites)
 
         if self.normalization and self.normalization != "nonorm":
             self.transit_message("Normalizing using: %s" % self.normalization)
@@ -433,16 +436,19 @@ class GumbelMethod(base.SingleConditionMethod):
 
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
         self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
+        self.output.write("#Trimming of TAs near termini: N-term=%s, C-term=%s (fraction of ORF length)\n" % (self.NTerminus,self.CTerminus))
         self.output.write("#FDR Corrected thresholds: %f, %f\n" % (ess_t, non_t))
         self.output.write("#MH Acceptance-Rate:\t%2.2f%%\n" % (100.0*acctot/count))
         self.output.write("#Total Iterations Performed:\t%d\n" % count)
         self.output.write("#Sample Size:\t%d\n" % i)
-        self.output.write("#phi estimate:\t%f\n" % numpy.average(phi_sample))
-        self.output.write("#Min Number of TA sites with 0 counts to be classified as essential by Binomial: \t%f\n"%binomial_n)
-        self.output.write("#Time: %s\n" % (time.time() - start_time))
-        self.output.write("#%s\n" % "\t".join(columns))
+        self.output.write("#Total number of TA sites: %s\n" % nsites)
+        self.output.write("#Genome-wide saturation: %s\n" % (round(sat,3))) # datasets merged
+        self.output.write("#phi estimate:\t%f (non-insertion probability in non-essential regions)\n" % numpy.average(phi_sample))
+        self.output.write("#Minimum number of TA sites with 0 insertions to be classified as essential by Binomial: \t%0.3f\n" % binomial_n)
+        self.output.write("#Time: %s s\n" % (round(time.time()-start_time,1)))
+
         i = 0
-        data = []
+        data,calls = [],[]
         for j,g in enumerate(G):
             if not self.good_orf(g):
                 zbar = -1.0
@@ -460,7 +466,17 @@ class GumbelMethod(base.SingleConditionMethod):
             else:
                 call = "S"
             data.append("%s\t%s\t%s\t%d\t%d\t%d\t%d\t%f\t%s\n" % (g.orf, g.name, g.desc, g.k, g.n, g.r, g.s, zbar, call))
+            calls.append(call)
         data.sort()
+
+        self.output.write("#Summary of Essentiality Calls:\n")
+        self.output.write("#  E  = %4s (essential based on Gumbel)\n" % (calls.count("E")))
+        self.output.write("#  EB = %4s (essential based on Binomial)\n" % (calls.count("EB")))
+        self.output.write("#  NE = %4s (non-essential)\n" % (calls.count("NE")))
+        self.output.write("#  U  = %4s (uncertain)\n" % (calls.count("U")))
+        self.output.write("#  S  = %4s (too short)\n" % (calls.count("S")))
+
+        self.output.write("#%s\n" % "\t".join(columns))
         for line in data:
             self.output.write(line)
         self.output.close()
