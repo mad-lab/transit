@@ -310,7 +310,7 @@ def extract_staggered(infile,outfile,vars):
   output_failed.close()                                 # [WM] [add]
   if vars.tot_tgtta == 0:
     raise ValueError("Error: Input files did not contain any reads matching prefix sequence with %d mismatches" % vars.mm1)
-
+  vars.tot_reads = tot
 
 def message(s):
   #print("[tn_preprocess]",s)
@@ -1100,20 +1100,7 @@ def generate_output(vars):
     FR_corr.append(cur_FR_corr)
     BC_corr.append(cur_BC_corr)
 
-  primer = "CTAGAGGGCCCAATTCGCCCTATAGTGAGT"
-  vector = "CTAGACCGTCCAGTCTGGCAGGCCGGAAAC"
-  adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
-  Himar1 = "ACTTATCAGCCAACCTGTTA"
-  tot_reads,nprimer,nvector,nadapter,misprimed = 0,0,0,0,0
-  for line in open(vars.reads1):
-    if line[0]=='>': tot_reads += 1; continue
-    if primer in line: nprimer += 1
-    if vector in line: nvector += 1
-    if adapter in line: nadapter += 1
-    #if "TGTTA" in line and Himar1 not in line: misprimed += 1
-    # basically, these should correspond to insertions at non-TA sites (so the terminal TA of ...TGTTA will be different)
-    if Himar1[:-5] in line and Himar1 not in line: misprimed += 1 
-
+  tot_reads = vars.tot_reads
   read_length = get_read_length(vars.base + ".reads1")
   mean_r1_genomic = get_genomic_portion(vars.base + ".trimmed1")
   if vars.single_end==False: mean_r2_genomic = get_genomic_portion(vars.base + ".genomic2")
@@ -1133,7 +1120,7 @@ def generate_output(vars):
   output.write('# ref_genome: %s\n' % vars.ref)
   output.write('# replicon_ids: %s\n' % ','.join(vars.replicon_ids))
   output.write("# total_reads (or read pairs): %s\n" % tot_reads)
-  #output.write("# truncated_reads %s (fragments shorter than the read length; ADAP2 appears in read1)\n" % vars.truncated_reads)
+  output.write("# truncated_reads %s (genomic inserts shorter than the read length; ADAP2 appears in read1)\n" % vars.truncated_reads)
   output.write("# trimmed_reads (reads with valid Tn prefix, and insert size>20bp): %s\n" % vars.tot_tgtta)
   output.write("# reads1_mapped: %s\n" % vars.r1)
   output.write("# reads2_mapped: %s\n" % vars.r2)
@@ -1187,12 +1174,30 @@ def generate_output(vars):
     output.write("# FR_corr (Fwd templates vs. Rev templates): %0.3f\n" % FR_corr[0])
     output.write("# BC_corr (reads vs. templates, summed over both strands): %0.3f\n" % BC_corr[0])
 
-  output.write("# Break-down of total reads:\n")
-  output.write("# lack_Tn_prefix: %s reads (%0.1f%%) lack the expected Tn prefix\n" % (tot_reads-vars.tot_tgtta,(tot_reads-vars.tot_tgtta)*100/float(tot_reads)))
-  output.write("# primer_matches: %s reads (%0.1f%%) contain %s (Himar1)\n" % (nprimer,nprimer*100/float(tot_reads),primer))
-  output.write("# vector_matches: %s reads (%0.1f%%) contain %s (phiMycoMarT7)\n" % (nvector,nvector*100/float(tot_reads),vector))
-  output.write("# adapter_matches: %s reads (%0.1f%%) contain %s (Illumina/TruSeq index)\n" % (nadapter,nadapter*100/float(tot_reads),adapter))
-  output.write("# misprimed_reads: %s reads (%0.1f%%) contain Himar1 prefix but don't end in TGTTA\n" % (misprimed,misprimed*100/float(tot_reads)))
+  primer = "CTAGAGGGCCCAATTCGCCCTATAGTGAGT"
+  vector = "CTAGACCGTCCAGTCTGGCAGGCCGGAAAC"
+  adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
+  ADAPTER2 = "TACCACGACCA" # rc of const2 region of R2, between barcode and genomic; these reads will be truncated here
+  Himar1 = "ACTTATCAGCCAACCTGTTA"
+  trimmed_reads,nprimer,nvector,nadapter,misprimed,ntruncated = 0,0,0,0,0,0
+  for line in open(vars.trimmed1):
+    if line[0]=='>': trimmed_reads += 1; continue
+    if primer in line: nprimer += 1
+    if vector in line: nvector += 1
+    if adapter in line: nadapter += 1
+    #if "TGTTA" in line and Himar1 not in line: misprimed += 1
+    # basically, these should correspond to insertions at non-TA sites (so the terminal TA of ...TGTTA will be different)
+    if Himar1[:-5] in line and Himar1 not in line: misprimed += 1 
+
+  output.write("# Break-down of total reads (%s):\n" % tot_reads)
+  output.write("#  %s reads (%0.1f%%) lack the expected Tn prefix\n" % (tot_reads-vars.tot_tgtta,(tot_reads-vars.tot_tgtta)*100/float(tot_reads)))
+
+  output.write("# Break-down of trimmed reads with valid Tn prefix (%s):\n" % trimmed_reads)
+  output.write("#  primer_matches: %s reads (%0.1f%%) contain %s (Himar1)\n" % (nprimer,nprimer*100/float(trimmed_reads),primer))
+  output.write("#  vector_matches: %s reads (%0.1f%%) contain %s (phiMycoMarT7)\n" % (nvector,nvector*100/float(trimmed_reads),vector))
+  output.write("#  adapter_matches: %s reads (%0.1f%%) contain %s (Illumina/TruSeq index)\n" % (nadapter,nadapter*100/float(trimmed_reads),adapter))
+  output.write("#  misprimed_reads: %s reads (%0.1f%%) contain Himar1 prefix but don't end in TGTTA\n" % (misprimed,misprimed*100/float(trimmed_reads)))
+
   output.write("# read_length: %s bp\n" % read_length)
   output.write("# mean_R1_genomic_length: %0.1f bp\n" % mean_r1_genomic)
   if vars.single_end==False: output.write("# mean_R2_genomic_length: %0.1f bp\n" % mean_r2_genomic)
