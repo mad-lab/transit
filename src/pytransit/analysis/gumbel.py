@@ -455,16 +455,17 @@ class GumbelMethod(base.SingleConditionMethod):
             else:
                 zbar = ZBAR[i]
                 i+=1
-            if G.local_sites()[j]>binomial_n and G.local_thetas()[j]==0.0:
-                call = "EB"
-            elif zbar > ess_t:
+            if zbar > ess_t:
                 call = "E"
+            elif G.local_sites()[j]>binomial_n and G.local_thetas()[j]==0.0:
+                call = "EB"
             elif non_t <= zbar <= ess_t:
                 call = "U"
             elif 0 <= zbar < non_t:
                 call = "NE"
             else:
                 call = "S"
+            
             data.append("%s\t%s\t%s\t%d\t%d\t%d\t%d\t%f\t%s\n" % (g.orf, g.name, g.desc, g.k, g.n, g.r, g.s, zbar, call))
             calls.append(call)
         data.sort()
