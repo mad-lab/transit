@@ -32,18 +32,66 @@ probability of this using a Bayesian model.
 How does it work?
 -----------------
 
-| For a formal description of how this method works, see our paper [DeJesus2013]_:
+| 
+
+This method for identifying essential genes is based on analyzing
+'gaps', or consecutive sequences of TA sites lacking insertions.
+The statistical significance of the length of a gap is determined
+using the Gumbel distribution, which is a form of an Extreme-Value distribution.
+
+For a formal description of how this method works, see our paper [DeJesus2013]_:
 
 |  DeJesus, M.A., Zhang, Y.J., Sassettti, C.M., Rubin, E.J.,
   Sacchettini, J.C., and Ioerger, T.R. (2013).
 | `Bayesian analysis of gene essentiality based on sequencing of transposon insertion libraries. <http://www.ncbi.nlm.nih.gov/pubmed/23361328>`_ *Bioinformatics*, 29(6):695-703.
 
-Example
--------
+|
+**Update (2021) - Binomial** 
+
+Since the Gumbel method depends on the overall
+saturation (percent of TA sites with insertions), it can sometimes
+call a lot of smaller genes 'Uncertain'.  This might reduce the total
+number of essentials detected.  For example, if the saturation is
+~30%, no genes with fewer than ~10 TA sites might confidently be
+labeled as Essential.  In particular, there are often genes with no
+insertions that look like they should obviously be called essential,
+and yet, they are too short to be confidently called essential in
+low-saturation datasets by the conservative Gumbel model.
+
+To compensate for this, we have added a simple **Binomial** model for
+detecting small genes totally lacking insertions (described in `(Choudhery et al, 2021)
+<https://www.biorxiv.org/content/10.1101/2021.07.01.450749v2>`_).  In
+the output file, they are labled as 'EB' to distinguish them from
+essentials (E) based on the Gumbel model.  The EB genes supplement
+genes marked E by Gumbel, and the combination of the 2 groups (E and
+EB) should be considered as 'essentials'.  The number of genes in
+each category is reported in a table in the header of the output file, like this:
 
 ::
 
- python3 transit.py gumbel <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+ (for an M. tuberculosis TnSeq dataset with 60% saturation:)
+ #Summary of Essentiality Calls:
+ #  E  =  551 (essential based on Gumbel)
+ #  EB =   94 (essential based on Binomial)
+ #  NE = 2829 (non-essential)
+ #  U  =  262 (uncertain)
+ #  S  =  254 (too short)
+
+ (for an M. tuberculosis TnSeq dataset with 40% saturation:)
+ #  E  =  194 (essential based on Gumbel)
+ #  EB =  315 (essential based on Binomial)
+ #  NE = 2441 (non-essential)
+ #  U  =  774 (uncertain)
+ #  S  =  266 (too short)
+
+
+
+Usage
+-----
+
+::
+
+  > python3 transit.py gumbel <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
         -b <integer>    :=  Number of Burn-in samples. Default -b 500
