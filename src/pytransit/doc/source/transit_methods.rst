@@ -41,9 +41,12 @@ using the Gumbel distribution, which is a form of an Extreme-Value distribution.
 
 For a formal description of how this method works, see our paper [DeJesus2013]_:
 
-|  DeJesus, M.A., Zhang, Y.J., Sassettti, C.M., Rubin, E.J.,
-  Sacchettini, J.C., and Ioerger, T.R. (2013).
-| `Bayesian analysis of gene essentiality based on sequencing of transposon insertion libraries. <http://www.ncbi.nlm.nih.gov/pubmed/23361328>`_ *Bioinformatics*, 29(6):695-703.
+| 
+  DeJesus, M.A., Zhang, Y.J., Sassettti, C.M., Rubin, E.J.,
+  Sacchettini, J.C., and Ioerger, T.R. (2013).  `Bayesian analysis of
+  gene essentiality based on sequencing of transposon insertion
+  libraries. <http://www.ncbi.nlm.nih.gov/pubmed/23361328>`_
+  *Bioinformatics*, 29(6):695-703.
 
 |
 **Update (2021) - Binomial** 
