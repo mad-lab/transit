@@ -516,7 +516,7 @@ class GumbelMethod(base.SingleConditionMethod):
           exprun = self.ExpectedRuns_cached(n,p)
           u = exprun-BetaGamma # u is mu of Gumbel (mean=mu+gamma*beta); matching of moments 
           #https://github.blog/2020-12-15-token-authentication-requirements-for-git-operations/
-        pval = 1 - scipy.exp(scipy.stats.gumbel_r.logcdf(r,u,B))
+        pval = 1 - numpy.exp(scipy.stats.gumbel_r.logcdf(r,u,B))
         if pval < 0.05: return(1)
         else: return(0)
 
@@ -540,7 +540,7 @@ class GumbelMethod(base.SingleConditionMethod):
         for i in range(len(N)): # estimate more accurately based on expected run len, using exact calc for small genes
           if N[i]<EXACT: mu[i] = self.ExpectedRuns_cached(int(N[i]),p)-BetaGamma
         sigma = 1.0/math.log(1.0/p);
-        h0 = ((scipy.exp(scipy.stats.gumbel_r.logpdf(R,mu,sigma))) * scipy.stats.norm.pdf(S, mu_s*R, sigma_s)  * (1-w1))
+        h0 = ((numpy.exp(scipy.stats.gumbel_r.logpdf(R,mu,sigma))) * scipy.stats.norm.pdf(S, mu_s*R, sigma_s)  * (1-w1))
         h1 = SIG * w1
         h1 += 1e-10; h0 += 1e-10 # to prevent div-by-zero; if neither class is probable, p(z1) should be ~0.5
         p_z1 = h1/(h0+h1)

@@ -512,7 +512,7 @@ def F_shuffle_dict_libraries(*args, **kwargs):
         perm = numpy.random.permutation(combined)
         #print("perm", perm)
         #print("perm[:n1]", perm[:n1])
-        E[L] = numpy.array([perm[:n1], perm[n1:]])
+        E[L] = numpy.array([perm[:n1], perm[n1:]],dtype=object)
         #print("D[L]", D[L])
     return E
 
@@ -566,7 +566,8 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
     # - Check library strings match in some way
     lib_diff = set(lib_str1) ^ set(lib_str2)
     if lib_diff:
-        raise ValueError("At least one library string has a letter not used by the other:\ %s" % ", ".join(lib_diff))
+        #raise ValueError("At least one library string has a letter not used by the other:\ %s" % ", ".join(lib_diff))
+        raise ValueError("At least one library string has a letter not used by the other: " + ", ".join(lib_diff))
 
     # - Check input has some data
     assert len(data1) > 0, "Data1 cannot be empty"
@@ -714,7 +715,7 @@ def combine_lib_dicts(L1, L2):
     KEYS = L1.keys()
     DATA = {}
     for K in KEYS:
-        DATA[K] = numpy.array([L1[K], L2[K]])
+        DATA[K] = numpy.array([L1[K], L2[K]],dtype=object)
     return DATA
 
 #
