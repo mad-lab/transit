@@ -2,8 +2,15 @@
 All notable changes to this project will be documented in this file.
 
 
-
-## Version 3.2.2 2022-09-08
+## Version 3.2.3 2021-10-16
+#### TRANSIT:
+  - added Binomial essentials (EB) to Gumbel analysis (supplementing genes categorized as E), to help with low-saturation datasets
+  - modified ANOVA and ZINB so that --include-conditions and --exclude-conditions refer to original Conditions column in samples metadata file (instead of whatever is specified by --conditions) 
+	
+#### TPP:
+  - improved metrics reported in *.tn_stats by TPP, to help diagnose why reads don't map
+	
+## Version 3.2.2 2021-09-08
 #### TRANSIT:
  - fixed bug in converting gff_to_prot_table
  - fixed bug in tn5gaps (fixes some false negative calls)
