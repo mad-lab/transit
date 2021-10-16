@@ -333,6 +333,9 @@ class GumbelMethod(base.SingleConditionMethod):
         self.transit_message("Getting Data")
         (data, position) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
         (K,N) = data.shape
+        merged = numpy.sum(data,axis=0)
+        nsites,nzeros = merged.shape[0],numpy.sum(merged==0) # perhaps I should say >minCount
+        sat = (nsites-nzeros)/float(nsites)
 
         if self.normalization and self.normalization != "nonorm":
             self.transit_message("Normalizing using: %s" % self.normalization)
@@ -412,13 +415,14 @@ class GumbelMethod(base.SingleConditionMethod):
             
             phi_old = phi_new
             #Update progress
-            text = "Running Gumbel Method... %5.1f%%" % (100.0*(count+1)/(self.samples+self.burnin))
+            text = "Running Gumbel Method with Binomial Essentiality Calls... %5.1f%%" % (100.0*(count+1)/(self.samples+self.burnin))
             self.progress_update(text, count)
 
 
         ZBAR = numpy.apply_along_axis(numpy.mean, 1, Z_sample)
         (ess_t, non_t) = stat_tools.bayesian_ess_thresholds(ZBAR)
-
+        binomial_n = math.log10(0.05)/math.log10(G.global_phi())
+        
         #Orf    k   n   r   s   zbar
         self.output.write("#Gumbel\n")
         if self.wxobj:
@@ -432,16 +436,20 @@ class GumbelMethod(base.SingleConditionMethod):
 
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
         self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
-        self.output.write("#FDR Corrected thresholds: %f, %f\n" % (ess_t, non_t))
-        self.output.write("#MH Acceptance-Rate:\t%2.2f%%\n" % (100.0*acctot/count))
+        self.output.write("#Trimming of TAs near termini: N-term=%s, C-term=%s (fraction of ORF length)\n" % (self.NTerminus,self.CTerminus))
+        self.output.write("#Significance thresholds (FDR-corrected): Essential if Zbar>%f, Non-essential if Zbar<%f\n" % (ess_t, non_t))
+        self.output.write("#Metropolis-Hastings Acceptance-Rate:\t%2.2f%%\n" % (100.0*acctot/count))
         self.output.write("#Total Iterations Performed:\t%d\n" % count)
         self.output.write("#Sample Size:\t%d\n" % i)
-        self.output.write("#phi estimate:\t%f\n" % numpy.average(phi_sample))
-        self.output.write("#Time: %s\n" % (time.time() - start_time))
-        self.output.write("#%s\n" % "\t".join(columns))
+        self.output.write("#Total number of TA sites: %s\n" % nsites)
+        self.output.write("#Genome-wide saturation: %s\n" % (round(sat,3))) # datasets merged
+        self.output.write("#phi estimate:\t%f (non-insertion probability in non-essential regions)\n" % numpy.average(phi_sample))
+        self.output.write("#Minimum number of TA sites with 0 insertions to be classified as essential by Binomial: \t%0.3f\n" % binomial_n)
+        self.output.write("#Time: %s s\n" % (round(time.time()-start_time,1)))
+
         i = 0
-        data = []
-        for g in G:
+        data,calls = [],[]
+        for j,g in enumerate(G):
             if not self.good_orf(g):
                 zbar = -1.0
             else:
@@ -449,18 +457,30 @@ class GumbelMethod(base.SingleConditionMethod):
                 i+=1
             if zbar > ess_t:
                 call = "E"
+            elif G.local_sites()[j]>binomial_n and G.local_thetas()[j]==0.0:
+                call = "EB"
             elif non_t <= zbar <= ess_t:
                 call = "U"
             elif 0 <= zbar < non_t:
                 call = "NE"
             else:
                 call = "S"
+            
             data.append("%s\t%s\t%s\t%d\t%d\t%d\t%d\t%f\t%s\n" % (g.orf, g.name, g.desc, g.k, g.n, g.r, g.s, zbar, call))
+            calls.append(call)
         data.sort()
+
+        self.output.write("#Summary of Essentiality Calls:\n")
+        self.output.write("#  E  = %4s (essential based on Gumbel)\n" % (calls.count("E")))
+        self.output.write("#  EB = %4s (essential based on Binomial)\n" % (calls.count("EB")))
+        self.output.write("#  NE = %4s (non-essential)\n" % (calls.count("NE")))
+        self.output.write("#  U  = %4s (uncertain)\n" % (calls.count("U")))
+        self.output.write("#  S  = %4s (too short)\n" % (calls.count("S")))
+
+        self.output.write("#%s\n" % "\t".join(columns))
         for line in data:
             self.output.write(line)
         self.output.close()
-
         self.transit_message("") # Printing empty line to flush stdout 
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file(filetype="Gumbel")
@@ -494,7 +514,8 @@ class GumbelMethod(base.SingleConditionMethod):
         BetaGamma = B*tnseq_tools.getGamma()
         if n<EXACT: # estimate more accurately based on expected run len, using exact calc for small genes
           exprun = self.ExpectedRuns_cached(n,p)
-          u = exprun-BetaGamma # u is mu of Gumbel (mean=mu+gamma*beta); matching of moments
+          u = exprun-BetaGamma # u is mu of Gumbel (mean=mu+gamma*beta); matching of moments 
+          #https://github.blog/2020-12-15-token-authentication-requirements-for-git-operations/
         pval = 1 - scipy.exp(scipy.stats.gumbel_r.logcdf(r,u,B))
         if pval < 0.05: return(1)
         else: return(0)
