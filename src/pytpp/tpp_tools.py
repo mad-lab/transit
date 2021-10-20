@@ -154,6 +154,22 @@ def fix_paired_headers_for_bwa(reads1,reads2):
 	  os.system("mv %s %s" % (temp2, reads2))
   '''
 
+##############################
+
+# original implementation
+# find index of H[1..m] in G[1..n] with up to max mismatches
+
+def mmfind1(G,n,H,m,max): # lengths; assume n>m
+  a = G[:n].find(H[:m])
+  if a!=-1: return a # shortcut for perfect matches
+  for i in range(0,n-m):
+    cnt = 0
+    for k in range(m):
+      if G[i+k]!=H[k]: cnt += 1
+      if cnt>max: break
+    if cnt<=max: return i
+  return -1
+
 
 # checks for a match allowing 1 or 2 mismatches
 # if not a match returns -1,-1. If match occurs, returns 1 and the start index of match
@@ -203,11 +219,10 @@ def bit_parallel_with_max_1_error(text, pattern, m):
             return 1, j - m + 1
     return -1,-1
 
-
 # this function is a replacement for below mmfind() for speedup
 # it assumes the length of H is <32
 # find index of H[1..m] in G[1..n] with up to max (1 or 2) mismatches
-def mmfind(G,n,H,m,max): # lengths; assume n>m
+def mmfind2(G,n,H,m,max): # lengths; assume n>m
     a = G.find(H)
     if a!=-1: return a # shortcut for perfect matches
     a,b = -1,-1
@@ -219,20 +234,13 @@ def mmfind(G,n,H,m,max): # lengths; assume n>m
     return -1
 
 
-''' replaced with above mmfind()
-# find index of H[1..m] in G[1..n] with up to max mismatches
+# TRI (10/20/2021): I switched back to mmfind1(), since 
+#   mmfind2() wasn't working right; increasing -mismatches caused fewer reads to be recognized with prefix and trimmed
 
-def mmfind(G,n,H,m,max): # lengths; assume n>m
-  a = G[:n].find(H[:m])
-  if a!=-1: return a # shortcut for perfect matches
-  for i in range(0,n-m):
-    cnt = 0
-    for k in range(m):
-      if G[i+k]!=H[k]: cnt += 1
-      if cnt>max: break
-    if cnt<=max: return i
-  return -1
-'''
+
+def mmfind(G,n,H,m,max): return mmfind1(G,n,H,m,max)
+
+##############################
 
 def windowize(origin, window_size):                         # Generate P,Q values based on a window size (tolerance)
     lower_bound = origin - ((window_size + 0)/2)            # Example, if we assume origin = 28:
