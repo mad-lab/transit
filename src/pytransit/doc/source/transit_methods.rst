@@ -63,7 +63,7 @@ low-saturation datasets by the conservative Gumbel model.
 
 To compensate for this, we have added a simple **Binomial** model for
 detecting small genes totally lacking insertions (described in `(Choudhery et al, 2021)
-<https://www.biorxiv.org/content/10.1101/2021.07.01.450749v2>`_).  In
+<https://journals.asm.org/doi/full/10.1128/mSystems.00876-21>`_).  In
 the output file, they are labled as 'EB' to distinguish them from
 essentials (E) based on the Gumbel model.  The EB genes supplement
 genes marked E by Gumbel, and the combination of the 2 groups (E and
@@ -1104,9 +1104,9 @@ Example
   python3 transit.py anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
-        --exclude-conditions <cond1,...> :=  Comma separated list of conditions to ignore, for the analysis. Default: None
-        --include-conditions <cond1,...> :=  Comma separated list of conditions to include, for the analysis. Default: All
-        --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if multiple conditions)
+        --exclude-conditions <cond1,...> :=  Comma separated list of conditions to ignore for the analysis. Default: None
+        --include-conditions <cond1,...> :=  Comma separated list of conditions to include for the analysis. Default: All
+        --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if multiple conditions) (by default, LFCs for each condition are computed relative to the grandmean across all condintions)
         -iN <float> :=  Ignore TAs occurring within given percentage (as integer) of the N terminus. Default: -iN 0
         -iC <float> :=  Ignore TAs occurring within given percentage (as integer) of the C terminus. Default: -iC 0
         -PC         := Pseudocounts to use in calculating LFCs. Default: -PC 5
@@ -1230,9 +1230,9 @@ ZINB
 ====
 
 The ZINB (Zero-Inflated Negative Binomial) method is used to determine
-which genes exhibit statistically significant variability in either
-the magnitude of insertion counts or local saturation, across multiple
-conditions.  Like :ref:`ANOVA <anova>`, the ZINB method takes a
+which genes exhibit *statistically significant variability across multiple
+conditions*, in either the magnitude of insertion counts or local saturation, agnostically (in any one condition compared to the others).
+Like :ref:`ANOVA <anova>`, the ZINB method takes a
 *combined_wig* file (which combines multiple datasets in one file) and
 a *samples_metadata* file (which describes which samples/replicates
 belong to which experimental conditions).
@@ -1269,9 +1269,9 @@ Example
   python3 transit.py zinb <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
-        --exclude-conditions <cond1,...> :=  Comma separated list of conditions to ignore, for the analysis. Default: None
-        --include-conditions <cond1,...> :=  Comma separated list of conditions to include, for the analysis. Default: All
-        --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if more than one)
+        --exclude-conditions <cond1,...> :=  Comma separated list of conditions to ignore for the analysis. Default: None
+        --include-conditions <cond1,...> :=  Comma separated list of conditions to include for the analysis. Default: All
+        --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if more than one) (by default, LFCs for each condition are computed relative to the grandmean across all condintions)
         -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5
         -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5
         -PC <N>         :=  Pseudocounts used in calculating LFCs in output file. Default: -PC 5
@@ -1320,6 +1320,9 @@ by prefixing them with a '#'.  Here is an example of a samples
 metadata file: The filenames should match what is shown in the header
 of the combined_wig (including pathnames, if present).
 
+Note: the Condition column should have a unique label for each distinct condition (the same label shared only among replicates).
+If there are attributes that distinguish the conditions (such as strain, treatment, etc), they could be included as additional columns (e.g. covariates).
+
 ::
 
   ID      Condition    Filename
@@ -1336,7 +1339,7 @@ The following parameters are available for the ZINB method:
 
 -  **\-\-include-conditions:** Includes the given set of conditions from the ZINB test. Conditions not in this list are ignored. Note: this is useful for specifying the order in which the columns are listed in the output file.
 -  **\-\-exclude-conditions:** Ignores the given set of conditions from the ZINB test.
--  **\-\-ref:** which condition to use as a reference when computing LFCs in the output file
+-  **\-\-ref:** which condition to use as a reference when computing LFCs in the output file. By default, LFCs for each condition are computed relative to the grandmean across all condintions.
 -  **Normalization Method:** Determines which normalization method to
    use when comparing datasets. Proper normalization is important as it
    ensures that other sources of variability are not mistakenly treated
@@ -1826,19 +1829,35 @@ Auxilliary Pathway Files in Transit Data Directory
 These files for pathway analysis are distributed in the Transit data directory 
 (e.g. transit/src/pytransit/data/).
 
-+----------+---------+--------------------+--------------------------------------+--------------------------------+
-| system   | num cats| applicable methods | associations of genes with roles     | pathway definitions/role names |
-+==========+=========+====================+======================================+================================+
-| COG      | 20      | FET*, GSEA         | H37Rv_COG_roles.dat                  | COG_roles.dat                  |
-+----------+---------+--------------------+--------------------------------------+--------------------------------+
-| Sanger   | 153     | FET*, GSEA*        | H37Rv_sanger_roles.dat               | sanger_roles.dat               |
-+----------+---------+--------------------+--------------------------------------+--------------------------------+
-| GO       | 2545    | FET, GSEA          | H37Rv_GO_terms.txt                   | GO_term_names.dat              |
-+----------+---------+--------------------+--------------------------------------+--------------------------------+
-|          |         | ONT*               | GO_terms_for_each_Rv.obo-3-11-18.txt | gene_ontology.1_2.3-11-18.obo  |
-+----------+---------+--------------------+--------------------------------------+--------------------------------+
+Note: The "Sanger" roles are custom pathway associations for
+*M. tuberculosis* defined in the original Nature paper on
+the H37Rv genome sequence `(Cole et al., 1998)
+<https://www.nature.com/articles/31159>`_ (Table 1).  They are more specific
+that COG categories, but less specific than GO terms.  For other
+organisms, one should be able to find GO terms (e.g. on PATRIC,
+Uniprot, or geneontology.org) and COG roles (from
+https://ftp.ncbi.nih.gov/pub/COG/COG2020/data/, `(Galerpin et al, 2021) 
+<https://academic.oup.com/nar/article/49/D1/D274/5964069>`_ ).
 
-asterisk means 'recommended' combination of method with system of functional categories
+Pathway association files for *M. smegmatis* mc2 155 are also provided in the table below.
+
+
++----------+----------+--------------------+--------------------------------------+------------------------------------+
+| system   | num roles| applicable methods | associations of genes with roles     | pathway definitions/role names     |
++==========+==========+====================+======================================+====================================+
+| COG      | 25       | FET*, GSEA         | H37Rv_COG_roles.dat;                 | COG_roles.dat                      |
+|          |          |                    | smeg_COG_roles.dat                   |                                    |
++----------+----------+--------------------+--------------------------------------+------------------------------------+
+| Sanger   | 153      | FET*, GSEA*        | H37Rv_sanger_roles.dat               | sanger_roles.dat                   |
++----------+----------+--------------------+--------------------------------------+------------------------------------+
+| GO       | 2545     | ONT*               | H37Rv_GO_terms.txt;                  | gene_ontology.1_2.3-11-18.obo      |
+|          |          |                    | smeg_GO_terms.txt                    |                                    |
++----------+----------+--------------------+--------------------------------------+------------------------------------+
+|          |          | FET, GSEA          | H37Rv_GO_terms.txt;                  | GO_term_names.dat                  |
+|          |          |                    | smeg_GO_terms.txt                    |                                    |
++----------+----------+--------------------+--------------------------------------+------------------------------------+
+
+'\*' means *recommended* combination of method with system of functional categories
 
 
 Current Recommendations
