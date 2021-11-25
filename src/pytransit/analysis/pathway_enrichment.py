@@ -79,7 +79,7 @@ class PathwayGUI(base.AnalysisGUI):
 
 class PathwayMethod(base.AnalysisMethod):
 
-  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,Nperm=10000,p=0,ranking="SLPV"):
+  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,Nperm=10000,p=0,ranking="SLPV",Pval_col=-2,Qval_col=-1,LFC_col=6): # default cols are for resampling files
     base.AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, open(outputFile,"w"), None) # no annotation file
     self.resamplingFile = resamplingFile
     self.associationsFile = associationsFile
@@ -87,6 +87,9 @@ class PathwayMethod(base.AnalysisMethod):
     self.outputFile = outputFile 
     # self.output is the opened file, which will be set in base class
     self.method = method
+    self.Pval_col = Pval_col
+    self.Qval_col = Qval_col
+    self.LFC_col = LFC_col
     self.PC = PC # for FET
     self.Nperm = Nperm # for GSEA
     self.p = p # for GSEA
@@ -104,6 +107,9 @@ class PathwayMethod(base.AnalysisMethod):
     pathways = args[2]
     output = args[3]
     method = kwargs.get("M", "FET")
+    Pval_col = int(kwargs.get("Pval_col","-2")) # default cols are for resampling files
+    Qval_col = int(kwargs.get("Qval_col","-1"))
+    LFC_col = int(kwargs.get("LFC_col","6"))
     PC = int(kwargs.get("PC","2")) # for FET
     Nperm = int(kwargs.get("Nperm", "10000")) # for GSEA
     p = float(kwargs.get("p","0")) # for GSEA
@@ -114,18 +120,23 @@ class PathwayMethod(base.AnalysisMethod):
       print(self.usage_string()); 
       sys.exit(0)
 
-    return self(resamplingFile,associations,pathways,output,method,PC=PC,Nperm=Nperm,p=p,ranking=ranking)
+    return self(resamplingFile,associations,pathways,output,method,PC=PC,Nperm=Nperm,p=p,ranking=ranking,Pval_col=Pval_col,Qval_col=Qval_col,LFC_col=LFC_col)
 
   @classmethod
   def usage_string(self):
-    return """python3 %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FET|GSEA|GO>] [-PC <int>] [-ranking SLPV|LFC] [-p <float>] [-Nperm <int>]
+    return """python3 %s pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FET|GSEA|GO>] [-PC <int>] [-ranking SLPV|LFC] [-p <float>] [-Nperm <int>] [-Pval_col <int>] [-Qval_col <int>]  [-LFC_col <int>]
 
 Optional parameters:
  -M FET|GSEA|ONT:     method to use, FET for Fisher's Exact Test (default), GSEA for Gene Set Enrichment Analysis (Subramaniam et al, 2005), or ONT for Ontologizer (Grossman et al, 2007)
- -ranking (for GSEA): SLPV is signed-log-p-value (default); LFC is log2-fold-change from resampling
- -p       (for GSEA): exponent to use in calculating enrichment score; recommend trying 0 or 1 (as in Subramaniam et al, 2005)
- -Nperm   (for GSEA): number of permutations to simulate for null distribution to determine p-value (default=10000)
- -PC      (for FET):  pseudo-counts to use in calculating p-value based on hypergeometric distribution (default=2)
+ -Pval_col <int>    : indicate column with *raw* P-values (starting with 0; can also be negative, i.e. -1 means last col) (used for sorting) (default: -2)
+ -Qval_col <int>    : indicate column with *adjusted* P-values (starting with 0; can also be negative, i.e. -1 means last col) (used for significant cutoff) (default: -1)
+ for GSEA...
+ -ranking SLPV|LFC  : SLPV is signed-log-p-value (default); LFC is log2-fold-change from resampling 
+ -LFC_col <int>     : indicate column with log2FC (starting with 0; can also be negative, i.e. -1 means last col) (used for ranking genes by SLPV or LFC) (default: 6)
+ -p <float>         : exponent to use in calculating enrichment score; recommend trying 0 or 1 (as in Subramaniam et al, 2005)
+ -Nperm <int>       : number of permutations to simulate for null distribution to determine p-value (default=10000)
+ for FET...
+ -PC <int>          :  pseudo-counts to use in calculating p-value based on hypergeometric distribution (default=2)
 """ % (sys.argv[0])
 
   def Run(self):
@@ -154,7 +165,7 @@ Optional parameters:
       if line[0]=='#': headers.append(line); continue
       w = line.rstrip().split('\t')
       genes.append(w)
-      qval = float(w[-1])
+      qval = float(w[self.Qval_col])
       if qval<0.05: hits.append(w[0])
     return genes,hits,headers
 
@@ -171,7 +182,7 @@ Optional parameters:
       # store mappings in both directions
       for (a,b) in [(w[0],w[1]),(w[1],w[0])]:
         if a not in associations: associations[a] = []
-        associations[a].append(b)
+        if b not in associations[a]: associations[a].append(b) # ignore duplicates
     return associations
 
   def read_pathways(self,filename):
@@ -222,7 +233,7 @@ Optional parameters:
   def GSEA(self):
     data,hits,headers = self.read_resampling_file(self.resamplingFile) # hits are not used in GSEA()
     orfs_in_resampling_file = [w[0] for w in data]
-    headers = headers[-1].rstrip().split('\t')
+    headers = headers[-1].rstrip().split('\t') # last line prefixed by '#'
     associations = self.read_associations(self.associationsFile,filter=orfs_in_resampling_file) # bidirectional map; includes term->genelist and gene->termlist
     # filter: project associations (of orfs to pathways) onto only those orfs appearing in the resampling file
 
@@ -240,18 +251,19 @@ Optional parameters:
 
     # rank by SLPV=sign(LFC)*log10(pval)
     # note: genes with lowest p-val AND negative LFC have highest scores (like positive correlation)
-    # there could be lots of ties with pval=0 or 1, but that's OK
+    # there could be lots of ties with pval=0 or 1, but so be it (there are probably fewer such ties than with Qvals) (randomize order below) 
     pairs = [] # pair are: rv and score (SLPV)
     for w in data:
       orf = w[0]
       if self.ranking=="SLPV": 
-        Pval_col = headers.index("p-value")
-        Pval = float(w[Pval_col])
+        #Pval_col = headers.index("p-value")
+        Pval = float(w[self.Pval_col])
+        LFC = float(w[self.LFC_col])
         SLPV = (-1 if LFC<0 else 1)*math.log(Pval+0.000001,10)
         pairs.append((orf,SLPV))
       elif self.ranking=="LFC": 
-        LFC_col = headers.index("log2FC")
-        LFC = float(w[LFC_col])
+        #LFC_col = headers.index("log2FC")
+        LFC = float(w[self.LFC_col])
         pairs.append((orf,LFC))
 
     # pre-randomize ORFs, to avoid genome-position bias in case of ties in pvals (e.g. 1.0)
@@ -332,7 +344,7 @@ Optional parameters:
     return hypergeom.sf(k,M,n,N)
 
   def fisher_exact_test(self):
-    genes,hits,headers = self.read_resampling_file(self.resamplingFile)
+    genes,hits,headers = self.read_resampling_file(self.resamplingFile) # use self.Qval_col to determine hits
     associations = self.read_associations(self.associationsFile)
     pathways = self.read_pathways(self.pathwaysFile)
 
@@ -476,10 +488,11 @@ Optional parameters:
     allorfs,studyset = [],[]
     for line in open(self.resamplingFile):
       if line[0]=="#": continue
-      w = line.rstrip().split()
+      w = line.rstrip().split('\t')
       genes[w[0]] = w
       allorfs.append(w[0])
-      pval,qval = float(w[-2]),float(w[-1])
+      #pval,qval = float(w[-2]),float(w[-1])
+      pval,qval = float(w[self.Pval_col]),float(w[self.Qval_col])
       if qval<0.05: studyset.append(w[0])
       pvals.append((w[0],pval))
     pvals.sort(key=lambda x: x[1])
