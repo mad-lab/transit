@@ -158,6 +158,7 @@ def fix_paired_headers_for_bwa(reads1,reads2):
 
 # original implementation
 # find index of H[1..m] in G[1..n] with up to max mismatches
+# note: this find first match, not necessarily the best (with min mismatches)
 
 def mmfind1(G,n,H,m,max): # lengths; assume n>m
   a = G[:n].find(H[:m])
