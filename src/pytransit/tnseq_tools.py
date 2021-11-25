@@ -80,9 +80,6 @@ def read_samples_metadata(metadata_file, covarsToRead = [], interactionsToRead =
     interactionsByFileList = [{} for i in range(len(interactionsToRead))]
     headersToRead = [condition_name.lower(), "filename"]
     orderingMetadata = { 'condition': [], 'interaction': [] }
-    print(headersToRead)
-    print(covarsToRead)
-    print(interactionsToRead)
     with open(metadata_file) as mfile:
         lines = mfile.readlines()
         headIndexes = [i
