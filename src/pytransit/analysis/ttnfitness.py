@@ -176,7 +176,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=1, reps=self.replicates, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data, position=position)
 
 
-		# SC: ttn fitness methodology here
+		# SC: ttn fitness methodology here to make fitness calls
         data = []
         N = len(G)
         count = 0
