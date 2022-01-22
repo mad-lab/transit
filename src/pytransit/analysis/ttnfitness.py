@@ -75,6 +75,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
     def __init__(self,
                 ctrldata,
                 annotation_path,
+				genome_path,
                 output_file,
                 replicates="Sum",
                 normalization=None,
@@ -84,10 +85,18 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 CTerminus=0.0, wxobj=None):
 
         base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        self.genome_path = genome_path
 
 
+	#Overloading function so it prints out the genome fna file as well!
+    def print_members(self):
+        #TODO: write docstring
+        members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
+        for m in members:
+             print("%s = %s" % (m, getattr(self, m)))
 
 
+	#SC neeed to fix so genome file included
     @classmethod
     def fromGUI(self, wxobj):
         """ """
@@ -125,6 +134,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
 
         return self(ctrldata,
                 annotationPath,
+				genomePath,
                 output_file,
                 replicates,
                 normalization,
@@ -139,7 +149,8 @@ class TTNFitnessMethod(base.SingleConditionMethod):
 
         ctrldata = args[0].split(",")
         annotationPath = args[1]
-        outpath = args[2]
+        genomePath = args[2]
+        outpath = args[3]
         output_file = open(outpath, "w")
 
         replicates = "Sum"
@@ -151,6 +162,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
 
         return self(ctrldata,
                 annotationPath,
+				genomePath,
                 output_file,
                 replicates,
                 normalization,
@@ -229,7 +241,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python3 %s ttnfitness <comma-separated .wig files> <annotation .prot_table> <output file>""" % (sys.argv[0])
+        return """python3 %s ttnfitness <comma-separated .wig files> <annotation .prot_table> <genome .fna> <output file>""" % (sys.argv[0])
 
 
 if __name__ == "__main__":
@@ -243,6 +255,7 @@ if __name__ == "__main__":
 
     print(G)
     G.console_message("Printing the member variables:")
+
     G.print_members()
 
     print("")
