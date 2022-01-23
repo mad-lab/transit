@@ -200,18 +200,73 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 genome += line[:-1]
 
         self.transit_message("Ceating TA Insertion input to STLM")
-
-        TA_site_nucs_list = []
+        ############################################################
+        #Creating the dataset
+        orf= []
+        name= []
+        coords = []
+        nucleos = []
+        #Get the nucleotides surrounding the TA sites
         genome2 = genome+genome
+        all_counts=[]
         for gene in G:
+            all_counts.extend(gene.reads[0])
             for pos in gene.position:
                 pos -= 1 # 1-based to 0-based indexing of nucleotides
                 if pos-20<0: pos += len(genome)
                 nucs=genome2[pos-20:pos+22]
                 if nucs[20:22]!="TA": sys.stderr.write("warning: site %d is %s instead of TA" % (pos,nucs[20:22]))
-                TA_site_nucs_list.append([gene.orf,gene.name, pos, nucs])
+                orf.append(gene.orf)
+                name.append(gene.name)
+                coords.append(pos)
+                nucleos.append(nucs)
+        #get initial states of the TA Sites
+        # compute state labels (ES or NE)
+        # for runs of >=R TA sites with cnt=0; label them as "ES", and the rest as "NE"
+        # treat ends of genome as connected (circular)
 
-        TA_sites_df = pandas.DataFrame(TA_site_nucs_list, columns = ["Orf", "Name", "TA site Coord", "Nucleotides"])
+        Nsites = len(all_counts)
+        states = ["NE"]*Nsites
+        R = 6 # make this adaptive based on saturation?
+        MinCount = 2
+        i = 0
+        while i<Nsites:
+            j = i
+            while j<Nsites and all_counts[j]<MinCount:
+                j += 1
+            if j-i>=R:
+                for k in range(i,j): states[k] = "ES"
+                i = j
+            else: i += 1
+
+        #getlocal averages -excludes self
+        W = 5
+        localmeans = []
+        for i in range(Nsites):
+            vals = []
+            for j in range(-W,W+1):
+                if j!=0 and i+j>=0 and i+j<Nsites: # this excludes the site itself
+                    if states[i+j]!=states[i]: continue # include only neighboring sites with same state when calculating localmean # diffs2.txt !!!
+                    vals.append(float(all_counts[i+j]))
+            smoothed = -1 if len(vals)==0 else numpy.mean(vals)
+            localmeans.append(smoothed)
+
+        #get LFCs
+        LFC_values= []
+        PC = 10
+        for i in range(len(all_counts)):
+            c,m = all_counts[i],localmeans[i]
+            lfc = math.log((c+PC)/float(m+PC),2)
+            LFC_values.append(lfc)
+
+        TA_sites_df = pandas.DataFrame({"Orf":orf,
+        "Name": name,
+        "TA site Coord":pos,
+        "TA site state": states,
+        "TA site Actual Count": all_counts,
+        "Local Average": localmeans,
+        "LFCs": lfc,
+        "Nucleotides":nucleos})
         print(TA_sites_df)
             # Update Progress
             #text = "Running TTNFitness Method... %5.1f%%" % (100.0*count/N)
@@ -257,7 +312,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
             self.output.write(line)
         self.output.close()
         """
-        
+
         self.transit_message("") # Printing empty line to flush stdout
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file(filetype="TTNFitness")
