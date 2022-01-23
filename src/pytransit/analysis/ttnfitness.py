@@ -22,13 +22,13 @@ import random
 import numpy
 import scipy.stats
 import datetime
+import pandas
 
 from pytransit.analysis import base
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
 import pytransit.norm_tools as norm_tools
 import pytransit.stat_tools as stat_tools
-
 
 ############# Description ##################
 
@@ -171,6 +171,8 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 NTerminus,
                 CTerminus)
 
+    #read in the fna file as one continous string
+
     def Run(self):
 
         self.transit_message("Starting TTNFitness Method")
@@ -186,10 +188,36 @@ class TTNFitnessMethod(base.SingleConditionMethod):
             (data, factors) = norm_tools.normalize_data(data, self.normalization, self.ctrldata, self.annotation_path)
 
         G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, minread=1, reps=self.replicates, ignoreCodon=self.ignoreCodon, nterm=self.NTerminus, cterm=self.CTerminus, data=data, position=position)
+        N = len(G)
 
+        self.transit_message("Getting Genome")
+        genome = ""
+        n = 0
+        for line in open(self.genome_path):
+            if n==0:
+                n = 1 # skip first
+            else:
+                genome += line[:-1]
 
-		# SC: ttn fitness methodology here to make fitness calls
-        data = []
+        self.transit_message("Ceating TA Insertion input to STLM")
+
+        TA_site_nucs_list = []
+        genome2 = genome+genome
+        for gene in G:
+            for pos in gene.position:
+                pos -= 1 # 1-based to 0-based indexing of nucleotides
+                if pos-20<0: pos += len(genome)
+                nucs=genome2[pos-20:pos+22]
+                if nucs[20:22]!="TA": sys.stderr.write("warning: site %d is %s instead of TA" % (pos,nucs[20:22]))
+                TA_site_nucs_list.append([gene.orf,gene.name, pos, nucs])
+
+        TA_sites_df = pandas.DataFrame(TA_site_nucs_list, columns = ["Orf", "Name", "TA site Coord", "Nucleotides"])
+        print(TA_sites_df)
+            # Update Progress
+            #text = "Running TTNFitness Method... %5.1f%%" % (100.0*count/N)
+            #self.progress_update(text, count)
+        """
+		data = []
         N = len(G)
         count = 0
         self.progress_range(N)
@@ -207,12 +235,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
 
             data.append("%s\t%s\t%s\t%s\t%s\t%1.2f\t%1.2f\n" % (gene.orf, gene.name, gene.desc, gene.k, gene.n, mean, nzmean))
 
-
-            # Update Progress
-            text = "Running TTNFitness Method... %5.1f%%" % (100.0*count/N)
-            self.progress_update(text, count)
-
-
+        """
         self.output.write("#TTNFitness\n")
         if self.wxobj:
             members = sorted([attr for attr in dir(self) if not callable(getattr(self,attr)) and not attr.startswith("__")])
@@ -228,11 +251,13 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         self.output.write("#Time: %s\n" % (time.time() - start_time))
         self.output.write("#%s\n" % "\t".join(columns))
 
+        """
         data.sort()
         for line in data:
             self.output.write(line)
         self.output.close()
-
+        """
+        
         self.transit_message("") # Printing empty line to flush stdout
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file(filetype="TTNFitness")
