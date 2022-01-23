@@ -23,6 +23,7 @@ import numpy
 import scipy.stats
 import datetime
 import pandas
+import itertools
 
 from pytransit.analysis import base
 import pytransit.transit_tools as transit_tools
@@ -199,23 +200,44 @@ class TTNFitnessMethod(base.SingleConditionMethod):
             else:
                 genome += line[:-1]
 
-        self.transit_message("Ceating TA Insertion input to STLM")
+        self.transit_message("Calculating LFCs")
         ############################################################
         #Creating the dataset
         orf= []
         name= []
         coords = []
         nucleos = []
+        ttn_vector_list = []
         #Get the nucleotides surrounding the TA sites
         genome2 = genome+genome
         all_counts=[]
+        combos=[''.join(p) for p in itertools.product(['A','C','T','G'], repeat=4)]
         for gene in G:
             all_counts.extend(gene.reads[0])
             for pos in gene.position:
                 pos -= 1 # 1-based to 0-based indexing of nucleotides
-                if pos-20<0: pos += len(genome)
-                nucs=genome2[pos-20:pos+22]
-                if nucs[20:22]!="TA": sys.stderr.write("warning: site %d is %s instead of TA" % (pos,nucs[20:22]))
+                if pos-4<0: pos += len(genome)
+                nucs=genome2[pos-4:pos+6]
+                if nucs[4:6]!="TA": sys.stderr.write("warning: site %d is %s instead of TA" % (pos,nucs[4:6]))
+
+                #convert nucleotides to upstream and downstream TTN
+                upseq = nucs[0]+nucs[1]+nucs[2]+nucs[3]
+                #reverse complementing downstream
+                downseq = ""
+                for x in [nucs[9],nucs[8],nucs[7],nucs[6]]:
+                    if(str(x)=="A"): downseq+= "T"
+                    if(str(x)=="C"): downseq+= "G"
+                    if(str(x)=="G"): downseq+= "C"
+                    if(str(x)=="T"): downseq+= "A"
+
+                ttn_vector = []
+                for c in combos:
+                    if upseq==c and downseq==c: ttn_vector.append(int(2)) #up/dwn ttn are same, "bit"=2
+                    elif upseq==c or downseq==c:ttn_vector.append(int(1)) #set ttn bit=1
+                    else:ttn_vector.append(int(0))
+
+                ttn_vector_list.append(pandas.Series(ttn_vector,index=combos))
+
                 orf.append(gene.orf)
                 name.append(gene.name)
                 coords.append(pos)
@@ -267,10 +289,16 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         "Local Average": localmeans,
         "LFCs": lfc,
         "Nucleotides":nucleos})
+
+        TA_sites_df = pandas.concat([TA_sites_df, pandas.DataFrame(ttn_vector_list)],axis=1)
         print(TA_sites_df)
             # Update Progress
             #text = "Running TTNFitness Method... %5.1f%%" % (100.0*count/N)
             #self.progress_update(text, count)
+
+        self.transit_message("Get TTN vectors")
+        #create the TTN vectors
+
         """
 		data = []
         N = len(G)
