@@ -24,6 +24,10 @@ import scipy.stats
 import datetime
 import pandas
 import itertools
+import statsmodels.api as sm
+from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score
 
 from pytransit.analysis import base
 import pytransit.transit_tools as transit_tools
@@ -200,13 +204,12 @@ class TTNFitnessMethod(base.SingleConditionMethod):
             else:
                 genome += line[:-1]
 
-        self.transit_message("Calculating LFCs")
+        self.transit_message("Calculating input to STLM")
         ############################################################
         #Creating the dataset
         orf= []
         name= []
         coords = []
-        nucleos = []
         ttn_vector_list = []
         #Get the nucleotides surrounding the TA sites
         genome2 = genome+genome
@@ -241,7 +244,6 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 orf.append(gene.orf)
                 name.append(gene.name)
                 coords.append(pos)
-                nucleos.append(nucs)
         #get initial states of the TA Sites
         # compute state labels (ES or NE)
         # for runs of >=R TA sites with cnt=0; label them as "ES", and the rest as "NE"
@@ -287,17 +289,37 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         "TA site state": states,
         "TA site Actual Count": all_counts,
         "Local Average": localmeans,
-        "LFCs": lfc,
-        "Nucleotides":nucleos})
+        "LFC": lfc})
 
         TA_sites_df = pandas.concat([TA_sites_df, pandas.DataFrame(ttn_vector_list)],axis=1)
+
+        self.transit_message("Training the STLM")
+        y = TA_sites_df["LFC"]
+        X = TA_sites_df.drop(["Orf","Name", "TA site Coord","TA site state","TA site Actual Count","Local Average","LFC"],axis=1)
+
+        R2_list= []
+        kf = KFold(n_splits=10)
+        for train_index, test_index in kf.split(X):
+        	X_train, X_test = X.loc[train_index], X.loc[test_index]
+        	y_train, y_test = y.loc[train_index], y.loc[test_index]
+        	X_train = sm.add_constant(X_train)
+        	X_test = sm.add_constant(X_test)
+        	model = sm.OLS(y_train,X_train)
+        	results = model.fit()
+        	y_pred = results.predict(X_test)
+        	R2_list.append(r2_score(y_test, y_pred))
+
+        #Fit the model and save it in the pickle file passed into system args
+        X = sm.add_constant(X)
+        final_model = sm.OLS(y,X).fit()
+
+
+
         print(TA_sites_df)
             # Update Progress
             #text = "Running TTNFitness Method... %5.1f%%" % (100.0*count/N)
             #self.progress_update(text, count)
 
-        self.transit_message("Get TTN vectors")
-        #create the TTN vectors
 
         """
 		data = []
