@@ -24,6 +24,7 @@ from pytransit.analysis import zinb
 from pytransit.analysis import tnseq_stats
 from pytransit.analysis import corrplot
 from pytransit.analysis import heatmap
+from pytransit.analysis import ttnfitness
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -46,6 +47,7 @@ methods["pathway_enrichment"]=pathway_enrichment.PathwayAnalysis()
 methods["tnseq_stats"]=tnseq_stats.TnseqStats()
 methods["corrplot"]=corrplot.Corrplot()
 methods["heatmap"]=heatmap.Heatmap()
+methods["ttnfitness"]=ttnfitness.TTNFitnessAnalysis()
 
 # EXPORT METHODS
 from pytransit.analysis import norm
