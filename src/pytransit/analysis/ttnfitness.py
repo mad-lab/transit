@@ -225,7 +225,9 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         gene_obj_dict = {}
         for gene in G:
             gene_obj_dict[gene.orf]= gene
-            all_counts.extend(gene.reads[0])
+            all_counts.extend(gene.reads[0]) #TRI deal with multiple replicates? sum the counts at each TA site?
+            #TRI print("%s %s %s %s" % (gene.orf,len(gene.reads),len(gene.reads[0]),gene.reads[0]))
+            nTAs = len(gene.reads[0]) #TRI
             for pos in gene.position:
                 pos -= 1 # 1-based to 0-based indexing of nucleotides
                 if pos-4<0: pos += len(genome)
@@ -417,7 +419,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         	#ORF Description
         	orfDescription = gene_obj_dict[g].desc
             #Total TA sites
-        	numTAsites = len(gene_obj_dict[g].reads)
+        	numTAsites = len(gene_obj_dict[g].reads[0]) #TRI check this!
         	#Sites > 0
         	above0TAsites = len([r for r in gene_obj_dict[g].reads[0] if r>0])
         	#Actual Count
