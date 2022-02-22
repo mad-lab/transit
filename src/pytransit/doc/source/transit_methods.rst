@@ -925,7 +925,7 @@ In order to enable users to evaluate these various methods for determining signi
 a '-signif' flag is provided for the GI method.  The options are:
 
  * **-signif HDI**: significant genes are those for which the HDI does not overlap the ROPE
- * **-signif prob**: significant genes are those with prob < 0.05, where 'prob' is porbability that HDI overlap the ROPE (default)
+ * **-signif prob**: significant genes are those with prob < 0.05, where 'prob' is probability that HDI overlaps the ROPE (default)
  * **-signif BFDR**: significant genes are those with adjusted prob < 0.05, where prob is adjusted by the BFDR method
  * **-signif FWER**: significant genes are those with adjusted prob < 0.05, where prob is adjusted by the FWER method
 
