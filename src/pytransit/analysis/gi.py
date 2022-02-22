@@ -816,7 +816,8 @@ class GIMethod(base.QuadConditionMethod):
 
             text = "Running GI Method... %2.0f%%" % (100.0*(count+1)/N)
             self.progress_update(text, count)
-            self.transit_message_inplace("Running Export Method... %1.1f%%" % (100.0*count/(N-1)))
+            #self.transit_message_inplace("Running Export Method... %1.1f%%" % (100.0*count/(N-1)))
+            self.transit_message("analyzing %s (%1.1f%% done)" % (gene.orf,100.0*count/(N-1)))
             count+=1
 
         # for HDI, maybe I should sort on abs(mean_delta_logFC); however, need to sort by prob to calculate BFDR
@@ -867,10 +868,10 @@ class GIMethod(base.QuadConditionMethod):
         #self.output.write("#Runtime: %s s\n" % (time.time() - start_time))
 
 
-        self.output.write("#Control Data-A: %s\n" % (",".join(self.ctrldataA).encode('utf-8')))
-        self.output.write("#Control Data-B: %s\n" % (",".join(self.ctrldataB).encode('utf-8')))
-        self.output.write("#Experimental Data-A: %s\n" % (",".join(self.expdataA).encode('utf-8')))
-        self.output.write("#Experimental Data-B: %s\n" % (",".join(self.expdataB).encode('utf-8')))
+        self.output.write("#Control Data-A (Strain A, Condition 1): %s\n" % (",".join(self.ctrldataA).encode('utf-8')))
+        self.output.write("#Experimental Data-A (Strain A, Condition 2): %s\n" % (",".join(self.expdataA).encode('utf-8')))
+        self.output.write("#Control Data-B (Strain B, Condition 1): %s\n" % (",".join(self.ctrldataB).encode('utf-8')))
+        self.output.write("#Experimental Data-B (Strain B, Condition 2): %s\n" % (",".join(self.expdataB).encode('utf-8')))
         self.output.write("#Annotation path: %s\n" % (self.annotation_path.encode('utf-8')))
         self.output.write("#ROPE=%s, method for significance=%s\n" % (self.rope,self.signif))
         #self.output.write("#%s\n" % "\t".join(columns))
