@@ -103,13 +103,13 @@ class ZinbMethod(base.MultiConditionMethod):
         interactions = list(filter(None, kwargs.get("-interactions", "").split(",")))
         refs = kwargs.get("-ref",[]) # list of condition names to use a reference for calculating LFCs
         if refs!=[]: refs = refs.split(',')
-        winz = True if "w" in kwargs else False
+        winz = True if "winz" in kwargs else False
         excluded_conditions = list(filter(None, kwargs.get("-exclude-conditions", "").split(",")))
         included_conditions = list(filter(None, kwargs.get("-include-conditions", "").split(",")))
         prot_table = kwargs.get("-prot_table",None)
 
         # check for unrecognized flags
-        flags = "-n --exclude-conditions --include-conditions -iN -iC -PC --condition --covars --interactions --gene --ref --prot_table".split()
+        flags = "-n --exclude-conditions --include-conditions -iN -iC -PC --condition --covars --interactions --gene --ref --prot_table -winz".split()
         for arg in rawargs:
           if arg[0]=='-' and arg not in flags:
             self.transit_error("flag unrecognized: %s" % arg)
@@ -184,6 +184,7 @@ class ZinbMethod(base.MultiConditionMethod):
                 nz_percs[group] = 0
             else:
                 arr = data[wigIndexes][:, siteIndexes]
+                if self.winz: arr = self.winsorize(arr)
                 means[group] = numpy.mean(arr) if len(arr) > 0 else 0
                 nonzero_arr = nonzero(arr)
                 nz_means[group] = numpy.mean(nonzero_arr) if len(nonzero_arr) > 0 else 0
@@ -227,6 +228,7 @@ class ZinbMethod(base.MultiConditionMethod):
         """
         Returns the logit zero percentage and nz_mean for each replicate.
             [[WigData]] -> [[Number] ,[Number]]
+        note: these are not winsorized even if temp.winz==True
         """
 
         logit_zero_perc = []
@@ -353,14 +355,13 @@ class ZinbMethod(base.MultiConditionMethod):
 
         return globalenv['zinb_signif']
 
-    def winsorize(self, data):
-        unique_counts = numpy.unique(numpy.concatenate(data))
-        if (len(unique_counts) < 2):
-            return data
-        else:
-            n, n_minus_1 = unique_counts[heapq.nlargest(2, range(len(unique_counts)), unique_counts.take)]
-            result = [[ n_minus_1 if count == n else count
-                        for count in wig] for wig in data]
+    def winsorize(self, counts):
+      # input is insertion counts for gene: list of lists: n_replicates (rows) X n_TA sites (cols) in gene
+      unique_counts = numpy.unique(numpy.concatenate(counts))
+      if (len(unique_counts) < 2): return counts
+      else:
+        n, n_minus_1 = unique_counts[heapq.nlargest(2, range(len(unique_counts)), unique_counts.take)]
+        result = [[ n_minus_1 if count == n else count for count in wig] for wig in counts]
         return numpy.array(result)
 
     def is_number(self, s):
@@ -387,8 +388,8 @@ class ZinbMethod(base.MultiConditionMethod):
         self.progress_range(len(genes))
         pvals,Rvs, status = [],[], []
         r_zinb_signif = self.def_r_zinb_signif()
-        if (self.winz):
-            self.transit_message("Winsorizing and running analysis...")
+        self.transit_message("Running analysis...")
+        if (self.winz): self.transit_message("Winsorizing insertion count data")
 
         self.transit_message("Condition: %s" % self.condition)
 
@@ -432,18 +433,9 @@ class ZinbMethod(base.MultiConditionMethod):
                 status.append("TA sites <= 1, not analyzed")
                 pvals.append(1)
             else:
-                # For winsorization
-                # norm_data = self.winsorize((map(
-                #     lambda wigData: wigData[RvSiteindexesMap[Rv]], data))) if self.winz else list(map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data))
                 norm_data = list(map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data))
-                ([ readCounts,
-                   condition,
-                   covarsData,
-                   interactionsData,
-                   NZmean,
-                   logitZPerc]) = self.melt_data(
-                           norm_data,
-                           conditions, covariates, interactions, NZMeanByRep, LogZPercByRep)
+                if self.winz: norm_data = self.winsorize(norm_data)
+                ([readCounts, condition, covarsData, interactionsData, NZmean, logitZPerc]) =  self.melt_data(norm_data, conditions, covariates, interactions, NZMeanByRep, LogZPercByRep)
                 if (numpy.sum(readCounts) == 0):
                     status.append("pan-essential (no counts in all conditions) - not analyzed")
                     pvals.append(1)
@@ -549,18 +541,6 @@ class ZinbMethod(base.MultiConditionMethod):
             interactionsByFileList,
             filenamesInCombWig)
 
-        # this was the old way to filter samples, where --include/exclude-conditions depended on which --condition was specified
-        #conditionsList = self.select_conditions(conditions,self.included_conditions,self.excluded_conditions,orderingMetadata)
-        #data, conditions, covariates, interactions = self.filter_wigs_by_conditions2(
-        #        data,
-        #        conditions,
-        #        conditionsList,
-        #        covariates = covariates,
-        #        interactions = interactions)
-        #filesByCondition  = self.invertDict(conditionsByFile)
-        #samples_used = set()
-        #for cond in conditionsList: samples_used.update(filesByCondition[cond])
-
         metadata = self.get_samples_metadata()
         conditionNames = metadata['Condition'] # original Condition names for each sample, as ordered list        
         fileNames = metadata['Filename'] 
@@ -655,7 +635,7 @@ class ZinbMethod(base.MultiConditionMethod):
             if len(means)==2: LFCs = [numpy.math.log((means[1]+PC)/(means[0]+PC),2)] # still need to adapt this to use --ref if defined
             else: 
               if len(self.refs)==0: m = numpy.mean(means) # grand mean across all conditions
-              else: m = numpy.mean([statsByRv[Rv]['mean'][group] for group in self.refs]) ###TRI
+              else: m = numpy.mean([statsByRv[Rv]['mean'][group] for group in self.refs]) 
               LFCs = [numpy.math.log((x+PC)/(m+PC),2) for x in means]
             vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
                     ["%0.1f" % statsByRv[Rv]['mean'][group] for group in orderedStatGroupNames] +
@@ -678,12 +658,13 @@ class ZinbMethod(base.MultiConditionMethod):
         --exclude-conditions <cond1,cond2> :=  Comma separated list of conditions to exclude, for the analysis.
         --include-conditions <cond1,cond2> :=  Comma separated list of conditions to include, for the analysis. Conditions not in this list, will be excluded.
         --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if multiple conditions)
-        -iN <float>     :=  Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 5
-        -iC <float>     :=  Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 5
+        -iN <float>     := Ignore TAs occuring within given percentage (as integer) of the N terminus. Default: -iN 5
+        -iC <float>     := Ignore TAs occuring within given percentage (as integer) of the C terminus. Default: -iC 5
+        -winz           := winsorize insertion counts for each gene in each condition (replace max cnt with 2nd highest; helps mitigate effect of outliers)
         -PC <N>         := pseudocounts to use for calculating LFCs. Default: -PC 5
-        --condition     :=  columnname (in samples_metadata) to use as the Condition. Default: "Condition"
-        --covars <covar1,covar2...>       :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
-        --interactions <covar1,covar2...> :=  Comma separated list of covariates to include, that interact with the condition for the analysis. Must be factors
+        --condition     := columnname (in samples_metadata) to use as the Condition. Default: "Condition"
+        --covars <covar1,covar2...>       := Comma separated list of covariates (in metadata file) to include, for the analysis.
+        --interactions <covar1,covar2...> := Comma separated list of covariates to include, that interact with the condition for the analysis. Must be factors
         --prot_table <filename>           := for appending annotations of genes
         --gene <RV number or Gene name>   := Run method for one gene and print model output.
 
