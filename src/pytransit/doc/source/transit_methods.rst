@@ -1561,7 +1561,7 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 +---------------------+-----------------------------------------------------------------+
 | p-adj               | Adjusted p-value controlling for the FDR (Benjamini-Hochberg)   |
 +---------------------+-----------------------------------------------------------------+
-| status              | Diagnositic information (explanation for genes not analyzed)    |
+| status              | Diagnostic information (explanation for genes not analyzed)     |
 +---------------------+-----------------------------------------------------------------+
 
 
@@ -2059,6 +2059,91 @@ identified as *significantly varying* (Padj < 0:05, typically only a few
 hundred genes) in order to enhance the patterns, since otherwise they would
 be washed out by the rest of the genes in the genome, the majority of
 which usually do not exhibit significant variation in counts.
+
+
+.. rst-class:: transit_sectionend
+----
+
+
+
+
+
+
+.. _ttnfitness:
+
+.. rst-class:: transit_clionly
+TTN-Fitness
+===========
+
+What is this for? estimating fitness of genes in single conditions, while
+correcting for biases in Himar1 insertion preferences at TA sites based
+on surrounding nucleotides.
+
+Explain how/why to use this command (this all needs to be cleaned-up):
+normally, with individual TnSeq datasets (like a reference condition),
+the methods for evaluating essentiality are limited to Gumbel and HMM.
+The former distinguishes ES from NE, while the latter adds categories
+for GD (suppressed counts; mutant has reduced fitness) and GA
+(inflated counts; mutant has selective advantage)...  Quantifying the
+magnitude of the fitness effect is risky because the counts at
+individual TA sites can be noisy, and span a wide range from sites
+with very low to very high counts.  The TTN-Fitness gives a more
+fine-grained analysis of the degree of fitness effect by taking into
+account the insertion preferences of the Himar1 transposon, which are
+influnced by the nucleotide context of each TA site.  The TTN-Fitness
+method uses a statistical model based on surrounding nucleotides to
+estimate the relative insertability (?) of each site, and then corrects
+for this to compute an overall fitness level as a mean-log-fold-change
+of observed (normalized) counts to expected counts.  The resulting
+value (?) is 0 for ES genes, 1 for typical NE genes, but between 0 and 1 for GD genes.
+
+(in the paragraph above, I don't want to describe the technical details of the method;
+instead, I want to convey how this is used; what is different from Gumbel and HMM
+is that you get a quantitative estimate of the fitness effect, not just 4 categories)
+
+For details, see our paper. (give reference)
+
+Any important assumptions? obvious only works for Himar1. can handle
+multiple replicates? (how? does it help?)  don't have to re-train,
+right? our data (paper) shows the model generalizes across other
+bacterial species.
+
+
+Note that the TTN-Fitness model is really aimed at analyzing GD genes (and NE, GA),
+but not really ES genes, which are called as before.
+We kind of have to explain essentials a little.  These are 
+genes that are either essential based on the same algorithm as Gumbel ("ES"),
+or have no insertions and are long enough to be significant by a Binomial method
+(see paper) ("ESB").  Since counts are so close to 0 for these, the
+insertion biased on the transposon is irrelevant.  Thus, the predicitive model
+is not really used for these genes. 
+
+
+We should also note that TTN-Fitness tends to call more GD and GA genes,
+because it has greater power to discriminate...
+
+
+
+
+Usage:
+------
+
+::
+
+  python3 transit.py ttnfitness <comma-separated .wig files> <annotation .prot_table> <genome .fna> <gumbel output file> <output file>
+
+
+Explain command-line args and any flags as above.
+
+Output
+------
+
+mention the column with categorical calls (give a bullet list of the five
+categories?), and the column with the quantitative relative fitness value
+(mean-LFC of observed vs expected counts?).  0<value<1 means what? 1 is NE,
+closer to 0 means "more essential", or "suppressed counts" or "greater fitness defect
+for mutant"
+
 
 
 .. rst-class:: transit_sectionend
