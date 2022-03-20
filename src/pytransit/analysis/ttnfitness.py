@@ -357,7 +357,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 sub_data = TA_sites_df[TA_sites_df["Orf"]==g]
                 if len(sub_data)>significant_n and len(sub_data[sub_data["Insertion Count"]>0])==0: gene_call="EB"
             gumbel_gene_calls[g] = gene_call
-        
+
 
         ess_genes = [key for key,value in gumbel_gene_calls.items() if (value=='E') or (value=='EB')]
         filtered_ttn_data = TA_sites_df[~TA_sites_df["Orf"].isin(ess_genes)]
@@ -427,8 +427,8 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 M0_ratio=None
                 M1_ratio = None
             else:
-                M0_ratio = numpy.log10(numpy.mean(filtered_ttn_data[filtered_ttn_data["Orf"]==g]["M0 Predicted Count"])/mean_actual_counts)
-                M1_ratio = numpy.log10(numpy.mean(filtered_ttn_data[filtered_ttn_data["Orf"]==g]["M1 Predicted Count"])/mean_actual_counts)
+                M0_ratio = (mean_actual_counts/numpy.mean(filtered_ttn_data[filtered_ttn_data["Orf"]==g]["M0 Predicted Count"]))
+                M1_ratio = (mean_actual_counts/numpy.mean(filtered_ttn_data[filtered_ttn_data["Orf"]==g]["M1 Predicted Count"]))
             #M0/M1 info
             if "_"+g in Models_df.index:
                 used=True
@@ -452,7 +452,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 if "_"+g in Models_df.index: gene_ttn_call = Models_df.loc["_"+g,"Gene+TTN States"]
                 else: gene_ttn_call = "Uncertain"
             gene_dict[g] = [g,orfName,orfDescription,numTAsites,above0TAsites,used,M0_coef,M0_adj_pval,M1_coef,M1_adj_pval,M0_ratio,M1_ratio,mean_actual_counts,gene_ttn_call]
-    
+
         output_df = pandas.DataFrame.from_dict(gene_dict,orient='index')
         output_df.columns=["ORF ID","Name","Description","Total # TA Sites","#Sites with insertions","Used in Models","Gene (M0) Coef","Gene (M0) Adj Pval","Gene+TTN (M1) Coef","Gene+TTN (M1) Adj Pval","M0 Fitness Estimation","M1 Fitness Estimation","Mean Insertion Count", "TTN-Fitness Assesment"]
 

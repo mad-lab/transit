@@ -7,7 +7,7 @@
 
 
 TRANSIT has analysis methods capable of analyzing **Himar1** and
-**Tn5** datasets.  Below is a description of some of the methods.  
+**Tn5** datasets.  Below is a description of some of the methods.
 
 The analysis methods in Transit are also described in this `PDF manual
 <https://orca1.tamu.edu/essentiality/transit/transit-manual.pdf>`_ .
@@ -32,7 +32,7 @@ probability of this using a Bayesian model.
 How does it work?
 -----------------
 
-| 
+|
 
 This method for identifying essential genes is based on analyzing
 'gaps', or consecutive sequences of TA sites lacking insertions.
@@ -41,7 +41,7 @@ using the Gumbel distribution, which is a form of an Extreme-Value distribution.
 
 For a formal description of how this method works, see our paper [DeJesus2013]_:
 
-| 
+|
   DeJesus, M.A., Zhang, Y.J., Sassettti, C.M., Rubin, E.J.,
   Sacchettini, J.C., and Ioerger, T.R. (2013).  `Bayesian analysis of
   gene essentiality based on sequencing of transposon insertion
@@ -49,7 +49,7 @@ For a formal description of how this method works, see our paper [DeJesus2013]_:
   *Bioinformatics*, 29(6):695-703.
 
 |
-**Update (2021) - Binomial** 
+**Update (2021) - Binomial**
 
 Since the Gumbel method depends on the overall
 saturation (percent of TA sites with insertions), it can sometimes
@@ -613,16 +613,16 @@ parameters are available for the method:
    The default for trimming TA sites in the termini of ORFs is 0.
    However, TA sites in the stop codon (e.g. TAG) are automatically excluded.
    Trimming is specified as a percentage (as an integer), so, for example,
-   if you want to trim TA sites within 5% of the termini, you would 
+   if you want to trim TA sites within 5% of the termini, you would
    add the flags '-iN 5 -iC 5' (not 0.05).
 
--  **-PC**: Pseudocounts used in calculation of LFCs (log-fold-changes, see Output and Diagnostics) in 
-   resampling output file.  
-   To suppress the appearance of artifacts due to high-magnitude of LFCs from 
+-  **-PC**: Pseudocounts used in calculation of LFCs (log-fold-changes, see Output and Diagnostics) in
+   resampling output file.
+   To suppress the appearance of artifacts due to high-magnitude of LFCs from
    genes with low insertion counts (which
-   are more susceptible to noise), one can increase the pseudocounts using `-PC'. 
+   are more susceptible to noise), one can increase the pseudocounts using `-PC'.
    Increasing PC to a value like 5 (which is
-   reasonable, given that TTR normalization scales data so average insertion counts is around 100) 
+   reasonable, given that TTR normalization scales data so average insertion counts is around 100)
    can further reduce the appearance of artifacts (genes with low counts but large LFCs).
    However, changing pseudocounts only affects the LFCs, and will not change the number of significant genes.
 
@@ -654,7 +654,7 @@ If you want to compare more than two conditions, see :ref:`ZINB <zinb>`.
 
 ::
 
-  usage: 
+  usage:
 
   python3 transit.py resampling -c <combined_wig> <samples_metadata> <control_condition_name> <experimental_condition_name> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
@@ -794,7 +794,7 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 **log2FC:** (log-fold-change, LFC)
 For each gene, the LFC is calculated as the log-base-2 of the
 ratio of mean insertion counts in the experimental (treated) condition vs. the
-control condition (untreated, reference).  
+control condition (untreated, reference).
 The default is PC=1, which avoids the result being undefined
 for genes with means of 0 in either condition.  Pseudocounts can be
 changed using the -PC flag (above).
@@ -888,7 +888,7 @@ Statistical Significance
 The computation that is done by GI is to compute the posterior distribution of the delta_LFC (or mean change in slopes)
 through Bayesian sampling.
 The primary method to determine significance of genes is whethter this the mean_delta_LFC is significantly differnt than 0.
-However, since the mean_delta_LFC is a distribution, we represent it by a Highest Density Interval, HDI, which is 
+However, since the mean_delta_LFC is a distribution, we represent it by a Highest Density Interval, HDI, which is
 similar to a 95% confidence interval.  Furthermore, rather than asking whether the HDI overlaps 0 exactly, we expand the interval
 around 0 to a Region of Probable Equivalence (ROPE), which is set to [-0.5,0.5] by default.  Hence the significant genes
 are those for which the HDI does not overlap the ROPE.  GI has a flag to  adjust the size of the ROPE, if desired.
@@ -909,15 +909,15 @@ the probability of overlap.  The lower the probability, the more differnt the de
 significant interaction.  In this case, genes with prob < 0.05 are considered interactions and classified by the 3 types above,
 while genes with prob >= 0.05 are marked as "No Interaction".
 
-In addition, since we are calculating significance for thousands of genes in parallel, 
+In addition, since we are calculating significance for thousands of genes in parallel,
 many researchers prefer to have some method for correcting for multiple tests, to control the false discovery rate.
 However, FDR correction is generally used only for frequentist analyses, and he GI method is fundamentally a Bayesian approach.
 Technically, in a Bayesian framework, FDR correction is not needed.  Any adjustment for expectations about number of hits
-would be achieved through adjusting parameters for prior distributions.  Nonetheless, GI includes options for 
+would be achieved through adjusting parameters for prior distributions.  Nonetheless, GI includes options for
 two methods that approximate FDR correction: **BFDR** (Bayesian False Discovery Rate correction,
-`Newton M.A., Noueiry A., Sarkar D., Ahlquist P. (2004). Detecting differential gene expression with a semiparametric hierarchical 
+`Newton M.A., Noueiry A., Sarkar D., Ahlquist P. (2004). Detecting differential gene expression with a semiparametric hierarchical
 mixture method. Biostatistics, 5:155–176. <https://pubmed.ncbi.nlm.nih.gov/15054023/>`_) and FWER (Familty-Wise
-Error Rate control).  When these corrections are applied, a threshold of 0.05 for the adjusted probability of overlap 
+Error Rate control).  When these corrections are applied, a threshold of 0.05 for the adjusted probability of overlap
 is used for each, and this determines which
 genes are classified as interacting (1 of 3 types) or  marked as "No Interaction", as above.
 
@@ -1195,7 +1195,7 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 
 **LFCs** (log-fold-changes):
 For each condition, the LFC is calculated as the log-base-2 of the
-ratio of mean insertion count in that condition **relative to the 
+ratio of mean insertion count in that condition **relative to the
 mean of means across all the conditions**.
 Pseudocount are incorporated to reduce the impact of noise on LFCs, based on the formula below.
 The pseudocounts can be adjusted using the -PC flag.
@@ -1247,7 +1247,7 @@ occasionally identifies genes with variability not detectable by
 resampling analysis.
 
 Note: ZINB analysis requires R (statistical analysis software)
-to be installed on your system, along with the 'pscl' R package.  
+to be installed on your system, along with the 'pscl' R package.
 See :ref:`Installation Instructions <install-zinb>`.
 
 |
@@ -1255,7 +1255,7 @@ See :ref:`Installation Instructions <install-zinb>`.
 How does it work?
 -----------------
 
-| For a formal description of how this method works, see our paper [ZINB]_: 
+| For a formal description of how this method works, see our paper [ZINB]_:
 |
 |  Subramaniyam S, DeJesus MA, Zaveri A, Smith CM, Baker RE, Ehrt S, Schnappinger D, Sassetti CM, Ioerger TR. (2019).  `Statistical analysis of variability in TnSeq data across conditions using Zero-Inflated Negative Binomial regression. <https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-019-3156-z>`_, *BMC Bioinformatics*. 2019 Nov 21;20(1):603. doi: 10.1186/s12859-019-3156-z.
 
@@ -1357,7 +1357,7 @@ Covariates are attributes of the individual samples that could have a systematic
 effect on the insertion counts which we would like to account for and subsequently ignore
 (like nuissance variables). Examples include things like batch or library.
 
-Interactions are extra variables for which we want to test their effect on the 
+Interactions are extra variables for which we want to test their effect on the
 main variable (or condition).  For example, suppose we collect TnSeq data at several
 different timepoints (e.g. length of incubation or infection).  If we just test
 time as the condition, we will be identifying genes that vary over time (if timepoints
@@ -1406,19 +1406,19 @@ differs depending on the strain, we could do this:
 ::
 
  python3 transit.py zinb combined.wig samples.metadata prot.table output.file --interactions Strain
- 
+
 In this case, the condition is implicitly assumed to be the column in the samples metadata file
-labeled 'Condition'.  If you want to specify a different column to use as the primary condition to 
+labeled 'Condition'.  If you want to specify a different column to use as the primary condition to
 test (for example, if Treatment were a distinct column), you can use the **\-\-condition** flag:
 
 ::
 
  python3 transit.py zinb combined.wig samples.metadata prot.table output.file --condition Treatment --interactions Strain
- 
 
 
-The difference between how covariates and interactions are handeled in the model 
-is discussed below in the section on Statistical Significance.  
+
+The difference between how covariates and interactions are handeled in the model
+is discussed below in the section on Statistical Significance.
 
 Categorical vs Numeric Covariates
 ---------------------------------
@@ -1461,7 +1461,7 @@ you can think of the model approximately as:
   m_1: ln \ \mu = \alpha_0+\vec\alpha X
 
 where :math:`\mu` is an estimate of the mean (non-zero) insertion
-count in a gene (a parameter in the likelihood function for ZINB), 
+count in a gene (a parameter in the likelihood function for ZINB),
 :math:`\alpha_0` is a constant (the mean across all
 conditions), and :math:`\vec\alpha` is a vector of coefficients
 representing the deviation of the mean count in each condition.
@@ -1567,7 +1567,7 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 
 **LFCs** (log-fold-changes):
 For each condition, the LFC is calculated as the log-base-2 of the
-ratio of mean insertion count in that condition **relative to the 
+ratio of mean insertion count in that condition **relative to the
 mean of means across all the conditions** (by default).
 However, you can change this by desginating a specific reference condition using the flag **\-\-ref**.
 (If there are multiple reference conditions, they may be given as a comma separated list.)
@@ -1694,7 +1694,7 @@ Several analytical method are provided:
 Fisher's exact test (FET, hypergeometric distribution), GSEA (Gene Set Enrichment Analysis)
 by `Subramanian et al (2005) <https://www.ncbi.nlm.nih.gov/pubmed/16199517>`_,
 and `Ontologizer <https://www.ncbi.nlm.nih.gov/pubmed/17848398>`_.
-For Fisher's exact test, 
+For Fisher's exact test,
 genes in the resampling output file with adjusted p-value < 0.05 are taken as hits,
 and evaluated for overlap with functional categories of genes.
 The GSEA methods use the whole list of genes, ranked in order of statistical significance
@@ -1703,12 +1703,12 @@ The GSEA methods use the whole list of genes, ranked in order of statistical sig
 Three systems of categories are provided for (but you can add your own):
 the Sanger functional categories of genes determined in the
 original annotation of the H37Rv genome (`Cole et al, 1998 <https://www.ncbi.nlm.nih.gov/pubmed/9634230>`_,
-with subsequent updates), 
+with subsequent updates),
 COG categories (`Clusters of Orthologous Genes <https://www.ncbi.nlm.nih.gov/pubmed/25428365>`_) and
-also GO terms (Gene Ontology).  The supporting files for *M. tuberculosis* 
+also GO terms (Gene Ontology).  The supporting files for *M. tuberculosis*
 H37Rv are in the src/pytransit/data/ directory.
 
-For other organisms, it might be possible to download COG categories from 
+For other organisms, it might be possible to download COG categories from
 `http://www.ncbi.nlm.nih.gov/COG/ <http://www.ncbi.nlm.nih.gov/COG/>`_
 and GO terms from `http://www.geneontology.org <http://www.geneontology.org>`_
 or `http://patricbrc.org <http://patricbrc.org>`_.
@@ -1750,7 +1750,7 @@ Parameters
   ...
 
 - **Pathways File**
-   This is a tab-separated text file with 2 columns: pathway id, and pathway name. 
+   This is a tab-separated text file with 2 columns: pathway id, and pathway name.
 
 ::
 
@@ -1768,7 +1768,7 @@ Parameters
     Methodology to be used. FET is used by default (even without specifying -M).
 
   **FET**
-    This implements Fisher's Exact Test (hypergeometric distribution) to determine a p-value for each pathway, based on the proportion of pathway member observed in list of hits (conditionally essential gene by resampling, padj<0.05) compared to the background proportion in the overall genome, and p-values are adjusted post-hoc by the Benjamini-Hochberg procedure to limit the FDR to 5%.  
+    This implements Fisher's Exact Test (hypergeometric distribution) to determine a p-value for each pathway, based on the proportion of pathway member observed in list of hits (conditionally essential gene by resampling, padj<0.05) compared to the background proportion in the overall genome, and p-values are adjusted post-hoc by the Benjamini-Hochberg procedure to limit the FDR to 5%.
 
     In the output file, an "enrichment score" is reported, which is the ratio of the observed number of pathway members among the hits to the expected number.  Pseudocounts of 2 are included in the calculation to reduce the bias toward small pathways with only a few genes; this can be adjusted with the -PC flag (below).
 
@@ -1781,7 +1781,7 @@ Parameters
   **GSEA**
     Gene Set Enrichment Analysis. GSEA assess the significance of a pathway by looking at how the members fall in the ranking of all genes.  The genes are first ranked by significance from resampling.  Specifically, they are sorted by signed-log-p-value, SLPV=sign(LFC)*(log(pval)), which puts them in order so that the most significant genes with negative LFC are at the top, the most significant with positive LFC are at the bottom, and insignificant genes fall in the middle.  Roughly, GSEA computes the mean rank of pathway members, and evaluates significance based on a simulated a null distribution.  p-values are again adjusted at the end by BH.
 
-    `Subramanian, A., Tamayo, P., Mootha, V. K., Mukherjee, S., Ebert, B. L., Gillette, M. A., ... & Mesirov, J. P. (2005).  `ene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles. Proceedings of the National Academy of Sciences, 102(43), 15545-15550. <http://www.pnas.org/content/102/43/15545.short>`_ 
+    `Subramanian, A., Tamayo, P., Mootha, V. K., Mukherjee, S., Ebert, B. L., Gillette, M. A., ... & Mesirov, J. P. (2005).  `ene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles. Proceedings of the National Academy of Sciences, 102(43), 15545-15550. <http://www.pnas.org/content/102/43/15545.short>`_
 
     GSEA can be used with GO terms.
 
@@ -1813,7 +1813,7 @@ Parameters
 *    b is the number of genes with this GO term in the subset of hits (e.g. conditional essentials from resampling, with qval<0.05)
 *    q is the number of genes in the subset of hits with a parent of this GO term
 *    m is the total number of genes with this GO term in the genome
-*    p is the number of genes in the genome with a parent of this GO term 
+*    p is the number of genes in the genome with a parent of this GO term
 
   So enrichment is the log of the ratio of 2 ratios:
 
@@ -1826,7 +1826,7 @@ Auxilliary Pathway Files in Transit Data Directory
 
 ::
 
-These files for pathway analysis are distributed in the Transit data directory 
+These files for pathway analysis are distributed in the Transit data directory
 (e.g. transit/src/pytransit/data/).
 
 Note: The "Sanger" roles are custom pathway associations for
@@ -1836,7 +1836,7 @@ the H37Rv genome sequence `(Cole et al., 1998)
 that COG categories, but less specific than GO terms.  For other
 organisms, one should be able to find GO terms (e.g. on PATRIC,
 Uniprot, or geneontology.org) and COG roles (from
-https://ftp.ncbi.nih.gov/pub/COG/COG2020/data/, `(Galerpin et al, 2021) 
+https://ftp.ncbi.nih.gov/pub/COG/COG2020/data/, `(Galerpin et al, 2021)
 <https://academic.oup.com/nar/article/49/D1/D274/5964069>`_ ).
 
 Pathway association files for *M. smegmatis* mc2 155 are also provided in the table below.
@@ -1896,7 +1896,7 @@ The $DATA environment variable in these examples refers to the Transit data dire
 .. rst-class:: transit_sectionend
 ------
 
-    
+
 
 .. _tnseq_stats:
 
@@ -1935,16 +1935,16 @@ from the command-line using the 'tnseq_stats' command.  Here is an example:
 corrplot
 ========
 
-A useful tool when evaluating the quality of a collection of TnSeq datasets is to make a 
-*correlation plot* of the mean insertion counts (averaged at the gene-level) among samples.  
+A useful tool when evaluating the quality of a collection of TnSeq datasets is to make a
+*correlation plot* of the mean insertion counts (averaged at the gene-level) among samples.
 While it is difficult to state unequivocally
-how much correlation there should be between samples from different conditions 
-(or even between replicates of the same condition), 
+how much correlation there should be between samples from different conditions
+(or even between replicates of the same condition),
 the corrplot can often reveal individual samples which stand out as being far less
 correlated with all the others (which subsequently might be excluded from analyses).
 
 **Note**: The *corrplot* command calls R, which must be installed on your system,
-and relies on the 'corrplot' R package. 
+and relies on the 'corrplot' R package.
 See :ref:`Installation Instructions <install-zinb>`.
 
 Usage:
@@ -2022,7 +2022,7 @@ which is especially useful for shedding light on the relationships
 among the conditions apparent in the data.
 
 **Note:** The *heatmap* command calls R, which must be installed on your system,
-and relies on the 'gplots' R package. 
+and relies on the 'gplots' R package.
 See :ref:`Installation Instructions <install-zinb>`.
 
 Usage:
@@ -2111,12 +2111,12 @@ bacterial species.
 
 Note that the TTN-Fitness model is really aimed at analyzing GD genes (and NE, GA),
 but not really ES genes, which are called as before.
-We kind of have to explain essentials a little.  These are 
+We kind of have to explain essentials a little.  These are
 genes that are either essential based on the same algorithm as Gumbel ("ES"),
 or have no insertions and are long enough to be significant by a Binomial method
 (see paper) ("ESB").  Since counts are so close to 0 for these, the
 insertion biased on the transposon is irrelevant.  Thus, the predicitive model
-is not really used for these genes. 
+is not really used for these genes.
 
 
 We should also note that TTN-Fitness tends to call more GD and GA genes,
@@ -2138,14 +2138,51 @@ Explain command-line args and any flags as above.
 Output
 ------
 
-mention the column with categorical calls (give a bullet list of the five
-categories?), and the column with the quantitative relative fitness value
-(mean-LFC of observed vs expected counts?).  0<value<1 means what? 1 is NE,
+The output of is an excel file where the last column, titled TTN-Fitness Calls reports the essentiality call of
+each given gene. The call is one of following:
+
+NE = Non-essential.
+ES = essential
+ESB = essential by the Bernouli Distribution
+GA = Growth Advantage
+GD = Growth Defect
+
+TODO:  0<value<1 means what? 1 is NE,
 closer to 0 means "more essential", or "suppressed counts" or "greater fitness defect
 for mutant"
 
++-------------------------+-------------------------------------------------------------------+
+| Column Header           | Column Definition                                                 |
++=========================+===================================================================+
+| Orf                     | Gene ID.                                                          |
++-------------------------+-------------------------------------------------------------------+
+| Name                    | Gene Name                                                         |
++-------------------------+-------------------------------------------------------------------+
+| Description             | Gene Annotation                                                   |
++-------------------------+-------------------------------------------------------------------+
+| Total # TA Sites        | Total number of TA sites in the Gene                              |
++-------------------------+-------------------------------------------------------------------+
+| #Sites with insertions  | Number of TA sites in the Gene with Insertions                    |
++-------------------------+-------------------------------------------------------------------+
+| Used in Models          | Boolean value of gene using in TTN Fitness models M0 and M1       |
++-------------------------+-------------------------------------------------------------------+
+| Gene (M0) Coef          | The coefficient of a given gene in M0 model                       |
++-------------------------+-------------------------------------------------------------------+
+| Gene (M0) Adj Pval      | The BF adjusted p-value of a coef of a gene in M0                 |
++-------------------------+-------------------------------------------------------------------+
+| Gene+TTN (M1) Coef      | The coefficient of a given gene in M1 model                       |
++-------------------------+-------------------------------------------------------------------+
+| Gene+TTN (M1) Adj Pval  | The BF adjusted p-value of a coef of a gene in M1                 |
++-------------------------+-------------------------------------------------------------------+
+| M0 Fitness Estimation   | Log Ratio of actual counts to predicted counts using M1 in a gene |
++-------------------------+-----------------------------------------------------------------+
+| M1 Fitness Estimation   | Log Ratio of actual counts to predicted counts using M0 in a gene |
++-------------------------+-------------------------------------------------------------------+
+| Mean Insertion Count    | The mean insertion count at TA sites in a given gene              |
++-------------------------+-------------------------------------------------------------------+
+| TTN-Fitness Assesment   | Calls made for a given gene using the M1 Coef and Adjusted Pval   |
++-------------------------+-------------------------------------------------------------------+
 
 
 .. rst-class:: transit_sectionend
 ----
-
