@@ -2145,7 +2145,6 @@ closer to 0 means "more essential", or "suppressed counts" or "greater fitness d
 for mutant"
 
 
-
 .. rst-class:: transit_sectionend
 ----
 
