@@ -212,15 +212,13 @@ class AnovaMethod(base.MultiConditionMethod):
             filenamesInCombWig)
 
         conditionsList = self.select_conditions(conditions,self.included_conditions,self.excluded_conditions,orderingMetadata)
-        #data, conditions, _, _ = self.filter_wigs_by_conditions2(data, conditions, conditionsList)
 
-        metadata = self.get_samples_metadata()
-        conditionNames = metadata['Condition'] # original Condition names for each sample, as ordered list        
-        fileNames = metadata['Filename'] 
-
-        data, fileNames, conditionNames, conditions, _, _ = self.filter_wigs_by_conditions3(
+        conditionNames = [conditionsByFile[f] for f in filenamesInCombWig]
+        fileNames = filenamesInCombWig
+        
+        data, fileNames, conditionNames, conditions, _, _ = self.filter_wigs_by_conditions3( # in base.py
                 data,
-                fileNames,
+                fileNames, # it looks like fileNames and conditionNames have to be parallel to data (vector of wigs)
                 conditionNames, # original Condition column in samples metadata file
                 self.included_conditions,
                 self.excluded_conditions,
