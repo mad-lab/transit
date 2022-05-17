@@ -23,6 +23,7 @@ import random
 import numpy
 import scipy.stats
 import datetime
+import heapq
 
 from pytransit.analysis import base
 import pytransit
@@ -216,6 +217,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 CTerminus=0.0,
                 ctrl_lib_str="",
                 exp_lib_str="",
+                winz = False,
                 wxobj=None, Z = False, diffStrains = False, annotation_path_exp = "", combinedWigParams = None):
 
         base.DualConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
@@ -231,6 +233,7 @@ class ResamplingMethod(base.DualConditionMethod):
         self.diffStrains = diffStrains
         self.annotation_path_exp = annotation_path_exp if diffStrains else annotation_path
         self.combinedWigParams = combinedWigParams
+        self.winz = winz
 
     @classmethod
     def fromGUI(self, wxobj):
@@ -350,11 +353,12 @@ class ResamplingMethod(base.DualConditionMethod):
         if (diffStrains and isCombinedWig):
             print("Error: Cannot have combined wig and different annotation files.")
             sys.exit(0)
+        winz = True if "winz" in kwargs else False
 
         output_file = open(output_path, "w")
 
         # check for unrecognized flags
-        flags = "-c -s -n -h -a -ez -PC -l -iN -iC --ctrl_lib --exp_lib -Z".split()
+        flags = "-c -s -n -h -a -ez -PC -l -iN -iC --ctrl_lib --exp_lib -Z -winz".split()
         for arg in rawargs:
           if arg[0]=='-' and arg not in flags:
             self.transit_error("flag unrecognized: %s" % arg)
@@ -396,7 +400,9 @@ class ResamplingMethod(base.DualConditionMethod):
                 NTerminus,
                 CTerminus,
                 ctrl_lib_str,
-                exp_lib_str, Z = Z, diffStrains = diffStrains, annotation_path_exp = annotationPathExp, combinedWigParams = combinedWigParams)
+                exp_lib_str, 
+                winz = winz,
+                Z = Z, diffStrains = diffStrains, annotation_path_exp = annotationPathExp, combinedWigParams = combinedWigParams)
 
     def preprocess_data(self, position, data):
         (K,N) = data.shape
@@ -451,6 +457,7 @@ class ResamplingMethod(base.DualConditionMethod):
 
         self.transit_message("Starting resampling Method")
         start_time = time.time()
+        if self.winz: self.transit_message("Winsorizing insertion counts")
 
         histPath = ""
         if self.doHistogram:
@@ -555,6 +562,22 @@ class ResamplingMethod(base.DualConditionMethod):
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file(filetype="Resampling")
 
+    def winsorize_resampling(self, counts):
+      # input is insertion counts for gene as pre-flattened numpy array
+      counts = counts.tolist()
+      if len(counts)<3: return counts
+      s = sorted(counts,reverse=True)
+      if s[1]==0: return counts # don't do anything if there is only 1 non-zero value
+      c2 = [s[1] if x==s[0] else x for x in counts]
+      return numpy.array(c2)
+
+      #unique_counts = numpy.unique(counts)
+      #if (len(unique_counts) < 2): return counts
+      #else:
+      #  n, n_minus_1 = unique_counts[heapq.nlargest(2, range(len(unique_counts)), unique_counts.take)]
+      #  result = [[ n_minus_1 if count == n else count for count in wig] for wig in counts]
+      #  return numpy.array(result)
+
     def run_resampling(self, G_ctrl, G_exp = None, doLibraryResampling = False, histPath = ""):
         data = []
         N = len(G_ctrl)
@@ -589,8 +612,9 @@ class ResamplingMethod(base.DualConditionMethod):
                     ii_exp = numpy.ones(gene_exp.n) == 1
 
                 #data1 = gene.reads[:,ii_ctrl].flatten() + self.pseudocount # we used to have an option to add pseudocounts to each observation, like this
-                data1 = gene.reads[:,ii_ctrl].flatten() 
+                data1 = gene.reads[:,ii_ctrl].flatten()
                 data2 = gene_exp.reads[:,ii_exp].flatten()
+                if self.winz: data1 = self.winsorize_resampling(data1); data2 = self.winsorize_resampling(data2)
 
                 if doLibraryResampling:
                     (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_dict, permFunc=stat_tools.F_shuffle_dict_libraries, adaptive=self.adaptive, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str,PC=self.pseudocount)
@@ -662,7 +686,8 @@ class ResamplingMethod(base.DualConditionMethod):
         --exp_lib       :=  String of letters representing library of experimental files in order
                             e.g. 'ABAB'. Default empty. Letters used must also be used in --ctrl_lib
                             If non-empty, resampling will limit permutations to within-libraries.
-
+        -winz           :=  winsorize insertion counts for each gene in each condition 
+                            (replace max cnt in each gene with 2nd highest; helps mitigate effect of outliers)
         """ % (sys.argv[0], sys.argv[0])
 
 if __name__ == "__main__":

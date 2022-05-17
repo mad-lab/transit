@@ -571,6 +571,8 @@ Usage
         --exp_lib       :=  String of letters representing library of experimental files in order
                             e.g. 'ABAB'. Default empty. Letters used must also be used in --ctrl_lib
                             If non-empty, resampling will limit permutations to within-libraries.
+        -winz           :=  winsorize insertion counts for each gene in each condition 
+                            (replace max count in each gene with 2nd highest; helps mitigate effect of outliers)
 
 
 Parameters
@@ -626,6 +628,8 @@ parameters are available for the method:
    can further reduce the appearance of artifacts (genes with low counts but large LFCs).
    However, changing pseudocounts only affects the LFCs, and will not change the number of significant genes.
 
+-  **-winz**: `winsorize <https://en.wikipedia.org/wiki/Winsorizing>`_ insertion counts for each gene in each condition. 
+   Replace max count in each gene with 2nd highest.  This can help mitigate effect of outliers.
 
 
 |
