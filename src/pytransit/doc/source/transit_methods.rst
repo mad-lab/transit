@@ -2075,25 +2075,25 @@ which usually do not exhibit significant variation in counts.
 TTN-Fitness
 ===========
 
-What is this for? estimating fitness of genes in single conditions, while
-correcting for biases in Himar1 insertion preferences at TA sites based
-on surrounding nucleotides.
+TTN-Fitness provides a method for estimating the fitness of genes in a single
+condition, while correcting for biases in Himar1 insertion preferences at TA sites
+based on surrounding nucleotides.
 
-Explain how/why to use this command (this all needs to be cleaned-up):
-normally, with individual TnSeq datasets (like a reference condition),
-the methods for evaluating essentiality are limited to Gumbel and HMM.
-The former distinguishes ES from NE, while the latter adds categories
-for GD (suppressed counts; mutant has reduced fitness) and GA
-(inflated counts; mutant has selective advantage)...  Quantifying the
-magnitude of the fitness effect is risky because the counts at
-individual TA sites can be noisy, and span a wide range from sites
-with very low to very high counts.  The TTN-Fitness gives a more
+Typically with individual TnSeq datasets, Gumbel and HMM are the methods used for
+evaluating essentiality. Gumbel distinguishes between ES (essential) from NE (non-essential).
+HMM adds the GD (growth-defect; suppressed counts; mutant has reduced fitness) and
+GA (growth advantage; inflated counts; mutant has selective advantage) categories.
+Quantifying the magnitude of the fitness defect is risky because the counts at
+individual TA sites can be noisy. Sometimes the counts at a TA site in a gene can span
+a wide range of very low to very high counts. The TTN-Fitness gives a more
 fine-grained analysis of the degree of fitness effect by taking into
-account the insertion preferences of the Himar1 transposon, which are
-influnced by the nucleotide context of each TA site.  The TTN-Fitness
+account the insertion preferences of the Himar1 transposon. These insertion preferences
+are influenced by the nucleotide context of each TA site.  The TTN-Fitness
 method uses a statistical model based on surrounding nucleotides to
-estimate the relative insertability (?) of each site, and then corrects
-for this to compute an overall fitness level as a mean-log-fold-change
+estimate the insertion bias of each site. Then, it corrects
+for this to compute an overall fitness level as a
+
+mean-log-fold-change
 of observed (normalized) counts to expected counts.  The resulting
 value (?) is 0 for ES genes, 1 for typical NE genes, but between 0 and 1 for GD genes.
 
@@ -2132,8 +2132,9 @@ Usage:
 
   python3 transit.py ttnfitness <comma-separated .wig files> <annotation .prot_table> <genome .fna> <gumbel output file> <output file>
 
-
-Explain command-line args and any flags as above.
+  -  **gumbel output file:** The Gumbel method must be run first on the dataset.The output
+     of the Gumbel method is provided as an input to this method. ES (essential by Gumbel)
+     and EB (essential by Binomial) is calculated in the TTN-Fitness method via this files
 
 Output
 ------
@@ -2142,8 +2143,8 @@ The output of is an excel file where the last column, titled TTN-Fitness Calls r
 each given gene. The call is one of following:
 
 NE = Non-essential.
-ES = essential
-ESB = essential by the Bernouli Distribution
+ES = essential based on Gumbel
+ESB = essential based on Binomial
 GA = Growth Advantage
 GD = Growth Defect
 
@@ -2156,15 +2157,15 @@ for mutant"
 +=========================+===================================================================+
 | Orf                     | Gene ID.                                                          |
 +-------------------------+-------------------------------------------------------------------+
-| Name                    | Gene Name                                                         |
+| Name                    | Name of the Gene                                                  |
 +-------------------------+-------------------------------------------------------------------+
-| Description             | Gene Annotation                                                   |
+| Description             | Gene description                                                 |
 +-------------------------+-------------------------------------------------------------------+
 | Total # TA Sites        | Total number of TA sites in the Gene                              |
 +-------------------------+-------------------------------------------------------------------+
-| #Sites with insertions  | Number of TA sites in the Gene with Insertions                    |
+| #Sites with insertions  | Number of TA sites in the Gene with insertions                    |
 +-------------------------+-------------------------------------------------------------------+
-| Used in Models          | Boolean value of gene using in TTN Fitness models M0 and M1       |
+| Used in Models          | Boolean value of if gene is used in TTN Fitness models M0 and M1  |
 +-------------------------+-------------------------------------------------------------------+
 | Gene (M0) Coef          | The coefficient of a given gene in M0 model                       |
 +-------------------------+-------------------------------------------------------------------+
