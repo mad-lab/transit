@@ -20,6 +20,7 @@ import time
 import math
 import random
 import numpy
+import statistics
 import scipy.stats
 import datetime
 import pandas
@@ -247,16 +248,14 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                     elif upseq==c or downseq==c:ttn_vector.append(int(1)) #set ttn bit=1
                     else:ttn_vector.append(int(0))
                 ttn_vector_list.append(pandas.Series(ttn_vector,index=combos))
-
                 orf.append(gene.orf)
                 name.append(gene.name)
                 coords.append(pos)
 
-        TA_sites_df = pandas.DataFrame({"Orf":orf, "Name": name, "Coord":pos, "Insertion Count": all_counts})
+        TA_sites_df = pandas.DataFrame({"Orf":orf, "Name": name, "Coord":coords, "Insertion Count": all_counts})
         TA_sites_df = pandas.concat([TA_sites_df, pandas.DataFrame(ttn_vector_list)],axis=1)
         TA_sites_df=TA_sites_df.sort_values(by=['Coord'],ignore_index=True)
-
-
+        print(TA_sites_df)
         #get initial states of the TA Sites
         # compute state labels (ES or NE)
         # for runs of >=R TA sites with cnt=0; label them as "ES", and the rest as "NE"
@@ -328,8 +327,12 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 Count_Predictions.append(predCount)
                 b = b+1
 
+
         TA_sites_df["STLM Predicted LFC"] = LFC_Predictions
         TA_sites_df["STLM Predicted Counts"] = Count_Predictions
+
+
+        TA_sites_df.to_csv("TA_sites_H37rv.csv", index=False)
 
         self.transit_message("Making Fitness Estimations")
         #Read in Gumbel estimations
@@ -357,7 +360,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 sub_data = TA_sites_df[TA_sites_df["Orf"]==g]
                 if len(sub_data)>significant_n and len(sub_data[sub_data["Insertion Count"]>0])==0: gene_call="EB"
             gumbel_gene_calls[g] = gene_call
-        
+
 
         ess_genes = [key for key,value in gumbel_gene_calls.items() if (value=='E') or (value=='EB')]
         filtered_ttn_data = TA_sites_df[~TA_sites_df["Orf"].isin(ess_genes)]
@@ -421,14 +424,22 @@ class TTNFitnessMethod(base.SingleConditionMethod):
             above0TAsites = len([r for r in gene_obj_dict[g].reads[0] if r>0])
             #Insertion Count
             actual_counts = TA_sites_df[TA_sites_df["Orf"]==g]["Insertion Count"]
+            print("-----------",g, "-------------------")
+            print(TA_sites_df[TA_sites_df["Orf"]==g]["State"].iloc[0])
             mean_actual_counts = numpy.mean(actual_counts)
             #Predicted Count
-            if g not in TA_sites_df["Orf"].values or TA_sites_df[TA_sites_df["Orf"]==g]["State"].iloc[0]=="ES":
-                M0_ratio=None
-                M1_ratio = None
+            if g not in filtered_ttn_data["Orf"].values:
+                M1_pred = None
+                STLM_pred = None
+                M1_ratio_median = None
             else:
-                M0_ratio = numpy.log10(numpy.mean(filtered_ttn_data[filtered_ttn_data["Orf"]==g]["M0 Predicted Count"])/mean_actual_counts)
-                M1_ratio = numpy.log10(numpy.mean(filtered_ttn_data[filtered_ttn_data["Orf"]==g]["M1 Predicted Count"])/mean_actual_counts)
+                M1_pred_df = filtered_ttn_data[filtered_ttn_data["Orf"]==g]["M1 Predicted Count"]
+                actual_df = filtered_ttn_data[filtered_ttn_data["Orf"]==g]["Insertion Count"]
+                print(actual_df)
+                print(M1_pred_df)
+                M1_pred = numpy.mean(M1_pred_df)
+                STLM_pred = numpy.mean(filtered_ttn_data[filtered_ttn_data["Orf"]==g]["STLM Predicted Counts"])
+                M1_ratio_median = statistics.median([actual_df.iloc[x]/M1_pred_df.iloc[x] for x in range(len(actual_df))])
             #M0/M1 info
             if "_"+g in Models_df.index:
                 used=True
@@ -451,10 +462,10 @@ class TTNFitnessMethod(base.SingleConditionMethod):
             else:
                 if "_"+g in Models_df.index: gene_ttn_call = Models_df.loc["_"+g,"Gene+TTN States"]
                 else: gene_ttn_call = "Uncertain"
-            gene_dict[g] = [g,orfName,orfDescription,numTAsites,above0TAsites,used,M0_coef,M0_adj_pval,M1_coef,M1_adj_pval,M0_ratio,M1_ratio,mean_actual_counts,gene_ttn_call]
-    
+            gene_dict[g] = [g,orfName,orfDescription,numTAsites,above0TAsites,used,M0_coef,M0_adj_pval,M1_coef,M1_adj_pval,M1_pred,STLM_pred,mean_actual_counts,M1_ratio_median,gene_ttn_call]
+
         output_df = pandas.DataFrame.from_dict(gene_dict,orient='index')
-        output_df.columns=["ORF ID","Name","Description","Total # TA Sites","#Sites with insertions","Used in Models","Gene (M0) Coef","Gene (M0) Adj Pval","Gene+TTN (M1) Coef","Gene+TTN (M1) Adj Pval","M0 Fitness Estimation","M1 Fitness Estimation","Mean Insertion Count", "TTN-Fitness Assesment"]
+        output_df.columns=["ORF ID","Name","Description","Total # TA Sites","#Sites with insertions","Used in Models","Gene (M0) Coef","Gene (M0) Adj Pval","Gene+TTN (M1) Coef","Gene+TTN (M1) Adj Pval","M1 Predicted Counts","STLM Predicted Counts","Mean Insertion Count","M1 ratio median","TTN-Fitness Assesment"]
 
         assesment_cnt = output_df["TTN-Fitness Assesment"].value_counts()
 
