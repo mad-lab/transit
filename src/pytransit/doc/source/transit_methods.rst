@@ -2154,7 +2154,7 @@ indicates the level of growth advantage. Genes with a value around 1 are non-ess
 the more essential a gene is.
 The distribution plot below shows the distribution of the fitness ratios calculated for each of the assessments categories. The genes
 assessed as GD have a ratio distribution that is below 0.5, those labeled GA are mostly above 1.0 and the ratios of genes assessed
-as NE have a peak at 0 and are constrained to the center of the plot.
+as NE have a peak at 1 and are constrained to the center of the plot.
 
 .. image:: _images/ttnfitness_coef_distribution.png
    :width: 1000
