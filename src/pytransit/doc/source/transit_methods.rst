@@ -2074,7 +2074,6 @@ which usually do not exhibit significant variation in counts.
 .. rst-class:: transit_clionly
 TTN-Fitness
 ===========
-On an average machine, running this methodology on a dataset takes about 5 minutes
 
 TTN-Fitness provides a method for estimating the fitness of genes in a single
 condition, while correcting for biases in Himar1 insertion preferences at TA sites
@@ -2106,15 +2105,19 @@ Frequencies in TnSeq Data Sets.” mSystems vol. 6,5 (2021): e0087621. doi:10.11
 * This methodology can handle multiple replicates. More replicates increase the saturation of TA sites in non-essential
   genes. This allows for higher accuracy and precision of the insertion counts at TA sites of a genome.
 
-Note that the TTN-Fitness model is really aimed at analyzing GD genes (and NE, GA),
-but not really ES/ESB genes, which are determined by other analysis. ES genes are
+Note that the TTN-Fitness model is primarily aimed at analyzing GD (growth-defect) genes (and NE, GA) in terms of magnitudes of counts,
+but not really ES/ESB genes, which are determined by other analyses (based on absence of insertions). ES genes are
 essential genes have been previously labeled as such by the Gumbel method. ESB genes
 are genes that have no insertions and are are long enough to be significant by a Binomial
 method (see paper).  Since counts are so close to 0 for these, the insertion biased on
 the transposon is irrelevant.  Thus, the predictive model is not really used for these genes.
 
-TTN-Fitness is more sensitive to discrepancies in insertion counts (compared to the expected
-insertion counts) and therefore tends to call more GD and GA genes than other analysis methods.
+TTN-Fitness is more sensitive to deviations in insertion counts
+(compared to expected insertion counts) and therefore tends to call
+more GD and GA genes than other analysis methods.
+
+
+On an average machine, running this methodology on a dataset takes about 5 minutes
 
 
 Usage
@@ -2131,7 +2134,7 @@ Output
 
 There are two outputs files. One file details the assessment per gene and one details the assessment per TA site.
 
-The 1st output file of is an tab-delimited file where the last column, titled TTN-Fitness Calls reports the essentiality call of
+The first output file is a tab-delimited file where the last column, titled TTN-Fitness Calls reports the essentiality call of
 each given gene. The call is one of following:
 
 * NE = Non-essential.
@@ -2149,12 +2152,17 @@ This ratio was calculated as:
    Fitness \ Ratio = e^{(M1\ coefficient - median[M1\ coefficients])}
 
 
-This value ranges from 0 to inf. If less than 1, this value indicates the level of growth defect in the gene. If greater than 1, it
-indicates the level of growth advantage. Genes with a value around 1 are non-essential. The closer the ratio of a gene is to 0,
-the more essential a gene is.
-The distribution plot below shows the distribution of the fitness ratios calculated for each of the assessments categories. The genes
-assessed as GD have a ratio distribution that is below 0.5, those labeled GA are mostly above 1.0 and the ratios of genes assessed
-as NE have a peak at 1 and are constrained to the center of the plot.
+This value ranges from 0 to infinity. 
+Genes with a value around 1 are non-essential. 
+If less than 1, this value indicates the level of growth defect 
+that is caused by disruption of the gene by transpoon insertion. 
+The closer the ratio of a gene is to 0, the more essential a gene is.
+If greater than 1, it indicates the level of growth advantage of the mutant. 
+The histograms below shows the distribution of the fitness ratios calculated 
+for each of the essentiality categories. The genes
+assessed as GD have a ratio that is typically below 0.5, 
+those labeled GA are mostly above 1.0 and the ratios of genes assessed
+as NE have a peak at 1 and are restricted to the center of the plot.
 
 .. image:: _images/ttnfitness_coef_distribution.png
    :width: 1000
@@ -2190,7 +2198,7 @@ columns in the output file and are the primary columns per gene reflecting the a
 | **TTN-Fitness Assessment**| **Calls made for a given gene using the M1 Coef and Adjusted Pval**  |
 +---------------------------+----------------------------------------------------------------------+
 
-The 2nd output file is a tab-seperated file of details of the TTN Fitness method per TA Site.
+The second output file is a tab-seperated file of details of the TTN Fitness method per TA Site.
 
 +---------------------------+-------------------------------------------------------------------------------+
 | Column Header             | Column Definition                                                             |
