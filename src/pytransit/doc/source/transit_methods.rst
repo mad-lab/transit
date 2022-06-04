@@ -2139,10 +2139,13 @@ each given gene. The call is one of following:
 
 * NE = Non-essential.
 * ES = essential based on Gumbel
-* ESB = essential based on Binomial
+* ESB = essential based on Binomial**
 * GA = Growth Advantage
 * GD = Growth Defect
 * U = Uncertain [for genes that are too short]
+
+** this is an alternative model for identifying essential genes that complements the Gumbel calculation, which tends to 
+call short genes with few TA sites Uncertain, especially at lower levels of saturation; see Choudhery et al, 2021
 
 The Fitness Ratio reported in this file is a modification of the M1 coefficient to reflect the amount of fitness defect per gene.
 This ratio was calculated as:
@@ -2152,15 +2155,15 @@ This ratio was calculated as:
    Fitness \ Ratio = e^{(M1\ coefficient - median[M1\ coefficients])}
 
 
-This value ranges from 0 to infinity. 
-Genes with a value around 1 are non-essential. 
-If less than 1, this value indicates the level of growth defect 
-that is caused by disruption of the gene by transpoon insertion. 
+This value ranges from 0 to infinity.
+Genes with a value around 1 are non-essential.
+If less than 1, this value indicates the level of growth defect
+that is caused by disruption of the gene by transpoon insertion.
 The closer the ratio of a gene is to 0, the more essential a gene is.
-If greater than 1, it indicates the level of growth advantage of the mutant. 
-The histograms below shows the distribution of the fitness ratios calculated 
+If greater than 1, it indicates the level of growth advantage of the mutant.
+The histograms below shows the distribution of the fitness ratios calculated
 for each of the essentiality categories. The genes
-assessed as GD have a ratio that is typically below 0.5, 
+assessed as GD have a ratio that is typically below 0.5,
 those labeled GA are mostly above 1.0 and the ratios of genes assessed
 as NE have a peak at 1 and are restricted to the center of the plot.
 
