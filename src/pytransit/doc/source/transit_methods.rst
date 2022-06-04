@@ -2092,36 +2092,30 @@ are influenced by the nucleotide context of each TA site.  The TTN-Fitness
 method uses a statistical model based on surrounding nucleotides to
 estimate the insertion bias of each site. Then, it corrects
 for this to compute an overall fitness level as a
-
-mean-log-fold-change
-of observed (normalized) counts to expected counts.  The resulting
+###### TODO
+mean-log-fold-change of observed (normalized) counts to expected counts.  The resulting
 value (?) is 0 for ES genes, 1 for typical NE genes, but between 0 and 1 for GD genes.
-
-(in the paragraph above, I don't want to describe the technical details of the method;
-instead, I want to convey how this is used; what is different from Gumbel and HMM
-is that you get a quantitative estimate of the fitness effect, not just 4 categories)
-
+######
 For details, see our paper. (give reference)
 
-Any important assumptions? obvious only works for Himar1. can handle
-multiple replicates? (how? does it help?)  don't have to re-train,
-right? our data (paper) shows the model generalizes across other
-bacterial species.
+* This methodology is best suited for libraries created with the Himar1 transposon.
+* The model itself does not need to be re-trained to make prediction on a dataset. Our data
+[ref here] shows this model generalizes across other bacterial species.
+
+######TODO: can handle multiple replicates? (how? does it help?)
 
 
 Note that the TTN-Fitness model is really aimed at analyzing GD genes (and NE, GA),
-but not really ES genes, which are called as before.
-We kind of have to explain essentials a little.  These are
-genes that are either essential based on the same algorithm as Gumbel ("ES"),
-or have no insertions and are long enough to be significant by a Binomial method
-(see paper) ("ESB").  Since counts are so close to 0 for these, the
-insertion biased on the transposon is irrelevant.  Thus, the predicitive model
-is not really used for these genes.
+but not really ES/ESB genes, which are determined by other analysis. ES genes are
+essential genes have been previously labeled as such by the Gumbel method. ESB genes
+are genes that have no insertions and are are long enough to be significant by a Binomial
+method (see paper).  Since counts are so close to 0 for these, the insertion biased on
+the transposon is irrelevant.  Thus, the predicitive model is not really used for these genes.
 
-
+######TODO
 We should also note that TTN-Fitness tends to call more GD and GA genes,
 because it has greater power to discriminate...
-
+######
 
 
 
@@ -2148,9 +2142,10 @@ ESB = essential based on Binomial
 GA = Growth Advantage
 GD = Growth Defect
 
-TODO:  0<value<1 means what? 1 is NE,
+######TODO:  0<value<1 means what? 1 is NE,
 closer to 0 means "more essential", or "suppressed counts" or "greater fitness defect
 for mutant"
+######
 
 +-------------------------+-------------------------------------------------------------------+
 | Column Header           | Column Definition                                                 |
@@ -2183,7 +2178,6 @@ for mutant"
 +-------------------------+-------------------------------------------------------------------+
 | TTN-Fitness Assesment   | Calls made for a given gene using the M1 Coef and Adjusted Pval   |
 +-------------------------+-------------------------------------------------------------------+
-
 
 .. rst-class:: transit_sectionend
 ----
