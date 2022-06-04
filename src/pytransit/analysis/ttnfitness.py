@@ -16,6 +16,7 @@ if hasWx:
     import wx.adv
 
 import os
+import tarfile
 import time
 import math
 import random
@@ -31,13 +32,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 import statsmodels.stats.multitest
 from sklearn.preprocessing import OneHotEncoder
+from statsmodels.iolib.smpickle import load_pickle
 
 from pytransit.analysis import base
 import pytransit.transit_tools as transit_tools
 import pytransit.tnseq_tools as tnseq_tools
 import pytransit.norm_tools as norm_tools
 import pytransit.stat_tools as stat_tools
-
 ############# Description ##################
 
 short_name = "ttnfitness"
@@ -85,7 +86,9 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 annotation_path,
                 genome_path,
                 gumbelestimations,
-                output_file,
+                #STLM_reg,
+                output1_file,
+                output2_file,
                 replicates="Sum",
                 normalization=None,
                 LOESS=False,
@@ -93,10 +96,11 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 NTerminus=0.0,
                 CTerminus=0.0, wxobj=None):
 
-        base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
+        base.SingleConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, annotation_path, output1_file, replicates=replicates, normalization=normalization, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
         self.genome_path = genome_path
         self.gumbelestimations = gumbelestimations
-
+        self.output2_file = output2_file
+        #self.STLM_reg = STLM_reg
 
     #Overloading function so it prints out the genome fna file as well!
     def print_members(self):
@@ -161,9 +165,17 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         annotationPath = args[1]
         genomePath = args[2]
         gumbelestimations = args[3]
-        outpath = args[4]
-        output_file = open(outpath, "w")
 
+        #STLM_pickle_path = args[4]
+        #with tarfile.open(STLM_pickle_path+".tar.gz", 'r') as t:
+        #    t.extractall(path=".")
+        #STLM_reg = sm.load(STLM_pickle_path)
+        #os.remove(STLM_pickle_path)
+        
+        outpath1 = args[4]
+        output1_file = open(outpath1, "w")
+        outpath2 = args[5]
+        output2_file = open(outpath2, "w")
 
         replicates = "Sum"
         normalization = None
@@ -176,7 +188,9 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 annotationPath,
                 genomePath,
                 gumbelestimations,
-                output_file,
+                #STLM_reg,
+                output1_file,
+		output2_file,
                 replicates,
                 normalization,
                 LOESS,
@@ -212,7 +226,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 n = 1 # skip first
             else:
                 genome += line[:-1]
-        self.transit_message("Calculating input to STLM")
+        self.transit_message("Processing wig files")
         ############################################################
         #Creating the dataset
         orf= []
@@ -224,6 +238,8 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         all_counts=[]
         combos=[''.join(p) for p in itertools.product(['A','C','T','G'], repeat=4)]
         gene_obj_dict = {}
+        upseq_list = []
+        downseq_list=[]
         for gene in G:
             gene_obj_dict[gene.orf]= gene
             all_counts.extend(numpy.mean(gene.reads,0)) #mean TA site counts across wig files
@@ -235,13 +251,15 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 if nucs[4:6]!="TA":sys.stderr.write("warning: site %d is %s instead of TA" % (pos,nucs[4:6]))
                 #convert nucleotides to upstream and downstream TTN
                 upseq = nucs[0]+nucs[1]+nucs[2]+nucs[3]
-                #reverse complementing downstream
+                upseq_list.append(upseq)
+		#reverse complementing downstream
                 downseq = ""
                 for x in [nucs[9],nucs[8],nucs[7],nucs[6]]:
                     if(str(x)=="A"): downseq+= "T"
                     if(str(x)=="C"): downseq+= "G"
                     if(str(x)=="G"): downseq+= "C"
                     if(str(x)=="T"): downseq+= "A"
+                downseq_list.append(downseq)
                 ttn_vector = []
                 for c in combos:
                     if upseq==c and downseq==c: ttn_vector.append(int(2)) #up/dwn ttn are same, "bit"=2
@@ -252,11 +270,10 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 name.append(gene.name)
                 coords.append(pos)
 
-        TA_sites_df = pandas.DataFrame({"Orf":orf, "Name": name, "Coord":coords, "Insertion Count": all_counts})
+        TA_sites_df = pandas.DataFrame({"Orf":orf, "Name": name, "Coord":coords, "Insertion Count": all_counts,"Upstream TTN":upseq_list,"Downstream TTN":downseq_list})
         TA_sites_df = pandas.concat([TA_sites_df, pandas.DataFrame(ttn_vector_list)],axis=1)
         TA_sites_df=TA_sites_df.sort_values(by=['Coord'],ignore_index=True)
-        print(TA_sites_df)
-        #get initial states of the TA Sites
+        # get initial states of the TA Sites
         # compute state labels (ES or NE)
         # for runs of >=R TA sites with cnt=0; label them as "ES", and the rest as "NE"
         # treat ends of genome as connected (circular)
@@ -297,42 +314,8 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         TA_sites_df["State"] =states
         TA_sites_df["Local Average"] = localmeans
         TA_sites_df["Actual LFC"] = LFC_values
-
-
-        self.transit_message("Training the STLM")
-        filtered_TA_sites_df= TA_sites_df[TA_sites_df["State"]!="ES"]
-        filtered_TA_sites_df.reset_index(inplace=True, drop=True)
-        y = filtered_TA_sites_df["Actual LFC"]
-        X = filtered_TA_sites_df.drop(["Orf","Name", "Coord","State","Insertion Count","Local Average","Actual LFC"],axis=1)
-
-        #Fit the model and make the TTN predictions
-        X = sm.add_constant(X)
-        STLM_model = sm.OLS(y,X).fit()
-
+	
         ####################################################
-
-        self.transit_message("Getting Expected Counts from STLM")
-        model_LFC_predictions = STLM_model.predict(X)
-
-        b=0
-        LFC_Predictions= [] # to add to the dataframe
-        Count_Predictions= []
-        for k in range(len(TA_sites_df["Actual LFC"])):
-            if TA_sites_df["State"].iloc[k] =="ES":
-                LFC_Predictions.append(numpy.nan)
-                Count_Predictions.append(numpy.nan)
-            else:
-                predCount = TA_sites_df["Local Average"].iloc[k]*math.pow(2,model_LFC_predictions[b])
-                LFC_Predictions.append(model_LFC_predictions[b])
-                Count_Predictions.append(predCount)
-                b = b+1
-
-
-        TA_sites_df["STLM Predicted LFC"] = LFC_Predictions
-        TA_sites_df["STLM Predicted Counts"] = Count_Predictions
-
-
-        TA_sites_df.to_csv("TA_sites_H37rv.csv", index=False)
 
         self.transit_message("Making Fitness Estimations")
         #Read in Gumbel estimations
@@ -347,9 +330,10 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         saturation = len(TA_sites_df[TA_sites_df["Insertion Count"]>0])/len(TA_sites_df)
         phi = 1.0 - saturation
         significant_n = math.log10(0.05)/math.log10(phi)
-
-
-        gumbel_gene_calls = {}
+        
+        self.transit_message("\t + Filtering ES/ESB Genes")
+        #function to extract gumbel calls to filter out ES and ESB
+        gumbel_bernoulli_gene_calls = {}
         for g in TA_sites_df["Orf"].unique():
             if g=="igr": gene_call=numpy.nan
             else:
@@ -358,61 +342,84 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 if len(sub_gumbel)>0: gene_call = sub_gumbel["Call"].iloc[0]
                 #set to ES if greater than n and all 0s
                 sub_data = TA_sites_df[TA_sites_df["Orf"]==g]
-                if len(sub_data)>significant_n and len(sub_data[sub_data["Insertion Count"]>0])==0: gene_call="EB"
-            gumbel_gene_calls[g] = gene_call
+                if len(sub_data)>significant_n and len(sub_data[sub_data["Insertion Count"]>0])==0: gene_call="EB" #binomial filter
+            gumbel_bernoulli_gene_calls[g] = gene_call
+        ess_genes = [key for key,value in gumbel_bernoulli_gene_calls.items() if (value=='E') or (value=='EB')]
 
+        self.transit_message("\t + Filtering Short Genes. Labeling as Uncertain")
+        #function to call short genes (1 TA site) with no insertions as Uncertain
+        uncertain_genes=[]
+        for g in TA_sites_df["Orf"].unique():
+            sub_data = TA_sites_df[TA_sites_df["Orf"]==g]
+            len_of_gene = len(sub_data)
+            num_insertions = len(sub_data[sub_data["Insertion Count"]>0])
+            saturation = num_insertions/len_of_gene
+            if saturation==0 and len_of_gene<=1: uncertain_genes.append(g)
 
-        ess_genes = [key for key,value in gumbel_gene_calls.items() if (value=='E') or (value=='EB')]
-        filtered_ttn_data = TA_sites_df[~TA_sites_df["Orf"].isin(ess_genes)]
+        filtered_ttn_data= TA_sites_df[TA_sites_df["State"]!="ES"]
+        filtered_ttn_data=  filtered_ttn_data[filtered_ttn_data["Local Average"]!=-1]
+        filtered_ttn_data = filtered_ttn_data[~filtered_ttn_data["Orf"].isin(ess_genes)] #filter out ess genes
+        filtered_ttn_data = filtered_ttn_data[~filtered_ttn_data["Orf"].isin(uncertain_genes)] #filter out uncertain genes
         filtered_ttn_data = filtered_ttn_data.reset_index(drop=True)
+        ##########################################################################################
+        # STLM Predictions
+        #self.transit_message("\t + Making TTN based predictions using loaded STLM")
+        #X = filtered_ttn_data.drop(["Orf","Name", "Coord","State","Insertion Count","Local Average","Actual LFC","Upseq TTN","Downseq TTN"],axis=1)
+        #X = sm.add_constant(X)
+        #model_LFC_predictions = self.STLM_reg.predict(X)
+        #filtered_ttn_data["STLM Predicted LFC"]=model_LFC_predictions
+        #filtered_ttn_data["STLM Predicted Counts"] = filtered_ttn_data["Local Average"].mul(numpy.power(2,filtered_ttn_data["STLM Predicted LFC"]))
 
         ##########################################################################################
         #Linear Regression
         gene_one_hot_encoded= pandas.get_dummies(filtered_ttn_data["Orf"],prefix='')
-        ttn_vectors = filtered_ttn_data.drop(["Coord","Insertion Count","Orf","Name","Local Average","Actual LFC","State", "STLM Predicted LFC","STLM Predicted Counts"],axis=1)
+        ttn_vectors = filtered_ttn_data.drop(["Coord","Insertion Count","Orf","Name","Local Average","Actual LFC","State","Upstream TTN","Downstream TTN"],axis=1)
+        #stlm_predicted_log_counts = numpy.log10(filtered_ttn_data["STLM Predicted Counts"]+0.5)
 
-        X0 = pandas.concat([gene_one_hot_encoded],axis=1)
-        X0 = sm.add_constant(X0)
-
-        X1 = pandas.concat([gene_one_hot_encoded,ttn_vectors],axis=1)
-        X1 = sm.add_constant(X1)
         Y = numpy.log10(filtered_ttn_data["Insertion Count"]+0.5)
 
-        results0 = sm.OLS(Y,X0).fit()
+        self.transit_message("\t + Fitting M1")
+        X1 = pandas.concat([gene_one_hot_encoded,ttn_vectors],axis=1)
+        X1 = sm.add_constant(X1)
         results1 = sm.OLS(Y,X1).fit()
-
-        filtered_ttn_data["M0 Pred log Count"] = results0.predict(X0)
         filtered_ttn_data["M1 Pred log Count"] = results1.predict(X1)
+        filtered_ttn_data["M1 Predicted Count"] = numpy.power(10, (filtered_ttn_data["M1 Pred log Count"]-0.5))       
+        
+        #self.transit_message("\t + Fitting new mod TTN-Fitness")
+        #X2 = pandas.concat([gene_one_hot_encoded,stlm_predicted_log_counts],axis=1)
+        #X2 = sm.add_constant(X2)
+        #results2 = sm.OLS(Y,X2).fit()
+        #filtered_ttn_data["mod ttn Pred log Count"] = results2.predict(X2)
+        #filtered_ttn_data["mod ttn Predicted Count"] = numpy.power(10, (filtered_ttn_data["mod ttn Pred log Count"]-0.5))
 
-        predM0Count = []
-        predM1Count = []
-        for k in range(len(filtered_ttn_data["M0 Pred log Count"])):
-            predM0Count.append(math.pow(10,filtered_ttn_data["M0 Pred log Count"].iloc[k])-0.5)
-            predM1Count.append(math.pow(10,filtered_ttn_data["M1 Pred log Count"].iloc[k])-0.5)
-
-        filtered_ttn_data["M0 Predicted Count"] = predM0Count
-        filtered_ttn_data["M1 Predicted Count"] = predM1Count
-
-
+        self.transit_message("\t + Assessing Models")
         #create Models Summary df
-        Models_df = pandas.DataFrame(results0.params[1:],columns=["M0 Coef"])
-        Models_df["M0 Pval"] = results0.pvalues[1:]
-        Models_df["M0 Adjusted Pval"] = statsmodels.stats.multitest.fdrcorrection(results0.pvalues[1:],alpha=0.05)[1]
-        Models_df["M1 Coef"]= results1.params[1:-256]
+        Models_df = pandas.DataFrame(results1.params[1:-256],columns=["M1 Coef"])
         Models_df["M1 Pval"] = results1.pvalues[1:-256]
         Models_df["M1 Adjusted Pval"] = statsmodels.stats.multitest.fdrcorrection(results1.pvalues[1:-256],alpha=0.05)[1]
-
+        #Models_df["mod ttn Coef"] = results2.params[1:-1]
+        #Models_df["mod ttn Pval"] = results2.pvalues[1:-1]
+        #Models_df["mod ttn Adjusted Pval"] = statsmodels.stats.multitest.fdrcorrection(results2.pvalues[1:-1],alpha=0.05)[1]
+        
         #creating a mask for the adjusted pvals
         Models_df.loc[(Models_df["M1 Coef"]>0) & (Models_df["M1 Adjusted Pval"]<0.05),"Gene+TTN States"]="GA"
         Models_df.loc[(Models_df["M1 Coef"]<0) & (Models_df["M1 Adjusted Pval"]<0.05),"Gene+TTN States"]="GD"
         Models_df.loc[(Models_df["M1 Coef"]==0) & (Models_df["M1 Adjusted Pval"]<0.05),"Gene+TTN States"]="NE"
         Models_df.loc[(Models_df["M1 Adjusted Pval"]>0.05),"Gene+TTN States"]="NE"
 
+	#mask using mod TTN fitness
+        #Models_df.loc[(Models_df["mod ttn Coef"]>0) & (Models_df["mod ttn Adjusted Pval"]<0.05),"mod ttn States"]="GA"
+        #Models_df.loc[(Models_df["mod ttn Coef"]<0) & (Models_df["mod ttn Adjusted Pval"]<0.05),"mod ttn States"]="GD"
+        #Models_df.loc[(Models_df["mod ttn Coef"]==0) & (Models_df["mod ttn Adjusted Pval"]<0.05),"mod ttn States"]="NE"
+        #Models_df.loc[(Models_df["mod ttn Adjusted Pval"]>0.05),"mod ttn States"]="NE"
         #########################################################################################
-        self.transit_message("Write Models Information to CSV")
+        self.transit_message("Writing To Output Files")
         #Write Models Information to CSV
         # Columns: ORF ID, ORF Name, ORF Description,M0 Coef, M0 Adj Pval
+        
         gene_dict={} #dictionary to map information per gene
+        TA_sites_df["M1 Predicted Count"] = [None]*len(TA_sites_df)
+        #TA_sites_df["mod ttn Predicted Count"] = [None]*len(TA_sites_df)
         for g in TA_sites_df["Orf"].unique():
             #ORF Name
             orfName = gene_obj_dict[g].name
@@ -424,51 +431,53 @@ class TTNFitnessMethod(base.SingleConditionMethod):
             above0TAsites = len([r for r in gene_obj_dict[g].reads[0] if r>0])
             #Insertion Count
             actual_counts = TA_sites_df[TA_sites_df["Orf"]==g]["Insertion Count"]
-            print("-----------",g, "-------------------")
-            print(TA_sites_df[TA_sites_df["Orf"]==g]["State"].iloc[0])
             mean_actual_counts = numpy.mean(actual_counts)
+            local_saturation = above0TAsites / numTAsites
             #Predicted Count
-            if g not in filtered_ttn_data["Orf"].values:
-                M1_pred = None
-                STLM_pred = None
-                M1_ratio_median = None
-            else:
-                M1_pred_df = filtered_ttn_data[filtered_ttn_data["Orf"]==g]["M1 Predicted Count"]
+            if g in filtered_ttn_data["Orf"].values:
                 actual_df = filtered_ttn_data[filtered_ttn_data["Orf"]==g]["Insertion Count"]
-                print(actual_df)
-                print(M1_pred_df)
-                M1_pred = numpy.mean(M1_pred_df)
-                STLM_pred = numpy.mean(filtered_ttn_data[filtered_ttn_data["Orf"]==g]["STLM Predicted Counts"])
-                M1_ratio_median = statistics.median([actual_df.iloc[x]/M1_pred_df.iloc[x] for x in range(len(actual_df))])
-            #M0/M1 info
+                coords_orf = filtered_ttn_data[filtered_ttn_data["Orf"]==g]["Coord"].values.tolist()
+                for c in coords_orf:
+                    TA_sites_df.loc[(TA_sites_df["Coord"]==c),'M1 Predicted Count'] = filtered_ttn_data[filtered_ttn_data["Coord"]==c]["M1 Predicted Count"].iloc[0]
+                #TA_sites_df[TA_sites_df["Coord"].isin(coords_orf)]['mod ttn Predicted Count'] = filtered_ttn_data[filtered_ttn_data["Coord"].isin(coords_orf)]["mod ttn Predicted Count"]
+            #M1 info
             if "_"+g in Models_df.index:
-                used=True
-                M0_coef= Models_df.loc["_"+g,"M0 Coef"]
-                M0_adj_pval = Models_df.loc["_"+g,"M0 Adjusted Pval"]
                 M1_coef = Models_df.loc["_"+g,"M1 Coef"]
                 M1_adj_pval = Models_df.loc["_"+g,"M1 Adjusted Pval"]
-
+                modified_M1 = math.exp(M1_coef - statistics.median(Models_df["M1 Coef"].values.tolist()))
+                #mod_M1_coef = Models_df.loc["_"+g,"mod ttn Coef"]
+                #mod_M1_adj_pval = Models_df.loc["_"+g,"mod ttn Adjusted Pval"]
+                #mod_modified_M1 = math.exp(mod_M1_coef - statistics.median(Models_df["mod ttn Coef"].values.tolist()))
             else:
-                used=False
-                M0_coef= None
-                M0_adj_pval = None
                 M1_coef = None
                 M1_adj_pval = None
+                modified_M1 = None
+                #mod_M1_coef = None
+                #mod_M1_adj_pval = None
+                #mod_modified_M1 = None
 
             #States
-            gumbel_bernoulli_call = gumbel_gene_calls[g]
-            if gumbel_bernoulli_call=="E": gene_ttn_call = "ES"
-            elif gumbel_bernoulli_call=="EB": gene_ttn_call = "ESB"
+            gumbel_bernoulli_call = gumbel_bernoulli_gene_calls[g]
+            if gumbel_bernoulli_call=="E": 
+                gene_ttn_call = "ES"
+                #mod_gene_ttn_call = "ES"
+            elif gumbel_bernoulli_call=="EB": 
+                gene_ttn_call = "ESB"
+                #mod_gene_ttn_call = "ESB"
             else:
-                if "_"+g in Models_df.index: gene_ttn_call = Models_df.loc["_"+g,"Gene+TTN States"]
-                else: gene_ttn_call = "Uncertain"
-            gene_dict[g] = [g,orfName,orfDescription,numTAsites,above0TAsites,used,M0_coef,M0_adj_pval,M1_coef,M1_adj_pval,M1_pred,STLM_pred,mean_actual_counts,M1_ratio_median,gene_ttn_call]
-
+                if "_"+g in Models_df.index: 
+                     gene_ttn_call = Models_df.loc["_"+g,"Gene+TTN States"]
+                     #mod_gene_ttn_call = Models_df.loc["_"+g,"mod ttn States"]
+                else: 
+                    gene_ttn_call = "U" #these genes are in the uncertain genes list
+                    #mod_gene_ttn_call = "U"
+            TA_sites_df.loc[(TA_sites_df["Orf"]==g), 'TTN-Fitness Assessment'] = gene_ttn_call
+            #TA_sites_df.loc[(TA_sites_df["Orf"]==g), 'Mod TTN-Fitness Assessment'] = mod_gene_ttn_call
+            gene_dict[g] = [g,orfName,orfDescription,numTAsites,above0TAsites,local_saturation,M1_coef,M1_adj_pval, mean_actual_counts,modified_M1, gene_ttn_call]
         output_df = pandas.DataFrame.from_dict(gene_dict,orient='index')
-        output_df.columns=["ORF ID","Name","Description","Total # TA Sites","#Sites with insertions","Used in Models","Gene (M0) Coef","Gene (M0) Adj Pval","Gene+TTN (M1) Coef","Gene+TTN (M1) Adj Pval","M1 Predicted Counts","STLM Predicted Counts","Mean Insertion Count","M1 ratio median","TTN-Fitness Assesment"]
-
-        assesment_cnt = output_df["TTN-Fitness Assesment"].value_counts()
-
+        output_df.columns=["ORF ID","Name","Description","Total # TA Sites","#Sites with insertions","Gene Saturation","Gene+TTN (M1) Coef","Gene+TTN (M1) Adj Pval","Mean Insertion Count","Fitness Ratio","TTN-Fitness Assessment"]
+        assesment_cnt = output_df["TTN-Fitness Assessment"].value_counts()
+        #mod_assesment_cnt = output_df["Mod TTN-Fitness Assessment"].value_counts()
 
         self.output.write("#TTNFitness\n")
         if self.wxobj:
@@ -483,8 +492,16 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata).encode('utf-8')))
         self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8'))
         self.output.write("#Time: %s\n" % (time.time() - start_time))
-        self.output.write("Saturation of Dataset: %s" % (saturation))
-        self.output.write("#Assesment Counts: %s ES, %s ESB, %s GD, %s GA, %s NE \n" % (assesment_cnt["ES"],assesment_cnt["ESB"],assesment_cnt["GD"],assesment_cnt["GA"],assesment_cnt["NE"]))
+        self.output.write("#Saturation of Dataset: %s\n" % (saturation))
+        self.output.write("#Assesment Counts: %s ES, %s ESB, %s GD, %s GA, %s NE, %s U \n" % (assesment_cnt["ES"],assesment_cnt["ESB"],assesment_cnt["GD"],assesment_cnt["GA"],assesment_cnt["NE"],assesment_cnt["U"]))
+        #self.output.write("#Mod Assesment Counts: %s ES, %s ESB, %s GD, %s GA, %s NE, %s U \n" % (mod_assesment_cnt["ES"],mod_assesment_cnt["ESB"],mod_assesment_cnt["GD"],mod_assesment_cnt["GA"],mod_assesment_cnt["NE"],mod_assesment_cnt["U"]))
+
+        TA_sites_df = TA_sites_df[["Coord","Orf","Name","Upstream TTN","Downstream TTN","TTN-Fitness Assessment","Insertion Count","Local Average","M1 Predicted Count"]]
+        
+        output2_data = TA_sites_df.to_csv(header=True,sep='\t' ,index=False).split('\n')
+        vals = '\n'.join(output2_data)
+        self.output2_file.write(vals)
+        self.output2_file.close()	
 
         output_data = output_df.to_csv(header=True, sep="\t", index=False).split('\n')
         vals = '\n'.join(output_data)
@@ -500,7 +517,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python3 %s ttnfitness <comma-separated .wig files> <annotation .prot_table> <genome .fna> <gumbel output file> <output file>""" % (sys.argv[0])
+        return """python3 %s ttnfitness <comma-separated .wig files> <annotation .prot_table> <genome .fna> <gumbel output file> <STLM pickle file> <output1 file> <output2 file>""" % (sys.argv[0])
 
 
 if __name__ == "__main__":
