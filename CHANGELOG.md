@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 3.2.4 2021-06-05
+#### TRANSIT:
+
+Major changes:
+ - added 'ttnfitness' analysis method (to categorize growth-defect genes in single (reference) conditions, and compute TTN-fitness ratio to quantify the magnitude of growth defect based on comparison of observed insertion counts to expected counts at each TA site (based on surrounding nucleotides)
+ - added winzorization (-winz flag) to resampling, ANOVA, and ZINB (to help mitigate effects due to sites with outlier counts)
+ - fixed bug in ANOVA that assumed files in combined_wig and metadata were listed in same order (now they don't have to be)
+
+Minor changes:
+ - switched back to original implementation of mmfind() 
+ - added pathway assocation files for M. smegmatis to data dir 
+ - added --Pval_col and --Qval_col to pathway_enrichment.py 
+ - added --prot_table flag to zinb.py
+ - updated header info in output files for HMM, resampling, and ZINB
+ - updated explanation of -signif in documentation for Genetic Interactions
+ - cleaned up documentation
+
+	
 ## Version 3.2.3 2021-10-16
 #### TRANSIT:
   - added Binomial essentials (EB) to Gumbel analysis (supplementing genes categorized as E), to help with low-saturation datasets
