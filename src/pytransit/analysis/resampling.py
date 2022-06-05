@@ -332,8 +332,9 @@ class ResamplingMethod(base.DualConditionMethod):
                 "conditions": [args[1].lower(), args[2].lower()]
             }
             annot_paths = args[3].split(",")
-            ctrldata = ""
-            expdata = ""
+            # to show contrasted conditions for combined_wigs in output header 
+            ctrldata = [combinedWigParams["conditions"][0]] 
+            expdata = [combinedWigParams["conditions"][1]]
             output_path = args[4]
         else:
             if (len(args) != 4):

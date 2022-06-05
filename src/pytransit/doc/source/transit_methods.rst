@@ -7,7 +7,7 @@
 
 
 TRANSIT has analysis methods capable of analyzing **Himar1** and
-**Tn5** datasets.  Below is a description of some of the methods.  
+**Tn5** datasets.  Below is a description of some of the methods.
 
 The analysis methods in Transit are also described in this `PDF manual
 <https://orca1.tamu.edu/essentiality/transit/transit-manual.pdf>`_ .
@@ -32,7 +32,7 @@ probability of this using a Bayesian model.
 How does it work?
 -----------------
 
-| 
+|
 
 This method for identifying essential genes is based on analyzing
 'gaps', or consecutive sequences of TA sites lacking insertions.
@@ -41,7 +41,7 @@ using the Gumbel distribution, which is a form of an Extreme-Value distribution.
 
 For a formal description of how this method works, see our paper [DeJesus2013]_:
 
-| 
+|
   DeJesus, M.A., Zhang, Y.J., Sassettti, C.M., Rubin, E.J.,
   Sacchettini, J.C., and Ioerger, T.R. (2013).  `Bayesian analysis of
   gene essentiality based on sequencing of transposon insertion
@@ -49,7 +49,7 @@ For a formal description of how this method works, see our paper [DeJesus2013]_:
   *Bioinformatics*, 29(6):695-703.
 
 |
-**Update (2021) - Binomial** 
+**Update (2021) - Binomial**
 
 Since the Gumbel method depends on the overall
 saturation (percent of TA sites with insertions), it can sometimes
@@ -615,16 +615,16 @@ parameters are available for the method:
    The default for trimming TA sites in the termini of ORFs is 0.
    However, TA sites in the stop codon (e.g. TAG) are automatically excluded.
    Trimming is specified as a percentage (as an integer), so, for example,
-   if you want to trim TA sites within 5% of the termini, you would 
+   if you want to trim TA sites within 5% of the termini, you would
    add the flags '-iN 5 -iC 5' (not 0.05).
 
--  **-PC**: Pseudocounts used in calculation of LFCs (log-fold-changes, see Output and Diagnostics) in 
-   resampling output file.  
-   To suppress the appearance of artifacts due to high-magnitude of LFCs from 
+-  **-PC**: Pseudocounts used in calculation of LFCs (log-fold-changes, see Output and Diagnostics) in
+   resampling output file.
+   To suppress the appearance of artifacts due to high-magnitude of LFCs from
    genes with low insertion counts (which
-   are more susceptible to noise), one can increase the pseudocounts using `-PC'. 
+   are more susceptible to noise), one can increase the pseudocounts using `-PC'.
    Increasing PC to a value like 5 (which is
-   reasonable, given that TTR normalization scales data so average insertion counts is around 100) 
+   reasonable, given that TTR normalization scales data so average insertion counts is around 100)
    can further reduce the appearance of artifacts (genes with low counts but large LFCs).
    However, changing pseudocounts only affects the LFCs, and will not change the number of significant genes.
 
@@ -658,7 +658,7 @@ If you want to compare more than two conditions, see :ref:`ZINB <zinb>`.
 
 ::
 
-  usage: 
+  usage:
 
   python3 transit.py resampling -c <combined_wig> <samples_metadata> <control_condition_name> <experimental_condition_name> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
@@ -798,7 +798,7 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 **log2FC:** (log-fold-change, LFC)
 For each gene, the LFC is calculated as the log-base-2 of the
 ratio of mean insertion counts in the experimental (treated) condition vs. the
-control condition (untreated, reference).  
+control condition (untreated, reference).
 The default is PC=1, which avoids the result being undefined
 for genes with means of 0 in either condition.  Pseudocounts can be
 changed using the -PC flag (above).
@@ -892,7 +892,7 @@ Statistical Significance
 The computation that is done by GI is to compute the posterior distribution of the delta_LFC (or mean change in slopes)
 through Bayesian sampling.
 The primary method to determine significance of genes is whethter this the mean_delta_LFC is significantly differnt than 0.
-However, since the mean_delta_LFC is a distribution, we represent it by a Highest Density Interval, HDI, which is 
+However, since the mean_delta_LFC is a distribution, we represent it by a Highest Density Interval, HDI, which is
 similar to a 95% confidence interval.  Furthermore, rather than asking whether the HDI overlaps 0 exactly, we expand the interval
 around 0 to a Region of Probable Equivalence (ROPE), which is set to [-0.5,0.5] by default.  Hence the significant genes
 are those for which the HDI does not overlap the ROPE.  GI has a flag to  adjust the size of the ROPE, if desired.
@@ -913,15 +913,15 @@ the probability of overlap.  The lower the probability, the more differnt the de
 significant interaction.  In this case, genes with prob < 0.05 are considered interactions and classified by the 3 types above,
 while genes with prob >= 0.05 are marked as "No Interaction".
 
-In addition, since we are calculating significance for thousands of genes in parallel, 
+In addition, since we are calculating significance for thousands of genes in parallel,
 many researchers prefer to have some method for correcting for multiple tests, to control the false discovery rate.
 However, FDR correction is generally used only for frequentist analyses, and he GI method is fundamentally a Bayesian approach.
 Technically, in a Bayesian framework, FDR correction is not needed.  Any adjustment for expectations about number of hits
-would be achieved through adjusting parameters for prior distributions.  Nonetheless, GI includes options for 
+would be achieved through adjusting parameters for prior distributions.  Nonetheless, GI includes options for
 two methods that approximate FDR correction: **BFDR** (Bayesian False Discovery Rate correction,
-`Newton M.A., Noueiry A., Sarkar D., Ahlquist P. (2004). Detecting differential gene expression with a semiparametric hierarchical 
+`Newton M.A., Noueiry A., Sarkar D., Ahlquist P. (2004). Detecting differential gene expression with a semiparametric hierarchical
 mixture method. Biostatistics, 5:155–176. <https://pubmed.ncbi.nlm.nih.gov/15054023/>`_) and FWER (Familty-Wise
-Error Rate control).  When these corrections are applied, a threshold of 0.05 for the adjusted probability of overlap 
+Error Rate control).  When these corrections are applied, a threshold of 0.05 for the adjusted probability of overlap
 is used for each, and this determines which
 genes are classified as interacting (1 of 3 types) or  marked as "No Interaction", as above.
 
@@ -1204,7 +1204,7 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 
 **LFCs** (log-fold-changes):
 For each condition, the LFC is calculated as the log-base-2 of the
-ratio of mean insertion count in that condition **relative to the 
+ratio of mean insertion count in that condition **relative to the
 mean of means across all the conditions**.
 Pseudocount are incorporated to reduce the impact of noise on LFCs, based on the formula below.
 The pseudocounts can be adjusted using the -PC flag.
@@ -1256,7 +1256,7 @@ occasionally identifies genes with variability not detectable by
 resampling analysis.
 
 Note: ZINB analysis requires R (statistical analysis software)
-to be installed on your system, along with the 'pscl' R package.  
+to be installed on your system, along with the 'pscl' R package.
 See :ref:`Installation Instructions <install-zinb>`.
 
 |
@@ -1264,7 +1264,7 @@ See :ref:`Installation Instructions <install-zinb>`.
 How does it work?
 -----------------
 
-| For a formal description of how this method works, see our paper [ZINB]_: 
+| For a formal description of how this method works, see our paper [ZINB]_:
 |
 |  Subramaniyam S, DeJesus MA, Zaveri A, Smith CM, Baker RE, Ehrt S, Schnappinger D, Sassetti CM, Ioerger TR. (2019).  `Statistical analysis of variability in TnSeq data across conditions using Zero-Inflated Negative Binomial regression. <https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-019-3156-z>`_, *BMC Bioinformatics*. 2019 Nov 21;20(1):603. doi: 10.1186/s12859-019-3156-z.
 
@@ -1369,7 +1369,7 @@ Covariates are attributes of the individual samples that could have a systematic
 effect on the insertion counts which we would like to account for and subsequently ignore
 (like nuissance variables). Examples include things like batch or library.
 
-Interactions are extra variables for which we want to test their effect on the 
+Interactions are extra variables for which we want to test their effect on the
 main variable (or condition).  For example, suppose we collect TnSeq data at several
 different timepoints (e.g. length of incubation or infection).  If we just test
 time as the condition, we will be identifying genes that vary over time (if timepoints
@@ -1418,19 +1418,19 @@ differs depending on the strain, we could do this:
 ::
 
  python3 transit.py zinb combined.wig samples.metadata prot.table output.file --interactions Strain
- 
+
 In this case, the condition is implicitly assumed to be the column in the samples metadata file
-labeled 'Condition'.  If you want to specify a different column to use as the primary condition to 
+labeled 'Condition'.  If you want to specify a different column to use as the primary condition to
 test (for example, if Treatment were a distinct column), you can use the **\-\-condition** flag:
 
 ::
 
  python3 transit.py zinb combined.wig samples.metadata prot.table output.file --condition Treatment --interactions Strain
- 
 
 
-The difference between how covariates and interactions are handeled in the model 
-is discussed below in the section on Statistical Significance.  
+
+The difference between how covariates and interactions are handeled in the model
+is discussed below in the section on Statistical Significance.
 
 Categorical vs Numeric Covariates
 ---------------------------------
@@ -1473,7 +1473,7 @@ you can think of the model approximately as:
   m_1: ln \ \mu = \alpha_0+\vec\alpha X
 
 where :math:`\mu` is an estimate of the mean (non-zero) insertion
-count in a gene (a parameter in the likelihood function for ZINB), 
+count in a gene (a parameter in the likelihood function for ZINB),
 :math:`\alpha_0` is a constant (the mean across all
 conditions), and :math:`\vec\alpha` is a vector of coefficients
 representing the deviation of the mean count in each condition.
@@ -1573,13 +1573,13 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 +---------------------+-----------------------------------------------------------------+
 | p-adj               | Adjusted p-value controlling for the FDR (Benjamini-Hochberg)   |
 +---------------------+-----------------------------------------------------------------+
-| status              | Diagnositic information (explanation for genes not analyzed)    |
+| status              | Diagnostic information (explanation for genes not analyzed)     |
 +---------------------+-----------------------------------------------------------------+
 
 
 **LFCs** (log-fold-changes):
 For each condition, the LFC is calculated as the log-base-2 of the
-ratio of mean insertion count in that condition **relative to the 
+ratio of mean insertion count in that condition **relative to the
 mean of means across all the conditions** (by default).
 However, you can change this by desginating a specific reference condition using the flag **\-\-ref**.
 (If there are multiple reference conditions, they may be given as a comma separated list.)
@@ -1706,7 +1706,7 @@ Several analytical method are provided:
 Fisher's exact test (FET, hypergeometric distribution), GSEA (Gene Set Enrichment Analysis)
 by `Subramanian et al (2005) <https://www.ncbi.nlm.nih.gov/pubmed/16199517>`_,
 and `Ontologizer <https://www.ncbi.nlm.nih.gov/pubmed/17848398>`_.
-For Fisher's exact test, 
+For Fisher's exact test,
 genes in the resampling output file with adjusted p-value < 0.05 are taken as hits,
 and evaluated for overlap with functional categories of genes.
 The GSEA methods use the whole list of genes, ranked in order of statistical significance
@@ -1715,12 +1715,12 @@ The GSEA methods use the whole list of genes, ranked in order of statistical sig
 Three systems of categories are provided for (but you can add your own):
 the Sanger functional categories of genes determined in the
 original annotation of the H37Rv genome (`Cole et al, 1998 <https://www.ncbi.nlm.nih.gov/pubmed/9634230>`_,
-with subsequent updates), 
+with subsequent updates),
 COG categories (`Clusters of Orthologous Genes <https://www.ncbi.nlm.nih.gov/pubmed/25428365>`_) and
-also GO terms (Gene Ontology).  The supporting files for *M. tuberculosis* 
+also GO terms (Gene Ontology).  The supporting files for *M. tuberculosis*
 H37Rv are in the src/pytransit/data/ directory.
 
-For other organisms, it might be possible to download COG categories from 
+For other organisms, it might be possible to download COG categories from
 `http://www.ncbi.nlm.nih.gov/COG/ <http://www.ncbi.nlm.nih.gov/COG/>`_
 and GO terms from `http://www.geneontology.org <http://www.geneontology.org>`_
 or `http://patricbrc.org <http://patricbrc.org>`_.
@@ -1762,7 +1762,7 @@ Parameters
   ...
 
 - **Pathways File**
-   This is a tab-separated text file with 2 columns: pathway id, and pathway name. 
+   This is a tab-separated text file with 2 columns: pathway id, and pathway name.
 
 ::
 
@@ -1780,7 +1780,7 @@ Parameters
     Methodology to be used. FET is used by default (even without specifying -M).
 
   **FET**
-    This implements Fisher's Exact Test (hypergeometric distribution) to determine a p-value for each pathway, based on the proportion of pathway member observed in list of hits (conditionally essential gene by resampling, padj<0.05) compared to the background proportion in the overall genome, and p-values are adjusted post-hoc by the Benjamini-Hochberg procedure to limit the FDR to 5%.  
+    This implements Fisher's Exact Test (hypergeometric distribution) to determine a p-value for each pathway, based on the proportion of pathway member observed in list of hits (conditionally essential gene by resampling, padj<0.05) compared to the background proportion in the overall genome, and p-values are adjusted post-hoc by the Benjamini-Hochberg procedure to limit the FDR to 5%.
 
     In the output file, an "enrichment score" is reported, which is the ratio of the observed number of pathway members among the hits to the expected number.  Pseudocounts of 2 are included in the calculation to reduce the bias toward small pathways with only a few genes; this can be adjusted with the -PC flag (below).
 
@@ -1793,7 +1793,7 @@ Parameters
   **GSEA**
     Gene Set Enrichment Analysis. GSEA assess the significance of a pathway by looking at how the members fall in the ranking of all genes.  The genes are first ranked by significance from resampling.  Specifically, they are sorted by signed-log-p-value, SLPV=sign(LFC)*(log(pval)), which puts them in order so that the most significant genes with negative LFC are at the top, the most significant with positive LFC are at the bottom, and insignificant genes fall in the middle.  Roughly, GSEA computes the mean rank of pathway members, and evaluates significance based on a simulated a null distribution.  p-values are again adjusted at the end by BH.
 
-    `Subramanian, A., Tamayo, P., Mootha, V. K., Mukherjee, S., Ebert, B. L., Gillette, M. A., ... & Mesirov, J. P. (2005).  `ene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles. Proceedings of the National Academy of Sciences, 102(43), 15545-15550. <http://www.pnas.org/content/102/43/15545.short>`_ 
+    `Subramanian, A., Tamayo, P., Mootha, V. K., Mukherjee, S., Ebert, B. L., Gillette, M. A., ... & Mesirov, J. P. (2005).  `ene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles. Proceedings of the National Academy of Sciences, 102(43), 15545-15550. <http://www.pnas.org/content/102/43/15545.short>`_
 
     GSEA can be used with GO terms.
 
@@ -1825,7 +1825,7 @@ Parameters
 *    b is the number of genes with this GO term in the subset of hits (e.g. conditional essentials from resampling, with qval<0.05)
 *    q is the number of genes in the subset of hits with a parent of this GO term
 *    m is the total number of genes with this GO term in the genome
-*    p is the number of genes in the genome with a parent of this GO term 
+*    p is the number of genes in the genome with a parent of this GO term
 
   So enrichment is the log of the ratio of 2 ratios:
 
@@ -1838,7 +1838,7 @@ Auxilliary Pathway Files in Transit Data Directory
 
 ::
 
-These files for pathway analysis are distributed in the Transit data directory 
+These files for pathway analysis are distributed in the Transit data directory
 (e.g. transit/src/pytransit/data/).
 
 Note: The "Sanger" roles are custom pathway associations for
@@ -1848,7 +1848,7 @@ the H37Rv genome sequence `(Cole et al., 1998)
 that COG categories, but less specific than GO terms.  For other
 organisms, one should be able to find GO terms (e.g. on PATRIC,
 Uniprot, or geneontology.org) and COG roles (from
-https://ftp.ncbi.nih.gov/pub/COG/COG2020/data/, `(Galerpin et al, 2021) 
+https://ftp.ncbi.nih.gov/pub/COG/COG2020/data/, `(Galerpin et al, 2021)
 <https://academic.oup.com/nar/article/49/D1/D274/5964069>`_ ).
 
 Pathway association files for *M. smegmatis* mc2 155 are also provided in the table below.
@@ -1908,7 +1908,7 @@ The $DATA environment variable in these examples refers to the Transit data dire
 .. rst-class:: transit_sectionend
 ------
 
-    
+
 
 .. _tnseq_stats:
 
@@ -1947,16 +1947,16 @@ from the command-line using the 'tnseq_stats' command.  Here is an example:
 corrplot
 ========
 
-A useful tool when evaluating the quality of a collection of TnSeq datasets is to make a 
-*correlation plot* of the mean insertion counts (averaged at the gene-level) among samples.  
+A useful tool when evaluating the quality of a collection of TnSeq datasets is to make a
+*correlation plot* of the mean insertion counts (averaged at the gene-level) among samples.
 While it is difficult to state unequivocally
-how much correlation there should be between samples from different conditions 
-(or even between replicates of the same condition), 
+how much correlation there should be between samples from different conditions
+(or even between replicates of the same condition),
 the corrplot can often reveal individual samples which stand out as being far less
 correlated with all the others (which subsequently might be excluded from analyses).
 
 **Note**: The *corrplot* command calls R, which must be installed on your system,
-and relies on the 'corrplot' R package. 
+and relies on the 'corrplot' R package.
 See :ref:`Installation Instructions <install-zinb>`.
 
 Usage:
@@ -2034,7 +2034,7 @@ which is especially useful for shedding light on the relationships
 among the conditions apparent in the data.
 
 **Note:** The *heatmap* command calls R, which must be installed on your system,
-and relies on the 'gplots' R package. 
+and relies on the 'gplots' R package.
 See :ref:`Installation Instructions <install-zinb>`.
 
 Usage:
@@ -2076,3 +2076,189 @@ which usually do not exhibit significant variation in counts.
 .. rst-class:: transit_sectionend
 ----
 
+
+
+
+
+
+.. _ttnfitness:
+
+.. rst-class:: transit_clionly
+TTN-Fitness
+===========
+
+TTN-Fitness provides a method for estimating the fitness of genes in a single
+condition, while correcting for biases in Himar1 insertion preferences at TA sites
+based on surrounding nucleotides. The frequency of insertions depends on nucleotides
+surrounding TA sites. This model captures that effect.
+
+Typically with individual TnSeq datasets, Gumbel and HMM are the methods used for
+evaluating essentiality. Gumbel distinguishes between ES (essential) from NE (non-essential).
+HMM adds the GD (growth-defect; suppressed counts; mutant has reduced fitness) and
+GA (growth advantage; inflated counts; mutant has selective advantage) categories.
+Quantifying the magnitude of the fitness defect is risky because the counts at
+individual TA sites can be noisy. Sometimes the counts at a TA site in a gene can span
+a wide range of very low to very high counts. The TTN-Fitness gives a more fine-grained analysis
+of the degree of fitness effect by taking into account the insertion preferences of the Himar1 transposon.
+
+These insertion preferences are influenced by the nucleotide context of each TA site.  The TTN-Fitness
+method uses a statistical model based on surrounding nucleotides to estimate the insertion bias of each site.
+Then, it corrects for this to compute an overall fitness level as a Fitness Ratio, where the ratio is 0 for
+ES genes, 1 for typical NE genes, between 0 and 1 for GD genes and above 1 for GA genes.
+
+For additional details, see our paper:
+
+`Choudhery, Sanjeevani et al. “Modeling Site-Specific Nucleotide Biases Affecting Himar1 Transposon Insertion
+Frequencies in TnSeq Data Sets.” mSystems vol. 6,5 (2021): e0087621. doi:10.1128/mSystems.00876-21 <https://pubmed.ncbi.nlm.nih.gov/34665010/>`_
+
+* This methodology is best suited for libraries created with the Himar1 transposon.
+* The model itself does not need to be re-trained to make prediction on a dataset. Our data (Choudhery, 2021) shows
+  this model generalizes across other bacterial species.
+* This methodology can handle multiple replicates. More replicates increase the saturation of TA sites in non-essential
+  genes. This allows for higher accuracy and precision of the insertion counts at TA sites of a genome.
+
+Note that the TTN-Fitness model is primarily aimed at analyzing GD (growth-defect) genes (and NE, GA) in terms of magnitudes of counts,
+but not really ES/ESB genes, which are determined by other analyses (based on absence of insertions). ES genes are
+essential genes have been previously labeled as such by the Gumbel method. ESB genes
+are genes that have no insertions and are are long enough to be significant by a Binomial
+method (see paper).  Since counts are so close to 0 for these, the insertion biased on
+the transposon is irrelevant.  Thus, the predictive model is not really used for these genes.
+
+TTN-Fitness is more sensitive to deviations in insertion counts
+(compared to expected insertion counts) and therefore tends to call
+more GD and GA genes than other analysis methods.
+
+
+On an average machine, running this methodology on a dataset takes about 5 minutes
+
+
+Usage
+------
+
+::
+
+  python3 transit.py ttnfitness <comma-separated .wig files> <annotation .prot_table> <genome .fna> <gumbel output file> <gene-wise output file> <ta-site wise output file>
+  -  gumbel output file:* The Gumbel method must be run first on the dataset.The output of the Gumbel method is provided as an input
+     to this method. ES (essential by Gumbel) and EB (essential by Binomial) is calculated in the TTN-Fitness method via this files
+
+Output
+------
+
+There are two outputs files. One file details the assessment per gene and one details the assessment per TA site.
+
+The first output file is a tab-delimited file where the last column, titled TTN-Fitness Calls reports the essentiality call of
+each given gene. The call is one of following:
+
+* NE = Non-essential.
+* ES = essential based on Gumbel
+* ESB = essential based on Binomial**
+* GA = Growth Advantage
+* GD = Growth Defect
+* U = Uncertain [for genes that are too short]
+
+** this is an alternative model for identifying essential genes that complements the Gumbel calculation, which tends to 
+call short genes with few TA sites Uncertain, especially at lower levels of saturation; see Choudhery et al, 2021
+
+The Fitness Ratio reported in this file is a modification of the M1 coefficient to reflect the amount of fitness defect per gene.
+This ratio was calculated as:
+
+.. math::
+
+   Fitness \ Ratio = e^{(M1\ coefficient - median[M1\ coefficients])}
+
+
+This value ranges from 0 to infinity.
+Genes with a value around 1 are non-essential.
+If less than 1, this value indicates the level of growth defect
+that is caused by disruption of the gene by transpoon insertion.
+The closer the ratio of a gene is to 0, the more essential a gene is.
+If greater than 1, it indicates the level of growth advantage of the mutant.
+The histograms below shows the distribution of the fitness ratios calculated
+for each of the essentiality categories. The genes
+assessed as GD have a ratio that is typically below 0.5,
+those labeled GA are mostly above 1.0 and the ratios of genes assessed
+as NE have a peak at 1 and are restricted to the center of the plot.
+
+.. image:: _images/ttnfitness_coef_distribution.png
+   :width: 1000
+   :align: center
+
+
+The Fitness Ratio quantifies the qualitative calls seen in the TTN-Fitness Calls Column. These two columns are the last two
+columns in the output file and are the primary columns per gene reflecting the assessments made by our model.
+
++---------------------------+----------------------------------------------------------------------+
+| Column Header             | Column Definition                                                    |
++===========================+======================================================================+
+| Orf                       | Gene ID.                                                             |
++---------------------------+----------------------------------------------------------------------+
+| Name                      | Name of the Gene                                                     |
++---------------------------+----------------------------------------------------------------------+
+| Description               | Gene description                                                     |
++---------------------------+----------------------------------------------------------------------+
+| Total # TA Sites          | Total number of TA sites in the Gene                                 |
++---------------------------+----------------------------------------------------------------------+
+| #Sites with insertions    | Number of TA sites in the Gene with insertions                       |
++---------------------------+----------------------------------------------------------------------+
+| Gene Saturation           | Percentage of TA sites in the Gene with insertions                   |
++---------------------------+----------------------------------------------------------------------+
+| Gene+TTN (M1) Coef        | The coefficient of a given gene in M1 model                          |
++---------------------------+----------------------------------------------------------------------+
+| Gene+TTN (M1) Adj Pval    | The BF adjusted p-value of a coef of a gene in M1                    |
++---------------------------+----------------------------------------------------------------------+
+| Mean Insertion Count      | The mean insertion count at TA sites in a given gene                 |
++---------------------------+----------------------------------------------------------------------+
+| **Fitness Ratio**         | **Adjusted M1 coefficients to quantify fitness defect per gene**     |
++---------------------------+----------------------------------------------------------------------+
+| **TTN-Fitness Assessment**| **Calls made for a given gene using the M1 Coef and Adjusted Pval**  |
++---------------------------+----------------------------------------------------------------------+
+
+The second output file is a tab-seperated file of details of the TTN Fitness method per TA Site.
+
++---------------------------+-------------------------------------------------------------------------------+
+| Column Header             | Column Definition                                                             |
++===========================+===============================================================================+
+| Coord                     | Coordinate of TA Site                                                         |
++---------------------------+-------------------------------------------------------------------------------+
+| Orf                       | Gene ID                                                                       |
++---------------------------+-------------------------------------------------------------------------------+
+| Name                      | Name of the Gene                                                              |
++---------------------------+-------------------------------------------------------------------------------+
+| Uqstream TTN              | Nucleotides in position 1,2,3 and 4 from the TA site                          |
++---------------------------+-------------------------------------------------------------------------------+
+| Downstream TTN            | Reverse Complement of Nucleotides in position -1,-2,-3 and -4 from the TA site|
++---------------------------+-------------------------------------------------------------------------------+
+| TTN Fitness Assessment    | Fitness Call for the Gene                                                     |
++---------------------------+-------------------------------------------------------------------------------+
+| Insertion Counts          | Number of Insertions at TA site                                               |
++---------------------------+-------------------------------------------------------------------------------+
+| Local Average             | The average number of insertions +5 to -5 from the TA site                    |
++---------------------------+-------------------------------------------------------------------------------+
+| M1 Predicted Counts       | TTN+gene based predictions at the TA site using TTN Fitness model             |
++---------------------------+-------------------------------------------------------------------------------+
+
+
+Example of running the TTN-Fitness methodology on the sample glycerol data
+------
+
+1. Run the Gumbel Analysis
+::
+  python3 transit.py gumbel glycerol_H37Rv_rep1.wig,glycerol_H37Rv_rep2.wig H37Rv.prot_table gylcerol_H37Rv.gumbel.out
+
+2. Use the output of the Gumbel Analysis as the input to the TTTN-Fitness method
+::
+  python3 transit.py ttnfitness glycerol_H37Rv_rep1.wig,glycerol_H37Rv_rep2.wig H37Rv.prot_table H37Rv.fna glycerol_H37Rv.gumbel.out ttnfitness_glycerol_H37Rv_gene.txt ttnfitness_glycerol_H37Rv_TAsite.txt
+
+The resulting ttnfitness_glycerol_H37Rv_gene.txt out should contain TTN Fitness Assessments breakdown similar to:
+
+* 172 ES
+* 501 ESB
+* 2680 NE
+* 195 GA
+* 359 GD
+* 72 U
+
+The resulting ttnfitness_glycerol_H37Rv_TAsite.txt should contain 62,622 TA sites
+
+.. rst-class:: transit_sectionend
+----
