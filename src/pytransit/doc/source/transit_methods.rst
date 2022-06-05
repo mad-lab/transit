@@ -618,6 +618,8 @@ parameters are available for the method:
    if you want to trim TA sites within 5% of the termini, you would
    add the flags '-iN 5 -iC 5' (not 0.05).
 
+-  **--Pval_col <int>**: index of column with P-values (starting from 0)
+
 -  **-PC**: Pseudocounts used in calculation of LFCs (log-fold-changes, see Output and Diagnostics) in
    resampling output file.
    To suppress the appearance of artifacts due to high-magnitude of LFCs from
@@ -1275,21 +1277,22 @@ Example
 
 ::
 
-  python3 transit.py zinb <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
+  > python3 transit.py zinb <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
         Optional Arguments:
-        -n <string>         :=  Normalization method. Default: -n TTR
+        -n <string>                 :=  Normalization method. Default: -n TTR
+        --prot_table <filename>     := for appending annotations of genes
+        --condition                 :=  columnname (in samples_metadata) to use as the Condition. Default: "Condition"
+        --covars <covar1,...>       :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
+        --interactions <covar1,...> :=  Comma separated list of covariates to include, that interact with the condition for the analysis.
         --exclude-conditions <cond1,...> :=  Comma separated list of conditions to ignore for the analysis. Default: None
         --include-conditions <cond1,...> :=  Comma separated list of conditions to include for the analysis. Default: All
-        --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if more than one) (by default, LFCs for each condition are computed relative to the grandmean across all condintions)
-        -iN <float>     :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5
-        -iC <float>     :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5
-        -PC <N>         :=  Pseudocounts used in calculating LFCs in output file. Default: -PC 5
-        -winz           := winsorize insertion counts for each gene in each condition (replace max cnt with 2nd highest; helps mitigate effect of outliers)
-        --condition     :=  columnname (in samples_metadata) to use as the Condition. Default: "Condition"
-        --covars <covar1,covar2...>     :=  Comma separated list of covariates (in metadata file) to include, for the analysis.
-        --interactions <covar1,covar2...>     :=  Comma separated list of covariates to include, that interact with the condition for the analysis.
-        -v := verbose, print out the model coefficients for each gene.
-        --gene <Orf id or Gene name> := Run method for one gene and print model output.
+        --ref <cond>                := which condition(s) to use as a reference for calculating LFCs (comma-separated if more than one) (by default, LFCs for each condition are computed relative to the grandmean across all condintions)
+        -iN <float>                 :=  Ignore TAs occuring within given percentage of the N terminus. Default: -iN 5
+        -iC <float>                 :=  Ignore TAs occuring within given percentage of the C terminus. Default: -iC 5
+        -PC <N>                     :=  Pseudocounts used in calculating LFCs in output file. Default: -PC 5
+        -winz                       := winsorize insertion counts for each gene in each condition (replace max cnt with 2nd highest; helps mitigate effect of outliers)
+        -v                          := verbose, print out the model coefficients for each gene.
+        --gene <Orf id or Gene name>:= Run method for one gene and print model output.
 
 
 .. _combined_wig:
@@ -1347,15 +1350,19 @@ Parameters
 
 The following parameters are available for the ZINB method:
 
--  **\-\-include-conditions:** Includes the given set of conditions from the ZINB test. Conditions not in this list are ignored. Note: this is useful for specifying the order in which the columns are listed in the output file.
--  **\-\-exclude-conditions:** Ignores the given set of conditions from the ZINB test.
--  **\-\-ref:** which condition to use as a reference when computing LFCs in the output file. By default, LFCs for each condition are computed relative to the grandmean across all condintions.
--  **Normalization Method:** Determines which normalization method to
-   use when comparing datasets. Proper normalization is important as it
+-  **\-\-prot_table <filename>:** for appending annotations of genes
+-  **\-\-include-conditions <cond1,...>:** Includes the given set of conditions from the ZINB test. Conditions not in this list are ignored. Note: this is useful for specifying the order in which the columns are listed in the output file.
+-  **\-\-exclude-conditions <cond1,...>:** Ignores the given set of conditions from the ZINB test.
+-  **\-\-ref <cond>:** which condition to use as a reference when computing LFCs in the output file. By default, LFCs for each condition are computed relative to the grandmean across all condintions.
+-  **-n <TTR|betageom|nonorm...>:** Determines which Normalization method to 
+   use when comparing datasets (Default: -n TTR). Proper normalization is important as it
    ensures that other sources of variability are not mistakenly treated
    as real differences. See the :ref:`Normalization <normalization>` section for a description
    of normalization method available in TRANSIT.
--  **Covariates:** If additional covariates distinguishing the samples are available, such as library, timepoint, or genotype, they may be incorporated in the test.
+-  **\-\-condition <covar>:** column name (in samples_metadata) to use as the primary Condition being evaluated (to test for significant variability of insertions among conditions). Default: "Condition" (column name in metadata)
+-  **\-\-covars <covar1,...>:** Comma separated list of covariates (columns in metadata file) to include, for the analysis.  If additional covariates distinguishing the samples are available, such as library, timepoint, or genotype, they may be "factored out" of the test of the primary condition. (variation due to covars is accounted for in the model, but not considered in evaluating the effect on variability due to the primary condition)
+-  **\-\-interactions <covar1,...>:** Comma separated list of covariates (cols in metadata) to include, that interact with the condition for the analysis. (variation due to these variables *is* included in testing the effect of the main condition)
+-  **-PC <N>:** Pseudocounts used in calculating LFCs in output file. (Default: -PC 5)
 -  **-winz**: `winsorize <https://en.wikipedia.org/wiki/Winsorizing>`_ insertion counts for each gene in each condition. 
    Replace max count in each gene with 2nd highest.  This can help mitigate effect of outliers.
 
@@ -1737,7 +1744,19 @@ Usage
 
 ::
 
-    python3 src/transit.py pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FET|GSEA|ONT>] [-PC <int>]
+  > python3 ../../transit.py pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FET|GSEA|GO>] [-PC <int>] [-ranking SLPV|LFC] [-p <float>] [-Nperm <int>] [-Pval_col <int>] [-Qval_col <int>]  [-LFC_col <int>]
+
+  Optional parameters:
+     -M FET|GSEA|ONT:     method to use, FET for Fisher's Exact Test (default), GSEA for Gene Set Enrichment Analysis (Subramaniam et al, 2005), or ONT for Ontologizer (Grossman et al, 2007)
+     -Pval_col <int>    : indicate column with *raw* P-values (starting with 0; can also be negative, i.e. -1 means last col) (used for sorting) (default: -2, i.e. second-to-last column)
+     -Qval_col <int>    : indicate column with *adjusted* P-values (starting with 0; can also be negative, i.e. -1 means last col) (used for significant cutoff) (default: -1)
+ for GSEA...
+     -ranking SLPV|LFC  : SLPV is signed-log-p-value (default); LFC is log2-fold-change from resampling 
+     -LFC_col <int>     : indicate column with log2FC (starting with 0; can also be negative, i.e. -1 means last col) (used for ranking genes by SLPV or LFC) (default: 6)
+     -p <float>         : exponent to use in calculating enrichment score; recommend trying 0 or 1 (as in Subramaniam et al, 2005)
+     -Nperm <int>       : number of permutations to simulate for null distribution to determine p-value (default=10000)
+ for FET...
+     -PC <int>          :  pseudo-counts to use in calculating p-value based on hypergeometric distribution (default=2)
 
 |
 
@@ -1776,10 +1795,15 @@ Parameters
   I.A.4	Phosphorous compounds
   ...
 
-- **-M**
+- **\-\-Pval_col <int>**: indicate column with *raw* P-values (starting with 0; can also be negative, i.e. -1 means last col) (used for sorting) (default: -2, i.e. second-to-last column)
+
+- **\-\-Qval_col <int>**: indicate column with *adjusted* P-values (starting with 0; can also be negative, i.e. -1 means last col) (used for significant cutoff) (default: -1)
+
+
+- **-M [FET|GSEA|ONT]**
     Methodology to be used. FET is used by default (even without specifying -M).
 
-  **FET**
+  **-M FET**
     This implements Fisher's Exact Test (hypergeometric distribution) to determine a p-value for each pathway, based on the proportion of pathway member observed in list of hits (conditionally essential gene by resampling, padj<0.05) compared to the background proportion in the overall genome, and p-values are adjusted post-hoc by the Benjamini-Hochberg procedure to limit the FDR to 5%.
 
     In the output file, an "enrichment score" is reported, which is the ratio of the observed number of pathway members among the hits to the expected number.  Pseudocounts of 2 are included in the calculation to reduce the bias toward small pathways with only a few genes; this can be adjusted with the -PC flag (below).
@@ -1790,7 +1814,7 @@ Parameters
 
     - **-PC <int>**: Pseudocounts used in calculating the enrichment score and p-value by hypergeometic distribution. Default: PC=2.
 
-  **GSEA**
+  **-M GSEA**
     Gene Set Enrichment Analysis. GSEA assess the significance of a pathway by looking at how the members fall in the ranking of all genes.  The genes are first ranked by significance from resampling.  Specifically, they are sorted by signed-log-p-value, SLPV=sign(LFC)*(log(pval)), which puts them in order so that the most significant genes with negative LFC are at the top, the most significant with positive LFC are at the bottom, and insignificant genes fall in the middle.  Roughly, GSEA computes the mean rank of pathway members, and evaluates significance based on a simulated a null distribution.  p-values are again adjusted at the end by BH.
 
     `Subramanian, A., Tamayo, P., Mootha, V. K., Mukherjee, S., Ebert, B. L., Gillette, M. A., ... & Mesirov, J. P. (2005).  `ene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles. Proceedings of the National Academy of Sciences, 102(43), 15545-15550. <http://www.pnas.org/content/102/43/15545.short>`_
@@ -1805,8 +1829,10 @@ Parameters
 
     - **-Nperm <int>**: number of permutations to simulate for null distribution to determine p-value (default=10000)
 
+    - **\-\-LFC_col <int>**: indicate column with log2FC (starting with 0; can also be negative, i.e. -1 means last col) (used for ranking genes by SLPV or LFC) (default: 6)
 
-  **ONT**
+
+  **-M ONT**
     Ontologizer is a specialized method for GO terms that takes parent-child relationships into account among nodes in the GO hierarchy.  This can enhance the specificity of pathways detected as significant.  (The problem is that there are many GO terms in the hierarchy covering similar or identical sets of genes, and often, if one node is significantly enriched, then several of its ancestors will be too, which obscures the results with redundant hits; Ontologizer reduces the significance of nodes if their probability distribution among hits can be explained by their parents.) Hierarhical relationships among GO terms are encoded in an OBO file, which is included in the src/pytransit/data/ directory.
 
     `Grossmann S, Bauer S, Robinson PN, Vingron M. Improved detection of overrepresentation of Gene-Ontology annotations with parent child analysis. Bioinformatics. 2007 Nov 15;23(22):3024-31. <https://www.ncbi.nlm.nih.gov/pubmed/17848398>`_
@@ -2004,7 +2030,7 @@ several different growth conditions:
    :align: center
 
 
-Note that is an ANOVA or ZINB output file (both of which contain mean
+Note that if an ANOVA or ZINB output file (both of which contain mean
 counts for each gene in each condition) is supplied in place of
 mean_counts, the *last* argument of corrplot must be set to either
 '-anova' or '-zinb' to indicate the type of file being provided as the
@@ -2044,8 +2070,8 @@ Usage:
 
   python3 src/transit.py heatmap <anova_or_zinb_output> <heatmap.png> -anova|-zinb [-topk <int>] [-qval <float] [-low_mean_filter <int>]
 
-Note that the first optional argument (flag) is required to be either '-anova' or '-zinb', a flag to
-indicate the type of file being provided as the second argument.
+Note that the **third argument is required to be either '-anova' or '-zinb'**, 
+which is a flag to indicate the type of file being provided as the second argument.
 
 By default, genes are selected for the heatmap based on qval<0.05.
 However, the user may change the selection of genes through 2 flags:
