@@ -106,6 +106,11 @@ class CorrplotMethod(base.SingleConditionMethod):
 
     @classmethod
     def fromargs(self, rawargs): 
+        if not hasR:
+            print("Error: R and rpy2 (~= 3.0) required to run corrplot.")
+            print("After installing R, you can install rpy2 using the command \"pip install 'rpy2~=3.0'\"")
+            sys.exit(0)
+
         (args, kwargs) = transit_tools.cleanargs(rawargs)
         if (kwargs.get('-help', False)): print(self.usage_string()); sys.exit(0)
         if len(args)<2: print(self.usage_string()); sys.exit(0)
