@@ -70,8 +70,26 @@ TRANSIT offers a variety of features including:
    transit_install
    transit_running
    transit_features
-   transit_methods
-   transit_console_cheatsheet
+
+.. toctree::
+   :maxdepth: 3
+   :caption: ANALYSIS METHODS
+
+   method_gumbel
+   method_griffin
+   method_tn5gaps
+   method_HMM
+   method_resampling
+   method_Utest
+   method_GI
+   method_anova
+   method_zinb
+   method_normalization
+   method_pathway_enrichment
+   method_tnseq_stats
+   method_corrplot
+   method_heatmap
+   method_ttnfitness
 
 .. _tutorial-link:
 
@@ -85,6 +103,7 @@ TRANSIT offers a variety of features including:
    transit_interactions_tutorial
    transit_normalization_tutorial
    transit_export_tutorial
+   transit_console_cheatsheet
 
 .. _tpp-link:
 

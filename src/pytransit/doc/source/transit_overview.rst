@@ -6,6 +6,9 @@ TRANSIT Overview
 ================
 
 
+The analysis methods in Transit are also described in this `PDF manual
+<https://orca1.tamu.edu/essentiality/transit/transit-manual.pdf>`_ .
+
 + This is a software that can be used to analyze Tn-Seq datasets. It includes various statistical calculations of essentiality of genes or genomic regions (including conditional essentiality between 2 conditions). These methods were developed and tested as a collaboration between the Sassetti lab (UMass) and the Ioerger lab (Texas A&M) [DeJesus2015TRANSIT]_.
 
 .. image:: _images/transit_interface.png
