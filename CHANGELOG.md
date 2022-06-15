@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 3.2.5 2021-06-15
+#### TRANSIT:
+
+Minor changes:
+ - update dependencies for pillow and sklearn
+ - refactor documentation (replace transit_methods.rst with separate .rst files)
+ - added rpy2 warning (if not installed) for corrplot and heatmap
+
+
 ## Version 3.2.4 2021-06-05
 #### TRANSIT:
 
