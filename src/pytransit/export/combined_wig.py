@@ -175,11 +175,23 @@ class CombinedWigMethod(base.SingleConditionMethod):
             else:
                 self.output.write("#Normalization Factors: %s\n" % " ".join([",".join(["%s" % bx for bx in b]) for b in factors]))
 
+        # get ref genome from first wig file (we could check that they are all the same)
+        # by this point, we know all the wig files exist and have same number of TA sites
+        # this assumes 2nd line of each wig file is "variableStep chrom=XXX"; if not, set ref to "unknown"
+        self.ref = "unknown"
+        wig = self.ctrldata[0]
+        with open(wig) as file:
+          line = file.readline()
+          line = file.readline()
+          if line.startswith("variableStep"): 
+            w = line.rstrip().split("=")
+            if len(w)>=2: self.ref = w[1]
 
         (K,N) = fulldata.shape
+        self.output.write("#RefGenome: %s\n" % self.ref)
         for f in self.ctrldata:
             self.output.write("#File: %s\n" % f)
-        self.output.write("#TAcoord\t%s\n" % ('\t'.join(self.ctrldata)))
+        self.output.write("#TA_coord\t%s\n" % ('\t'.join(self.ctrldata)))
 
         for i,pos in enumerate(position):
             #self.output.write("%d\t%s\t%s\n" % (position[i], "\t".join(["%1.1f" % c for c in fulldata[:,i]]),",".join(["%s (%s)" % (orf,rv2info.get(orf,["-"])[0]) for orf in hash.get(position[i], [])])   ))
