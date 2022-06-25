@@ -154,25 +154,42 @@ class AnovaMethod(base.MultiConditionMethod):
         count = 0
         self.progress_range(len(genes))
 
-        pvals,Rvs,status = [],[],[]
+        MSR,MSE,Fstats,pvals,Rvs,status = [],[],[],[],[],[]
         for gene in genes:
             count += 1
             Rv = gene["rv"]
             if (len(RvSiteindexesMap[Rv]) <= 1):
                 status.append("TA sites <= 1")
-                pvals.append(1)
+                msr,mse,Fstat,pval = 0,0,-1,1
             else:
                 countSum, countsVec = self.group_by_condition(list(map(lambda wigData: wigData[RvSiteindexesMap[Rv]], data)), conditions)
                 if self.winz: countsVec = self.winsorize(countsVec)
 
                 if (countSum == 0):
-                    pval = 1
+                    msr,mse,Fstat,pval = 0,0,-1,1
                     status.append("No counts in all conditions")
-                    pvals.append(pval)
                 else:
-                    stat,pval = scipy.stats.f_oneway(*countsVec)
+                    Fstat,pval = scipy.stats.f_oneway(*countsVec)
                     status.append("-")
-                    pvals.append(pval)
+                    # countsVec is a list of numpy arrays; pooled counts for each condition, over TAs in gene and replicates
+                    allcounts = [grp.flatten() for grp in countsVec]
+                    allcounts = [item for sublist in allcounts for item in sublist]
+                    grandmean = numpy.mean(allcounts)
+                    groupmeans = [numpy.mean(grp) for grp in countsVec]
+                    k,n = len(countsVec),len(allcounts)
+                    dfBetween,dfWithin = k-1,n-k
+                    msr,mse = 0,0
+                    for grp in countsVec: msr += grp.size*(numpy.mean(grp)-grandmean)**2/float(dfBetween)
+                    for grp,mn in zip(countsVec,groupmeans): mse += numpy.sum((grp-mn)**2) # grp is a numpy array
+                    mse /= float(dfWithin)
+                    mse = mse+1000 ### moderation
+                    Fmod = msr/float(mse)
+                    Pmod = scipy.stats.f.sf(Fmod,dfBetween,dfWithin)
+                    Fstat,pval = Fmod,Pmod
+            pvals.append(pval)   
+            Fstats.append(Fstat) 
+            MSR.append(msr)
+            MSE.append(mse)
             Rvs.append(Rv)
 
             # Update progress
@@ -184,10 +201,10 @@ class AnovaMethod(base.MultiConditionMethod):
         qvals = numpy.full(pvals.shape, numpy.nan)
         qvals[mask] = statsmodels.stats.multitest.fdrcorrection(pvals[mask])[1] # BH, alpha=0.05
 
-        p,q,statusMap = {},{},{}
+        msr,mse,f,p,q,statusMap = {},{},{},{},{},{}
         for i,rv in enumerate(Rvs):
-            p[rv],q[rv],statusMap[rv] = pvals[i],qvals[i],status[i]
-        return (p, q, statusMap)
+          msr[rv],mse[rv],f[rv],p[rv],q[rv],statusMap[rv] = MSR[i],MSE[i],Fstats[i],pvals[i],qvals[i],status[i]
+        return (msr, mse, f, p, q, statusMap)
 
     def calcLFCs(self,means,refs=[],PC=1):
       if len(refs)==0: refs = means # if ref condition(s) not explicitly defined, use mean of all
@@ -231,7 +248,7 @@ class AnovaMethod(base.MultiConditionMethod):
         MeansByRv = self.means_by_rv(data, RvSiteindexesMap, genes, conditions)
 
         self.transit_message("Running Anova")
-        pvals,qvals,run_status = self.run_anova(data, genes, MeansByRv, RvSiteindexesMap, conditions)
+        MSR,MSE,Fstats,pvals,qvals,run_status = self.run_anova(data, genes, MeansByRv, RvSiteindexesMap, conditions)
 
         self.transit_message("Adding File: %s" % (self.output))
         file = open(self.output,"w")
@@ -239,7 +256,7 @@ class AnovaMethod(base.MultiConditionMethod):
         heads = ("Rv Gene TAs".split() +
                 ["Mean_%s" % x for x in conditionsList] +
                 ["LFC_%s" % x for x in conditionsList] +
-                "pval padj".split() + ["status"])
+                "MSR MSE Fstat Pval Padj".split() + ["status"])
         file.write("#Console: python3 %s\n" % " ".join(sys.argv))
         file.write("#parameters: normalization=%s, trimming=%s/%s%% (N/C), pseudocounts=%s\n" % (self.normalization,self.NTerminus,self.CTerminus,self.PC))
         file.write('#'+'\t'.join(heads)+EOL)
@@ -252,7 +269,7 @@ class AnovaMethod(base.MultiConditionMethod):
               vals = ([Rv, gene["gene"], str(len(RvSiteindexesMap[Rv]))] +
                       ["%0.2f" % x for x in means] + 
                       ["%0.3f" % x for x in LFCs] + 
-                      ["%f" % x for x in [pvals[Rv], qvals[Rv]]] + [run_status[Rv]])
+                      ["%f" % x for x in [MSR[Rv], MSE[Rv], Fstats[Rv], pvals[Rv], qvals[Rv]]] + [run_status[Rv]])
               file.write('\t'.join(vals)+EOL)
         file.close()
         self.transit_message("Finished Anova analysis")
