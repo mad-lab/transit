@@ -35,10 +35,11 @@ class AnovaMethod(base.MultiConditionMethod):
     """
     anova
     """
-    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, excluded_conditions=[], included_conditions=[], nterm=0.0, cterm=0.0, PC=1, winz=False, refs=[]):
+    def __init__(self, combined_wig, metadata, annotation, normalization, output_file, excluded_conditions=[], included_conditions=[], nterm=0.0, cterm=0.0, PC=5, winz=False, refs=[], alpha=1000):
         base.MultiConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, combined_wig, metadata, annotation, output_file,
                 normalization=normalization, excluded_conditions=excluded_conditions, included_conditions=included_conditions, nterm=nterm, cterm=cterm)
         self.PC = PC
+        self.alpha = alpha
         self.refs = refs
         self.winz = winz
 
@@ -62,20 +63,21 @@ class AnovaMethod(base.MultiConditionMethod):
         CTerminus = float(kwargs.get("iC", 0.0))
         winz = True if "winz" in kwargs else False
         PC = int(kwargs.get("PC", 5))
+        alpha = float(kwargs.get("alpha", 1000))
         refs = kwargs.get("-ref",[]) # list of condition names to use a reference for calculating LFCs
         if refs!=[]: refs = refs.split(',')
         excluded_conditions = list(filter(None, kwargs.get("-exclude-conditions", "").split(",")))
         included_conditions = list(filter(None, kwargs.get("-include-conditions", "").split(",")))
 
         # check for unrecognized flags
-        flags = "-n --exclude-conditions --include-conditions -iN -iC -PC --ref -winz".split()
+        flags = "-n --exclude-conditions --include-conditions -iN -iC -PC --ref -winz -alpha".split()
         for arg in rawargs:
           if arg[0]=='-' and arg not in flags:
             self.transit_error("flag unrecognized: %s" % arg)
             print(AnovaMethod.usage_string())
             sys.exit(0)
 
-        return self(combined_wig, metadata, annotation, normalization, output_file, excluded_conditions, included_conditions, NTerminus, CTerminus, PC, winz, refs)
+        return self(combined_wig, metadata, annotation, normalization, output_file, excluded_conditions, included_conditions, NTerminus, CTerminus, PC, winz, refs, alpha)
 
     def wigs_to_conditions(self, conditionsByFile, filenamesInCombWig):
         """
@@ -171,18 +173,24 @@ class AnovaMethod(base.MultiConditionMethod):
                 else:
                     Fstat,pval = scipy.stats.f_oneway(*countsVec)
                     status.append("-")
-                    # countsVec is a list of numpy arrays; pooled counts for each condition, over TAs in gene and replicates
-                    allcounts = [grp.flatten() for grp in countsVec]
-                    allcounts = [item for sublist in allcounts for item in sublist]
+                    # countsVec is a list of numpy arrays, or could be a list of lists
+                    # pooled counts for each condition, over TAs in gene and replicates
+                    if isinstance(countsVec[0],numpy.ndarray): 
+                      countsVecAsArrays = countsVec
+                      countsVecAsLists = [grp.tolist() for grp in countsVec]
+                    else:
+                      countsVecAsArrays = [numpy.array(grp) for grp in countsVec]
+                      countsVecAsLists = countsVec
+                    allcounts = [item for sublist in countsVecAsLists for item in sublist]
                     grandmean = numpy.mean(allcounts)
-                    groupmeans = [numpy.mean(grp) for grp in countsVec]
+                    groupmeans = [numpy.mean(grp) for grp in countsVecAsArrays]
                     k,n = len(countsVec),len(allcounts)
                     dfBetween,dfWithin = k-1,n-k
                     msr,mse = 0,0
-                    for grp in countsVec: msr += grp.size*(numpy.mean(grp)-grandmean)**2/float(dfBetween)
-                    for grp,mn in zip(countsVec,groupmeans): mse += numpy.sum((grp-mn)**2) # grp is a numpy array
+                    for grp in countsVecAsArrays: msr += grp.size*(numpy.mean(grp)-grandmean)**2/float(dfBetween)
+                    for grp,mn in zip(countsVecAsArrays,groupmeans): mse += numpy.sum((grp-mn)**2) 
                     mse /= float(dfWithin)
-                    mse = mse+1000 ### moderation
+                    mse = mse+self.alpha ### moderation
                     Fmod = msr/float(mse)
                     Pmod = scipy.stats.f.sf(Fmod,dfBetween,dfWithin)
                     Fstat,pval = Fmod,Pmod
@@ -206,7 +214,7 @@ class AnovaMethod(base.MultiConditionMethod):
           msr[rv],mse[rv],f[rv],p[rv],q[rv],statusMap[rv] = MSR[i],MSE[i],Fstats[i],pvals[i],qvals[i],status[i]
         return (msr, mse, f, p, q, statusMap)
 
-    def calcLFCs(self,means,refs=[],PC=1):
+    def calcLFCs(self,means,refs=[],PC=5):
       if len(refs)==0: refs = means # if ref condition(s) not explicitly defined, use mean of all
       grandmean = numpy.mean(refs)
       lfcs = [math.log((x+PC)/float(grandmean+PC),2) for x in means]
@@ -256,9 +264,9 @@ class AnovaMethod(base.MultiConditionMethod):
         heads = ("Rv Gene TAs".split() +
                 ["Mean_%s" % x for x in conditionsList] +
                 ["LFC_%s" % x for x in conditionsList] +
-                "MSR MSE Fstat Pval Padj".split() + ["status"])
+                "MSR MSE+alpha Fstat Pval Padj".split() + ["status"])
         file.write("#Console: python3 %s\n" % " ".join(sys.argv))
-        file.write("#parameters: normalization=%s, trimming=%s/%s%% (N/C), pseudocounts=%s\n" % (self.normalization,self.NTerminus,self.CTerminus,self.PC))
+        file.write("#parameters: normalization=%s, trimming=%s/%s%% (N/C), pseudocounts=%s, alpha=%s\n" % (self.normalization,self.NTerminus,self.CTerminus,self.PC,self.alpha))
         file.write('#'+'\t'.join(heads)+EOL)
         for gene in genes:
             Rv = gene["rv"]
@@ -285,7 +293,8 @@ class AnovaMethod(base.MultiConditionMethod):
   --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if multiple conditions)
   -iN <N> :=  Ignore TAs within given percentage (e.g. 5) of N terminus. Default: -iN 0
   -iC <N> :=  Ignore TAs within given percentage (e.g. 5) of C terminus. Default: -iC 0
-  -PC <N> := pseudocounts to use for calculating LFC. Default: -PC 5
+  -PC <N> := pseudocounts to use for calculating LFCs. Default: -PC 5
+  -alpha <N> := value added to MSE in F-test for moderated anova (makes genes with low counts less significant). Default: -alpha 1000
   -winz   := winsorize insertion counts for each gene in each condition (replace max cnt with 2nd highest; helps mitigate effect of outliers)"""
         return usage
 
