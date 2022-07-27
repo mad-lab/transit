@@ -1,5 +1,6 @@
 # # Mac
 .DS_STORE
+.DS_Store
 .env
 
 # Byte-compiled / optimized / DLL files

@@ -600,10 +600,12 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
     # Get stats and info based on whether working with libraries or not:
     nTAs = 0
     if lib_str1:
+        data1 = numpy.array(data1)
+        data2 = numpy.array(data2)
+        # note: returns a generator, not a list
         # Get number of TA sites implied
         nTAs = len(data1.flatten())//len(lib_str1)
-        assert len(data2.flatten())//len(lib_str2) == nTAs, "Datasets do not have matching sites;\
-             check input data and library strings."
+        assert len(data2.flatten())//len(lib_str2) == nTAs, "Datasets do not have matching sites; check input data and library strings."
         # Get data
         perm = get_lib_data_dict(data1, lib_str1, data2, lib_str2, nTAs)
         test_obs = testFunc(perm)
