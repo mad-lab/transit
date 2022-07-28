@@ -1,4 +1,4 @@
-import math
+import sys,math
 import numpy
 import scipy.stats
 
@@ -527,7 +527,7 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
     the data.
 
     Args:
-        ar: List or numpy array with the first set of observations.
+        data1: List or numpy array with the first set of observations.
         data2: List or numpy array with the second set of observations.
         S: Number of permutation tests (or samples) to obtain.
         testFunc: Function defining the desired test statistic. Should accept
@@ -596,14 +596,12 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
       if mean1 > 0 and mean2 > 0: log2FC = math.log((mean2)/(mean1),2)
       else: log2FC = math.log((mean2+1.0)/(mean1+1.0),2)
 
- 
     # Get stats and info based on whether working with libraries or not:
     nTAs = 0
     if lib_str1:
         # Get number of TA sites implied
-        nTAs = len(data1.flatten())//len(lib_str1)
-        assert len(data2.flatten())//len(lib_str2) == nTAs, "Datasets do not have matching sites;\
-             check input data and library strings."
+        nTAs = len(data1)//len(lib_str1)
+        assert len(data2)//len(lib_str2) == nTAs, "Datasets do not have matching sites; check input data and library strings."
         # Get data
         perm = get_lib_data_dict(data1, lib_str1, data2, lib_str2, nTAs)
         test_obs = testFunc(perm)
