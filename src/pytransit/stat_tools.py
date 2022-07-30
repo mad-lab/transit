@@ -573,6 +573,9 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
     assert len(data1) > 0, "Data1 cannot be empty"
     assert len(data2) > 0, "Data2 cannot be empty"
 
+    if isinstance(data1,list): data1 = numpy.array(data1)
+    if isinstance(data2,list): data2 = numpy.array(data2)
+
     count_ltail = 0
     count_utail = 0
     count_2tail = 0
