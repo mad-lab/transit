@@ -312,7 +312,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 NTerminus,
                 CTerminus,
                 ctrl_lib_str,
-                exp_lib_str, wxobj, Z = False, diffStrains = diffStrains, annotation_path_exp = annotationPathExp)
+                exp_lib_str, wxobj=wxobj, Z = False, diffStrains = diffStrains, annotation_path_exp = annotationPathExp)
 
     @classmethod
     def fromargs(self, rawargs):
