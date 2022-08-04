@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 3.2.6 2021-08-03
+#### TRANSIT:
+
+Major changes:
+ - added a parameter 'alpha' to ANOVA to make the F-test less sensitive to genes with low counts, cutting down on 'irrelevant' genes with significant variability
+ - updated the online documentation to describe this
+
+Minor changes:
+ - fixed a (recently-introduced) bug that was causing the GUI to crash when running resampling
+ - updated 'export combined_wig' to include ref genome and column headers
+
+
 ## Version 3.2.5 2021-06-15
 #### TRANSIT:
 
