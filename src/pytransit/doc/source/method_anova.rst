@@ -29,7 +29,7 @@ Example
 
 ::
 
-  python3 transit.py anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
+  > python3 transit.py anova <combined wig file> <samples_metadata file> <annotation .prot_table> <output file> [Optional Arguments]
         Optional Arguments:
         -n <string>         :=  Normalization method. Default: -n TTR
         --exclude-conditions <cond1,...> :=  Comma separated list of conditions to ignore for the analysis. Default: None
@@ -37,7 +37,8 @@ Example
         --ref <cond> := which condition(s) to use as a reference for calculating LFCs (comma-separated if multiple conditions) (by default, LFCs for each condition are computed relative to the grandmean across all condintions)
         -iN <float> :=  Ignore TAs occurring within given percentage (as integer) of the N terminus. Default: -iN 0
         -iC <float> :=  Ignore TAs occurring within given percentage (as integer) of the C terminus. Default: -iC 0
-        -PC         := Pseudocounts to use in calculating LFCs. Default: -PC 5
+        -PC <N>     := Pseudocounts to use in calculating LFCs. Default: -PC 5
+        -alpha <N>  := value added to MSE in F-test for moderated anova (makes genes with low counts less significant). Default: -alpha 1000
         -winz       :=  winsorize insertion counts for each gene in each condition 
                         (replace max count in each gene with 2nd highest; helps mitigate effect of outliers)
 
@@ -82,16 +83,23 @@ The following parameters are available for the ANOVA method:
    with conditions with lower counts).  However, if there is a defined reference condition
    in the data, it may be specified using **\-\-ref** (in which case LFCs for that condition will
    be around 0, and will be positive or negative for the other conditions, depending on whether
-   counts are higher or lower than the reference condintion.  If there is more than one
+   counts are higher or lower than the reference condition.  If there is more than one
    condition to use as reference (i.e. pooled), they may be given as a comma-separated list.
 
--  **-n** Normalization Method. Determines which normalization method to
+-  **-n**: Normalization Method. Determines which normalization method to
    use when comparing datasets. Proper normalization is important as it
    ensures that other sources of variability are not mistakenly treated
    as real differences. See the :ref:`Normalization <normalization>` section for a description
-   of normalization method available in TRANSIT.
+   of normalization method available in TRANSIT. Default: -n TTR
 
--  **-PC** Pseudocounts to use in calculating LFCs (see below). Default: -PC 5
+-  **-PC <N>**: Pseudocounts to use in calculating LFCs (see below). Default: -PC 5
+
+-  **-alpha <N>**:  Value added to MSE in F-test for moderated ANOVA: F = MSR/(MSE+alpha).
+   This is helpful because genes with very low counts are occasionally ranked as significant
+   by traditional ANOVA, even though the apparent variability is probably due to noise.
+   Setting alpha to a number like 1000 helps filter out these irrelevant genes 
+   by reducing their significance. If you want to emulate the 
+   standard ANOVA test, you can set alpha to 0.  Default: -alpha 1000
 
 -  **-winz**: `winsorize <https://en.wikipedia.org/wiki/Winsorizing>`_ insertion counts for each gene in each condition. 
    Replace max count in each gene with 2nd highest.  This can help mitigate effect of outliers.
@@ -118,6 +126,10 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 +-----------------+----------------------------------------------------------------------------+
 | LFCs...         | Log-fold-changes of counts in each condition vs mean across all conditions |
 +-----------------+----------------------------------------------------------------------------+
+| MSR             | Mean-squared residual                                                      |
++-----------------+----------------------------------------------------------------------------+
+| MSE+alpha       | Mean-squared error, plus moderation value                                  |
++-----------------+----------------------------------------------------------------------------+
 | p-value         | P-value calculated by the Anova test.                                      |
 +-----------------+----------------------------------------------------------------------------+
 | p-adj           | Adjusted p-value controlling for the FDR (Benjamini-Hochberg)              |
@@ -128,8 +140,8 @@ typical threshold for conditional essentiality on is q-value < 0.05.
 
 **LFCs** (log-fold-changes):
 For each condition, the LFC is calculated as the log-base-2 of the
-ratio of mean insertion count in that condition **relative to the
-mean of means across all the conditions**.
+ratio of mean insertion count in that condition **relative to the mean of means across all the conditions**.
+You can use the '--ref' flag to designate a specific condition as a reference for computing LFCs.
 Pseudocount are incorporated to reduce the impact of noise on LFCs, based on the formula below.
 The pseudocounts can be adjusted using the -PC flag.
 Changing the pseudocounts (via -PC) can reduce the artifactual appearance of genes with
@@ -139,7 +151,6 @@ Changing the pseudocounts will not affect the analysis of statistical significan
 ::
 
   LFC = log2((mean_insertions_in_condition + PC)/(mean_of_means_across_all_conditions + PC))
-
 
 
 |

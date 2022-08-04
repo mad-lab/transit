@@ -155,7 +155,7 @@ class ResamplingGUI(base.AnalysisGUI):
         resamplingSizer.Add( self.wxobj.resamplingLoessPrev, 0, wx.ALL|wx.CENTER, 5 )
 
         # Adaptive Check
-        (self.wxobj.resamplingAdaptiveCheckBox, adaptiveSizer) = self.defineCheckBox(resamplingPanel, labelText="Adaptive Resampling (Faster)", widgetCheck=False, widgetSize=(-1,-1), tooltipText="Dynamically stops permutations early if it is unlikely the ORF will be significant given the results so far. Improves performance, though p-value calculations for genes that are not differentially essential will be less accurate.")
+        (self.wxobj.resamplingAdaptiveCheckBox, adaptiveSizer) = self.defineCheckBox(resamplingPanel, labelText="Adaptive Resampling (Faster)", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Dynamically stops permutations early if it is unlikely the ORF will be significant given the results so far. Improves performance, though p-value calculations for genes that are not differentially essential will be less accurate.")
         resamplingSizer.Add( adaptiveSizer, 0, wx.EXPAND, 5 )
 
         # Histogram Check
@@ -312,7 +312,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 NTerminus,
                 CTerminus,
                 ctrl_lib_str,
-                exp_lib_str, wxobj, Z = False, diffStrains = diffStrains, annotation_path_exp = annotationPathExp)
+                exp_lib_str, wxobj=wxobj, Z = False, diffStrains = diffStrains, annotation_path_exp = annotationPathExp)
 
     @classmethod
     def fromargs(self, rawargs):

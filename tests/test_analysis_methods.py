@@ -80,7 +80,7 @@ class TestMethods(TransitTestCase):
         self.assertLessEqual(
                 abs(len(sig_qvals) - 35),
                 2,
-                "sig_qvals expected in range: %s, actual: %d" % ("[33, 37]", len(sig_qvals)))
+                "sig_qvals expected in range: %s, actual: %d" % ("[33, 37]", len(sig_qvals))) # maybe acceptable range should be expanded to 38
 
     def test_resampling_combined_wig(self):
         # The conditions in the args should be matched case-insensitively.
@@ -142,12 +142,12 @@ class TestMethods(TransitTestCase):
         sig_qvals.sort()
         self.assertEqual(
             len(sig_pvals),
-            32,
-            "sig_pvals expected: %d, actual: %d" % (32, len(sig_pvals)))
+            30,
+            "sig_pvals expected: %d, actual: %d" % (30, len(sig_pvals)))
         self.assertEqual(
             len(sig_qvals),
-            28,
-            "sig_qvals expected: %d, actual: %d" % (28, len(sig_qvals)))
+            24,
+            "sig_qvals expected: %d, actual: %d" % (24, len(sig_qvals)))
 
     @unittest.skipUnless(hasR, "requires R, rpy2")
     def test_zinb(self):
