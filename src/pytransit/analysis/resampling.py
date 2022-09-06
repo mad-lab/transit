@@ -460,6 +460,8 @@ class ResamplingMethod(base.DualConditionMethod):
             print("Error: cannot do histograms")
             self.doHistogram = False
 
+        if self.ctrl_lib_str and self.site_restricted:
+          raise Exception("Cannot do site_restricted resampling with library strings at same time")
 
         self.transit_message("Starting resampling Method")
         start_time = time.time()

@@ -3,7 +3,6 @@ import numpy
 import scipy.stats
 
 
-
 def sample_trunc_norm_post(data, S, mu0, s20, k0, nu0):
     n = len(data)
     s2 = numpy.var(data,ddof=1)
@@ -589,6 +588,9 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
         #raise ValueError("At least one library string has a letter not used by the other:\ %s" % ", ".join(lib_diff))
         raise ValueError("At least one library string has a letter not used by the other: " + ", ".join(lib_diff))
 
+    if lib_str1 and site_restricted:
+      raise Exception("Cannot do site_restricted resampling with library strings at same time")
+
     # - Check input has some data
     assert len(data1) > 0, "Data1 cannot be empty"
     assert len(data2) > 0, "Data2 cannot be empty"
@@ -597,7 +599,7 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
     if isinstance(data2,list): data2 = numpy.array(data2)
 
     #TRI note - now I am switching resampling() so caller passes in NON-flattened arrays of counts
-    if not site_restricted: 
+    if not site_restricted and not lib_str1: 
       data1 = data1.flatten()
       data2 = data2.flatten()
 
@@ -632,8 +634,14 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
         # Get number of TA sites implied
         nTAs = len(data1.flatten())//len(lib_str1)
         assert len(data2.flatten())//len(lib_str2) == nTAs, "Datasets do not have matching sites; check input data and library strings."
+
+        print(type(data1))
+        print("n1=%s, len=%s, nTAs=%s" % (n1,len(data1),nTAs))
+        print(data1.shape)
+
         # Get data
-        perm = get_lib_data_dict(data1, lib_str1, data2, lib_str2, nTAs) #TRI *** will have to update this for site_restricted later ***
+        # for lib_str, perm is a dict mapping letters to pairs of numpy arrays (1 for each cond)
+        perm = get_lib_data_dict(data1.flatten(), lib_str1, data2.flatten(), lib_str2, nTAs) 
         test_obs = testFunc(perm) 
     else:
         try:
@@ -752,7 +760,7 @@ def combine_lib_dicts(L1, L2):
         DATA[K] = numpy.array([L1[K], L2[K]],dtype=object)
     return DATA
 
-#
+# it looks like data1 is supposed to be pre-flattened (see parse_lib_index())
 
 def get_lib_data_dict(data1, ctrl_lib_str, data2, exp_lib_str, nTAs):
     lib1_index_dict = parse_lib_index(len(data1), ctrl_lib_str, nTAs)
