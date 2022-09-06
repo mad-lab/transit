@@ -568,15 +568,18 @@ class ResamplingMethod(base.DualConditionMethod):
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file(filetype="Resampling")
 
-    def winsorize_resampling(self, counts):
-      # input is insertion counts for gene as pre-flattened numpy array
-      counts = counts.tolist()
-      if len(counts)<3: return counts
+    def winsorize_for_resampling(self, data):
+      # input is a 2D array of insertion counts for gene (not pre-flattened)
+      shp = data.shape
+      assert len(shp)==2, "winsorize_resampling() expected 2D numpy array"
+      counts = data.flatten().tolist()
+      if len(counts)<3: return data
       s = sorted(counts,reverse=True)
-      if s[1]==0: return counts # don't do anything if there is only 1 non-zero value
+      if s[1]==0: return data # don't do anything if there is only 1 non-zero value
       c2 = [s[1] if x==s[0] else x for x in counts]
-      return numpy.array(c2)
+      return numpy.array(c2).reshape(shp)
 
+      # the old way of winsorizing...
       #unique_counts = numpy.unique(counts)
       #if (len(unique_counts) < 2): return counts
       #else:
@@ -618,9 +621,9 @@ class ResamplingMethod(base.DualConditionMethod):
                     ii_exp = numpy.ones(gene_exp.n) == 1
 
                 #data1 = gene.reads[:,ii_ctrl].flatten() + self.pseudocount # we used to have an option to add pseudocounts to each observation, like this
-                data1 = gene.reads[:,ii_ctrl]###.flatten()
+                data1 = gene.reads[:,ii_ctrl]###.flatten() #TRI - do not flatten, as of 9/6/22
                 data2 = gene_exp.reads[:,ii_exp]###.flatten()
-                if self.winz: data1 = self.winsorize_resampling(data1); data2 = self.winsorize_resampling(data2) #TRI should not flatten?
+                if self.winz: data1 = self.winsorize_for_resampling(data1); data2 = self.winsorize_for_resampling(data2)
 
                 if doLibraryResampling:
                     (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_dict, permFunc=stat_tools.F_shuffle_dict_libraries, adaptive=self.adaptive, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str,PC=self.pseudocount,site_restricted=self.site_restricted)
