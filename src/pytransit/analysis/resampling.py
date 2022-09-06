@@ -699,7 +699,11 @@ class ResamplingMethod(base.DualConditionMethod):
                             If non-empty, resampling will limit permutations to within-libraries.
         -winz           :=  winsorize insertion counts for each gene in each condition 
                             (replace max cnt in each gene with 2nd highest; helps mitigate effect of outliers)
+        -sr             :=  site-restricted resampling; more sensitive, might find a few more significant conditionally essential genes"
         """ % (sys.argv[0], sys.argv[0])
+
+        # for docs:
+        # site-restricted resampling: counts are permuted among samples with each TA site, rather than permuting pooled counts; more sensitive, might find a few more significant conditionally essential genes"
 
 if __name__ == "__main__":
 
