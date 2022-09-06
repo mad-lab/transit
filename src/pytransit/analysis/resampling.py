@@ -218,6 +218,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 ctrl_lib_str="",
                 exp_lib_str="",
                 winz = False,
+                site_restricted = False,
                 wxobj=None, Z = False, diffStrains = False, annotation_path_exp = "", combinedWigParams = None):
 
         base.DualConditionMethod.__init__(self, short_name, long_name, short_desc, long_desc, ctrldata, expdata, annotation_path, output_file, normalization=normalization, replicates=replicates, LOESS=LOESS, NTerminus=NTerminus, CTerminus=CTerminus, wxobj=wxobj)
@@ -234,6 +235,8 @@ class ResamplingMethod(base.DualConditionMethod):
         self.annotation_path_exp = annotation_path_exp if diffStrains else annotation_path
         self.combinedWigParams = combinedWigParams
         self.winz = winz
+        self.site_restricted = site_restricted
+        self.transit_message("site_restricted=%s" % site_restricted)
 
     @classmethod
     def fromGUI(self, wxobj):
@@ -359,7 +362,7 @@ class ResamplingMethod(base.DualConditionMethod):
         output_file = open(output_path, "w")
 
         # check for unrecognized flags
-        flags = "-c -s -n -h -a -ez -PC -l -iN -iC --ctrl_lib --exp_lib -Z -winz".split()
+        flags = "-c -s -n -h -a -ez -PC -l -iN -iC --ctrl_lib --exp_lib -Z -winz -sr".split()
         for arg in rawargs:
           if arg[0]=='-' and arg not in flags:
             self.transit_error("flag unrecognized: %s" % arg)
@@ -373,6 +376,7 @@ class ResamplingMethod(base.DualConditionMethod):
         replicates = kwargs.get("r", "Sum")
         excludeZeros = kwargs.get("ez", False)
         includeZeros = not excludeZeros
+        site_restricted = kwargs.get("sr", False)
         pseudocount = float(kwargs.get("PC", 1.0)) # use -PC (new semantics: for LFCs) instead of -pc (old semantics: fake counts)
 
         Z = True if "Z" in kwargs else False
@@ -403,6 +407,7 @@ class ResamplingMethod(base.DualConditionMethod):
                 ctrl_lib_str,
                 exp_lib_str, 
                 winz = winz,
+                site_restricted = site_restricted,
                 Z = Z, diffStrains = diffStrains, annotation_path_exp = annotationPathExp, combinedWigParams = combinedWigParams)
 
     def preprocess_data(self, position, data):
@@ -613,14 +618,14 @@ class ResamplingMethod(base.DualConditionMethod):
                     ii_exp = numpy.ones(gene_exp.n) == 1
 
                 #data1 = gene.reads[:,ii_ctrl].flatten() + self.pseudocount # we used to have an option to add pseudocounts to each observation, like this
-                data1 = gene.reads[:,ii_ctrl].flatten()
-                data2 = gene_exp.reads[:,ii_exp].flatten()
-                if self.winz: data1 = self.winsorize_resampling(data1); data2 = self.winsorize_resampling(data2)
+                data1 = gene.reads[:,ii_ctrl]###.flatten()
+                data2 = gene_exp.reads[:,ii_exp]###.flatten()
+                if self.winz: data1 = self.winsorize_resampling(data1); data2 = self.winsorize_resampling(data2) #TRI should not flatten?
 
                 if doLibraryResampling:
-                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_dict, permFunc=stat_tools.F_shuffle_dict_libraries, adaptive=self.adaptive, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str,PC=self.pseudocount)
+                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_dict, permFunc=stat_tools.F_shuffle_dict_libraries, adaptive=self.adaptive, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str,PC=self.pseudocount,site_restricted=self.site_restricted)
                 else:
-                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_flat, permFunc=stat_tools.F_shuffle_flat, adaptive=self.adaptive, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str,PC=self.pseudocount)
+                    (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  stat_tools.resampling(data1, data2, S=self.samples, testFunc=stat_tools.F_mean_diff_flat, permFunc=stat_tools.F_shuffle_flat, adaptive=self.adaptive, lib_str1=self.ctrl_lib_str, lib_str2=self.exp_lib_str,PC=self.pseudocount,site_restricted=self.site_restricted)
 
 
             if self.doHistogram:
