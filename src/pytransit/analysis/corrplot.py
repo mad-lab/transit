@@ -146,7 +146,8 @@ class CorrplotMethod(base.SingleConditionMethod):
             if n==-1: 
               # ANOVA header line has names of conditions, organized as 3+2*n+3 (2 groups (means, LFCs) X n conditions)
               # ZINB header line has names of conditions, organized as 3+4*n+3 (4 groups X n conditions)
-              if self.filetype=="anova": n = int((len(w)-6)/2) 
+              # it would be better to read the column headers and look for "LFC_<cond>"
+              if self.filetype=="anova": n = int((len(w)-8)/2) 
               elif self.filetype=="zinb": n = int((len(headers)-6)/4) 
               headers = headers[3:3+n]
               headers = [x.replace("Mean_","") for x in headers]
