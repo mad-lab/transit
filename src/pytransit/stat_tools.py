@@ -635,10 +635,6 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
         nTAs = len(data1.flatten())//len(lib_str1)
         assert len(data2.flatten())//len(lib_str2) == nTAs, "Datasets do not have matching sites; check input data and library strings."
 
-        print(type(data1))
-        print("n1=%s, len=%s, nTAs=%s" % (n1,len(data1),nTAs))
-        print(data1.shape)
-
         # Get data
         # for lib_str, perm is a dict mapping letters to pairs of numpy arrays (1 for each cond)
         perm = get_lib_data_dict(data1.flatten(), lib_str1, data2.flatten(), lib_str2, nTAs) 

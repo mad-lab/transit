@@ -162,10 +162,17 @@ class ResamplingGUI(base.AnalysisGUI):
         (self.wxobj.resamplingHistogramCheckBox, histSizer) = self.defineCheckBox(resamplingPanel, labelText="Generate Resampling Histograms", widgetCheck=False, widgetSize=(-1,-1), tooltipText="Creates .png images with the resampling histogram for each of the ORFs. Histogram images are created in a folder with the same name as the output file.")
         resamplingSizer.Add(histSizer, 0, wx.EXPAND, 5 )
 
-
         # Zeros Check
         (self.wxobj.resamplingZeroCheckBox, zeroSizer) = self.defineCheckBox(resamplingPanel, labelText="Include sites with all zeros", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Includes sites that are empty (zero) across all datasets. Unchecking this may be useful for tn5 datasets, where all nucleotides are possible insertion sites and will have a large number of empty sites (significantly slowing down computation and affecting estimates).")
         resamplingSizer.Add(zeroSizer, 0, wx.EXPAND, 5 )
+
+        # site-restricted checkbox
+        (self.wxobj.siteRestrictedCheckBox, srSizer) = self.defineCheckBox(resamplingPanel, labelText="Site-restricted resampling", widgetCheck=True, widgetSize=(-1,-1), tooltipText="Restrict permutations of insertion counts in a gene to each individual TA site, which could be more sensitive (detect more conditional-essentials) than permuting counts over all TA sites pooled (which is the default).")
+        resamplingSizer.Add(srSizer, 0, wx.EXPAND, 5 )
+
+        # winsorization checkbox
+        (self.wxobj.winsorizeCheckBox, winzSizer) = self.defineCheckBox(resamplingPanel, labelText="Winsorize", widgetCheck=False, widgetSize=(-1,-1), tooltipText="Replace highest count in each gene with second highest; this can help reduce the impact of noise (spurious outlier counts).")
+        resamplingSizer.Add(winzSizer, 0, wx.EXPAND, 5 )
 
 
         resamplingButton = wx.Button( resamplingPanel, wx.ID_ANY, u"Run resampling", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -276,6 +283,8 @@ class ResamplingMethod(base.DualConditionMethod):
         doHistogram = wxobj.resamplingHistogramCheckBox.GetValue()
 
         includeZeros = wxobj.resamplingZeroCheckBox.GetValue()
+        site_restricted = wxobj.siteRestrictedCheckBox.GetValue()
+        winz = wxobj.winsorizeCheckBox.GetValue()
         pseudocount = float(wxobj.resamplingPseudocountText.GetValue())
         LOESS = wxobj.resamplingLoessCheck.GetValue()
 
@@ -315,7 +324,10 @@ class ResamplingMethod(base.DualConditionMethod):
                 NTerminus,
                 CTerminus,
                 ctrl_lib_str,
-                exp_lib_str, wxobj=wxobj, Z = False, diffStrains = diffStrains, annotation_path_exp = annotationPathExp)
+                exp_lib_str, 
+                winz = winz,
+                site_restricted = site_restricted,
+                wxobj=wxobj, Z = False, diffStrains = diffStrains, annotation_path_exp = annotationPathExp)
 
     @classmethod
     def fromargs(self, rawargs):
@@ -545,7 +557,7 @@ class ResamplingMethod(base.DualConditionMethod):
             self.output.write("#GUI with: norm=%s, samples=%s, pseudocounts=%1.2f, adaptive=%s, histogram=%s, includeZeros=%s, output=%s\n" % (self.normalization, self.samples, self.pseudocount, self.adaptive, self.doHistogram, self.includeZeros, self.output.name.encode('utf-8')))
         else:
             self.output.write("#Console: python3 %s\n" % " ".join(sys.argv))
-        self.output.write("#Parameters: samples=%s, norm=%s, histograms=%s, adaptive=%s, excludeZeros=%s, pseudocounts=%s, LOESS=%s, trim_Nterm=%s, trim_Cterm=%s\n" % (self.samples,self.normalization, self.doHistogram, self.adaptive,not self.includeZeros,self.pseudocount,self.LOESS,self.NTerminus,self.CTerminus))
+        self.output.write("#Parameters: samples=%s, norm=%s, histograms=%s, adaptive=%s, excludeZeros=%s, pseudocounts=%s, LOESS=%s, trim_Nterm=%s, trim_Cterm=%s, site_restricted=%s, winsorize=%s\n" % (self.samples,self.normalization, self.doHistogram, self.adaptive,not self.includeZeros,self.pseudocount,self.LOESS,self.NTerminus,self.CTerminus,self.site_restricted,self.winz))
         self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata).encode('utf-8')))
         self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata).encode('utf-8')))
         self.output.write("#Annotation path: %s %s\n" % (self.annotation_path.encode('utf-8'), self.annotation_path_exp.encode('utf-8') if self.diffStrains else ''))
