@@ -343,6 +343,8 @@ class MainFrame ( wx.Frame ):
         cTermSizer.Add( self.globalCTerminusText, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
         cTermSizer.Add( self.globalCTerminusIcon, 1, wx.ALIGN_CENTER, 5 )
 
+        lib_tooltip = 'String of letters indicating the Tn library each dataset comes from. For example, if there are three datasets from two different libraries, then set the string to "ABB", "AAB", or "ABA". The set of letters used must match the number of datasets. The same library letter codes must be use for both control and experimental samples; there has to be at least sample of each library in both sets. If the library string is left BLANK, it will be assumed that all samples are from the same Tn library by default.'
+
         # Control Libraries text - GLOBAL
         ctrlLibSizer = wx.BoxSizer( wx.HORIZONTAL )
         self.ctrlLibLabel = wx.StaticText(self.globalPanel, wx.ID_ANY, u"Control Libraries:",
@@ -350,12 +352,7 @@ class MainFrame ( wx.Frame ):
         self.ctrlLibLabel.Wrap( -1 )
         self.ctrlLibText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, "",
             wx.DefaultPosition, (-1,-1), 0 )
-        self.ctrlLibTip = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY,
-            tooltip="String of letters representing an \
-            identifier for the libraries the datasets belong to. For example, if adding three \
-            datasets of different libraries, change the string to 'ABC'. Set of letters used  \
-            must match those in Experimental datasets. Keep empty or with all letters equal, e.g. \
-            'AAA', to do regular resampling.")
+        self.ctrlLibTip = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY,tooltip=lib_tooltip)
 
         self.ctrlLibText.Disable()
         ctrlLibSizer.Add(self.ctrlLibLabel, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
@@ -370,11 +367,7 @@ class MainFrame ( wx.Frame ):
         self.expLibLabel.Wrap( -1 )
         self.expLibText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, "", wx.DefaultPosition,
             (-1,-1), 0 )
-        self.expLibTip = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY,
-            tooltip="String of letters representing an identifier for the libraries the datasets \
-            belong to. For example, if adding three datasets of different libraries, change the \
-            string to 'ABC'. Set  of letters used must match those in Control datasets. Keep \
-            empty or with all letters equal, e.g. 'AAA', to do regular resampling.")
+        self.expLibTip = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY,tooltip=lib_tooltip)
 
         self.expLibText.Disable()
         expLibSizer.Add(self.expLibLabel, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
