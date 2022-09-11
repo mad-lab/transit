@@ -1138,7 +1138,7 @@ class TnSeekFrame(MainFrame):
         self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
         try:
-            self.ctrlLibText.SetValue(self.ctrlLibText.GetValue()+"A")
+            pass # self.ctrlLibText.SetValue(self.ctrlLibText.GetValue()+"A")
         except Exception as e:
             transit_tools.transit_message("Error Modifying Ctrl Lib String: %s" % e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -1161,7 +1161,7 @@ class TnSeekFrame(MainFrame):
         self.index_exp+=1
 
         try:
-            self.expLibText.SetValue(self.expLibText.GetValue()+"A")
+            pass # self.expLibText.SetValue(self.expLibText.GetValue()+"A")
         except Exception as e:
             transit_tools.transit_message("Error Modifying Ctrl Lib String: %s" % e)
             exc_type, exc_obj, exc_tb = sys.exc_info()

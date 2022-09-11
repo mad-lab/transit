@@ -171,7 +171,7 @@ class ResamplingGUI(base.AnalysisGUI):
         resamplingSizer.Add(srSizer, 0, wx.EXPAND, 5 )
 
         # winsorization checkbox
-        (self.wxobj.winsorizeCheckBox, winzSizer) = self.defineCheckBox(resamplingPanel, labelText="Winsorize", widgetCheck=False, widgetSize=(-1,-1), tooltipText="Replace highest count in each gene with second highest; this can help reduce the impact of noise (spurious outlier counts).")
+        (self.wxobj.winsorizeCheckBox, winzSizer) = self.defineCheckBox(resamplingPanel, labelText="Winsorize", widgetCheck=False, widgetSize=(-1,-1), tooltipText="Replace highest insertion count in each gene with second highest counts; this can help reduce the impact of noise (e.g. spurious outlier counts).")
         resamplingSizer.Add(winzSizer, 0, wx.EXPAND, 5 )
 
 
