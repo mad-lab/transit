@@ -562,8 +562,14 @@ class ResamplingMethod(base.DualConditionMethod):
         self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata).encode('utf-8')))
         self.output.write("#Annotation path: %s %s\n" % (self.annotation_path.encode('utf-8'), self.annotation_path_exp.encode('utf-8') if self.diffStrains else ''))
         self.output.write("#Time: %s\n" % (time.time() - start_time))
-        #Z = True # include Z-score column in resampling output?
+
+        nhits = len(list(filter(lambda x: x<0.05,qval)))
+        result_msg = "Number of significant conditionally essential genes (Padj<0.05): %s\n" % nhits
+        self.output.write("#%s\n" % result_msg)
+        self.transit_message(result_msg)
+
         global columns # consider redefining columns above (for GUI)
+        #Z = True # include Z-score column in resampling output?
         if self.Z==True: columns = ["Orf","Name","Desc","Sites","Mean Ctrl","Mean Exp","log2FC", "Sum Ctrl", "Sum Exp", "Delta Mean","p-value","Z-score","Adj. p-value"]
         self.output.write("#%s\n" % "\t".join(columns))
 
@@ -577,6 +583,7 @@ class ResamplingMethod(base.DualConditionMethod):
               if log2FC>0: z *= -1
               self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.2f\t%1.1f\t%1.2f\t%1.1f\t%1.5f\t%0.2f\t%1.5f\n" % (orf, name, desc, n, mean1, mean2, log2FC, sum1, sum2, test_obs, pval_2tail, z, qval[i]))
             else: self.output.write("%s\t%s\t%s\t%d\t%1.1f\t%1.1f\t%1.2f\t%1.1f\t%1.2f\t%1.1f\t%1.5f\t%1.5f\n" % (orf, name, desc, n, mean1, mean2, log2FC, sum1, sum2, test_obs, pval_2tail, qval[i]))
+
         self.output.close()
 
         self.transit_message("Adding File: %s" % (self.output.name))
