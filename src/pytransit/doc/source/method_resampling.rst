@@ -29,7 +29,9 @@ condition B to obtain an observed difference in means. The
 counts are then permuted within the gene for a given number of times ("samples"). 
 For each of these permutations, the difference in read-counts is determined. This
 forms a null distribution, from which a p-value is calculated for the
-original, observed difference in read-counts.
+original, observed difference in read-counts. 
+(see Figure 3 in [DeJesus2015TRANSIT]_).
+
 
 Pooled vs Site-Restricted (S-R) Resampling 
 ------------------------------------
