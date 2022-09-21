@@ -22,15 +22,46 @@ of genes or known biological pathway.
 How does it work?
 -----------------
 
-This technique has yet to be formally published in the context of
-differential essentiality analysis. Briefly, the read-counts at each
-genes are determined for each replicate of each condition. The mean
+Briefly, the normalized read-counts at all TA sites are determined 
+for each replicate of each of two conditions. For each gene, the mean
 read-count in condition A is subtracted from the mean read-count in
-condition B, to obtain an observed difference in means. The TA
-sites are then permuted for a given number of "samples". For each one of
-these permutations, the difference in read-counts is determined. This
+condition B to obtain an observed difference in means. The 
+counts are then permuted within the gene for a given number of times ("samples"). 
+For each of these permutations, the difference in read-counts is determined. This
 forms a null distribution, from which a p-value is calculated for the
 original, observed difference in read-counts.
+
+Pooled vs Site-Restricted (S-R) Resampling 
+------------------------------------
+
+**9/21/2022:** The original (regular) resampling is called 'pooled' resampling because
+the counts are permuted among all the TA sites in a gene.
+This was based on the assumption that insertions at any TA site are equally
+likely (and the only differences are due to stochastic differences in
+abundance in the transposon insertion library when constructed).
+
+We recently developed an improved version of resampling called
+"site-restricted" (S-R) resampling.  With S-R resampling, during the
+process of permuting the counts to generate the null distribution, the
+counts at each TA site are restricted to permutations among samples
+**within the same TA site** (the counts at each site are permuted
+independently).  This restriction has the effect of reducing the
+variance in the null distribution, because there is evidence that
+there is an insertion bias for the Himar1 transposon that causes some
+TA sites to have a preferentially higher propensity for insertion (and
+hence counts) than others (:ref:`Choudhery et al, 2021<Choudhery2021>`).
+
+Testing on a wide range of TnSeq datasets suggests
+that S-R resampling is **more sensitive** than regular pooled resampling.
+Typically, S-R resampling finds 2-3 times as many significant conditionally essential
+genes, mostly including the ones found by pooled resampling.
+
+S-R resampling is incorporated in the v3.2.7 version of Transit.
+There is an option (i.e. checkbox) for it in the GUI interface
+for the resampling method, and there is a new command-line flag (-sr) if you want 
+use it in console mode.
+
+
 
 |
 
@@ -41,7 +72,12 @@ Usage
 
 ::
 
-  python3 transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+  > python3 transit.py resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+  ---OR---
+  > python3 transit.py resampling -c <combined wig file> <samples_metadata file> <ctrl condition name> <exp condition name> <annotation .prot_table> <output file> [Optional Arguments]
+
+  NB: The ctrl and exp condition names should match Condition names in samples_metadata file.
+
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
         -n <string>     :=  Normalization method. Default: -n TTR
@@ -63,7 +99,7 @@ Usage
                             If non-empty, resampling will limit permutations to within-libraries.
         -winz           :=  winsorize insertion counts for each gene in each condition 
                             (replace max count in each gene with 2nd highest; helps mitigate effect of outliers)
-
+        -sr             :=  site-restricted resampling; more sensitive, might find a few more significant conditionally essential genes
 
 Parameters
 ----------
@@ -72,7 +108,9 @@ The resampling method is non-parametric, and therefore does not require
 any parameters governing the distributions or the model. The following
 parameters are available for the method:
 
--  **Samples:** The number of samples (permutations) to perform. The
+-  **Samples:** The number of samples (permutations) to perform for each gene
+   (to generate the null distribution of mean differences in counts, for calculating 
+   p-values). The
    larger the number of samples, the more resolution the p-values
    calculated will have, at the expense of longer computation time. The
    resampling method runs on 10,000 samples by default.
@@ -122,7 +160,7 @@ parameters are available for the method:
 
 -  **-winz**: `winsorize <https://en.wikipedia.org/wiki/Winsorizing>`_ insertion counts for each gene in each condition. 
    Replace max count in each gene with 2nd highest.  This can help mitigate effect of outliers.
-
+-  **-sr**: use 'site-restricted' resampling (see description above)
 
 |
 
@@ -130,7 +168,7 @@ Notes
 -----
 
 I recommend using -a (adaptive resampling). It runs much faster, and the p-values
-will be very close to a full non-adaptive run (all 10,000 samples).
+will be very close to a full resamping run (doing all 10,000 samples for each gene).
 
 Occasionally, people ask if resampling can be done on intergenic regions as well.
 It could be done pretty easily (for example by making a prot_table with coordinates
@@ -306,7 +344,7 @@ changed using the -PC flag (above).
 Run-time
 --------
 
-A typical run of the resampling method with 10,000 samples will take
+A typical run of the resampling method with 10,000 samples for each gene will take
 around 45 minutes (with the histogram option ON). Using the *adaptive
 resampling* option (-a), the run-time is reduced to around 10 minutes.
 
