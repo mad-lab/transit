@@ -36,11 +36,14 @@ original, observed difference in read-counts.
 Pooled vs Site-Restricted (S-R) Resampling 
 ------------------------------------
 
-**9/21/2022:** The original (regular) resampling is called 'pooled' resampling because
-the counts are permuted among all the TA sites in a gene.
-This was based on the assumption that insertions at any TA site are equally
-likely (and the only differences are due to stochastic differences in
-abundance in the transposon insertion library when constructed).
+**9/21/2022:** The original version of resampling implemented in
+Transit is called 'pooled' resampling because the counts are permuted
+among all samples (replicates, conditions) *and* among all the TA
+sites in a gene (i.e. randomizing counts within and between TA sites).
+This was based on the assumption that insertions at any TA site are
+equally likely (and the only differences are due to stochastic
+differences in abundance in the transposon insertion library when
+constructed).
 
 We recently developed an improved version of resampling called
 "site-restricted" (S-R) resampling.  With S-R resampling, during the
@@ -50,13 +53,17 @@ counts at each TA site are restricted to permutations among samples
 independently).  This restriction has the effect of reducing the
 variance in the null distribution, because there is evidence that
 there is an insertion bias for the Himar1 transposon that causes some
-TA sites to have a preferentially higher propensity for insertion (and
-hence counts) than others (:ref:`Choudhery et al, 2021<Choudhery2021>`).
+TA sites to have a higher propensity for insertions and hence higher
+insertion counts than others (:ref:`Choudhery et al, 2021<Choudhery2021>`).
 
 Testing on a wide range of TnSeq datasets suggests
 that S-R resampling is **more sensitive** than regular pooled resampling.
 Typically, S-R resampling finds 2-3 times as many significant conditionally essential
-genes, mostly including the ones found by pooled resampling.
+genes, mostly including the ones found by pooled resampling, but also capturing more 
+borderline cases that were close to the previous significance cutoff.
+
+It is important to note that the previous pooled version of resampling that has been
+in Transit for many years is not wrong, just overly conservative.
 
 S-R resampling is incorporated in the v3.2.7 version of Transit.
 There is an option (i.e. checkbox) for it in the GUI interface
