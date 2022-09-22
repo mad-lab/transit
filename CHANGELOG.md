@@ -2,7 +2,14 @@
 All notable changes to this project will be documented in this file.
 
 
-## Version 3.2.6 2021-08-03
+## Version 3.2.7 2022-09-22
+#### TRANSIT:
+
+Major changes:
+ - implemented site-restricted (S-R) resampling (as a checkbox in the GUI, and '-sr' flag on the command line)
+
+
+## Version 3.2.6 2022-08-03
 #### TRANSIT:
 
 Major changes:
@@ -14,7 +21,7 @@ Minor changes:
  - updated 'export combined_wig' to include ref genome and column headers
 
 
-## Version 3.2.5 2021-06-15
+## Version 3.2.5 2022-06-15
 #### TRANSIT:
 
 Minor changes:
@@ -23,7 +30,7 @@ Minor changes:
  - added rpy2 warning (if not installed) for corrplot and heatmap
 
 
-## Version 3.2.4 2021-06-05
+## Version 3.2.4 2022-06-05
 #### TRANSIT:
 
 Major changes:
