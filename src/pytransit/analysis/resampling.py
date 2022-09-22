@@ -561,10 +561,9 @@ class ResamplingMethod(base.DualConditionMethod):
         self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata).encode('utf-8')))
         self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata).encode('utf-8')))
         self.output.write("#Annotation path: %s %s\n" % (self.annotation_path.encode('utf-8'), self.annotation_path_exp.encode('utf-8') if self.diffStrains else ''))
-        self.output.write("#Time: %s\n" % (time.time() - start_time))
 
         nhits = len(list(filter(lambda x: x<0.05,qval)))
-        result_msg = "Number of significant conditionally essential genes (Padj<0.05): %s\n" % nhits
+        result_msg = "Number of significant conditionally essential genes (Padj<0.05): %s" % nhits
         self.output.write("#%s\n" % result_msg)
         self.transit_message(result_msg)
 
@@ -586,8 +585,10 @@ class ResamplingMethod(base.DualConditionMethod):
 
         self.output.close()
 
-        self.transit_message("Adding File: %s" % (self.output.name))
-        self.add_file(filetype="Resampling")
+        if self.wxobj: # only need to do this in the GUI
+          self.transit_message("Adding File: %s" % (self.output.name)) 
+          self.add_file(filetype="Resampling")
+        self.transit_message("Time: %0.2fs" % (time.time() - start_time)) # maybe append time elapsed to the "Finished Resampling" message?
 
     def winsorize_for_resampling(self, data):
       # input is a 2D array of insertion counts for gene (not pre-flattened)
