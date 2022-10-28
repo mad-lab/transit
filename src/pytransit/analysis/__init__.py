@@ -25,6 +25,7 @@ from pytransit.analysis import tnseq_stats
 from pytransit.analysis import corrplot
 from pytransit.analysis import heatmap
 from pytransit.analysis import ttnfitness
+from pytransit.analysis import CGI
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -48,6 +49,7 @@ methods["tnseq_stats"]=tnseq_stats.TnseqStats()
 methods["corrplot"]=corrplot.Corrplot()
 methods["heatmap"]=heatmap.Heatmap()
 methods["ttnfitness"]=ttnfitness.TTNFitnessAnalysis()
+methods["CGI"]=CGI.CGI()
 
 # EXPORT METHODS
 from pytransit.analysis import norm
