@@ -267,15 +267,20 @@ class ZinbMethod(base.MultiConditionMethod):
                ]
 
     def def_r_zinb_signif(self):
-        r('''
-            zinb_signif = function(df,
+        r("""
+            zinb_signif = function(
+                df,
                 zinbMod1,
                 zinbMod0,
                 nbMod1,
-                nbMod0, DEBUG = F) {
+                nbMod0,
+                DEBUG = F
+            ) {
+              print("Starting ZINB in R")
               suppressMessages(require(pscl))
               suppressMessages(require(MASS))
               melted = df
+              print(head(melted))
 
               # filter out genes that have low saturation across all conditions, since pscl sometimes does not fit params well (resulting in large negative intercepts and high std errors)
               NZpercs = aggregate(melted$cnt,by=list(melted$cond),FUN=function(x) { sum(x>0)/length(x) })
@@ -288,7 +293,7 @@ class ZinbMethod(base.MultiConditionMethod):
                 for (i in 1:length(sums[,1])) {
                   subset = melted[melted$cond==sums[i,1],]
                   newvec = subset[1,]
-                  newvec$cnt = 1 # note: NZmean and NZperc are copied from last dataset in condition
+                  newvec$cnt = 1 # note: non_zero_mean and NZperc are copied from last dataset in condition
                   #newvec$cnt = as.integer(mean(subset$cnt))+1 # add the mean for each condition as a pseudocount
                   melted = rbind(melted,newvec) }
               }
@@ -349,9 +354,10 @@ class ZinbMethod(base.MultiConditionMethod):
               # this gives same answer, but I would need to extract the Pvalue...
               #require(lmtest)
               #print(lrtest(mod1,mod0))
+              print("Finished ZINB in R")
               return (c(pval, status))
             }
-        ''')
+        """)
 
         return globalenv['zinb_signif']
 
@@ -453,6 +459,12 @@ class ZinbMethod(base.MultiConditionMethod):
                     melted = DataFrame(df_args)
                     # r_args = [IntVector(readCounts), StrVector(condition), melted, map(lambda x: StrVector(x), covars), FloatVector(NZmean), FloatVector(logitZPerc)] + [True]
                     debugFlag = True if DEBUG or GENE else False
+                    print(f'''melted =''', str(melted))
+                    print("zinbMod1", str(zinbMod1))
+                    print("zinbMod0", str(zinbMod0))
+                    print("nbMod1", str(nbMod1))
+                    print("nbMod0", str(nbMod0))
+                    print("debugFlag", str(debugFlag))
                     pval, msg = r_zinb_signif(melted, zinbMod1, zinbMod0, nbMod1, nbMod0, debugFlag)
                     status.append(msg)
                     pvals.append(float(pval))
@@ -525,8 +537,18 @@ class ZinbMethod(base.MultiConditionMethod):
         condition_name = self.condition
         # if a covar is not found, this crashes; check for it?
         # read it first with no condition specified, to get original Condition names
-        conditionsByFile1, covariatesByFileList1, interactionsByFileList1, orderingMetadata1 = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions) # without specifiying condition
-        conditionsByFile, covariatesByFileList, interactionsByFileList, orderingMetadata = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions, condition_name=condition_name)
+        # (
+        #     conditionsByFile1, # use this when the exclude condition arg
+        #     covariatesByFileList1,
+        #     interactionsByFileList1,
+        #     orderingMetadata1
+        # ) = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions) # without specifiying condition
+        (
+            conditionsByFile,
+            covariatesByFileList,
+            interactionsByFileList,
+            orderingMetadata
+        ) = tnseq_tools.read_samples_metadata(self.metadata, self.covars, self.interactions, condition_name=condition_name)
 
         ## [Condition] in the order of files in combined wig
         conditions = self.wigs_to_conditions(
@@ -575,6 +597,8 @@ class ZinbMethod(base.MultiConditionMethod):
         pairs = []
         print("\nsamples in cross-product:")
         any_empty = self.expandVar([],vars,varsByFileList,vars2vals,set(samples_used))
+        print(f'''varsByFileList = {varsByFileList}''')
+        print(f'''vars2vals = {vars2vals}''')
         if any_empty: print("warning: ZINB requires samples in all combinations of conditions; the fact that one is empty could result in Model Errors")
 
         genes = tnseq_tools.read_genes(self.annotation_path)
