@@ -1,0 +1,41 @@
+CGI - Chemical-Genetic Interaction Analysis of CRISPRi libraries
+----------------------------------------------------------------
+
+Note that the first step requires some data files.
+
+* ShiquiCGI_metadata.txt - describes the samples
+* Bosch21_TableS2.txt - contains betaE estimates for each sgRNA
+* no_depletion_abundances.txt - pre-calculated abundance for -ATC (no induction of target depletion)
+
+Preliminary step: download raw counts from github
+  > git clone https://github.com/rock-lab/CGI_nature_micro_2022
+
+  I suggest linking this in the local (CGI) directory as follows 
+    (but I can go anywhere, and you provide the path to the data/counts/ dir on the command line for extract_abund)
+
+  > ln -s CGI_nature_micro_2022/data data
+
+usage: 
+  python3 ../src/transit.py CGI extract_abund <metadata_file> <data_dir> <betaE_file> <no_drug_file> <no_depletion_abundances_file> <drug> <days>  >  <output_file>
+  python3 ../src/transit.py CGI run_model <abund_file>  >  <logsigmodfit_file>
+  python3 ../src/transit.py CGI post_process <logsigmoidfit_file>  >  <results_file>
+
+example of pipeline:
+
+> python3 ../src/transit.py CGI extract_abund ShiquiCGI_metadata.txt data/counts/ Bosch21_TableS2.txt counts_1972_DMSO_D5.txt no_depletion_abundances.txt RIF 5 > frac_abund.RIF_D5.txt
+
+  gathers relevant samples (at all available concs, and DMSO representing 0xMIC)
+  calculates fractional abundances (normalized within samples, relative to no-depletion abundances, essentially fractions)
+
+
+> python3 ../src/transit.py CGI run_model frac_abund.RIF_D5.txt > logsigmoidfit.RIF_D5.txt
+
+  runs linear regressions for a log-sigmoid model (in R)
+
+> python3 ../src/transit.py CGI post_process logsigmoidfit.RIF_D5.txt > CGI_results.RIF_D5.txt
+
+  outputs statistical analysis of concentration dependence for each gene
+  can open as spreadsheet in Excel
+  genes that interact significantly with drug are those with adjusted P-val (Q-val) < 0.05
+
+
