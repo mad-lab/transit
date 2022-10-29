@@ -134,10 +134,11 @@ note: redirect output from stdout to output files as shown above"""
           days = args[6]
 
           self.extract_abund(metadata_file,data_dir,betaE_file,no_drug_file,no_dep_abund,drug,days)
-        if cmd == "logsigmoid":
+        
+        if cmd == "run_model":
           logsigmoidFunc = self.run_model()
           ifile_path = args[0] #example frac_abund_RIF_D5.txt
-          if len(args>1):
+          if len(args)>1:
             genename = args[1] #comma seperated genes
             logsigmoidFunc(ifile_path,genename)
           else:
@@ -249,116 +250,107 @@ note: redirect output from stdout to output files as shown above"""
   # derived from logsigmoidfit.R
   # see heatmap.py for example of how to put data in a pandas.DataFrame and call an R function like make_heatmapFunc()
 
-def run_model(self):
-  r('''
+    def run_model(self):
+        r('''
 
-  logsigmoid = function (ifile,gene_input){
-    data = read.table(ifile,head=T,sep='\t')
+        logsigmoid = function (ifile,gene_input){
+            data = read.table(ifile,head=T,sep='\t')
 
-    ORFs = sort(unique(data$orf))
-    THEGENE = "???"
-    if (length(args)>1) 
-    {
-      if (missing(orfs_list)>1) THEGENE = gene_input
-    }
+            ORFs = sort(unique(data$orf))
+            THEGENE = "???"
+            if (length(args)>1) 
+            {
+            if (missing(orfs_list)>1) THEGENE = gene_input
+            }
 
-    logsigmoid = function(x) { log10(x/(1-x)) }
+            logsigmoid = function(x) { log10(x/(1-x)) }
 
-    ###################################
-    # squashing function:
-    #   see Wolfram Alpha: plot (1-exp(-2x))/(1+exp(-2x)) from -1 to 3
+            ###################################
+            # squashing function:
+            #   see Wolfram Alpha: plot (1-exp(-2x))/(1+exp(-2x)) from -1 to 3
 
-    PC = 0.01
-    for (i in 6:17)
-    {
-      data[,i] = PC+(1-PC)*(1-exp(-2*data[,i]))/(1+exp(-2*data[,i]))
-    }
+            PC = 0.01
+            for (i in 6:17)
+            {
+            data[,i] = PC+(1-PC)*(1-exp(-2*data[,i]))/(1+exp(-2*data[,i]))
+            }
 
-    #summary(data$betaE)
-    #    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-    #-1.71179 -0.30520 -0.06266 -0.20121 -0.01427  0.84667 
+            #summary(data$betaE)
+            #    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+            #-1.71179 -0.30520 -0.06266 -0.20121 -0.01427  0.84667 
 
-    #data$betaEpos = -(data$betaE-max(data$betaE))
-    data$betaEpos = data$betaE-min(data$betaE)+0.01
+            #data$betaEpos = -(data$betaE-max(data$betaE))
+            data$betaEpos = data$betaE-min(data$betaE)+0.01
 
-    ######################################
+            ######################################
 
-    require(reshape2)
-    require(lmtest)
+            require(reshape2)
+            require(lmtest)
 
-    for (orf in ORFs)
-    {
-    subset = data[data$orf==orf,]
-    nobs = dim(subset)[1]
-    gene = as.character(subset[1,"gene"])
-    if (THEGENE!="???" & gene!=THEGENE) { next }
+            for (orf in ORFs)
+            {
+            subset = data[data$orf==orf,]
+            nobs = dim(subset)[1]
+            gene = as.character(subset[1,"gene"])
+            if (THEGENE!="???" & gene!=THEGENE) { next }
 
-    cat("----------------------\n")
-    cat(sprintf("%s %s %s\n",orf,gene,nobs))
-    if (gene=="ligC") { print("skipping"); next } # fit nearly perfect because some frac abune >30
+            cat("----------------------\n")
+            cat(sprintf("%s %s %s\n",orf,gene,nobs))
+            if (gene=="ligC") { print("skipping"); next } # fit nearly perfect because some frac abune >30
 
-    # note: although concs are like 0, 0.0625, 0.125, 0.25 (different range for each drug)
-    #  treat them as 1, 2, 4, 8 for simplicity (it doesn't matter, as long as they are 2 fold dilutions)
-    #  this also assumes "0" is half of the lowest concentration 
+            # note: although concs are like 0, 0.0625, 0.125, 0.25 (different range for each drug)
+            #  treat them as 1, 2, 4, 8 for simplicity (it doesn't matter, as long as they are 2 fold dilutions)
+            #  this also assumes "0" is half of the lowest concentration 
 
-    temp = cbind(subset[,c("id","betaEpos")],subset[,6:17])
-    colnames(temp)=c("id","betaEpos","a1","a2","a3","b1","b2","b3","c1","c2","c3","d1","d2","d3")
-    melted = melt(temp,id.vars=c("id","betaEpos"),variable.name="conc",value.name="abund")
+            temp = cbind(subset[,c("id","betaEpos")],subset[,6:17])
+            colnames(temp)=c("id","betaEpos","a1","a2","a3","b1","b2","b3","c1","c2","c3","d1","d2","d3")
+            melted = melt(temp,id.vars=c("id","betaEpos"),variable.name="conc",value.name="abund")
 
-    melted$newconc = 0
-    melted$newconc[melted$conc=="a1"] = 1
-    melted$newconc[melted$conc=="a2"] = 1
-    melted$newconc[melted$conc=="a3"] = 1
-    melted$newconc[melted$conc=="b1"] = 2
-    melted$newconc[melted$conc=="b2"] = 2
-    melted$newconc[melted$conc=="b3"] = 2
-    melted$newconc[melted$conc=="c1"] = 4
-    melted$newconc[melted$conc=="c2"] = 4
-    melted$newconc[melted$conc=="c3"] = 4
-    melted$newconc[melted$conc=="d1"] = 8
-    melted$newconc[melted$conc=="d2"] = 8
-    melted$newconc[melted$conc=="d3"] = 8
+            melted$newconc = 0
+            melted$newconc[melted$conc=="a1"] = 1
+            melted$newconc[melted$conc=="a2"] = 1
+            melted$newconc[melted$conc=="a3"] = 1
+            melted$newconc[melted$conc=="b1"] = 2
+            melted$newconc[melted$conc=="b2"] = 2
+            melted$newconc[melted$conc=="b3"] = 2
+            melted$newconc[melted$conc=="c1"] = 4
+            melted$newconc[melted$conc=="c2"] = 4
+            melted$newconc[melted$conc=="c3"] = 4
+            melted$newconc[melted$conc=="d1"] = 8
+            melted$newconc[melted$conc=="d2"] = 8
+            melted$newconc[melted$conc=="d3"] = 8
 
-    means = aggregate(logsigmoid(abund)~id+newconc,data=melted,FUN=mean)
-    a = colnames(means); a[3] = "mean"; colnames(means) = a
-    vars = aggregate(logsigmoid(abund)~id+newconc,data=melted,FUN=var)
-    a = colnames(vars); a[3] = "var"; colnames(vars) = a
+            means = aggregate(logsigmoid(abund)~id+newconc,data=melted,FUN=mean)
+            a = colnames(means); a[3] = "mean"; colnames(means) = a
+            vars = aggregate(logsigmoid(abund)~id+newconc,data=melted,FUN=var)
+            a = colnames(vars); a[3] = "var"; colnames(vars) = a
 
-    X = round(means[,3],1)
-    weights = 1 
+            X = round(means[,3],1)
+            weights = 1 
 
-    # Look into : may be able to get rid of it
-    f = function(row) { temp[temp$id==row[1] & temp$newconc==row[2],"weight"] }
-    w = apply(melted[,c("id","newconc")],1,f)
-    melted$weight = w
+            f = function(row) { temp[temp$id==row[1] & temp$newconc==row[2],"weight"] }
+            w = apply(melted[,c("id","newconc")],1,f)
+            melted$weight = w
 
-    write.table(melted,"melted.txt",sep='\t',quote=F); print("writing melted.txt")
+            write.table(melted,"melted.txt",sep='\t',quote=F); print("writing melted.txt")
 
-    tryCatch( 
-      {
-      #mod = lm(logsigmoid(abund)~log10(betaEpos)+log2(newconc),data=melted,weights=w) # weighted regression
-      #print(length(w))
-      #print(length(melted$newconc))
-      mod = lm(logsigmoid(abund)~log10(betaEpos)+log2(newconc),data=melted)
-      print(summary(mod))
-      summ = summary(mod)
+            tryCatch( 
+            {
+            mod = lm(logsigmoid(abund)~log10(betaEpos)+log2(newconc),data=melted)
+            print(summary(mod))
+            summ = summary(mod)
+            
+            coeffs = summ$coefficients[,1]
+            pvals = summ$coefficients[,4]
+            cat(sprintf("result: %s %s %s %s %s %s %s %s %s\n",orf,gene,nobs,coeffs[1],coeffs[2],coeffs[3],pvals[1],pvals[2],pvals[3]))
+            },
+            error = function (e) { print("skipping due to error with lm")  } 
+            )
+            }
+        }
 
-      # LRT gives essentially same P-value as Wald test
-      #m0 =  lm(logsigmoid(abund)~log10(betaEpos),data=melted) # reduced model, without conc term
-      #print(summary(m0))
-      #print(lrtest(mod,m0))
-    
-      coeffs = summ$coefficients[,1]
-      pvals = summ$coefficients[,4]
-      cat(sprintf("result: %s %s %s %s %s %s %s %s %s\n",orf,gene,nobs,coeffs[1],coeffs[2],coeffs[3],pvals[1],pvals[2],pvals[3]))
-      },
-      error = function (e) { print("skipping due to error with lm")  } 
-    )
-    }
-  }
-
-  ''')
-  return globalenv['logsigmoid']
+        ''')
+        return globalenv['logsigmoid']
 
 # ################################
 
