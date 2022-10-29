@@ -255,12 +255,11 @@ note: redirect output from stdout to output files as shown above"""
 
         logsigmoid = function (ifile,gene_input){
             data = read.table(ifile,head=T,sep='\t')
-
             ORFs = sort(unique(data$orf))
             THEGENE = "???"
-            if (length(args)>1) 
-            {
-            if (missing(orfs_list)>1) THEGENE = gene_input
+
+            if(! missing(gene_input)){
+                THEGENE = gene_input
             }
 
             logsigmoid = function(x) { log10(x/(1-x)) }
