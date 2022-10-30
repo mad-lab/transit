@@ -135,7 +135,7 @@ note: redirect output from stdout to output files as shown above"""
 
           self.extract_abund(metadata_file,data_dir,betaE_file,no_drug_file,no_dep_abund,drug,days)
         
-        if cmd == "run_model":
+        elif cmd == "run_model":
           logsigmoidFunc = self.run_model()
           ifile_path = args[0] #example frac_abund_RIF_D5.txt
           if len(args)>1:
@@ -143,7 +143,12 @@ note: redirect output from stdout to output files as shown above"""
             logsigmoidFunc(ifile_path,genename)
           else:
             logsigmoidFunc(ifile_path)
-  
+
+        elif cmd == "post_process":
+            logsig_file_path = args[0]
+
+            self.post_process(logsig_file_path)
+
         else: print(self.usage_string())
 
     ######################################
@@ -350,6 +355,30 @@ note: redirect output from stdout to output files as shown above"""
 
         ''')
         return globalenv['logsigmoid']
+
+################################
+    def post_process(self,logsigmoid_file):
+        import sys
+        from statsmodels.stats.multitest import fdrcorrection
+
+        data = []
+        for line in open(logsigmoid_file):
+            if line.startswith("result:"):
+                w = line.split()
+                pval = float(w[-1]) if w[-1]!="NA" else 1
+                data.append((pval,w))
+
+        pvals = [x[0] for x in data]
+        qvals = fdrcorrection(pvals)[1] # I assume this is Benjamini-Hochberg method
+        data = [(x[0],x[1]+[q]) for x,q in zip(data,qvals)]
+
+        data.sort()
+        print ('\t'.join("rank orf gene num_sgRNAs coeff_intercept coeff_log_betaE coeff_log_conc Pval_intercept Pval_log_betaE Pval_log_conc Qval_log_conc".split()))
+        rank = 1
+        for (pval,w) in data:
+            vals = [rank]+w[1:]
+            print ('\t'.join([str(x) for x in vals]))
+            rank += 1
 
 # ################################
 
