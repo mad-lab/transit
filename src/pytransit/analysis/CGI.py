@@ -161,7 +161,7 @@ note: redirect output from stdout to output files as shown above"""
     #   how will this differ between libraries or sequencing runs?
 
     def extract_abund(self,metadata_file,data_dir,betaE_file,no_drug_file,no_dep_abund,drug,days,PC=1e-8):
-      print("in extract_abund: betaE_file=%s, days=%s" % (betaE_file,days))
+      #print("in extract_abund: betaE_file=%s, days=%s" % (betaE_file,days))
 
       #################
       # read in all the files with supporting data
