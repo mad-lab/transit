@@ -360,25 +360,33 @@ note: redirect output from stdout to output files as shown above"""
     def post_process(self,logsigmoid_file):
         import sys
         from statsmodels.stats.multitest import fdrcorrection
-
+        import scipy.stats
+  
         data = []
+        log_conc_coefs = []
         for line in open(logsigmoid_file):
             if line.startswith("result:"):
                 w = line.split()
                 pval = float(w[-1]) if w[-1]!="NA" else 1
                 data.append((pval,w))
+                coef = float(w[5]) if w[5]!="NA" else 0
+                log_conc_coefs.append(coef)
+
 
         pvals = [x[0] for x in data]
         qvals = fdrcorrection(pvals)[1] # I assume this is Benjamini-Hochberg method
-        data = [(x[0],x[1]+[q]) for x,q in zip(data,qvals)]
+        zscores = scipy.stats.zscore(log_conc_coefs)
+        data = [(x[0],x[1]+[q], z) for x,q,z in zip(data,qvals,zscores)]
 
         data.sort()
-        print ('\t'.join("rank orf gene num_sgRNAs coeff_intercept coeff_log_betaE coeff_log_conc Pval_intercept Pval_log_betaE Pval_log_conc Qval_log_conc".split()))
+        print ('\t'.join("rank orf gene num_sgRNAs coeff_intercept coeff_log_betaE coeff_log_conc Pval_intercept Pval_log_betaE Pval_log_conc Qval_log_conc Zscore".split()))
         rank = 1
-        for (pval,w) in data:
-            vals = [rank]+w[1:]
+        for (pval,w,z) in data:
+            vals = [rank]+w[1:]+ [z]
             print ('\t'.join([str(x) for x in vals]))
             rank += 1
+        
+
 
 # ################################
 
