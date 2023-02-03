@@ -280,7 +280,7 @@ class ZinbMethod(base.MultiConditionMethod):
               suppressMessages(require(pscl))
               suppressMessages(require(MASS))
               melted = df
-              print(head(melted))
+              #print(head(melted))
 
               # filter out genes that have low saturation across all conditions, since pscl sometimes does not fit params well (resulting in large negative intercepts and high std errors)
               NZpercs = aggregate(melted$cnt,by=list(melted$cond),FUN=function(x) { sum(x>0)/length(x) })
@@ -459,7 +459,7 @@ class ZinbMethod(base.MultiConditionMethod):
                     melted = DataFrame(df_args)
                     # r_args = [IntVector(readCounts), StrVector(condition), melted, map(lambda x: StrVector(x), covars), FloatVector(NZmean), FloatVector(logitZPerc)] + [True]
                     debugFlag = True if DEBUG or GENE else False
-                    print(f'''melted =''', str(melted))
+                    #print(f'''melted =''', str(melted))
                     print("zinbMod1", str(zinbMod1))
                     print("zinbMod0", str(zinbMod0))
                     print("nbMod1", str(nbMod1))
