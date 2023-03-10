@@ -686,7 +686,7 @@ def driver(vars):
 
   except ValueError as err:
     message("")
-    message("%s" % " ".join(err.args))
+    message(err.args)
     message("Exiting.")
     sys.exit()
 
@@ -700,11 +700,15 @@ def driver(vars):
 
   message("Done.")
 
+# gunzip <fastq>.gz file, written to <fastq>
+
 def uncompress(filename):
-   outfil = open(filename[0:-3], "w+")
+   newfname = filename[0:-3]
+   print("uncompressing %s" % filename)
+   outfil = open(newfname, "wb+")
    for line in gzip.open(filename):
       outfil.write(line)
-   return filename[0:-3]
+   return newfname
 
 def copy_fasta(infile,outfile,maxreads=-1):
   a = open(infile)
@@ -724,8 +728,15 @@ def copy_fasta(infile,outfile,maxreads=-1):
 def extract_reads(vars):
     message("extracting reads...")
 
+    if vars.fq1.endswith('.gz'):
+       vars.fq1 = uncompress(vars.fq1)
+
+    if vars.fq2.endswith('.gz'):
+       vars.fq2 = uncompress(vars.fq2)
+
     flag = ['','']
     for idx, name in enumerate([vars.fq1, vars.fq2]):
+        print(name)
         if idx==1 and vars.single_end==True: continue
         fil = open(name)
         for line in fil:
@@ -735,12 +746,6 @@ def extract_reads(vars):
             flag[idx] = 'FASTQ'
             break
         fil.close()
-
-    if vars.fq1.endswith('.gz'):
-       vars.fq1 = uncompress(vars.fq1)
-
-    if vars.fq2.endswith('.gz'):
-       vars.fq2 = uncompress(vars.fq2)
 
     if(flag[0] == 'FASTQ'):
         message("fastq2reads: %s -> %s" % (vars.fq1,vars.reads1))
