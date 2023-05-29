@@ -43,6 +43,10 @@ def run_main():
     main(*args, **kwargs)
 
 def main(*args, **kwargs):
+    # Check python version
+    if (sys.version_info[0] < 3):
+        print("TRANSIT v3.0+ requires python3.6+. To use with python2, please install TRANSIT version < 3.0")
+        sys.exit(0)
     #If no arguments, show GUI:
     DEBUG = "--debug" in sys.argv
     if DEBUG:
@@ -87,11 +91,9 @@ def main(*args, **kwargs):
 
     # Tried GUI mode but has no wxPython
     elif not (args or kwargs) and not hasWx:
-        print("Please install wxPython to run in GUI Mode.")
-        print("To run in Console Mode please follow these instructions:")
+        print("Please install wxPython to run in GUI Mode. (pip install wxPython)")
         print("")
-        print("Usage: python %s <method>" % sys.argv[0])
-        print("List of known methods:")
+        print("To run in Console Mode, try 'transit <method>' with one of the following methods:")
         for m in methods:
             print("\t - %s" % m)
     # Running in Console mode

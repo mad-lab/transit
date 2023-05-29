@@ -270,7 +270,7 @@ class GriffinMethod(base.SingleConditionMethod):
                 memberstr += "%s = %s, " % (m, getattr(self, m))
             self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8')))
         else:
-            self.output.write("#Console: python %s\n" % " ".join(sys.argv))
+            self.output.write("#Console: python3 %s\n" % " ".join(sys.argv))
 
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
         self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
@@ -290,7 +290,7 @@ class GriffinMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s griffin <comma-separated .wig files> <annotation .prot_table> <output file> [Optional Arguments]
+        return """python3 %s griffin <comma-separated .wig files> <annotation .prot_table> <output file> [Optional Arguments]
 
         Optional Arguments:
         -m <integer>    :=  Smallest read-count to consider. Default: -m 1

@@ -154,6 +154,23 @@ def fix_paired_headers_for_bwa(reads1,reads2):
 	  os.system("mv %s %s" % (temp2, reads2))
   '''
 
+##############################
+
+# original implementation
+# find index of H[1..m] in G[1..n] with up to max mismatches
+# note: this find first match, not necessarily the best (with min mismatches)
+
+def mmfind1(G,n,H,m,max): # lengths; assume n>m
+  a = G[:n].find(H[:m])
+  if a!=-1: return a # shortcut for perfect matches
+  for i in range(0,n-m):
+    cnt = 0
+    for k in range(m):
+      if G[i+k]!=H[k]: cnt += 1
+      if cnt>max: break
+    if cnt<=max: return i
+  return -1
+
 
 # checks for a match allowing 1 or 2 mismatches
 # if not a match returns -1,-1. If match occurs, returns 1 and the start index of match
@@ -203,11 +220,10 @@ def bit_parallel_with_max_1_error(text, pattern, m):
             return 1, j - m + 1
     return -1,-1
 
-
 # this function is a replacement for below mmfind() for speedup
 # it assumes the length of H is <32
 # find index of H[1..m] in G[1..n] with up to max (1 or 2) mismatches
-def mmfind(G,n,H,m,max): # lengths; assume n>m
+def mmfind2(G,n,H,m,max): # lengths; assume n>m
     a = G.find(H)
     if a!=-1: return a # shortcut for perfect matches
     a,b = -1,-1
@@ -219,20 +235,13 @@ def mmfind(G,n,H,m,max): # lengths; assume n>m
     return -1
 
 
-''' replaced with above mmfind()
-# find index of H[1..m] in G[1..n] with up to max mismatches
+# TRI (10/20/2021): I switched back to mmfind1(), since 
+#   mmfind2() wasn't working right; increasing -mismatches caused fewer reads to be recognized with prefix and trimmed
 
-def mmfind(G,n,H,m,max): # lengths; assume n>m
-  a = G[:n].find(H[:m])
-  if a!=-1: return a # shortcut for perfect matches
-  for i in range(0,n-m):
-    cnt = 0
-    for k in range(m):
-      if G[i+k]!=H[k]: cnt += 1
-      if cnt>max: break
-    if cnt<=max: return i
-  return -1
-'''
+
+def mmfind(G,n,H,m,max): return mmfind1(G,n,H,m,max)
+
+##############################
 
 def windowize(origin, window_size):                         # Generate P,Q values based on a window size (tolerance)
     lower_bound = origin - ((window_size + 0)/2)            # Example, if we assume origin = 28:
@@ -310,7 +319,7 @@ def extract_staggered(infile,outfile,vars):
   output_failed.close()                                 # [WM] [add]
   if vars.tot_tgtta == 0:
     raise ValueError("Error: Input files did not contain any reads matching prefix sequence with %d mismatches" % vars.mm1)
-
+  vars.tot_reads = tot
 
 def message(s):
   #print("[tn_preprocess]",s)
@@ -385,7 +394,7 @@ def read_genome(filename, replicon_index):
       if cur_index == replicon_index:
         s += line.strip()
     first_iteration = False
-  return s
+  return s.upper()
 
 
 def parse_sam_header(sam_filename):
@@ -511,7 +520,7 @@ def template_counts(ref,sam,bcfile,vars):
     genome = read_genome(ref, replicon_index)
     for i in range(len(genome)-1):
       #if genome[i:i+2].upper()=="TA":
-      if vars.transposon=="Himar1" and genome[i:i+2].upper()!="TA": continue
+      if vars.transposon=="Himar1" and genome[i:i+2].upper()!="TA": continue 
       else:
         pos = i+1
         h = hits[replicon_names[replicon_index]].get(pos,[])
@@ -677,7 +686,7 @@ def driver(vars):
 
   except ValueError as err:
     message("")
-    message("%s" % " ".join(err.args))
+    message(err.args)
     message("Exiting.")
     sys.exit()
 
@@ -691,11 +700,15 @@ def driver(vars):
 
   message("Done.")
 
+# gunzip <fastq>.gz file, written to <fastq>
+
 def uncompress(filename):
-   outfil = open(filename[0:-3], "w+")
+   newfname = filename[0:-3]
+   print("uncompressing %s" % filename)
+   outfil = open(newfname, "wb+")
    for line in gzip.open(filename):
       outfil.write(line)
-   return filename[0:-3]
+   return newfname
 
 def copy_fasta(infile,outfile,maxreads=-1):
   a = open(infile)
@@ -715,8 +728,15 @@ def copy_fasta(infile,outfile,maxreads=-1):
 def extract_reads(vars):
     message("extracting reads...")
 
+    if vars.fq1.endswith('.gz'):
+       vars.fq1 = uncompress(vars.fq1)
+
+    if vars.fq2.endswith('.gz'):
+       vars.fq2 = uncompress(vars.fq2)
+
     flag = ['','']
     for idx, name in enumerate([vars.fq1, vars.fq2]):
+        print(name)
         if idx==1 and vars.single_end==True: continue
         fil = open(name)
         for line in fil:
@@ -726,12 +746,6 @@ def extract_reads(vars):
             flag[idx] = 'FASTQ'
             break
         fil.close()
-
-    if vars.fq1.endswith('.gz'):
-       vars.fq1 = uncompress(vars.fq1)
-
-    if vars.fq2.endswith('.gz'):
-       vars.fq2 = uncompress(vars.fq2)
 
     if(flag[0] == 'FASTQ'):
         message("fastq2reads: %s -> %s" % (vars.fq1,vars.reads1))
@@ -1100,20 +1114,7 @@ def generate_output(vars):
     FR_corr.append(cur_FR_corr)
     BC_corr.append(cur_BC_corr)
 
-  primer = "CTAGAGGGCCCAATTCGCCCTATAGTGAGT"
-  vector = "CTAGACCGTCCAGTCTGGCAGGCCGGAAAC"
-  adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
-  Himar1 = "ACTTATCAGCCAACCTGTTA"
-  tot_reads,nprimer,nvector,nadapter,misprimed = 0,0,0,0,0
-  for line in open(vars.reads1):
-    if line[0]=='>': tot_reads += 1; continue
-    if primer in line: nprimer += 1
-    if vector in line: nvector += 1
-    if adapter in line: nadapter += 1
-    #if "TGTTA" in line and Himar1 not in line: misprimed += 1
-    # basically, these should correspond to insertions at non-TA sites (so the terminal TA of ...TGTTA will be different)
-    if Himar1[:-5] in line and Himar1 not in line: misprimed += 1 
-
+  tot_reads = vars.tot_reads
   read_length = get_read_length(vars.base + ".reads1")
   mean_r1_genomic = get_genomic_portion(vars.base + ".trimmed1")
   if vars.single_end==False: mean_r2_genomic = get_genomic_portion(vars.base + ".genomic2")
@@ -1133,7 +1134,7 @@ def generate_output(vars):
   output.write('# ref_genome: %s\n' % vars.ref)
   output.write('# replicon_ids: %s\n' % ','.join(vars.replicon_ids))
   output.write("# total_reads (or read pairs): %s\n" % tot_reads)
-  #output.write("# truncated_reads %s (fragments shorter than the read length; ADAP2 appears in read1)\n" % vars.truncated_reads)
+  output.write("# truncated_reads %s (genomic inserts shorter than the read length; ADAP2 appears in read1)\n" % vars.truncated_reads)
   output.write("# trimmed_reads (reads with valid Tn prefix, and insert size>20bp): %s\n" % vars.tot_tgtta)
   output.write("# reads1_mapped: %s\n" % vars.r1)
   output.write("# reads2_mapped: %s\n" % vars.r2)
@@ -1187,10 +1188,30 @@ def generate_output(vars):
     output.write("# FR_corr (Fwd templates vs. Rev templates): %0.3f\n" % FR_corr[0])
     output.write("# BC_corr (reads vs. templates, summed over both strands): %0.3f\n" % BC_corr[0])
 
-  output.write("# primer_matches: %s reads (%0.1f%%) contain %s (Himar1)\n" % (nprimer,nprimer*100/float(tot_reads),primer))
-  output.write("# vector_matches: %s reads (%0.1f%%) contain %s (phiMycoMarT7)\n" % (nvector,nvector*100/float(tot_reads),vector))
-  output.write("# adapter_matches: %s reads (%0.1f%%) contain %s (Illumina/TruSeq index)\n" % (nadapter,nadapter*100/float(tot_reads),adapter))
-  output.write("# misprimed_reads: %s reads (%0.1f%%) contain Himar1 prefix but don't end in TGTTA\n" % (misprimed,misprimed*100/float(tot_reads)))
+  primer = "CTAGAGGGCCCAATTCGCCCTATAGTGAGT"
+  vector = "CTAGACCGTCCAGTCTGGCAGGCCGGAAAC"
+  adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
+  ADAPTER2 = "TACCACGACCA" # rc of const2 region of R2, between barcode and genomic; these reads will be truncated here
+  Himar1 = "ACTTATCAGCCAACCTGTTA"
+  trimmed_reads,nprimer,nvector,nadapter,misprimed,ntruncated = 0,0,0,0,0,0
+  for line in open(vars.trimmed1):
+    if line[0]=='>': trimmed_reads += 1; continue
+    if primer in line: nprimer += 1
+    if vector in line: nvector += 1
+    if adapter in line: nadapter += 1
+    #if "TGTTA" in line and Himar1 not in line: misprimed += 1
+    # basically, these should correspond to insertions at non-TA sites (so the terminal TA of ...TGTTA will be different)
+    if Himar1[:-5] in line and Himar1 not in line: misprimed += 1 
+
+  output.write("# Break-down of total reads (%s):\n" % tot_reads)
+  output.write("#  %s reads (%0.1f%%) lack the expected Tn prefix\n" % (tot_reads-vars.tot_tgtta,(tot_reads-vars.tot_tgtta)*100/float(tot_reads)))
+
+  output.write("# Break-down of trimmed reads with valid Tn prefix (%s):\n" % trimmed_reads)
+  output.write("#  primer_matches: %s reads (%0.1f%%) contain %s (Himar1)\n" % (nprimer,nprimer*100/float(trimmed_reads),primer))
+  output.write("#  vector_matches: %s reads (%0.1f%%) contain %s (phiMycoMarT7)\n" % (nvector,nvector*100/float(trimmed_reads),vector))
+  output.write("#  adapter_matches: %s reads (%0.1f%%) contain %s (Illumina/TruSeq index)\n" % (nadapter,nadapter*100/float(trimmed_reads),adapter))
+  output.write("#  misprimed_reads: %s reads (%0.1f%%) contain Himar1 prefix but don't end in TGTTA\n" % (misprimed,misprimed*100/float(trimmed_reads)))
+
   output.write("# read_length: %s bp\n" % read_length)
   output.write("# mean_R1_genomic_length: %0.1f bp\n" % mean_r1_genomic)
   if vars.single_end==False: output.write("# mean_R2_genomic_length: %0.1f bp\n" % mean_r2_genomic)
@@ -1442,6 +1463,7 @@ def show_help():
   print('    -maxreads <INT>')
   print('    -mismatches <INT>  # when searching for constant regions in reads 1 and 2; default is 1')
   print('    -flags "<STRING>"  # args to pass to BWA')
+  print('    -bwa-alg [aln|mem]  # Default: mem. Algorithm to use for mapping reads with bwa' )
   print('    -primer-start-window INT,INT # position in read to search for start of primer; default is [0,20]')
   print('    -window-size INT   # automatic method to set window')
   print('    -barseq_catalog_in|-barseq_catalog_out <file>')

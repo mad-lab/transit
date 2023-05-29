@@ -22,6 +22,9 @@ from pytransit.analysis import pathway_enrichment
 from pytransit.analysis import anova
 from pytransit.analysis import zinb
 from pytransit.analysis import tnseq_stats
+from pytransit.analysis import corrplot
+from pytransit.analysis import heatmap
+from pytransit.analysis import ttnfitness
 
 methods = {}
 methods["example"] = example.ExampleAnalysis()
@@ -40,8 +43,11 @@ methods["zinb"] = zinb.ZinbAnalysis()
 #methods["mcce2"] = mcce2.MCCE2Analysis()
 #methods["motifhmm"] = motifhmm.MotifHMMAnalysis()
 methods["normalize"] = normalize.Normalize()
-methods["pathway_enrichment"]=pathway_enrichment.GSEAAnalysis()
+methods["pathway_enrichment"]=pathway_enrichment.PathwayAnalysis()
 methods["tnseq_stats"]=tnseq_stats.TnseqStats()
+methods["corrplot"]=corrplot.Corrplot()
+methods["heatmap"]=heatmap.Heatmap()
+methods["ttnfitness"]=ttnfitness.TTNFitnessAnalysis()
 
 # EXPORT METHODS
 from pytransit.analysis import norm

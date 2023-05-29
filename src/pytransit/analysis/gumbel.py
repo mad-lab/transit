@@ -99,25 +99,25 @@ class GumbelGUI(base.AnalysisGUI):
 
         # Samples
         (gumbelSampleLabel, self.wxobj.gumbelSampleText, sampleSizer) = self.defineTextBox(gumbelPanel, u"Samples:", u"10000", "These are the number of samples to take when estimating the parameters. More samples give more accurate estimates of the parameters at the cost of computation time.")
-        mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(sampleSizer, 1, wx.EXPAND, 5 )
 
         # Burn-In 
         (gumbelBurninLabel, self.wxobj.gumbelBurninText, burninSizer) = self.defineTextBox(gumbelPanel, u"Burn-In:", u"500", "These are the number of samples to take before  beginning to estimate the parameters. Allows the MCMC sampler to 'converge' to the true parameter space. More samples give more accurate estimates of the parameters at the cost of computation time.")
-        mainSizer1.Add(burninSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )        
+        mainSizer1.Add(burninSizer, 1, wx.EXPAND, 5 )        
 
         # Trim
         (gumbelTrimLabel, self.wxobj.gumbelTrimText, trimSizer) = self.defineTextBox(gumbelPanel, u"Trim:", u"1", "The MCMC sample will keep every i-th sample. A value of '1' will take all samples. Larger values will reduces autocorrelation at the cost of a substantial cost in computation time.")
-        mainSizer1.Add(trimSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )        
+        mainSizer1.Add(trimSizer, 1, wx.EXPAND, 5 )        
 
         # Min Read
         gumbelReadChoiceChoices = [ u"1", u"2", u"3", u"4", u"5" ]
         (gumbelReadLabel, self.wxobj.gumbelReadChoice, readSizer) = self.defineChoiceBox(gumbelPanel, u"Minimum Read:", gumbelReadChoiceChoices, "This is the minimum number of reads to consider a 'true' insertion. Value of 1 will consider all insertions. Larger values allow the method to ignore spurious insertions which might interrupt a run of non-insertions. Noisy datasets or those with many replicates can beneffit from increasing this.")
-        mainSizer1.Add(readSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )        
+        mainSizer1.Add(readSizer, 1, wx.EXPAND, 5 )        
 
         # Replicates
         gumbelRepChoiceChoices = [ u"Sum", u"Mean" ]
         (gumbelRepLabel, self.wxobj.gumbelRepChoice, repSizer) = self.defineChoiceBox(gumbelPanel, u"Replicates:", gumbelRepChoiceChoices, "Determines how to handle replicates, and their read-counts. When using many replicates, summing read-counts may make spurious counts appear to be significantly large and interrupt a run of non-insertions.")
-        mainSizer1.Add(repSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )        
+        mainSizer1.Add(repSizer, 1, wx.EXPAND, 5 )        
 
        
         gumbelSection.Add( mainSizer1, 1, wx.EXPAND, 5 )
@@ -333,6 +333,9 @@ class GumbelMethod(base.SingleConditionMethod):
         self.transit_message("Getting Data")
         (data, position) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
         (K,N) = data.shape
+        merged = numpy.sum(data,axis=0)
+        nsites,nzeros = merged.shape[0],numpy.sum(merged==0) # perhaps I should say >minCount
+        sat = (nsites-nzeros)/float(nsites)
 
         if self.normalization and self.normalization != "nonorm":
             self.transit_message("Normalizing using: %s" % self.normalization)
@@ -412,13 +415,14 @@ class GumbelMethod(base.SingleConditionMethod):
             
             phi_old = phi_new
             #Update progress
-            text = "Running Gumbel Method... %5.1f%%" % (100.0*(count+1)/(self.samples+self.burnin))
+            text = "Running Gumbel Method with Binomial Essentiality Calls... %5.1f%%" % (100.0*(count+1)/(self.samples+self.burnin))
             self.progress_update(text, count)
 
 
         ZBAR = numpy.apply_along_axis(numpy.mean, 1, Z_sample)
         (ess_t, non_t) = stat_tools.bayesian_ess_thresholds(ZBAR)
-
+        binomial_n = math.log10(0.05)/math.log10(G.global_phi())
+        
         #Orf    k   n   r   s   zbar
         self.output.write("#Gumbel\n")
         if self.wxobj:
@@ -428,20 +432,24 @@ class GumbelMethod(base.SingleConditionMethod):
                 memberstr += "%s = %s, " % (m, getattr(self, m))
             self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s, samples=%s, minread=%s, trim=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8'), self.samples, self.minread, self.trim))
         else:
-            self.output.write("#Console: python %s\n" % " ".join(sys.argv))
+            self.output.write("#Console: python3 %s\n" % " ".join(sys.argv))
 
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
         self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
-        self.output.write("#FDR Corrected thresholds: %f, %f\n" % (ess_t, non_t))
-        self.output.write("#MH Acceptance-Rate:\t%2.2f%%\n" % (100.0*acctot/count))
+        self.output.write("#Trimming of TAs near termini: N-term=%s, C-term=%s (fraction of ORF length)\n" % (self.NTerminus,self.CTerminus))
+        self.output.write("#Significance thresholds (FDR-corrected): Essential if Zbar>%f, Non-essential if Zbar<%f\n" % (ess_t, non_t))
+        self.output.write("#Metropolis-Hastings Acceptance-Rate:\t%2.2f%%\n" % (100.0*acctot/count))
         self.output.write("#Total Iterations Performed:\t%d\n" % count)
         self.output.write("#Sample Size:\t%d\n" % i)
-        self.output.write("#phi estimate:\t%f\n" % numpy.average(phi_sample))
-        self.output.write("#Time: %s\n" % (time.time() - start_time))
-        self.output.write("#%s\n" % "\t".join(columns))
+        self.output.write("#Total number of TA sites: %s\n" % nsites)
+        self.output.write("#Genome-wide saturation: %s\n" % (round(sat,3))) # datasets merged
+        self.output.write("#phi estimate:\t%f (non-insertion probability in non-essential regions)\n" % numpy.average(phi_sample))
+        self.output.write("#Minimum number of TA sites with 0 insertions to be classified as essential by Binomial: \t%0.3f\n" % binomial_n)
+        self.output.write("#Time: %s s\n" % (round(time.time()-start_time,1)))
+
         i = 0
-        data = []
-        for g in G:
+        data,calls = [],[]
+        for j,g in enumerate(G):
             if not self.good_orf(g):
                 zbar = -1.0
             else:
@@ -449,18 +457,30 @@ class GumbelMethod(base.SingleConditionMethod):
                 i+=1
             if zbar > ess_t:
                 call = "E"
+            elif G.local_sites()[j]>binomial_n and G.local_thetas()[j]==0.0:
+                call = "EB"
             elif non_t <= zbar <= ess_t:
                 call = "U"
             elif 0 <= zbar < non_t:
                 call = "NE"
             else:
                 call = "S"
+            
             data.append("%s\t%s\t%s\t%d\t%d\t%d\t%d\t%f\t%s\n" % (g.orf, g.name, g.desc, g.k, g.n, g.r, g.s, zbar, call))
+            calls.append(call)
         data.sort()
+
+        self.output.write("#Summary of Essentiality Calls:\n")
+        self.output.write("#  E  = %4s (essential based on Gumbel)\n" % (calls.count("E")))
+        self.output.write("#  EB = %4s (essential based on Binomial)\n" % (calls.count("EB")))
+        self.output.write("#  NE = %4s (non-essential)\n" % (calls.count("NE")))
+        self.output.write("#  U  = %4s (uncertain)\n" % (calls.count("U")))
+        self.output.write("#  S  = %4s (too short)\n" % (calls.count("S")))
+
+        self.output.write("#%s\n" % "\t".join(columns))
         for line in data:
             self.output.write(line)
         self.output.close()
-
         self.transit_message("") # Printing empty line to flush stdout 
         self.transit_message("Adding File: %s" % (self.output.name))
         self.add_file(filetype="Gumbel")
@@ -469,7 +489,7 @@ class GumbelMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s gumbel <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        return """python3 %s gumbel <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
     
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 10000
@@ -494,8 +514,9 @@ class GumbelMethod(base.SingleConditionMethod):
         BetaGamma = B*tnseq_tools.getGamma()
         if n<EXACT: # estimate more accurately based on expected run len, using exact calc for small genes
           exprun = self.ExpectedRuns_cached(n,p)
-          u = exprun-BetaGamma # u is mu of Gumbel (mean=mu+gamma*beta); matching of moments
-        pval = 1 - scipy.exp(scipy.stats.gumbel_r.logcdf(r,u,B))
+          u = exprun-BetaGamma # u is mu of Gumbel (mean=mu+gamma*beta); matching of moments 
+          #https://github.blog/2020-12-15-token-authentication-requirements-for-git-operations/
+        pval = 1 - numpy.exp(scipy.stats.gumbel_r.logcdf(r,u,B))
         if pval < 0.05: return(1)
         else: return(0)
 
@@ -519,7 +540,7 @@ class GumbelMethod(base.SingleConditionMethod):
         for i in range(len(N)): # estimate more accurately based on expected run len, using exact calc for small genes
           if N[i]<EXACT: mu[i] = self.ExpectedRuns_cached(int(N[i]),p)-BetaGamma
         sigma = 1.0/math.log(1.0/p);
-        h0 = ((scipy.exp(scipy.stats.gumbel_r.logpdf(R,mu,sigma))) * scipy.stats.norm.pdf(S, mu_s*R, sigma_s)  * (1-w1))
+        h0 = ((numpy.exp(scipy.stats.gumbel_r.logpdf(R,mu,sigma))) * scipy.stats.norm.pdf(S, mu_s*R, sigma_s)  * (1-w1))
         h1 = SIG * w1
         h1 += 1e-10; h0 += 1e-10 # to prevent div-by-zero; if neither class is probable, p(z1) should be ~0.5
         p_z1 = h1/(h0+h1)

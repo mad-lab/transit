@@ -89,12 +89,20 @@ Pip and Python are usually preinstalled in most modern operating systems.
 |
 .. _install-zinb:
 
-**Additional requirements for** :ref:`ZINB <zinb>` **method (in addition to the TRANSIT requirements above):**
+Additional Requirements: R (statistical analysis package)
+~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 
- - `R <https://www.r-project.org/>`_ (tested on v3.5.2)
- - R packages: MASS, pscl (run "install.packages(MASS)" etc. in R console)
- - For python 2.7: python packages: rpy2 (v<2.9.0) (run "pip install 'rpy2<2.9.0' " on command line)
- - For python 3: python packages: rpy2 (v3.0) (run "pip install 'rpy2' " on command line)
+R is called by Transit for certain commands, such as :ref:`ZINB <zinb>`, corrplot, and heatmap.
+As of now, installing R is optional, and requires these additional steps...
+
+Additional Installation Requirements for R:
+
+ - install `R <https://www.r-project.org/>`_ (tested on v3.5.2)
+ - R packages: **MASS, pscl, corrplot, gplots** (run "install.packages(MASS)" etc. in R console)
+ - Python packages (for python3): rpy2 (v>=3.0) (run "pip3 install rpy2" on command line) 
+ - Python packages (for python2.7): rpy2 (v<2.9.0) (run "pip install 'rpy2<2.9.0' " on command line)
+
+
 
 Use as a Python Package
 -----------------------------------------------------

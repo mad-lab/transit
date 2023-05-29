@@ -1,7 +1,6 @@
-import math
+import sys,math,random
 import numpy
 import scipy.stats
-
 
 
 def sample_trunc_norm_post(data, S, mu0, s20, k0, nu0):
@@ -495,11 +494,22 @@ def F_sum_diff_dict(*args, **kwargs):
 
 #
 
+# input: an a array with counts pooled across both conditions
+
 def F_shuffle_flat(*args, **kwargs):
     X = args[0]
     return numpy.random.permutation(X)
 
-#
+# data is 2D array of counts (samples X TA sites) including all reps in all libs in both conditions (as rows)
+# DESTRUCTIVE; caller must make copy of input arg (data) if they want to preserve it
+
+def site_restricted_permutation(data):
+  if len(data)==0: return data
+  nsamples,nTAs = data.shape[0],data.shape[1]
+  for i in range(nTAs): numpy.random.shuffle(data[:,i])
+  return data
+
+# apparently, this takes 1 arg, a dictionary D which maps library strings to pairs of count vectors
 
 def F_shuffle_dict_libraries(*args, **kwargs):
     D = args[0]
@@ -512,14 +522,14 @@ def F_shuffle_dict_libraries(*args, **kwargs):
         perm = numpy.random.permutation(combined)
         #print("perm", perm)
         #print("perm[:n1]", perm[:n1])
-        E[L] = numpy.array([perm[:n1], perm[n1:]])
+        E[L] = numpy.array([perm[:n1], perm[n1:]],dtype=object)
         #print("D[L]", D[L])
     return E
 
 #
 
 def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
-            permFunc=F_shuffle_flat, adaptive=False, lib_str1="", lib_str2=""):
+            permFunc=F_shuffle_flat, adaptive=False, lib_str1="", lib_str2="",PC=1,site_restricted=False):
     """Does a permutation test on two sets of data.
 
     Performs the resampling / permutation test given two sets of data using a
@@ -527,7 +537,7 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
     the data.
 
     Args:
-        ar: List or numpy array with the first set of observations.
+        data1: List or numpy array with the first set of observations.
         data2: List or numpy array with the second set of observations.
         S: Number of permutation tests (or samples) to obtain.
         testFunc: Function defining the desired test statistic. Should accept
@@ -537,6 +547,15 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
                 one argument, the combined set of data. Default is random
                 shuffle.
         adaptive: Cuts-off resampling early depending on significance.
+
+    Data arrays: (data1 and data2)
+      Regular resampling used to take 1D arrays of counts pooled (flattened) over replicates.
+        Now 2D arrays are passed in and flatten them.
+        Uses F_shuffle_flat() and F_sum_diff_flat().
+      If using library strings, then inputs are 2D arrays of counts for each sample. 
+        Character in lib_str indicates which lib it is in.  Make a dict out of these to pass to permFunc.
+        Uses F_shuffle_dict_libraries() and F_sum_diff_dict_libraries().
+      If site_restricted, keep input arrays as 2D and pass to site_restricted_permutation() and F_sum_diff_flat().
 
     Returns:
         Tuple with described values
@@ -566,11 +585,23 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
     # - Check library strings match in some way
     lib_diff = set(lib_str1) ^ set(lib_str2)
     if lib_diff:
-        raise ValueError("At least one library string has a letter not used by the other:\ %s" % ", ".join(lib_diff))
+        #raise ValueError("At least one library string has a letter not used by the other:\ %s" % ", ".join(lib_diff))
+        raise ValueError("At least one library string has a letter not used by the other: " + ", ".join(lib_diff))
+
+    if lib_str1 and site_restricted:
+      raise Exception("Cannot do site_restricted resampling with library strings at same time")
 
     # - Check input has some data
     assert len(data1) > 0, "Data1 cannot be empty"
     assert len(data2) > 0, "Data2 cannot be empty"
+
+    if isinstance(data1,list): data1 = numpy.array(data1)
+    if isinstance(data2,list): data2 = numpy.array(data2)
+
+    #TRI note - now I am switching resampling() so caller passes in NON-flattened arrays of counts
+    if not site_restricted and not lib_str1: 
+      data1 = data1.flatten()
+      data2 = data2.flatten()
 
     count_ltail = 0
     count_utail = 0
@@ -579,40 +610,39 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
     test_list = []
 
     # Calculate basic statistics for the input data:
-    n1 = len(data1)
+    # flattened (pooled) if not lib_str, else multiple samples (rows) for each lib
+    n1 = len(data1) # number of samples (i.e. rows) for site_restricted or lib_str, or pooled counts if flattened
     n2 = len(data2)
 
     mean1 = 0
     if n1 > 0:
-        mean1 = numpy.mean(data1)
+        mean1 = numpy.mean(data1) # over all counts pooled across reps and libs for cond1
     mean2 = 0
     if n2 > 0:
         mean2 = numpy.mean(data2)
 
-    try:
-        # Only adjust log2FC if one of the means is zero
-        if mean1 > 0 and mean2 > 0:
-            log2FC = math.log((mean2)/(mean1),2)
-        else:
-            log2FC = math.log((mean2+1.0)/(mean1+1.0),2)
-    except:
-        log2FC = 0.0
-   
+    if PC>0: log2FC = math.log((mean2+PC)/(mean1+PC),2) # as of 3/5/20
+    else:
+      # Only adjust log2FC if one of the means is zero
+      if mean1 > 0 and mean2 > 0: log2FC = math.log((mean2)/(mean1),2)
+      else: log2FC = math.log((mean2+1.0)/(mean1+1.0),2)
 
- 
     # Get stats and info based on whether working with libraries or not:
     nTAs = 0
     if lib_str1:
+        # note: returns a generator, not a list
         # Get number of TA sites implied
         nTAs = len(data1.flatten())//len(lib_str1)
-        assert len(data2.flatten())//len(lib_str2) == nTAs, "Datasets do not have matching sites;\
-             check input data and library strings."
+        assert len(data2.flatten())//len(lib_str2) == nTAs, "Datasets do not have matching sites; check input data and library strings."
+
         # Get data
-        perm = get_lib_data_dict(data1, lib_str1, data2, lib_str2, nTAs)
-        test_obs = testFunc(perm)
+        # for lib_str, perm is a dict mapping letters to pairs of numpy arrays (1 for each cond)
+        perm = get_lib_data_dict(data1.flatten(), lib_str1, data2.flatten(), lib_str2, nTAs) 
+        test_obs = testFunc(perm) 
     else:
         try:
-            test_obs = testFunc(data1, data2)
+            # site_retricted use F_sum_diff_flat() as testFunc too
+            test_obs = testFunc(data1, data2) # first call, actual value from observed counts
         except Exception as e:
             print("")
             print("!"*100)
@@ -625,10 +655,13 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
             print("")
             return None
 
-        perm = numpy.zeros(n1+n2)
-        perm[:n1] = data1
-        perm[n1:] = data2
-
+        if site_restricted:
+          data = numpy.concatenate((data1,data2),axis=0) # keep it as a 2D array
+          perm = data.copy() # this array will get modified with each permutation
+        else: # pool all counts (across conditions) into 1 big array
+          perm = numpy.zeros(n1+n2)
+          perm[:n1] = data1
+          perm[n1:] = data2
 
 
     count_ltail = 0
@@ -637,12 +670,14 @@ def resampling(data1, data2, S=10000, testFunc=F_mean_diff_flat,
     test_list = []
     s_performed = 0
     for s in range(S):
-        if len(perm) >0:
-            perm = permFunc(perm)
+        if mean1+mean2 > 0:
+#            perm = permFunc(perm) 
+            if site_restricted: perm = site_restricted_permutation(perm) #TRI - I could have passed this in as permFunc, but I don't want to require the caller to know this
+            else: perm = permFunc(perm) #TRI
             if not lib_str1:
                 test_sample = testFunc(perm[:n1], perm[n1:])
-            else:
-                test_sample = testFunc(perm)
+            else: # case for lib strings
+                test_sample = testFunc(perm) # how do I know how many counts are in cond1 or cond2? perm is a dict over lib strings (and conds?)
         else:
             test_sample = 0
 
@@ -718,10 +753,10 @@ def combine_lib_dicts(L1, L2):
     KEYS = L1.keys()
     DATA = {}
     for K in KEYS:
-        DATA[K] = numpy.array([L1[K], L2[K]])
+        DATA[K] = numpy.array([L1[K], L2[K]],dtype=object)
     return DATA
 
-#
+# it looks like data1 is supposed to be pre-flattened (see parse_lib_index())
 
 def get_lib_data_dict(data1, ctrl_lib_str, data2, exp_lib_str, nTAs):
     lib1_index_dict = parse_lib_index(len(data1), ctrl_lib_str, nTAs)
@@ -848,10 +883,10 @@ if __name__ == "__main__":
  
     ii = numpy.ones(gene.n) == 1
         
-    data1 = gene.reads[:Kctrl,ii].flatten()
+    data1 = gene.reads[:Kctrl,ii].flatten() #TRI should we not flatten if doing site_restricted?
     data2 = gene.reads[Kctrl:,ii].flatten()
     
-    data_dict = get_lib_data_dict(data1, ctrl_lib_str, data2, exp_lib_str, gene.n)
+    data_dict = get_lib_data_dict(data1, ctrl_lib_str, data2, exp_lib_str, gene.n) # not used?
 
     if DO_LIB:
         (test_obs, mean1, mean2, log2FC, pval_ltail, pval_utail,  pval_2tail, testlist) =  resampling(data1, data2, S=10000, testFunc=F_mean_diff_dict, permFunc=F_shuffle_dict_libraries, adaptive=False, lib_str1=ctrl_lib_str, lib_str2=exp_lib_str)

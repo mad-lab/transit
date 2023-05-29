@@ -343,6 +343,8 @@ class MainFrame ( wx.Frame ):
         cTermSizer.Add( self.globalCTerminusText, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
         cTermSizer.Add( self.globalCTerminusIcon, 1, wx.ALIGN_CENTER, 5 )
 
+        lib_tooltip = 'String of letters indicating the Tn library each dataset comes from. For example, if there are three datasets from two different libraries, then set the string to "ABB", "AAB", or "ABA". The set of letters used must match the number of datasets. The same library letter codes must be use for both control and experimental samples; there has to be at least sample of each library in both sets. If the library string is left BLANK, it will be assumed that all samples are from the same Tn library by default.'
+
         # Control Libraries text - GLOBAL
         ctrlLibSizer = wx.BoxSizer( wx.HORIZONTAL )
         self.ctrlLibLabel = wx.StaticText(self.globalPanel, wx.ID_ANY, u"Control Libraries:",
@@ -350,12 +352,7 @@ class MainFrame ( wx.Frame ):
         self.ctrlLibLabel.Wrap( -1 )
         self.ctrlLibText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, "",
             wx.DefaultPosition, (-1,-1), 0 )
-        self.ctrlLibTip = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY,
-            tooltip="String of letters representing an \
-            identifier for the libraries the datasets belong to. For example, if adding three \
-            datasets of different libraries, change the string to 'ABC'. Set of letters used  \
-            must match those in Experimental datasets. Keep empty or with all letters equal, e.g. \
-            'AAA', to do regular resampling.")
+        self.ctrlLibTip = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY,tooltip=lib_tooltip)
 
         self.ctrlLibText.Disable()
         ctrlLibSizer.Add(self.ctrlLibLabel, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
@@ -370,11 +367,7 @@ class MainFrame ( wx.Frame ):
         self.expLibLabel.Wrap( -1 )
         self.expLibText = wx.TextCtrl( self.globalPanel, wx.ID_ANY, "", wx.DefaultPosition,
             (-1,-1), 0 )
-        self.expLibTip = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY,
-            tooltip="String of letters representing an identifier for the libraries the datasets \
-            belong to. For example, if adding three datasets of different libraries, change the \
-            string to 'ABC'. Set  of letters used must match those in Control datasets. Keep \
-            empty or with all letters equal, e.g. 'AAA', to do regular resampling.")
+        self.expLibTip = pytransit.analysis.base.InfoIcon(self.globalPanel, wx.ID_ANY,tooltip=lib_tooltip)
 
         self.expLibText.Disable()
         expLibSizer.Add(self.expLibLabel, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
@@ -382,10 +375,14 @@ class MainFrame ( wx.Frame ):
         expLibSizer.Add(self.expLibTip, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
-        globalSizerVT.Add( nTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
-        globalSizerVT.Add( cTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
-        globalSizerVT.Add( ctrlLibSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
-        globalSizerVT.Add( expLibSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        #globalSizerVT.Add( nTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        #globalSizerVT.Add( cTermSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        #globalSizerVT.Add( ctrlLibSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        #globalSizerVT.Add( expLibSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        globalSizerVT.Add( nTermSizer, 1, wx.EXPAND, 5 )
+        globalSizerVT.Add( cTermSizer, 1, wx.EXPAND, 5 )
+        globalSizerVT.Add( ctrlLibSizer, 1, wx.EXPAND, 5 )
+        globalSizerVT.Add( expLibSizer, 1, wx.EXPAND, 5 )
 
 
 
@@ -1134,7 +1131,7 @@ class TnSeekFrame(MainFrame):
         self.list_ctrl.Select(self.index_ctrl)
         self.index_ctrl+=1
         try:
-            self.ctrlLibText.SetValue(self.ctrlLibText.GetValue()+"A")
+            pass # self.ctrlLibText.SetValue(self.ctrlLibText.GetValue()+"A")
         except Exception as e:
             transit_tools.transit_message("Error Modifying Ctrl Lib String: %s" % e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -1157,7 +1154,7 @@ class TnSeekFrame(MainFrame):
         self.index_exp+=1
 
         try:
-            self.expLibText.SetValue(self.expLibText.GetValue()+"A")
+            pass # self.expLibText.SetValue(self.expLibText.GetValue()+"A")
         except Exception as e:
             transit_tools.transit_message("Error Modifying Ctrl Lib String: %s" % e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -1757,7 +1754,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
         window = 100
         for j in range(K):
 
-            size = len(position)/window + 1
+            size = int(len(position)/window) + 1 # python3 requires explicit rounding to int
             x_w = numpy.zeros(size)
             y_w = numpy.zeros(size)
             for i in range(size):
@@ -1767,7 +1764,7 @@ along with TRANSIT.  If not, see <http://www.gnu.org/licenses/>.
             y_smooth = stat_tools.loess(x_w, y_w, h=10000)
             plt.plot(x_w, y_w, "g+")
             plt.plot(x_w, y_smooth, "b-")
-            plt.xlabel("Genomic Position")
+            plt.xlabel("Genomic Position (TA sites)")
             plt.ylabel("Reads per 100 insertion sites")
 
             plt.title("LOESS Fit - %s" % transit_tools.basename(datasets_selected[j]) )

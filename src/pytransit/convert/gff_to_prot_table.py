@@ -122,12 +122,15 @@ class GffProtMethod(base.ConvertMethod):
     def get_description(self, line, parent):
         cols = line.split('\t')
         labels = {}
+        print(line)
+        print(len(cols))
         for pair in cols[8].split(";"):
             k, v = pair.split('=')
             labels[k] = v
 
         if (cols[2]) == "CDS" and labels["Parent"] == parent:
-            return labels.get("Note", '-')
+            #return labels.get("Note", '-')
+            return labels.get("product", '-')
         return '-'
 
     def Run(self):
@@ -139,27 +142,27 @@ class GffProtMethod(base.ConvertMethod):
         self.transit_message("Converting annotation file from GFF3 format to prot_table format")
 
         for i, line in enumerate(lines):
-            lie = line.strip()
-            if line.startswith('#'): continue
+            line = line.strip()
+            if len(line)==0 or line.startswith('#'): continue
             cols = line.split('\t')
-            if (len(cols) < 9):
-                print("Ignoring invalid row with entries: {0}".format(cols))
-            elif (cols[2]) == "region": continue
-            elif (cols[2]) == "CDS": continue
-            elif (cols[2]) == "gene":
+            if (len(cols) < 9): 
+                sys.stderr.write(("Ignoring invalid row with entries: {0}\n".format(cols)))
+                continue
+            if (cols[2]) == "CDS": # if you also want tRNAs and rRNAs, modify here
+                if "locus_tag" not in line: print("warning: skipping lines that do not contain 'locus_tag'"); continue
                 start = int(cols[3])
                 end = int(cols[4])
                 strand = cols[6].strip()
+                size = int(abs(end-start+1)/3) # includes stop codon
                 labels = {}
-                diff = int(abs(end - start)/3) ## What is this called?
                 for pair in cols[8].split(";"):
                     k, v = pair.split('=')
                     labels[k.strip()] = v.strip()
-
                 Rv = labels["locus_tag"].strip() # error out if not found
-                gene = labels.get('Name', '')
-                desc = self.get_description(lines[i + 1], labels.get("ID", "")) if (i + 1) < len(lines) else '-'
-                vals = [desc, start, end, strand, diff, '-', '-', gene, Rv, '-']
+                gene = labels.get('gene', '') # or Name?
+                if gene=="": gene = '-'
+                desc = labels.get('product', '') 
+                vals = [desc, start, end, strand, size, '-', '-', gene, Rv, '-']
                 writer.writerow(vals)
         output_file.close()
         self.transit_message("Finished conversion")

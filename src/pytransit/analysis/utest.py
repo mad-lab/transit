@@ -107,12 +107,12 @@ class UTestGUI(base.AnalysisGUI):
         mainSizer1 = wx.BoxSizer( wx.VERTICAL )
 
         #(, , Sizer) = self.defineChoiceBox(utestPanel, u"", u"", "")
-        #mainSizer1.Add(Sizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        #mainSizer1.Add(Sizer, 1, wx.EXPAND, 5 )
 
         # Norm
         utestNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
         (utestNormLabel, self.wxobj.utestNormChoice, normSizer) = self.defineChoiceBox(utestPanel, u"Normalization:", utestNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods. ")
-        mainSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(normSizer, 1, wx.EXPAND, 5 )
 
 
         utestSizer.Add( mainSizer1, 1, wx.EXPAND, 5 )
@@ -361,7 +361,7 @@ class UTestMethod(base.DualConditionMethod):
                 memberstr += "%s = %s, " % (m, getattr(self, m))
             self.output.write("#GUI with: norm=%s, includeZeros=%s, output=%s\n" % (self.normalization, self.includeZeros, self.output.name.encode('utf-8')))
         else:
-            self.output.write("#Console: python %s\n" % " ".join(sys.argv))
+            self.output.write("#Console: python3 %s\n" % " ".join(sys.argv))
         self.output.write("#Control Data: %s\n" % (",".join(self.ctrldata).encode('utf-8')))
         self.output.write("#Experimental Data: %s\n" % (",".join(self.expdata).encode('utf-8')))
         self.output.write("#Annotation path: %s\n" % (self.annotation_path.encode('utf-8')))
@@ -381,7 +381,7 @@ class UTestMethod(base.DualConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s utest <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        return """python3 %s utest <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
 
         Optional Arguments:
         -n <string>     :=  Normalization method. Default: -n TTR

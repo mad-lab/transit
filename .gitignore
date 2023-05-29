@@ -1,5 +1,16 @@
-# # Mac
+# 
+# standard
+# 
+**/*.do_not_sync
+**/*.do_not_sync.*
+**/*.ignore
+**/*.ignore.*
+**/*.secret
+**/*.secret.*
+
+# Mac
 .DS_STORE
+.DS_Store
 .env
 
 # Byte-compiled / optimized / DLL files

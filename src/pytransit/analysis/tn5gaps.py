@@ -93,13 +93,13 @@ class Tn5GapsGUI(base.AnalysisGUI):
         # Min Read
         tn5GapsReadChoiceChoices = [ u"1", u"2", u"3", u"4", u"5" ]
         (tn5GapsReadLabel, self.wxobj.tn5GapsReadChoice, readSizer) = self.defineChoiceBox(tn5GapsPanel, u"Minimum Read:", tn5GapsReadChoiceChoices, "This is the minimum number of reads to consider a 'true' insertion. Value of 1 will consider all insertions. Larger values allow the method to ignore spurious insertions which might interrupt a run of non-insertions. Noisy datasets or those with many replicates can beneffit from increasing this.")
-        mainSizer1.Add(readSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(readSizer, 1, wx.EXPAND, 5 )
    
 
         # Replicates
         tn5GapsRepChoiceChoices = [ u"Sum", u"Mean" ]
         (tn5GapsRepLabel, self.wxobj.tn5GapsRepChoice, repSizer) = self.defineChoiceBox(tn5GapsPanel, u"Replicates:", tn5GapsRepChoiceChoices, "Determines how to handle replicates, and their read-counts. When using many replicates, summing read-counts may make spurious counts appear to be significantly large and interrupt a run of non-insertions.")
-        mainSizer1.Add(repSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(repSizer, 1, wx.EXPAND, 5 )
 
 
         tn5GapsSection.Add( mainSizer1, 1, wx.EXPAND, 5 )
@@ -234,7 +234,7 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         self.transit_message("Starting Tn5 gaps method")
         start_time = time.time()
         
-        self.transit_message("Getting data (May take a while)")
+        self.transit_message("Loading data (May take a while)")
         
         # Combine all wigs
         (data,position) = transit_tools.get_validated_data(self.ctrldata, wxobj=self.wxobj)
@@ -256,7 +256,7 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         exp_cutoff = exprunmax + 2*stddevrun
 
         # Get the runs
-        self.transit_message("Getting non-insertion runs in genome")
+        self.transit_message("Identifying non-insertion runs in genome")
         run_arr = tnseq_tools.runs_w_info(counts)
         pos_hash = transit_tools.get_pos_hash(self.annotation_path)
 
@@ -275,13 +275,13 @@ class Tn5GapsMethod(base.SingleConditionMethod):
             count += 1
             genes = tnseq_tools.get_genes_in_range(pos_hash, run['start'], run['end'])
             for gene_orf in genes:
+                gene = genes_obj[gene_orf] # bug fix: moved this up
                 start,end = gene.start,gene.end
                 a,b = self.NTerminus,self.CTerminus
                 if gene.strand=="-": a,b = b,a
                 start = start+int((end-start)*(a/100.))
                 end = end-int((end-start)*(b/100.))
 
-                gene = genes_obj[gene_orf]
                 inter_sz = self.intersect_size([run['start'], run['end']], [start,end]) + 1
                 percent_overlap = self.calc_overlap([run['start'], run['end']], [start,end])
                 run_len = run['length']
@@ -296,9 +296,10 @@ class Tn5GapsMethod(base.SingleConditionMethod):
                     results_per_gene[gene.orf] = [gene.orf, gene.name, gene.desc, gene.k, gene.n, gene.r, inter_sz, run_len, pval]
             
             # Update Progress
-            text = "Running Tn5Gaps method... %1.1f%%" % (100.0*count/N) 
-            self.progress_update(text, count)
-                
+            if count%10000==0: 
+              text = "Running Tn5Gaps method... %1.1f%%" % (100.0*count/N) 
+              self.progress_update(text, count)
+
         data = list(results_per_gene.values())
         exp_run_len = float(accum)/N
         
@@ -323,7 +324,7 @@ class Tn5GapsMethod(base.SingleConditionMethod):
                 memberstr += "%s = %s, " % (m, getattr(self, m))
             self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8')))
         else:
-            self.output.write("#Console: python %s\n" % " ".join(sys.argv))
+            self.output.write("#Console: python3 %s\n" % " ".join(sys.argv))
 
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
         self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
@@ -331,9 +332,10 @@ class Tn5GapsMethod(base.SingleConditionMethod):
         self.output.write("#Essential gene count: %d\n" % (sig_genes_count))
         self.output.write("#Minimum reads: %d\n" % (self.minread))
         self.output.write("#Replicate combination method: %s\n" % (self.replicates))
+        self.output.write("#Insertion density: %0.3f\n" % (pins))
+        self.output.write("#Mean run length: %0.1f\n" % (exp_run_len))
+        self.output.write("#Expected max run length: %0.1f\n" % (exprunmax))
         self.output.write("#Minimum significant run length: %d\n" % (min_sig_len))
-        self.output.write("#Expected run length: %1.5f\n" % (exp_run_len))
-        self.output.write("#Expected max run length: %s\n" % (exprunmax))
         self.output.write("#%s\n" % "\t".join(columns))
         #self.output.write("#Orf\tName\tDesc\tk\tn\tr\tovr\tlenovr\tpval\tpadj\tcall\n")
 
@@ -350,8 +352,8 @@ class Tn5GapsMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        #return """python %s resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
-        return """python %s tn5gaps <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        #return """python3 %s resampling <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        return """python3 %s tn5gaps <comma-separated .wig files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
     
         Optional Arguments:
         -m <integer>    :=  Smallest read-count to consider. Default: -m 1

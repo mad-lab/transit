@@ -143,7 +143,7 @@ class TnseqStatsMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """usage: python %s tnseq_stats <file.wig>+ [-o <output_file>]\n       python %s tnseq_stats -c <combined_wig> [-o <output_file>]
+        return """usage: python3 %s tnseq_stats <file.wig>+ [-o <output_file>]\n       python %s tnseq_stats -c <combined_wig> [-o <output_file>]
         """ % (sys.argv[0],sys.argv[0])
 
 

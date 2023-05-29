@@ -80,14 +80,14 @@ class RankProductGUI(base.AnalysisGUI):
         
         # SAMPLES
         (rankproductSampleLabel, self.wxobj.rankproductSampleText, sampleSizer) = self.defineTextBox(rankproductPanel, u"Samples:", u"10000", "Number of samples to take when estimating the theoretical rankproduct distribution. Larger samples give more accurate estimates at the cost of computation time.")
-        mainSizer1.Add(sampleSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(sampleSizer, 1, wx.EXPAND, 5 )
 
     
         # NORMALIZATION
         # Norm 
         rankproductNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
         (rankproductNormLabel, self.wxobj.rankproductNormChoice, normSizer) = self.defineChoiceBox(rankproductPanel, u"Normalization:", rankproductNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods. ") 
-        mainSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        mainSizer1.Add(normSizer, 1, wx.EXPAND, 5 )
 
         rankproductSizer.Add( mainSizer1, 1, wx.EXPAND, 5 )
 
@@ -330,7 +330,7 @@ class RankProductMethod(base.DualConditionMethod):
                 memberstr += "%s = %s, " % (m, getattr(self, m))
             self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8')))
         else:
-            self.output.write("#Console: python %s\n" % " ".join(sys.argv))
+            self.output.write("#Console: python3 %s\n" % " ".join(sys.argv))
 
         self.output.write("#Data: %s\n" % (",".join(self.ctrldata).encode('utf-8'))) 
         self.output.write("#Annotation path: %s\n" % self.annotation_path.encode('utf-8')) 
@@ -350,7 +350,7 @@ class RankProductMethod(base.DualConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s rankproduct <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
+        return """python3 %s rankproduct <comma-separated .wig control files> <comma-separated .wig experimental files> <annotation .prot_table or GFF3> <output file> [Optional Arguments]
     
         Optional Arguments:
         -s <integer>    :=  Number of samples. Default: -s 100

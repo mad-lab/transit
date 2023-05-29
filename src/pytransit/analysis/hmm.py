@@ -129,18 +129,18 @@ class HMMGUI(base.AnalysisGUI):
         hmmSizer1 = wx.BoxSizer( wx.VERTICAL )
 
         #(, , Sizer) = self.defineChoiceBox(hmmPanel, u"", hmmNormChoiceChoices, "")
-        #hmmSizer1.Add(Sizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        #hmmSizer1.Add(Sizer, 1, wx.EXPAND, 5 )
 
         # NORMALIZATION
         hmmNormChoiceChoices = [ u"TTR", u"nzmean", u"totreads", u'zinfnb', u'quantile', u"betageom", u"nonorm" ]
         (hmmNormLabel, self.wxobj.hmmNormChoice, normSizer) = self.defineChoiceBox(hmmPanel, u"Normalization:", hmmNormChoiceChoices, "Choice of normalization method. The default choice, 'TTR', normalizes datasets to have the same expected count (while not being sensative to outliers). Read documentation for a description other methods.")
-        hmmSizer1.Add(normSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        hmmSizer1.Add(normSizer, 1, wx.EXPAND, 5 )
 
 
         # REPLICATE
         hmmRepChoiceChoices = [ u"Sum", u"Mean" ]
         (hmmRepLabel, self.wxobj.hmmRepChoice, repSizer) = self.defineChoiceBox(hmmPanel, u"Replicates:", hmmRepChoiceChoices, "Determines how to handle replicates, and their read-counts. When using many replicates, using 'Mean' may be recommended over 'Sum'")
-        hmmSizer1.Add(repSizer, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+        hmmSizer1.Add(repSizer, 1, wx.EXPAND, 5 )
 
 
         # LOESS
@@ -373,7 +373,7 @@ class HMMMethod(base.SingleConditionMethod):
                 memberstr += "%s = %s, " % (m, getattr(self, m))
             self.output.write("#GUI with: ctrldata=%s, annotation=%s, output=%s\n" % (",".join(self.ctrldata).encode('utf-8'), self.annotation_path.encode('utf-8'), self.output.name.encode('utf-8')))
         else:
-            self.output.write("#Console: python %s\n" % " ".join(sys.argv))
+            self.output.write("#Console: python3 %s\n" % " ".join(sys.argv))
        
         self.output.write("# \n")
         self.output.write("# Mean:\t%2.2f\n" % (numpy.average(reads_nz)))
@@ -429,7 +429,7 @@ class HMMMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python %s hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output file>
+        return """python3 %s hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output file>
 
         Optional Arguments:
             -r <string>     :=  How to handle replicates. Sum, Mean. Default: -r Mean
@@ -466,7 +466,7 @@ class HMMMethod(base.SingleConditionMethod):
                 alpha[:,t] = 0.0000000000001
            
             text = "Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations)
-            self.progress_update(text, self.count)
+            if self.count%1000==0: self.progress_update(text, self.count)
             self.count+=1
             #print(t, O[:,t], alpha[:,t])
 
@@ -496,7 +496,7 @@ class HMMMethod(base.SingleConditionMethod):
                 beta[:,t] = beta[:,t] * C[t]
 
             text = "Running HMM Method... %1.1f%%" % (100.0*self.count/self.maxiterations)
-            self.progress_update(text, self.count)
+            if self.count%1000==0: self.progress_update(text, self.count)
             self.count+=1
 
         return(beta)
@@ -521,7 +521,7 @@ class HMMMethod(base.SingleConditionMethod):
             delta[:,t] = nus.max(1) + numpy.log(b_o)
             Q[:,t] = nus.argmax(1)
             text = "Running HMM Method... %5.1f%%" % (100.0*self.count/self.maxiterations)
-            self.progress_update(text, self.count)
+            if self.count%1000==0: self.progress_update(text, self.count)
             self.count+=1
 
         Q_opt = [int(numpy.argmax(delta[:,T-1]))]
@@ -529,7 +529,7 @@ class HMMMethod(base.SingleConditionMethod):
             Q_opt.insert(0, Q[Q_opt[0],t+1])
 
             text = "Running HMM Method... %5.1f%%" % (100.0*self.count/self.maxiterations)
-            self.progress_update(text, self.count)
+            if self.count%1000==0: self.progress_update(text, self.count)
             self.count+=1
 
         numpy.seterr(divide='warn')
@@ -602,7 +602,8 @@ class HMMMethod(base.SingleConditionMethod):
             if S not in counts: counts[S] = 0
             counts[S] += 1
 
-        output.write("#genes: ES=%s, GD=%s, NE=%s, GA=%s, N/A=%s\n" % tuple([counts.get(x,0) for x in "ES GD NE GA N/A".split()]))
+        output.write("#command line: python3 %s\n" % (' '.join(sys.argv)))
+        output.write("#summary of gene calls: ES=%s, GD=%s, NE=%s, GA=%s, N/A=%s\n" % tuple([counts.get(x,0) for x in "ES GD NE GA N/A".split()]))
         output.write("#key: ES=essential, GD=insertions cause growth-defect, NE=non-essential, GA=insertions confer growth-advantage, N/A=not analyzed (genes with 0 TA sites)\n")
         output.write("#ORF\tgene\tannotation\tTAs\tES sites\tGD sites\tNE sites\tGA sites\tsaturation\tmean\tcall\n")
         for line in lines: output.write(line)

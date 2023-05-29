@@ -1,6 +1,121 @@
 # Change log
 All notable changes to this project will be documented in this file.
 
+
+## Version 3.2.7 2022-09-22
+#### TRANSIT:
+
+Major changes:
+ - implemented site-restricted (S-R) resampling (as a checkbox in the GUI, and '-sr' flag on the command line)
+
+
+## Version 3.2.6 2022-08-03
+#### TRANSIT:
+
+Major changes:
+ - added a parameter 'alpha' to ANOVA to make the F-test less sensitive to genes with low counts, cutting down on 'irrelevant' genes with significant variability
+ - updated the online documentation to describe this
+
+Minor changes:
+ - fixed a (recently-introduced) bug that was causing the GUI to crash when running resampling
+ - updated 'export combined_wig' to include ref genome and column headers
+
+
+## Version 3.2.5 2022-06-15
+#### TRANSIT:
+
+Minor changes:
+ - update dependencies for pillow and sklearn
+ - refactor documentation (replace transit_methods.rst with separate .rst files)
+ - added rpy2 warning (if not installed) for corrplot and heatmap
+
+
+## Version 3.2.4 2022-06-05
+#### TRANSIT:
+
+Major changes:
+ - added 'ttnfitness' analysis method (to categorize growth-defect genes in single (reference) conditions, and compute TTN-fitness ratio to quantify the magnitude of growth defect based on comparison of observed insertion counts to expected counts at each TA site (based on surrounding nucleotides)
+ - added winzorization (-winz flag) to resampling, ANOVA, and ZINB (to help mitigate effects due to sites with outlier counts)
+ - fixed bug in ANOVA that assumed files in combined_wig and metadata were listed in same order (now they don't have to be)
+
+Minor changes:
+ - switched back to original implementation of mmfind() 
+ - added pathway assocation files for M. smegmatis to data dir 
+ - added --Pval_col and --Qval_col to pathway_enrichment.py 
+ - added --prot_table flag to zinb.py
+ - updated header info in output files for HMM, resampling, and ZINB
+ - updated explanation of -signif in documentation for Genetic Interactions
+ - cleaned up documentation
+
+	
+## Version 3.2.3 2021-10-16
+#### TRANSIT:
+  - added Binomial essentials (EB) to Gumbel analysis (supplementing genes categorized as E), to help with low-saturation datasets
+  - modified ANOVA and ZINB so that --include-conditions and --exclude-conditions refer to original Conditions column in samples metadata file (instead of whatever is specified by --conditions) 
+	
+#### TPP:
+  - improved metrics reported in *.tn_stats by TPP, to help diagnose why reads don't map
+	
+## Version 3.2.2 2021-09-08
+#### TRANSIT:
+ - fixed bug in converting gff_to_prot_table
+ - fixed bug in tn5gaps (fixes some false negative calls)
+ - fixed some bugs in pathway_enrichment (GSEA calculations)
+ - fixed links to Salmonella Tn5 data in docs
+ - fixed problem with margins in heatmap.py that was causing R to fail 
+ - added --ref to anova.py and zinb.py (for computing LFCs relative to designated reference condition)
+ - added --low_mean_filter for heatmap.py (for excluding genes with low counts, even if they are significant by ANOVA or ZINB)
+ - add dependency on pypubsub<4.0
+	
+## Version 3.2.1 2020-12-22
+#### TRANSIT:
+ - maintenance release
+  - fixed a bug in the GUI caused by changes in wxPython 4.1.0
+  - added GO terms for M. smegmatis in the data directory for doing pathway analysis
+
+## Version 3.2.0 2020-10-26
+#### TRANSIT:
+ - improvements to pathway_enrichment analysis
+  - added '--ranking' flag for GSEA to sort genes based on LFC or SLPV
+  - implemented Ontologizer method (-M ONT), which works better for GO terms
+  - updated auxilliary files in transit data directory for different systems of functional categories (COG, Sanger, GO)
+ - added '-signif' flag to GI (Genetic Interaction analysis) (options: HDI, prob, BFDR, FWER)
+  - updated description of methods for determining significant interactions in documentation
+ - various improvements to other methods, including corrplot and heatmap
+
+## Version 3.1.0 2020-03-08
+#### TRANSIT:
+ - added 'corrplot' and 'heatmap' commands
+ - pathway_enrichment: 
+  - completely re-done so it is faster and simpler
+  - now implements Fisher's exact test and GSEA
+  - can be used with COG categories and GO terms
+  - switch to 2-column format for associations files
+ - resampling: 
+  - changed semantics of pseudocounts from "fake sites" (-pc, dropped) to calculation of log-fold-changes (-PC, new)
+ - anova: 
+  - put columns for condition means in correct order
+  - added columns for log-fold-changes for each condition to output
+ - zinb: 
+  - improved handling of --include-conditions and --ignore-conditions
+  - now prints out a summary of how many samples are in each condition (including cross-product with covars and interactions)
+ - make pseudocounts flag (-PC) work uniformly for resampling, anova, and zinb
+
+	
+## Version 3.0.2 2019-12-21
+#### TRANSIT:
+ - Mostly cosmetic fixes
+ - Updated some command-line and GUI messages
+ - Updated documentation (especially for GI and resampling)
+ - Removed "warning: high stderr" from gene status in ZINB
+ - Added LFCs in ZINB output
+ - updated 'convert gff_to_prot_table' so it works with gff3 files downloaded from NCBI
+
+## Version 3.0.1 2019-08-01
+#### TRANSIT:
+ - Add check for python3 (TRANSIT 3+ requires python3.6+)
+ - Minor fixes in GI and Pathway Enrichment
+
 ## Version 3.0.0 2019-07-18
 #### TRANSIT:
  - TRANSIT now supports python 3. (To use with python 2, use releases < 3.0.0)

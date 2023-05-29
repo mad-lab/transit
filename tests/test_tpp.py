@@ -35,7 +35,7 @@ NOFLAG_PRIMER = [
         "# FR_corr (Fwd templates vs. Rev templates): 0.019",
         "# transposon type: Himar1",
         "# protocol type: Sassetti",
-        "# primer_matches: 8 reads (0.8%) contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT (Himar1)"
+        "#  primer_matches: 8 reads (0.8%) contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT (Himar1)"
         ]
 
 MME1_PROTOCOL = [
@@ -46,7 +46,7 @@ MME1_PROTOCOL = [
         "# NZ_mean (among templates): 1.0",
         "# transposon type: Himar1",
         "# protocol type: Mme1",
-        "# primer_matches: 8 reads (0.8%) contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT (Himar1)"
+        "#  primer_matches: 8 reads (0.8%) contain CTAGAGGGCCCAATTCGCCCTATAGTGAGT (Himar1)"
         ]
 
 FLAG_PRIMER = [

@@ -1,7 +1,10 @@
 # TRANSIT
 
 [![Version](https://img.shields.io/github/tag/mad-lab/transit.svg)](https://github.com/mad-lab/transit)   [![Build Status](https://travis-ci.org/mad-lab/transit.svg?branch=master)](https://travis-ci.org/mad-lab/transit)   [![Documentation Status](https://readthedocs.org/projects/transit/badge/?version=latest)](http://transit.readthedocs.io/en/latest/?badge=latest)   [![Downloads](https://pepy.tech/badge/tnseq-transit)](https://pepy.tech/project/tnseq-transit)
+
 =======
+
+**NOTE: TRANSIT v3.0+ now requires python3.6+. If you want to use TRANSIT with python2, use version < 3.0.**
 
 Welcome! This is the distribution for the TRANSIT and TPP tools developed by the [Ioerger Lab](http://orca2.tamu.edu/tom/iLab.html) at Texas A&M University.
 
@@ -22,7 +25,7 @@ TRANSIT offers a variety of features including:
 
 -   Ability to analyze datasets from libraries constructed using  **himar1 or tn5 transposons**.
 
--   **TrackView** to help visualize read-counts accross the genome.
+-   **TrackView** to help visualize read-counts across the genome.
 
 -   Can **export datasets** into a variety of formats, including **IGV**.
 
