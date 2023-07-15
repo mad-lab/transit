@@ -5,6 +5,7 @@ Note that the first step requires some data files.
 
 * ShiquiCGI_metadata.txt - describes the samples
 * Bosch21_TableS2.txt - contains betaE estimates for each sgRNA
+* Bosch21_TableS2.txt - contains extrapolated LFCs for each sgRNA
 * no_depletion_abundances.txt - pre-calculated abundance for -ATC (no induction of target depletion)
 
 Preliminary step: download raw counts from github
@@ -16,13 +17,13 @@ Preliminary step: download raw counts from github
   > ln -s CGI_nature_micro_2022/data data
 
 usage: 
-  python3 ../src/transit.py CGI extract_abund <metadata_file> <data_dir> <betaE_file> <no_drug_file> <no_depletion_abundances_file> <drug> <days>  >  <output_file>
+  python3 ../src/transit.py CGI extract_abund <metadata_file> <data_dir> <extracted_LFCs_file> <no_drug_file> <no_depletion_abundances_file> <drug> <days>  >  <output_file>
   python3 ../src/transit.py CGI run_model <abund_file>  >  <logsigmodfit_file>
   python3 ../src/transit.py CGI post_process <logsigmoidfit_file>  >  <results_file>
 
 example of pipeline:
 
-> python3 ../src/transit.py CGI extract_abund ShiquiCGI_metadata.txt data/counts/ Bosch21_TableS2.txt counts_1972_DMSO_D5.txt no_depletion_abundances.txt RIF 5 > frac_abund.RIF_D5.txt
+> python3 ../src/transit.py CGI extract_abund ShiquiCGI_metadata.txt data/counts/ Bosch21_TableS2_extended.txt counts_1972_DMSO_D5.txt no_depletion_abundances.txt RIF 5 > frac_abund.RIF_D5.txt
 
   gathers relevant samples (at all available concs, and DMSO representing 0xMIC)
   calculates fractional abundances (normalized within samples, relative to no-depletion abundances, essentially fractions)

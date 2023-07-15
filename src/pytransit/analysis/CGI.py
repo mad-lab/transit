@@ -98,7 +98,7 @@ class CGI_Method(base.SingleConditionMethod):
     @classmethod
     def usage_string(self):
         return """usage (3 sub-commands):
-  python3 ../src/transit.py CGI extract_abund <metadata_file> <data_dir> <betaE_file> <no_drug_file> <no_depletion_abundances_file> <drug> <days>  >  <output_file>
+  python3 ../src/transit.py CGI extract_abund <metadata_file> <data_dir> <extracted_LFCs_file> <no_drug_file> <no_depletion_abundances_file> <drug> <days>  >  <output_file>
   python3 ../src/transit.py CGI run_model <abund_file>  >  <logsigmodfit_file>
   python3 ../src/transit.py CGI post_process <logsigmoidfit_file>  >  <results_file>
 note: redirect output from stdout to output files as shown above"""
@@ -127,15 +127,16 @@ note: redirect output from stdout to output files as shown above"""
 
           metadata_file = args[0]
           data_dir = args[1]
-          betaE_file = args[2]
+          extracted_LFCs_file = args[2]
           no_drug_file = args[3]
           no_dep_abund = args[4]
           drug = args[5]
           days = args[6]
 
-          self.extract_abund(metadata_file,data_dir,betaE_file,no_drug_file,no_dep_abund,drug,days)
+          self.extract_abund(metadata_file,data_dir,extracted_LFCs_file,no_drug_file,no_dep_abund,drug,days)
         
         elif cmd == "run_model":
+           
           logsigmoidFunc = self.run_model()
           ifile_path = args[0] #example frac_abund_RIF_D5.txt
           if len(args)>1:
@@ -143,7 +144,6 @@ note: redirect output from stdout to output files as shown above"""
             logsigmoidFunc(ifile_path,genename)
           else:
             logsigmoidFunc(ifile_path)
-
         elif cmd == "post_process":
             logsig_file_path = args[0]
 
@@ -160,21 +160,21 @@ note: redirect output from stdout to output files as shown above"""
     #   (important, since it sets a lower bound on vals, below which is assumed to be noise)
     #   how will this differ between libraries or sequencing runs?
 
-    def extract_abund(self,metadata_file,data_dir,betaE_file,no_drug_file,no_dep_abund,drug,days,PC=1e-8):
-      #print("in extract_abund: betaE_file=%s, days=%s" % (betaE_file,days))
+    def extract_abund(self,metadata_file,data_dir,extracted_LFCs_file,no_drug_file,no_dep_abund,drug,days,PC=1e-8):
+      #print("in extract_abund: extracted_LFCs_file=%s, days=%s" % (extracted_LFCs_file,days))
 
       #################
       # read in all the files with supporting data
   
-      betaE = {}
+      extracted_LFCs = {}
       skip = 1
-      for line in open(betaE_file): # Bosch21_TableS2.txt
+      for line in open(extracted_LFCs_file): # Bosch21_TableS2.txt
         if skip>0: skip -= 1; continue
         w = line.rstrip().split('\t')
-        if len(w[9])<2: continue # some betaE entries are empty
-        id,b = w[0],float(w[9])
+        if len(w[9])<2: continue # some extracted_LFCs entries are empty
+        id,b = w[0],float(w[-1])
         id = id[:id.rfind("_")] # strip off v4PAMscore...
-        betaE[id] = b
+        extracted_LFCs[id] = b
       
       metadata = Spreadsheet(metadata_file) # ShiquiCGI_metadata.txt
       
@@ -224,7 +224,7 @@ note: redirect output from stdout to output files as shown above"""
           w = line.rstrip().split('\t')
           id = w[0]
           id = id[:id.rfind("_")]
-          vals = [int(x) for x in w[1:]]
+          vals = [float(x) for x in w[1:]]
           counts[id] = vals # rows of 3
         for i in range(3): # assume there are 3 replicates in each file
           cnts = [x[i] for x in counts.values()] # a column
@@ -236,18 +236,18 @@ note: redirect output from stdout to output files as shown above"""
       
       # assumes that sgRNA ids embed orf and gene ids, e.g. "RVBD00067:rpoB" 
       
-      print('\t'.join("orf gene id abund betaE".split()+[str(x) for x in Concs]))
+      print('\t'.join("orf gene id abund extracted_LFCs".split()+[str(x) for x in Concs]))
       a,b = 0,0
       for i,id in enumerate(IDs):
         #vals = [id]+["%0.8f" % x[i] for x in Abund]
-        if id not in betaE: a += 1; continue; #sys.stderr.write("%s not in betaE\n" % id); continue
+        if id not in extracted_LFCs: a += 1; continue; #sys.stderr.write("%s not in extracted_LFCs\n" % id); continue
         if id not in no_dep: b += 1; continue # sys.stderr.write("%s not in no_dep\n" % id); continue
         temp = id[:id.find("_")].split(":") # assumes that sgRNA ids embed orf and gene ids, e.g. "RVBD00067:rpoB" 
         orf,gene = temp[0],temp[1]
-        vals = [orf,gene,id,"%0.8f" % (no_dep[id]),str(betaE[id])]+["%0.6f" % ((x[i]+PC)/(no_dep[id]+PC)) for x in Abund]
+        vals = [orf,gene,id,"%0.8f" % (no_dep[id]),str(extracted_LFCs[id])]+["%0.6f" % ((x[i]+PC)/(no_dep[id]+PC)) for x in Abund]
         print('\t'.join(vals))
       
-      sys.stderr.write("warning: betaE values not found for %s gRNAs\n" % a)
+      sys.stderr.write("warning: extracted_LFCs values not found for %s gRNAs\n" % a)
       sys.stderr.write("warning: no_dep values not found for %s gRNAs\n" % b)
 
   #####################################################
@@ -255,16 +255,22 @@ note: redirect output from stdout to output files as shown above"""
   # derived from logsigmoidfit.R
   # see heatmap.py for example of how to put data in a pandas.DataFrame and call an R function like make_heatmapFunc()
 
+
     def run_model(self):
+        
         r('''
 
         logsigmoid = function (ifile,gene_input){
+          
             data = read.table(ifile,head=T,sep='\t')
             ORFs = sort(unique(data$orf))
             THEGENE = "???"
-
-            if(! missing(gene_input)){
-                THEGENE = gene_input
+            if (length(args)>1) 
+            {
+            #ORFs = c(args[2])
+            if (length(args)>1) THEGENE = c(args[2])
+            #temp = data[data$gene==args[2],]
+            #ORFs = c(temp$orf[1])
             }
 
             logsigmoid = function(x) { log10(x/(1-x)) }
@@ -276,16 +282,8 @@ note: redirect output from stdout to output files as shown above"""
             PC = 0.01
             for (i in 6:17)
             {
-            data[,i] = PC+(1-PC)*(1-exp(-2*data[,i]))/(1+exp(-2*data[,i]))
+                data[,i] = PC+(1-PC)*(1-exp(-2*data[,i]))/(1+exp(-2*data[,i]))
             }
-
-            #summary(data$betaE)
-            #    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-            #-1.71179 -0.30520 -0.06266 -0.20121 -0.01427  0.84667 
-
-            #data$betaEpos = -(data$betaE-max(data$betaE))
-            data$betaEpos = data$betaE-min(data$betaE)+0.01
-
             ######################################
 
             require(reshape2)
@@ -293,63 +291,59 @@ note: redirect output from stdout to output files as shown above"""
 
             for (orf in ORFs)
             {
-            subset = data[data$orf==orf,]
-            nobs = dim(subset)[1]
-            gene = as.character(subset[1,"gene"])
-            if (THEGENE!="???" & gene!=THEGENE) { next }
+                subset = data[data$orf==orf,]
+                nobs = dim(subset)[1]
+                gene = as.character(subset[1,"gene"])
+                if (THEGENE!="???" & gene!=THEGENE) { next }
+                cat(sprintf("analyzing %s:%s\n",orf,gene),file=stderr())
 
-            cat("----------------------\n")
-            cat(sprintf("%s %s %s\n",orf,gene,nobs))
-            if (gene=="ligC") { print("skipping"); next } # fit nearly perfect because some frac abune >30
+                cat("----------------------\n")
+                cat(sprintf("%s %s %s\n",orf,gene,nobs))
+                if (gene=="ligC") { print("skipping"); next } # fit nearly perfect because some frac abund >30
 
-            # note: although concs are like 0, 0.0625, 0.125, 0.25 (different range for each drug)
-            #  treat them as 1, 2, 4, 8 for simplicity (it doesn't matter, as long as they are 2 fold dilutions)
-            #  this also assumes "0" is half of the lowest concentration 
+                # note: although concs are like 0, 0.0625, 0.125, 0.25 (different range for each drug)
+                #  treat them as 1, 2, 4, 8 for simplicity (it doesn't matter, as long as they are 2 fold dilutions)
+                #  this also assumes "0" is half of the lowest concentration 
 
-            temp = cbind(subset[,c("id","betaEpos")],subset[,6:17])
-            colnames(temp)=c("id","betaEpos","a1","a2","a3","b1","b2","b3","c1","c2","c3","d1","d2","d3")
-            melted = melt(temp,id.vars=c("id","betaEpos"),variable.name="conc",value.name="abund")
+                temp = cbind(subset[,c("id","extracted_LFCs")],subset[,6:17])
+                colnames(temp)=c("id","extracted_LFCs","a1","a2","a3","b1","b2","b3","c1","c2","c3","d1","d2","d3")
+                melted = melt(temp,id.vars=c("id","extracted_LFCs"),variable.name="conc",value.name="abund")
 
-            melted$newconc = 0
-            melted$newconc[melted$conc=="a1"] = 1
-            melted$newconc[melted$conc=="a2"] = 1
-            melted$newconc[melted$conc=="a3"] = 1
-            melted$newconc[melted$conc=="b1"] = 2
-            melted$newconc[melted$conc=="b2"] = 2
-            melted$newconc[melted$conc=="b3"] = 2
-            melted$newconc[melted$conc=="c1"] = 4
-            melted$newconc[melted$conc=="c2"] = 4
-            melted$newconc[melted$conc=="c3"] = 4
-            melted$newconc[melted$conc=="d1"] = 8
-            melted$newconc[melted$conc=="d2"] = 8
-            melted$newconc[melted$conc=="d3"] = 8
+                melted$newconc = 0
+                melted$newconc[melted$conc=="a1"] = 1
+                melted$newconc[melted$conc=="a2"] = 1
+                melted$newconc[melted$conc=="a3"] = 1
+                melted$newconc[melted$conc=="b1"] = 2
+                melted$newconc[melted$conc=="b2"] = 2
+                melted$newconc[melted$conc=="b3"] = 2
+                melted$newconc[melted$conc=="c1"] = 4
+                melted$newconc[melted$conc=="c2"] = 4
+                melted$newconc[melted$conc=="c3"] = 4
+                melted$newconc[melted$conc=="d1"] = 8
+                melted$newconc[melted$conc=="d2"] = 8
+                melted$newconc[melted$conc=="d3"] = 8
 
-            means = aggregate(logsigmoid(abund)~id+newconc,data=melted,FUN=mean)
-            a = colnames(means); a[3] = "mean"; colnames(means) = a
-            vars = aggregate(logsigmoid(abund)~id+newconc,data=melted,FUN=var)
-            a = colnames(vars); a[3] = "var"; colnames(vars) = a
+                means = aggregate(logsigmoid(abund)~id+newconc,data=melted,FUN=mean)
+                a = colnames(means); a[3] = "mean"; colnames(means) = a
+                vars = aggregate(logsigmoid(abund)~id+newconc,data=melted,FUN=var)
+                a = colnames(vars); a[3] = "var"; colnames(vars) = a
 
-            X = round(means[,3],1)
-            weights = 1 
+                X = round(means[,3],1)
 
-            f = function(row) { temp[temp$id==row[1] & temp$newconc==row[2],"weight"] }
-            w = apply(melted[,c("id","newconc")],1,f)
-            melted$weight = w
+                #write.table(melted,"melted.txt",sep='\t',quote=F); print("writing melted.txt")
 
-            write.table(melted,"melted.txt",sep='\t',quote=F); print("writing melted.txt")
+                tryCatch( 
+                {
+                mod = lm(logsigmoid(abund)~extracted_LFCs+log2(newconc),data=melted)
+                print(summary(mod))
+                summ = summary(mod)
 
-            tryCatch( 
-            {
-            mod = lm(logsigmoid(abund)~log10(betaEpos)+log2(newconc),data=melted)
-            print(summary(mod))
-            summ = summary(mod)
-            
-            coeffs = summ$coefficients[,1]
-            pvals = summ$coefficients[,4]
-            cat(sprintf("result: %s %s %s %s %s %s %s %s %s\n",orf,gene,nobs,coeffs[1],coeffs[2],coeffs[3],pvals[1],pvals[2],pvals[3]))
-            },
-            error = function (e) { print("skipping due to error with lm")  } 
-            )
+                coeffs = summ$coefficients[,1]
+                pvals = summ$coefficients[,4]
+                cat(sprintf("result: %s %s %s %s %s %s %s %s %s\n",orf,gene,nobs,coeffs[1],coeffs[2],coeffs[3],pvals[1],pvals[2],pvals[3]))
+                },
+                error = function (e) { cat(sprintf("!!! skipping %s:%s due to error with lm\n",orf,gene),file=stderr())  } 
+                )
             }
         }
 
@@ -363,27 +357,30 @@ note: redirect output from stdout to output files as shown above"""
         import scipy.stats
   
         data = []
-        log_conc_coefs = []
         for line in open(logsigmoid_file):
             if line.startswith("result:"):
                 w = line.split()
+                # result lines end in 3 coeffs + 3 pvals: <intercept,betaEcoeff,concCoeff> <interceptPval,betaEpval,concPval>
                 pval = float(w[-1]) if w[-1]!="NA" else 1
-                data.append((pval,w))
-                coef = float(w[5]) if w[5]!="NA" else 0
-                log_conc_coefs.append(coef)
+                slope = float(w[-4]) if w[-1]!="NA" else 0 
+                data.append((pval,slope,w))
 
+        slopes = [x[1] for x in data] 
+        m = numpy.mean(slopes)
+        s = numpy.std(slopes)
 
         pvals = [x[0] for x in data]
         qvals = fdrcorrection(pvals)[1] # I assume this is Benjamini-Hochberg method
-        zscores = scipy.stats.zscore(log_conc_coefs)
-        data = [(x[0],x[1]+[q], z) for x,q,z in zip(data,qvals,zscores)]
+        data = [(slope,qval,pval,w) for (pval,slope,w),qval in zip(data,qvals)]
 
-        data.sort()
-        print ('\t'.join("rank orf gene num_sgRNAs coeff_intercept coeff_log_betaE coeff_log_conc Pval_intercept Pval_log_betaE Pval_log_conc Qval_log_conc Zscore".split()))
+
+        data.sort() # by qval (signif)
+        print('\t'.join("rank orf gene num_sgRNAs coeff_intercept coeff_log_betaE coeff_log_conc Pval_intercept Pval_log_betaE Pval_log_conc Qval_log_conc Zslope".split()))
         rank = 1
-        for (pval,w,z) in data:
-            vals = [rank]+w[1:]+ [z]
-            print ('\t'.join([str(x) for x in vals]))
+        for i,(slope,qval,pval,w) in enumerate(data):
+            Z = (slope-m)/s
+            vals = [rank]+w[1:]+[qval,Z]
+            print('\t'.join([str(x) for x in vals]))
             rank += 1
         
 
