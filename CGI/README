@@ -17,7 +17,7 @@ Preliminary step: download raw counts from github
   > ln -s CGI_nature_micro_2022/data data
 
 usage: 
-  python3 ../src/transit.py CGI extract_abund <metadata_file> <data_dir> <extracted_LFCs_file> <no_drug_file> <no_depletion_abundances_file> <drug> <days>  >  <output_file>
+  python3 ../src/transit.py CGI extract_abund <metadata_file> <data_dir> <extrapolated_LFCs_file> <no_drug_file> <no_depletion_abundances_file> <drug> <days>  >  <output_file>
   python3 ../src/transit.py CGI run_model <abund_file>  >  <logsigmodfit_file>
   python3 ../src/transit.py CGI post_process <logsigmoidfit_file>  >  <results_file>
 

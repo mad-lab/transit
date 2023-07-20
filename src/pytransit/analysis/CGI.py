@@ -98,7 +98,7 @@ class CGI_Method(base.SingleConditionMethod):
     @classmethod
     def usage_string(self):
         return """usage (3 sub-commands):
-  python3 ../src/transit.py CGI extract_abund <metadata_file> <data_dir> <extracted_LFCs_file> <no_drug_file> <no_depletion_abundances_file> <drug> <days>  >  <output_file>
+  python3 ../src/transit.py CGI extract_abund <metadata_file> <data_dir> <extrapolated_LFCs_file> <no_drug_file> <no_depletion_abundances_file> <drug> <days>  >  <output_file>
   python3 ../src/transit.py CGI run_model <abund_file>  >  <logsigmodfit_file>
   python3 ../src/transit.py CGI post_process <logsigmoidfit_file>  >  <results_file>
 note: redirect output from stdout to output files as shown above"""
@@ -127,16 +127,16 @@ note: redirect output from stdout to output files as shown above"""
 
           metadata_file = args[0]
           data_dir = args[1]
-          extracted_LFCs_file = args[2]
+          extrapolated_LFCs_file = args[2]
           no_drug_file = args[3]
           no_dep_abund = args[4]
           drug = args[5]
           days = args[6]
 
-          self.extract_abund(metadata_file,data_dir,extracted_LFCs_file,no_drug_file,no_dep_abund,drug,days)
+          self.extract_abund(metadata_file,data_dir,extrapolated_LFCs_file,no_drug_file,no_dep_abund,drug,days)
         
         elif cmd == "run_model":
-           
+
           logsigmoidFunc = self.run_model()
           ifile_path = args[0] #example frac_abund_RIF_D5.txt
           if len(args)>1:
@@ -144,6 +144,7 @@ note: redirect output from stdout to output files as shown above"""
             logsigmoidFunc(ifile_path,genename)
           else:
             logsigmoidFunc(ifile_path)
+
         elif cmd == "post_process":
             logsig_file_path = args[0]
 
@@ -160,21 +161,21 @@ note: redirect output from stdout to output files as shown above"""
     #   (important, since it sets a lower bound on vals, below which is assumed to be noise)
     #   how will this differ between libraries or sequencing runs?
 
-    def extract_abund(self,metadata_file,data_dir,extracted_LFCs_file,no_drug_file,no_dep_abund,drug,days,PC=1e-8):
-      #print("in extract_abund: extracted_LFCs_file=%s, days=%s" % (extracted_LFCs_file,days))
+    def extract_abund(self,metadata_file,data_dir,extrapolated_LFCs_file,no_drug_file,no_dep_abund,drug,days,PC=1e-8):
+      #print("in extract_abund: extrapolated_LFCs_file=%s, days=%s" % (extrapolated_LFCs_file,days))
 
       #################
       # read in all the files with supporting data
   
-      extracted_LFCs = {}
+      extrapolated_LFCs = {}
       skip = 1
-      for line in open(extracted_LFCs_file): # Bosch21_TableS2.txt
+      for line in open(extrapolated_LFCs_file): # Bosch21_TableS2.txt
         if skip>0: skip -= 1; continue
         w = line.rstrip().split('\t')
-        if len(w[9])<2: continue # some extracted_LFCs entries are empty
+        if len(w[9])<2: continue # some extrapolated_LFCs entries are empty
         id,b = w[0],float(w[-1])
         id = id[:id.rfind("_")] # strip off v4PAMscore...
-        extracted_LFCs[id] = b
+        extrapolated_LFCs[id] = b
       
       metadata = Spreadsheet(metadata_file) # ShiquiCGI_metadata.txt
       
@@ -236,25 +237,24 @@ note: redirect output from stdout to output files as shown above"""
       
       # assumes that sgRNA ids embed orf and gene ids, e.g. "RVBD00067:rpoB" 
       
-      print('\t'.join("orf gene id abund extracted_LFCs".split()+[str(x) for x in Concs]))
+      print('\t'.join("orf gene id abund extrapolated_LFCs".split()+[str(x) for x in Concs]))
       a,b = 0,0
       for i,id in enumerate(IDs):
         #vals = [id]+["%0.8f" % x[i] for x in Abund]
-        if id not in extracted_LFCs: a += 1; continue; #sys.stderr.write("%s not in extracted_LFCs\n" % id); continue
+        if id not in extrapolated_LFCs: a += 1; continue; #sys.stderr.write("%s not in extrapolated_LFCs\n" % id); continue
         if id not in no_dep: b += 1; continue # sys.stderr.write("%s not in no_dep\n" % id); continue
         temp = id[:id.find("_")].split(":") # assumes that sgRNA ids embed orf and gene ids, e.g. "RVBD00067:rpoB" 
         orf,gene = temp[0],temp[1]
-        vals = [orf,gene,id,"%0.8f" % (no_dep[id]),str(extracted_LFCs[id])]+["%0.6f" % ((x[i]+PC)/(no_dep[id]+PC)) for x in Abund]
+        vals = [orf,gene,id,"%0.8f" % (no_dep[id]),str(extrapolated_LFCs[id])]+["%0.6f" % ((x[i]+PC)/(no_dep[id]+PC)) for x in Abund]
         print('\t'.join(vals))
       
-      sys.stderr.write("warning: extracted_LFCs values not found for %s gRNAs\n" % a)
+      sys.stderr.write("warning: extrapolated_LFCs values not found for %s gRNAs\n" % a)
       sys.stderr.write("warning: no_dep values not found for %s gRNAs\n" % b)
 
   #####################################################
 
   # derived from logsigmoidfit.R
   # see heatmap.py for example of how to put data in a pandas.DataFrame and call an R function like make_heatmapFunc()
-
 
     def run_model(self):
         
@@ -305,9 +305,9 @@ note: redirect output from stdout to output files as shown above"""
                 #  treat them as 1, 2, 4, 8 for simplicity (it doesn't matter, as long as they are 2 fold dilutions)
                 #  this also assumes "0" is half of the lowest concentration 
 
-                temp = cbind(subset[,c("id","extracted_LFCs")],subset[,6:17])
-                colnames(temp)=c("id","extracted_LFCs","a1","a2","a3","b1","b2","b3","c1","c2","c3","d1","d2","d3")
-                melted = melt(temp,id.vars=c("id","extracted_LFCs"),variable.name="conc",value.name="abund")
+                temp = cbind(subset[,c("id","extrapolated_LFCs")],subset[,6:17])
+                colnames(temp)=c("id","extrapolated_LFCs","a1","a2","a3","b1","b2","b3","c1","c2","c3","d1","d2","d3")
+                melted = melt(temp,id.vars=c("id","extrapolated_LFCs"),variable.name="conc",value.name="abund")
 
                 melted$newconc = 0
                 melted$newconc[melted$conc=="a1"] = 1
@@ -334,7 +334,7 @@ note: redirect output from stdout to output files as shown above"""
 
                 tryCatch( 
                 {
-                mod = lm(logsigmoid(abund)~extracted_LFCs+log2(newconc),data=melted)
+                mod = lm(logsigmoid(abund)~extrapolated_LFCs+log2(newconc),data=melted)
                 print(summary(mod))
                 summ = summary(mod)
 
@@ -363,7 +363,7 @@ note: redirect output from stdout to output files as shown above"""
                 # result lines end in 3 coeffs + 3 pvals: <intercept,betaEcoeff,concCoeff> <interceptPval,betaEpval,concPval>
                 pval = float(w[-1]) if w[-1]!="NA" else 1
                 slope = float(w[-4]) if w[-1]!="NA" else 0 
-                data.append((pval,slope,w))
+                data.append((slope,pval,w))
 
         slopes = [x[1] for x in data] 
         m = numpy.mean(slopes)
@@ -371,13 +371,13 @@ note: redirect output from stdout to output files as shown above"""
 
         pvals = [x[0] for x in data]
         qvals = fdrcorrection(pvals)[1] # I assume this is Benjamini-Hochberg method
-        data = [(slope,qval,pval,w) for (pval,slope,w),qval in zip(data,qvals)]
+        data = [(slope,pval,qval,w) for (slope,pval,w),qval in zip(data,qvals)]
 
 
-        data.sort() # by qval (signif)
+        data.sort() # by pval (signif)
         print('\t'.join("rank orf gene num_sgRNAs coeff_intercept coeff_log_betaE coeff_log_conc Pval_intercept Pval_log_betaE Pval_log_conc Qval_log_conc Zslope".split()))
         rank = 1
-        for i,(slope,qval,pval,w) in enumerate(data):
+        for i,(slope,pval,qval,w) in enumerate(data):
             Z = (slope-m)/s
             vals = [rank]+w[1:]+[qval,Z]
             print('\t'.join([str(x) for x in vals]))
