@@ -3,6 +3,20 @@ import sys
 FASTQ_FILE = sys.argv[1]
 IDS_FILE = sys.argv[2]
 
+###################################
+
+complement = {'A':'T','T':'A','C':'G','G':'C'}
+
+def reverse_complement(seq):
+  s = list(seq)
+  s.reverse()
+  for i in range(len(s)):
+    s[i] = complement.get(s[i],s[i]) # if unknown, leave as it, e.g > or !
+  s = ''.join(s)
+  return s
+
+###################################
+
 # example: RVBD0015c:pknA_Essential_GACGCGCGCGAATGCGGTGTCG_22mer_v2PAMscore22 
 
 IDs = []
@@ -15,19 +29,8 @@ for line in open(IDS_FILE):
   if len(v)<3: continue
   barcode = v[2]
   IDs.append(id)
-  barcodemap[barcode] = id
-
-###################################
-
-complement = {'A':'T','T':'A','C':'G','G':'C'}
-
-def reverse_complement(seq):
-  s = list(seq)
-  s.reverse()
-  for i in range(len(s)):
-    s[i] = complement.get(s[i],s[i]) # if unknown, leave as it, e.g > or !
-  s = ''.join(s)
-  return s
+  # reverse-complement of barcodes appears in reads, so hash them that way
+  barcodemap[reverse_complement(barcode)] = id
 
 ###################################
 
@@ -51,8 +54,7 @@ for line in open(FASTQ_FILE):
     if b==-1: continue
     sz = b-(a+lenA)
     if sz<10 or sz>30: continue
-    barcode = seq[a+lenA:b]
-    barcode = reverse_complement(barcode)
+    barcode = seq[a+lenA:b] # these are reverse-complements, but rc(barcodes) stored in hash too
     if barcode not in barcodemap: continue
     id = barcodemap[barcode]
     if id not in counts: counts[id] = 0
