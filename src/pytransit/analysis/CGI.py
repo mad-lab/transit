@@ -174,34 +174,34 @@ class CGI_Method(base.SingleConditionMethod):
             # reverse-complement of barcodes appears in reads, so hash them that way
             barcodemap[self.reverse_complement(barcode)] = id
 
-            counts = {}
+        counts = {}
 
-            #A,B = "AGCTTCTTTCGAGTACAAAAAC","TCCCAGATTATATCTATCACTGA"
-            A,B = "GTACAAAAAC","TCCCAGATTA"
-            lenA = len(A)
-            cnt,nreads,recognized = 0,0,0
-            for line in open(fastq_file):
-                cnt += 1
-                if cnt%4==2:
-                    nreads += 1
-                    if (nreads%1000000==0): sys.stderr.write("reads=%s, recognized barcodes=%s (%0.1f%%)\n" % (nreads,recognized,100.*recognized/float(nreads)))
-                    seq = line.rstrip()
-                    a = seq.find(A)
-                    if a==-1: continue
-                    b = seq.find(B)
-                    if b==-1: continue
-                    sz = b-(a+lenA)
-                    if sz<10 or sz>30: continue
-                    barcode = seq[a+lenA:b] # these are reverse-complements, but rc(barcodes) stored in hash too
-                    if barcode not in barcodemap: continue
-                    id = barcodemap[barcode]
-                    if id not in counts: counts[id] = 0
-                    counts[id] += 1
-                    recognized += 1
+        #A,B = "AGCTTCTTTCGAGTACAAAAAC","TCCCAGATTATATCTATCACTGA"
+        A,B = "GTACAAAAAC","TCCCAGATTA"
+        lenA = len(A)
+        cnt,nreads,recognized = 0,0,0
+        for line in open(fastq_file):
+            cnt += 1
+            if cnt%4==2:
+                nreads += 1
+                if (nreads%1000000==0): sys.stderr.write("reads=%s, recognized barcodes=%s (%0.1f%%)\n" % (nreads,recognized,100.*recognized/float(nreads)))
+                seq = line.rstrip()
+                a = seq.find(A)
+                if a==-1: continue
+                b = seq.find(B)
+                if b==-1: continue
+                sz = b-(a+lenA)
+                if sz<10 or sz>30: continue
+                barcode = seq[a+lenA:b] # these are reverse-complements, but rc(barcodes) stored in hash too
+                if barcode not in barcodemap: continue
+                id = barcodemap[barcode]
+                if id not in counts: counts[id] = 0
+                counts[id] += 1
+                recognized += 1
 
-            for id in IDs:
-                vals = [id,counts.get(id,0)]
-                print('\t'.join([str(x) for x in vals]))
+        for id in IDs:
+            vals = [id,counts.get(id,0)]
+            print('\t'.join([str(x) for x in vals]))
        
 
     def create_combined_counts(self,headers, counts_list):
@@ -292,7 +292,7 @@ class CGI_Method(base.SingleConditionMethod):
 
         drug_output = []
         for i,gene in enumerate(set(frac_abund_df["gene"])):
-            print(i,gene)
+            #print(i,gene)
             sys.stderr.write("Analyzing Gene # %d \n"%i)
             gene_df = frac_abund_df[frac_abund_df["gene"]==gene]
             orf = gene_df["orf"].iloc[0]

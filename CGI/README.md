@@ -1,18 +1,27 @@
-CGI - Chemical-Genetic Interaction Analysis of CRISPRi libraries
+CRISRi-DR - Chemical-Genetic Interaction Analysis of CRISPRi libraries based on a Dose-Response model
 ============================================================
 
 
 
-Overview of the code
+Overview 
 --------------------
+This software is designed to analyze CRISPRi libraries from CGI experiments and identify significant CGIs ie genes that affect sensitivity to the drug when depleted. 
+[REF: TBA]
+
 
 Workflow
 --------
+FLOWCHART?
+Big picture: start with fastq files, extract barcode counts, manually create a metadata file, run the model. the output file lists genes and their statistacal parameters and significance. option to visual specific genes at the sgRNA level.
+
+**genes with sig interactions are those with qval<0.05 and |z|>2 on the slope coeffcient**
+
+
 
 
 _Precprocessing: Fastq to Count Files_
 
-This is a relatively long process. However, the extraction progress is printed to the console
+This is a longer process, taking a few minutes. However, the number of reads processed is printed to the console to indicate progress
 > Usage : python3 ../src/transit.py CGI extract_counts <fastq_file> <ids_file> > <counts_file>
 
 * ids_file : list of sgRNAs used in the experiment, where each row is one sgRNA id
@@ -37,6 +46,7 @@ This step is to turn the barcodes extracted into relative normalized abundances.
   * The columns expected in this file: column_name,drug,conc_xMIC,days_predepletion
   * See ShuquiCGI_metadata.txt for an example of this type file
   * You do not need equal number of replicates for all concentrations
+  * see [Shuqi REF] for explanation of days_predepletion
 * reference_condition: the condition to calculate relative abundances from as specificed in the 'drug' columns of the metadata file; typically an ATC-induced, no drug concentration
 * extrapolated_LFCs_file: A file that contains metadata for each sgRNA in the combined counts file
   * The last column must be extrapolated LFCs calculated through a passaging experiment. This column will be used as a measurement of sgRNA strength in the CRISPRi-DR model 
@@ -48,7 +58,7 @@ This step is to turn the barcodes extracted into relative normalized abundances.
 _Step 3: Run the CRISPRi-DR model_
 
 This is a relatively quick process, taking less than a minute. This step fits the CRISPRi-DR model (statistical analysis of concentration dependence for each gene) to each gene in the file and prints each output to the <CRISPRi-DR_results>
-In this spreadhseet, siginificant interacting genes are those with adjusted P-val (Q-val) < 0.05 and |Zslope|>2
+In this spreadhseet, siginificant interacting genes are those with adjusted P-val (Q-val) < 0.05 and |Z slope|>2
 
 > Usage : python3 ../src/transit.py CGI run_model <abund_file>  >  <CRISPRi-DR_results>
 
@@ -93,6 +103,7 @@ example of pipeline:
   outputs statistical analysis of concentration dependence for each gene
   can open as spreadsheet in Excel
   genes that interact significantly with drug are those with adjusted P-val (Q-val) < 0.05
+
 
 
 python3 ../transit/src/transit.py CGI create_combined_counts DMSO_1,DMSO_2,DMSO_3,VAN_0_0625_1,VAN_0_0625_2,VAN_0_0625_3,VAN_0_125_1,VAN_0_125_2,VAN_0_125_3,VAN_0_25_1,VAN_0_25_2,VAN_0_25_3 CGI_nature_micro_2022/data/counts/counts_1952_DMSO_D10.txt CGI_nature_micro_2022/data/counts/counts_1953_VAN_0_0625X_D10.txt CGI_nature_micro_2022/data/counts/counts_1954_VAN_0_125X_D10.txt CGI_nature_micro_2022/data/counts/counts_1955_VAN_0_25X_D10.txt > combined_VAN_D10.txt
