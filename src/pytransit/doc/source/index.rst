@@ -16,6 +16,15 @@ This page contains the documentation for TRANSIT. Below are a few
 quick links to some of the most important sections of the
 documentation, followed by a brief overview of TRANSIT's features.
 
+.. NOTE::
+
+  This documentation is for the original version of Transit.  We
+  recently released a new version of Transit called `TRANSIT2
+  <https://transit2.readthedocs.io/en/latest/>`_ (re-implementation
+  from scratch), which has most of the same TnSeq analytical methods,
+  but it has an enhanced GUI.  Nonetheless, this original version of
+  TRANSIT is still being maintained for backwards-compatibility.
+
 Quick Links
 ~~~~~~~~~~~
 .. _quick-link:

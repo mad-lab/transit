@@ -35,6 +35,11 @@ Requirements
 
 TRANSIT runs on both python2.7 and python3. But the dependencies vary slightly.
 
+Starting with release v3.0, TRANSIT now requires python3. 
+
+To use TRANSIT with python2, use a TRANSIT release prior to 3.0 (e.g. v2.5.2)
+
+
 Python 2.7:
 -----------
 
