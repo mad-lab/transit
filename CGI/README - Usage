@@ -1,0 +1,62 @@
+CGI - Chemical-Genetic Interaction Analysis of CRISPRi libraries
+----------------------------------------------------------------
+Step 1: Fastq to Count Files
+----------------------------------------------------------------
+python3 ../src/transit.py CGI extract_counts <fastq_file> <ids_file> > <counts_file>
+
+ids_file : list of sgRNAs used in the experiment, where each row is one sgRNA id
+* for H37Rv experiments, the ids file is available in transit/src/pytransit/data/IDs.H37Rv.CRISPRi.lib.txt
+
+----------------------------------------------------------------
+Step 2: Combine Individual Counts File to a Combined Counts File
+----------------------------------------------------------------
+python3 ../src/transit.py CGI combined_counts <counts_file_1> <counts_file_2>  ... <counts_file_n> > <combined_counts_file>
+
+Pass in n individual counts files seperated by spaces and the name of the combined counts file of your choice
+
+----------------------------------------------------------------
+Step 3: Extract Fractional Abundances
+----------------------------------------------------------------
+python3 ../src/transit.py CGI extract_abund <combined_counts_file> <metadata_file> <reference_condition> <extrapolated_LFCs_file> <no_depletion_abundances_file> <drug> <days>  >  <frac_abund_file>
+
+This step is to turn the barcodes extracted into relative normalized abundances. These are normalized within samples, relative to the abundances in the ATC-induced 0-concentration file 
+in the input (the <no_depletion_abundances_file>), essentially fractions.
+
+This is a relatively quick process, taking less than a minute.
+
+metadata_file (USER created):
+* The columns expected in this file: column_name,drug,conc_xMIC,days_predepletion
+* See ShuquiCGI_metadata.txt for an example of this type file
+
+reference_condition: the condition to calculate relative abundances from as specificed in the 'drug' columns of the metadata file; typically DMSO.
+
+extrapolated_LFCs_file: A file that contains metadata for each sgRNA in the combined counts file
+* The last column must be extrapolated LFCs calculated through a passaging experiment. This column will be used as a measurement of sgRNA strength in the CRISPRi-DR model 
+
+no_depletion_abundances_file:: A two column file of sgRNAs and their abundances in -ATC-induced (no ATC) with 0 drug concentration 
+
+drug : Name of the drug in the "drug" column of the metadata file passed in to be fit in the model
+
+days: Sampled from predepletion day as listed in the "days_predepletion" column of the metadata file to be used in the analysis
+
+----------------------------------------------------------------
+Step 4: Run the CRISPRi-DR model
+----------------------------------------------------------------
+python3 ../src/transit.py CGI run_model <abund_file>  >  <logsigmodfit_file>
+
+This step fits the CRISPRi-DR model to each gene in the file and prints each output to the <logsigmodfit_file>
+
+
+----------------------------------------------------------------
+Step 5: python3 ../src/transit.py CGI post_process <logsigmoidfit_file>  >  <results_file>
+----------------------------------------------------------------
+This process outputs the statistical analysis of concentration dependence for each gene into clear and concise format.
+The resulting output file can be opened as a spreadsheet in Excel.
+In this spreadhseet, siginificant interacting genes are those with adjusted P-val (Q-val) < 0.05 and |Zslope|>2
+
+
+
+
+
+
+

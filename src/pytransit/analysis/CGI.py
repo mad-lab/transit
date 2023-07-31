@@ -98,10 +98,12 @@ class CGI_Method(base.SingleConditionMethod):
     @classmethod
     def usage_string(self):
         return """usage (3 sub-commands):
-  python3 ../src/transit.py CGI extract_abund <metadata_file> <data_dir> <extrapolated_LFCs_file> <no_drug_file> <no_depletion_abundances_file> <drug> <days>  >  <output_file>
-  python3 ../src/transit.py CGI run_model <abund_file>  >  <logsigmodfit_file>
-  python3 ../src/transit.py CGI post_process <logsigmoidfit_file>  >  <results_file>
-note: redirect output from stdout to output files as shown above"""
+    python3 ../src/transit.py CGI extract_counts <fastq_file> <ids_file> > <counts_file>
+    python3 ../src/transit.py CGI create_combined_counts <comma seperated headers> <counts_file_1> <counts_file_2> ... <counts_file_n> > <combined_counts_file>
+    python3 ../src/transit.py CGI extract_abund <combined_counts_file> <metadata_file> <reference_condition> <extrapolated_LFCs_file> <no_depletion_abundances_file> <drug> <days>  >  <frac_abund_file>
+    python3 ../src/transit.py CGI run_model <abund_file>  >  <logsigmodfit_file>
+    python3 ../src/transit.py CGI post_process <logsigmoidfit_file>  >  <results_file>
+    note: redirect output from stdout to output files as shown above"""
 
 
     @classmethod
@@ -122,303 +124,219 @@ note: redirect output from stdout to output files as shown above"""
     def Run(self):
         cmd,args,kwargs = self.cmd,self.args,self.kwargs
 
-        if cmd=="extract_abund":
-          if len(args)<6: print(self.usage_string())
+        if cmd=="extract_counts":
+           fastq_file = args[0]
+           ids_file = args[1]
+           self.extract_counts(fastq_file, ids_file)
+        
+        elif cmd=="create_combined_counts":
+           headers = args[0].split(",")
+           counts_file_list = args[1:]
+           self.create_combined_counts(headers,counts_file_list)
 
-          metadata_file = args[0]
-          data_dir = args[1]
-          extrapolated_LFCs_file = args[2]
-          no_drug_file = args[3]
+        elif cmd=="extract_abund":
+          if len(args)<6: print(self.usage_string())
+          combined_counts_file = args[0]
+          metadata_file = args[1]
+          reference_condition=args[2]
+          extrapolated_LFCs_file = args[3]
           no_dep_abund = args[4]
           drug = args[5]
           days = args[6]
-
-          self.extract_abund(metadata_file,data_dir,extrapolated_LFCs_file,no_drug_file,no_dep_abund,drug,days)
-        
+          self.extract_abund(combined_counts_file,metadata_file,reference_condition,extrapolated_LFCs_file,no_dep_abund,drug,days)
         elif cmd == "run_model":
-
-          logsigmoidFunc = self.run_model()
           ifile_path = args[0] #example frac_abund_RIF_D5.txt
-          if len(args)>1:
-            genename = args[1] #comma seperated genes
-            logsigmoidFunc(ifile_path,genename)
-          else:
-            logsigmoidFunc(ifile_path)
-
+          self.run_model(ifile_path)
         elif cmd == "post_process":
             logsig_file_path = args[0]
-
             self.post_process(logsig_file_path)
-
         else: print(self.usage_string())
 
-    ######################################
+    def reverse_complement(self, seq):
+        complement = {'A':'T','T':'A','C':'G','G':'C'}
+        s = list(seq)
+        s.reverse()
+        for i in range(len(s)):
+            s[i] = complement.get(s[i],s[i]) # if unknown, leave as it, e.g > or !
+        s = ''.join(s)
+        return s
 
-    # alternatively, I could pass in a list of sample ids to load(including DMSO), 
-    #   or provide a row selection string (like "days=5 and drug=RIF")
+    def extract_counts(self, fastq_file, ids_file):
+        IDs = []
+        barcodemap = {} # hash from barcode to full ids
+        for line in open(ids_file):
+            w = line.rstrip().split('\t')
+            id = w[0]
+            v = id.split('_')
+            if len(v)<3: continue
+            barcode = v[2]
+            IDs.append(id)
+            # reverse-complement of barcodes appears in reads, so hash them that way
+            barcodemap[self.reverse_complement(barcode)] = id
 
-    # PC=pseudocounts for fractional abundances 
-    #   (important, since it sets a lower bound on vals, below which is assumed to be noise)
-    #   how will this differ between libraries or sequencing runs?
+            counts = {}
 
-    def extract_abund(self,metadata_file,data_dir,extrapolated_LFCs_file,no_drug_file,no_dep_abund,drug,days,PC=1e-8):
-      #print("in extract_abund: extrapolated_LFCs_file=%s, days=%s" % (extrapolated_LFCs_file,days))
+            #A,B = "AGCTTCTTTCGAGTACAAAAAC","TCCCAGATTATATCTATCACTGA"
+            A,B = "GTACAAAAAC","TCCCAGATTA"
+            lenA = len(A)
+            cnt,nreads,recognized = 0,0,0
+            for line in open(fastq_file):
+                cnt += 1
+                if cnt%4==2:
+                    nreads += 1
+                    if (nreads%1000000==0): sys.stderr.write("reads=%s, recognized barcodes=%s (%0.1f%%)\n" % (nreads,recognized,100.*recognized/float(nreads)))
+                    seq = line.rstrip()
+                    a = seq.find(A)
+                    if a==-1: continue
+                    b = seq.find(B)
+                    if b==-1: continue
+                    sz = b-(a+lenA)
+                    if sz<10 or sz>30: continue
+                    barcode = seq[a+lenA:b] # these are reverse-complements, but rc(barcodes) stored in hash too
+                    if barcode not in barcodemap: continue
+                    id = barcodemap[barcode]
+                    if id not in counts: counts[id] = 0
+                    counts[id] += 1
+                    recognized += 1
 
-      #################
-      # read in all the files with supporting data
-  
-      extrapolated_LFCs = {}
-      skip = 1
-      for line in open(extrapolated_LFCs_file): # Bosch21_TableS2.txt
-        if skip>0: skip -= 1; continue
-        w = line.rstrip().split('\t')
-        if len(w[9])<2: continue # some extrapolated_LFCs entries are empty
-        id,b = w[0],float(w[-1])
-        id = id[:id.rfind("_")] # strip off v4PAMscore...
-        extrapolated_LFCs[id] = b
+            for id in IDs:
+                vals = [id,counts.get(id,0)]
+                print('\t'.join([str(x) for x in vals]))
+       
+
+    def create_combined_counts(self,headers, counts_list):
+        import pandas as pd
+        df_list =[]
+        for f in counts_list:
+            counts_df = pd.read_csv(f, sep="\t")
+            counts_df["sgRNA"]=counts_df[counts_df.columns[0]].str.split("_v", expand=True)[0]
+            counts_df = counts_df.drop(columns=[counts_df.columns[0]])
+            counts_df.set_index("sgRNA",inplace=True)
+            df_list.append(counts_df)
+        combined_df = pd.concat(df_list, axis=1)
+        combined_df.columns = headers
+        combined_df_text = combined_df.to_csv(sep="\t")
+        print(combined_df_text)
+
+
+    def extract_abund(self,combined_counts_file,metadata_file,reference_condition,extrapolated_LFCs_file,no_dep_abund,drug,days,PC=1e-8):  
+      import pandas as pd
+
+      metadata = pd.read_csv(metadata_file, sep="\t")
+      metadata = metadata[((metadata["drug"]==drug) | (metadata["drug"]==reference_condition)) & (metadata["days_predepletion"]==int(days))]
+      metadata = metadata.sort_values(by=["conc_xMIC"])
+      column_names = metadata["column_name"].values.tolist()
+      concs_list = metadata["conc_xMIC"].values.tolist()
+      concs={}
+      i=1
+      for c in metadata["conc_xMIC"].values.tolist():
+          if c not in concs: 
+              concs[c] = i
+              i=2*i
+      headers = []
+      combined_counts_df = pd.read_csv(combined_counts_file,sep="\t", index_col=0)
+      combined_counts_df = combined_counts_df[column_names]
       
-      metadata = Spreadsheet(metadata_file) # ShiquiCGI_metadata.txt
+      extrapolated_LFCs = pd.read_csv(extrapolated_LFCs_file,sep="\t", index_col=0)
+      extrapolated_LFCs = extrapolated_LFCs.iloc[:,-1:]
+      extrapolated_LFCs.columns = ["extrapolated LFCs"]
+      extrapolated_LFCs["sgRNA"] = extrapolated_LFCs.index
+      extrapolated_LFCs["sgRNA"]=extrapolated_LFCs["sgRNA"].str.split("_v", expand=True)[0]
+      extrapolated_LFCs.set_index("sgRNA",inplace=True)
+
+      no_dep_df = pd.read_csv(no_dep_abund, sep="\t", index_col=0, header=None)
+      no_dep_df = no_dep_df.iloc[:,-1:]
+      no_dep_df.columns = ["-ATC values"]
+      no_dep_df["sgRNA"] = no_dep_df.index
+      no_dep_df["sgRNA"]=no_dep_df["sgRNA"].str.split("_v", expand=True)[0]
+      no_dep_df.set_index("sgRNA",inplace=True)
+
+      abund_df = pd.concat([extrapolated_LFCs, no_dep_df,combined_counts_df], axis=1)
+      abund_df= abund_df[~(abund_df.index.str.contains("Negative") | abund_df.index.str.contains("Empty"))]
+      headers = ["extrapolated LFCs","-ATC values"]
+      for i,col in enumerate(column_names):
+         abund_df[col] = abund_df[col]/abund_df[col].sum()
+         abund_df[col] = (abund_df[col]+PC)/(abund_df["-ATC values"]+PC)
+         headers.append(concs[concs_list[i]])
+         print("# "+str(concs[concs_list[i]])+" conc_xMIC"+" - "+col)
+
+      abund_df.columns = headers
+      abund_df["sgRNA"] = abund_df.index.values.tolist()
+      abund_df[["orf-gene","reminaing"]] = abund_df["sgRNA"].str.split('_',n=1,expand=True)
+      abund_df[["orf","gene"]]= abund_df["orf-gene"].str.split(':',expand=True)
+      abund_df = abund_df.drop(columns=["orf-gene","reminaing","sgRNA"])
+      abund_df = abund_df.dropna()
       
-      files = []
-      concs = []
-      for i in range(metadata.nrows):
-        if metadata.get(i,"drug")==drug and metadata.get(i,"days_predep")==days:
-          files.append(metadata.get(i,"filename"))
-          concs.append(float(metadata.get(i,"conc_xMIC")))
-      
-      # also need to get DMSO to represent 0xMIC
-      # I should make the DMSO file an input arg too...
-      
-      #if days=="1": files.append("counts_1962_DMSO_D1.txt"); concs.append(0) # what about different pools?
-      #if days=="5": files.append("counts_1972_DMSO_D5.txt"); concs.append(0)
-      #if days=="10": files.append("counts_1952_DMSO_D10.txt"); concs.append(0)
-      files.append(no_drug_file); concs.append(0)
-      
-      pairs = sorted(zip(concs,files))
-      concs,files = [x[0] for x in pairs],[x[1] for x in pairs]
-      
-      for i in range(len(files)):
-        sys.stderr.write("%s\t%s\n" % (concs[i],files[i]))
-      
-      no_dep = {}
-      IDs = []
-      for line in open(no_dep_abund): # no_depletion_abundances.txt
-        w = line.rstrip().split('\t')
-        id,abund = w[0],float(w[1])
-        id = id[:id.rfind("_")]
-        no_dep[id] = abund
-        IDs.append(id)
-      
-      #################
-      # process the counts, calculate fractional normalized abundances, and generate output
-      
-      # assume there are 3 replicates in each file
-      
-      Abund = []
-      Concs = [] # one for each replicate, include those for DMSO (0)
-      for file,conc in zip(files,concs):
-        counts = {} # rows of 3, indexed by id
-        skip = 1
-        for line in open("%s/%s" % (data_dir,file)):
-          if skip>0: skip -= 1; continue
-          if "Negative" in line or "Empty" in line: continue
-          w = line.rstrip().split('\t')
-          id = w[0]
-          id = id[:id.rfind("_")]
-          vals = [float(x) for x in w[1:]]
-          counts[id] = vals # rows of 3
-        for i in range(3): # assume there are 3 replicates in each file
-          cnts = [x[i] for x in counts.values()] # a column
-          tot = sum(cnts)
-          abund = []
-          for id in IDs: abund.append(counts[id][i]/float(tot)) # a column for fracs, parallel to IDs
-          Abund.append(abund)
-          Concs.append(conc)
-      
-      # assumes that sgRNA ids embed orf and gene ids, e.g. "RVBD00067:rpoB" 
-      
-      print('\t'.join("orf gene id abund extrapolated_LFCs".split()+[str(x) for x in Concs]))
-      a,b = 0,0
-      for i,id in enumerate(IDs):
-        #vals = [id]+["%0.8f" % x[i] for x in Abund]
-        if id not in extrapolated_LFCs: a += 1; continue; #sys.stderr.write("%s not in extrapolated_LFCs\n" % id); continue
-        if id not in no_dep: b += 1; continue # sys.stderr.write("%s not in no_dep\n" % id); continue
-        temp = id[:id.find("_")].split(":") # assumes that sgRNA ids embed orf and gene ids, e.g. "RVBD00067:rpoB" 
-        orf,gene = temp[0],temp[1]
-        vals = [orf,gene,id,"%0.8f" % (no_dep[id]),str(extrapolated_LFCs[id])]+["%0.6f" % ((x[i]+PC)/(no_dep[id]+PC)) for x in Abund]
-        print('\t'.join(vals))
-      
-      sys.stderr.write("warning: extrapolated_LFCs values not found for %s gRNAs\n" % a)
-      sys.stderr.write("warning: no_dep values not found for %s gRNAs\n" % b)
+      abund_df.insert(0, "extrapolated LFCs", abund_df.pop("extrapolated LFCs"))
+      abund_df.insert(0, "-ATC values", abund_df.pop("-ATC values"))
+      abund_df.insert(0, 'gene', abund_df.pop('gene'))
+      abund_df.insert(0, 'orf', abund_df.pop('orf'))
+
+      abund_df_text = abund_df.to_csv(sep="\t")
+      print(abund_df_text)
+      #sys.stderr.write("warning: extrapolated_LFCs values not found for %s gRNAs\n" % a)
+      #sys.stderr.write("warning: no_dep values not found for %s gRNAs\n" % b)
 
   #####################################################
 
   # derived from logsigmoidfit.R
   # see heatmap.py for example of how to put data in a pandas.DataFrame and call an R function like make_heatmapFunc()
 
-    def run_model(self):
-        
-        r('''
+    def run_model(self, frac_abund_file):
+        import pandas as pd
+        import numpy as np
+        from mne.stats import fdr_correction
+        import statsmodels.api as sm
+        pd.set_option('display.max_columns', 500)
+        frac_abund_df = pd.read_csv(frac_abund_file, sep="\t",comment='#')
 
-        logsigmoid = function (ifile,gene_input){
-          
-            data = read.table(ifile,head=T,sep='\t')
-            ORFs = sort(unique(data$orf))
-            THEGENE = "???"
-            if (length(args)>1) 
-            {
-            #ORFs = c(args[2])
-            if (length(args)>1) THEGENE = c(args[2])
-            #temp = data[data$gene==args[2],]
-            #ORFs = c(temp$orf[1])
-            }
+        drug_output = []
+        for i,gene in enumerate(set(frac_abund_df["gene"])):
+            print(i,gene)
+            sys.stderr.write("Analyzing Gene # %d \n"%i)
+            gene_df = frac_abund_df[frac_abund_df["gene"]==gene]
+            orf = gene_df["orf"].iloc[0]
+            gene_df = gene_df.drop(columns=["orf","gene","-ATC values"])
 
-            logsigmoid = function(x) { log10(x/(1-x)) }
+            melted_df = gene_df.melt(id_vars=["sgRNA","extrapolated LFCs"],var_name="conc",value_name="abund")
+            melted_df["conc"] = melted_df["conc"].str.split(".",expand=True)[0]
+            melted_df["abund"] = [0.01+(1-0.01)*(1-np.exp(-2*float(i)))/(1+np.exp(-2*float(i))) for i in melted_df["abund"]]
+            melted_df["logsig abund"] = [np.nan if (1-x)== 0 else np.log10(float(x)/(1-float(x))) for x in melted_df["abund"]]
+            melted_df["log conc"] = [np.log2(int(x)) for x in melted_df["conc"]]
 
-            ###################################
-            # squashing function:
-            #   see Wolfram Alpha: plot (1-exp(-2x))/(1+exp(-2x)) from -1 to 3
+            melted_df = melted_df.dropna()
+            if len(melted_df.index)<2:
+                drug_output.append([orf,gene,len(gene_df)]+[np.nan]*6)
+                continue
+            
+            Y = melted_df["logsig abund"]
+            X = melted_df.drop(columns=["abund", "logsig abund", "sgRNA", "conc"])
+            X = sm.add_constant(X)
+            model = sm.OLS(Y,X)
+            results = model.fit()
+            coeffs = results.params
+            pvals = results.pvalues
+            drug_output.append([orf,gene,len(gene_df)]+coeffs.values.tolist()+pvals.values.tolist())
+            sys.stderr.flush()
 
-            PC = 0.01
-            for (i in 6:17)
-            {
-                data[,i] = PC+(1-PC)*(1-exp(-2*data[,i]))/(1+exp(-2*data[,i]))
-            }
-            ######################################
+        drug_out_df = pd.DataFrame(drug_output, columns=["Orf","Gene","Nobs", "coef intercept","coef extrapolated_LFCs","coef conc","pval intercept","pval pred_logFC","pval conc"])
+    
+        mask = np.isfinite(drug_out_df["pval conc"])
+        pval_corrected = np.full(drug_out_df["pval conc"].shape, np.nan)
+        pval_corrected[mask] = fdr_correction(drug_out_df["pval conc"][mask])[1]
+        drug_out_df["qval conc"] = pval_corrected
+        drug_out_df = drug_out_df.replace(np.nan,1)
 
-            require(reshape2)
-            require(lmtest)
+        drug_out_df["Z"] = (drug_out_df["coef conc"] - drug_out_df["coef conc"].mean())/drug_out_df["coef conc"].std()
 
-            for (orf in ORFs)
-            {
-                subset = data[data$orf==orf,]
-                nobs = dim(subset)[1]
-                gene = as.character(subset[1,"gene"])
-                if (THEGENE!="???" & gene!=THEGENE) { next }
-                cat(sprintf("analyzing %s:%s\n",orf,gene),file=stderr())
-
-                cat("----------------------\n")
-                cat(sprintf("%s %s %s\n",orf,gene,nobs))
-                if (gene=="ligC") { print("skipping"); next } # fit nearly perfect because some frac abund >30
-
-                # note: although concs are like 0, 0.0625, 0.125, 0.25 (different range for each drug)
-                #  treat them as 1, 2, 4, 8 for simplicity (it doesn't matter, as long as they are 2 fold dilutions)
-                #  this also assumes "0" is half of the lowest concentration 
-
-                temp = cbind(subset[,c("id","extrapolated_LFCs")],subset[,6:17])
-                colnames(temp)=c("id","extrapolated_LFCs","a1","a2","a3","b1","b2","b3","c1","c2","c3","d1","d2","d3")
-                melted = melt(temp,id.vars=c("id","extrapolated_LFCs"),variable.name="conc",value.name="abund")
-
-                melted$newconc = 0
-                melted$newconc[melted$conc=="a1"] = 1
-                melted$newconc[melted$conc=="a2"] = 1
-                melted$newconc[melted$conc=="a3"] = 1
-                melted$newconc[melted$conc=="b1"] = 2
-                melted$newconc[melted$conc=="b2"] = 2
-                melted$newconc[melted$conc=="b3"] = 2
-                melted$newconc[melted$conc=="c1"] = 4
-                melted$newconc[melted$conc=="c2"] = 4
-                melted$newconc[melted$conc=="c3"] = 4
-                melted$newconc[melted$conc=="d1"] = 8
-                melted$newconc[melted$conc=="d2"] = 8
-                melted$newconc[melted$conc=="d3"] = 8
-
-                means = aggregate(logsigmoid(abund)~id+newconc,data=melted,FUN=mean)
-                a = colnames(means); a[3] = "mean"; colnames(means) = a
-                vars = aggregate(logsigmoid(abund)~id+newconc,data=melted,FUN=var)
-                a = colnames(vars); a[3] = "var"; colnames(vars) = a
-
-                X = round(means[,3],1)
-
-                #write.table(melted,"melted.txt",sep='\t',quote=F); print("writing melted.txt")
-
-                tryCatch( 
-                {
-                mod = lm(logsigmoid(abund)~extrapolated_LFCs+log2(newconc),data=melted)
-                print(summary(mod))
-                summ = summary(mod)
-
-                coeffs = summ$coefficients[,1]
-                pvals = summ$coefficients[,4]
-                cat(sprintf("result: %s %s %s %s %s %s %s %s %s\n",orf,gene,nobs,coeffs[1],coeffs[2],coeffs[3],pvals[1],pvals[2],pvals[3]))
-                },
-                error = function (e) { cat(sprintf("!!! skipping %s:%s due to error with lm\n",orf,gene),file=stderr())  } 
-                )
-            }
-        }
-
-        ''')
-        return globalenv['logsigmoid']
-
-################################
-    def post_process(self,logsigmoid_file):
-        import sys
-        from statsmodels.stats.multitest import fdrcorrection
-        import scipy.stats
-  
-        data = []
-        for line in open(logsigmoid_file):
-            if line.startswith("result:"):
-                w = line.split()
-                # result lines end in 3 coeffs + 3 pvals: <intercept,betaEcoeff,concCoeff> <interceptPval,betaEpval,concPval>
-                pval = float(w[-1]) if w[-1]!="NA" else 1
-                slope = float(w[-4]) if w[-1]!="NA" else 0 
-                data.append((slope,pval,w))
-
-        slopes = [x[1] for x in data] 
-        m = numpy.mean(slopes)
-        s = numpy.std(slopes)
-
-        pvals = [x[0] for x in data]
-        qvals = fdrcorrection(pvals)[1] # I assume this is Benjamini-Hochberg method
-        data = [(slope,pval,qval,w) for (slope,pval,w),qval in zip(data,qvals)]
+        n = len(drug_out_df[(drug_out_df["qval conc"]<0.05) & ((drug_out_df["Z"]<-2) | (drug_out_df["Z"]>2))])
+        sys.stderr.write("%d Signifincant Genes"%n)
+    
+        drug_out_df  = drug_out_df.replace(r'\s+',np.nan,regex=True).replace('',np.nan)
+        drug_out_txt = drug_out_df.to_csv(sep="\t")
+        print(drug_out_txt)
 
 
-        data.sort() # by pval (signif)
-        print('\t'.join("rank orf gene num_sgRNAs coeff_intercept coeff_log_betaE coeff_log_conc Pval_intercept Pval_log_betaE Pval_log_conc Qval_log_conc Zslope".split()))
-        rank = 1
-        for i,(slope,pval,qval,w) in enumerate(data):
-            Z = (slope-m)/s
-            vals = [rank]+w[1:]+[qval,Z]
-            print('\t'.join([str(x) for x in vals]))
-            rank += 1
-        
-
-
-# ################################
-
-class Spreadsheet:
-  def __init__(self,filename): # ,key="Id"
-    self.keys,self.data,self.headers = [],[],None
-    self.rowhash,self.colhash = {},{}
-    for line in open(filename,'rU'): # also handle mac files with x0d vs x0a
-      if len(line)==0 or line[0]=='#': continue
-      w = line.rstrip().split('\t') 
-      if self.headers==None: 
-        self.headers = w
-        for i,h in enumerate(self.headers): 
-          if h in self.colhash: print("error: '%s' appears multiple times in first row of '%s' - column headers must be unique" % (h,filename)); sys.exit(-1)
-          self.colhash[h] = i
-        continue
-      self.data.append(w)
-      key = w[0]
-      if key=="": continue
-      if key in self.rowhash: print("error: '%s' appears multiple times in first column of '%s' - keys must be unique" % (key,filename)); sys.exit(-1)
-      self.rowhash[key] = len(self.keys)
-      self.keys.append(key) # check if unique?
-    self.ncols = max([len(row) for row in self.data])
-    self.nrows = len(self.keys)
-  def getrow(self,r):
-    if r in self.rowhash: r = self.rowhash[r] 
-    # check that it is an integer (in range)?
-    return self.data[r]
-  def getcol(self,c):
-    if c in self.colhash: c = self.colhash[c] # otherwise, assume it is an integer
-    return [r[c] for r in self.data] # what if not all same length?
-  def get(self,r,c):
-    if c in self.colhash: c = self.colhash[c] # otherwise, assume it is an integer
-    if r in self.rowhash: r = self.rowhash[r]
-    return self.data[r][c]
 
 ################################
 
