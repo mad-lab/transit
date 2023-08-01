@@ -19,7 +19,7 @@ Big picture: start with fastq files, extract barcode counts, manually create a m
 
 
 
-_Precprocessing: Fastq to Count Files_
+_Preprocessing: Fastq to Count Files_
 
 This is a longer process, taking a few minutes. However, the number of reads processed is printed to the console to indicate progress
 > Usage : python3 ../src/transit.py CGI extract_counts <fastq_file> <ids_file> > <counts_file>

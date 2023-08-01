@@ -100,7 +100,7 @@ class CGI_Method(base.SingleConditionMethod):
         return """usage (3 sub-commands):
     python3 ../src/transit.py CGI extract_counts <fastq_file> <ids_file> > <counts_file>
     python3 ../src/transit.py CGI create_combined_counts <comma seperated headers> <counts_file_1> <counts_file_2> ... <counts_file_n> > <combined_counts_file>
-    python3 ../src/transit.py CGI extract_abund <combined_counts_file> <metadata_file> <reference_condition> <extrapolated_LFCs_file> <no_depletion_abundances_file> <drug> <days>  >  <frac_abund_file>
+    python3 ../src/transit.py CGI extract_abund <combined_counts_file> <metadata_file> <reference_condition> <sgRNA_strength_file> <no_depletion_abundances_file> <drug> <days>  >  <frac_abund_file>
     python3 ../src/transit.py CGI run_model <abund_file>  >  <logsigmodfit_file>
     python3 ../src/transit.py CGI post_process <logsigmoidfit_file>  >  <results_file>
     note: redirect output from stdout to output files as shown above"""

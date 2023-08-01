@@ -79,10 +79,16 @@ TRANSIT offers a variety of features including:
    transit_install
    transit_running
    transit_features
+   
+.. toctree::
+   :maxdepth: 3
+   :caption: [** NEW **] CRISRPi ANALYSIS METHODS 
+
+   CGI
 
 .. toctree::
    :maxdepth: 3
-   :caption: ANALYSIS METHODS
+   :caption: TnSeq ANALYSIS METHODS
 
    method_gumbel
    method_griffin
