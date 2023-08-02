@@ -97,12 +97,12 @@ class CGI_Method(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """usage (3 sub-commands):
-    python3 ../src/transit.py CGI extract_counts <fastq_file> <ids_file> > <counts_file>
-    python3 ../src/transit.py CGI create_combined_counts <comma seperated headers> <counts_file_1> <counts_file_2> ... <counts_file_n> > <combined_counts_file>
-    python3 ../src/transit.py CGI extract_abund <combined_counts_file> <metadata_file> <reference_condition> <sgRNA_strength_file> <no_depletion_abundances_file> <drug> <days>  >  <frac_abund_file>
-    python3 ../src/transit.py CGI run_model <abund_file>  >  <logsigmodfit_file>
-    python3 ../src/transit.py CGI post_process <logsigmoidfit_file>  >  <results_file>
+        return """usage (6 sub-commands):
+    python3 ../src/transit.py CGI extract_counts <fastq file> <ids file> > <counts file>
+    python3 ../src/transit.py CGI create_combined_counts <comma seperated headers> <counts file 1> <counts file 2> ... <counts file n> > <combined counts file>
+    python3 ../src/transit.py CGI extract_abund <combined counts file> <metadata file> <reference condition> <sgRNA strength file> <uninduced ATC file> <drug> <days>  >  <fractional abundundance file>
+    python3 ../src/transit.py CGI run_model <fractional abundundance file>  >  <CRISPRi DR results file>
+    python3 ../src/transit.py CGI visualize <fractional abundance> <gene> <output figure location>
     note: redirect output from stdout to output files as shown above"""
 
 
@@ -125,31 +125,34 @@ class CGI_Method(base.SingleConditionMethod):
         cmd,args,kwargs = self.cmd,self.args,self.kwargs
 
         if cmd=="extract_counts":
-           fastq_file = args[0]
-           ids_file = args[1]
-           self.extract_counts(fastq_file, ids_file)
+            fastq_file = args[0]
+            ids_file = args[1]
+            self.extract_counts(fastq_file, ids_file)
         
         elif cmd=="create_combined_counts":
-           headers = args[0].split(",")
-           counts_file_list = args[1:]
-           self.create_combined_counts(headers,counts_file_list)
+            headers = args[0].split(",")
+            counts_file_list = args[1:]
+            self.create_combined_counts(headers,counts_file_list)
 
         elif cmd=="extract_abund":
-          if len(args)<6: print(self.usage_string())
-          combined_counts_file = args[0]
-          metadata_file = args[1]
-          reference_condition=args[2]
-          extrapolated_LFCs_file = args[3]
-          no_dep_abund = args[4]
-          drug = args[5]
-          days = args[6]
-          self.extract_abund(combined_counts_file,metadata_file,reference_condition,extrapolated_LFCs_file,no_dep_abund,drug,days)
+            if len(args)<6: print(self.usage_string())
+            combined_counts_file = args[0]
+            metadata_file = args[1]
+            reference_condition=args[2]
+            extrapolated_LFCs_file = args[3]
+            no_dep_abund = args[4]
+            drug = args[5]
+            days = args[6]
+            self.extract_abund(combined_counts_file,metadata_file,reference_condition,extrapolated_LFCs_file,no_dep_abund,drug,days)
         elif cmd == "run_model":
-          ifile_path = args[0] #example frac_abund_RIF_D5.txt
-          self.run_model(ifile_path)
-        elif cmd == "post_process":
-            logsig_file_path = args[0]
-            self.post_process(logsig_file_path)
+            ifile_path = args[0] #example frac_abund_RIF_D5.txt
+            self.run_model(ifile_path)
+        elif cmd == "visualize":
+            frac_abund_file= args[0]
+            gene = args[1]
+            fig_location = args[2]
+            self.visualize(frac_abund_file, gene, fig_location)
+            
         else: print(self.usage_string())
 
     def reverse_complement(self, seq):
@@ -227,12 +230,7 @@ class CGI_Method(base.SingleConditionMethod):
       metadata = metadata.sort_values(by=["conc_xMIC"])
       column_names = metadata["column_name"].values.tolist()
       concs_list = metadata["conc_xMIC"].values.tolist()
-      concs={}
-      i=1
-      for c in metadata["conc_xMIC"].values.tolist():
-          if c not in concs: 
-              concs[c] = i
-              i=2*i
+      
       headers = []
       combined_counts_df = pd.read_csv(combined_counts_file,sep="\t", index_col=0)
       combined_counts_df = combined_counts_df[column_names]
@@ -246,29 +244,29 @@ class CGI_Method(base.SingleConditionMethod):
 
       no_dep_df = pd.read_csv(no_dep_abund, sep="\t", index_col=0, header=None)
       no_dep_df = no_dep_df.iloc[:,-1:]
-      no_dep_df.columns = ["-ATC values"]
+      no_dep_df.columns = ["uninduced ATC values"]
       no_dep_df["sgRNA"] = no_dep_df.index
       no_dep_df["sgRNA"]=no_dep_df["sgRNA"].str.split("_v", expand=True)[0]
       no_dep_df.set_index("sgRNA",inplace=True)
 
       abund_df = pd.concat([extrapolated_LFCs, no_dep_df,combined_counts_df], axis=1)
       abund_df= abund_df[~(abund_df.index.str.contains("Negative") | abund_df.index.str.contains("Empty"))]
-      headers = ["extrapolated LFCs","-ATC values"]
+      headers = ["extrapolated LFCs","uninduced ATC values"]
       for i,col in enumerate(column_names):
          abund_df[col] = abund_df[col]/abund_df[col].sum()
-         abund_df[col] = (abund_df[col]+PC)/(abund_df["-ATC values"]+PC)
-         headers.append(concs[concs_list[i]])
-         print("# "+str(concs[concs_list[i]])+" conc_xMIC"+" - "+col)
+         abund_df[col] = (abund_df[col]+PC)/(abund_df["uninduced ATC values"]+PC)
+         headers.append(str(concs_list[i])+"_"+str(i))
+         print("# "+str(concs_list[i])+" conc_xMIC"+" - "+col)
 
       abund_df.columns = headers
       abund_df["sgRNA"] = abund_df.index.values.tolist()
-      abund_df[["orf-gene","reminaing"]] = abund_df["sgRNA"].str.split('_',n=1,expand=True)
+      abund_df[["orf-gene","remaining"]] = abund_df["sgRNA"].str.split('_',n=1,expand=True)
       abund_df[["orf","gene"]]= abund_df["orf-gene"].str.split(':',expand=True)
-      abund_df = abund_df.drop(columns=["orf-gene","reminaing","sgRNA"])
+      abund_df = abund_df.drop(columns=["orf-gene","remaining","sgRNA"])
       abund_df = abund_df.dropna()
       
       abund_df.insert(0, "extrapolated LFCs", abund_df.pop("extrapolated LFCs"))
-      abund_df.insert(0, "-ATC values", abund_df.pop("-ATC values"))
+      abund_df.insert(0, "uninduced ATC values", abund_df.pop("uninduced ATC values"))
       abund_df.insert(0, 'gene', abund_df.pop('gene'))
       abund_df.insert(0, 'orf', abund_df.pop('orf'))
 
@@ -287,6 +285,8 @@ class CGI_Method(base.SingleConditionMethod):
         import numpy as np
         from mne.stats import fdr_correction
         import statsmodels.api as sm
+        
+
         pd.set_option('display.max_columns', 500)
         frac_abund_df = pd.read_csv(frac_abund_file, sep="\t",comment='#')
 
@@ -296,13 +296,16 @@ class CGI_Method(base.SingleConditionMethod):
             sys.stderr.write("Analyzing Gene # %d \n"%i)
             gene_df = frac_abund_df[frac_abund_df["gene"]==gene]
             orf = gene_df["orf"].iloc[0]
-            gene_df = gene_df.drop(columns=["orf","gene","-ATC values"])
+            gene_df = gene_df.drop(columns=["orf","gene","uninduced ATC values"])
 
             melted_df = gene_df.melt(id_vars=["sgRNA","extrapolated LFCs"],var_name="conc",value_name="abund")
-            melted_df["conc"] = melted_df["conc"].str.split(".",expand=True)[0]
+            melted_df["conc"] = melted_df["conc"].str.split("_", expand=True)[0].astype(float)
+            min_conc = min(melted_df[melted_df["conc"]>0]["conc"])
+            melted_df.loc[melted_df["conc"]==0,"conc"] = min_conc/2
             melted_df["abund"] = [0.01+(1-0.01)*(1-np.exp(-2*float(i)))/(1+np.exp(-2*float(i))) for i in melted_df["abund"]]
             melted_df["logsig abund"] = [np.nan if (1-x)== 0 else np.log10(float(x)/(1-float(x))) for x in melted_df["abund"]]
-            melted_df["log conc"] = [np.log2(int(x)) for x in melted_df["conc"]]
+            melted_df["log conc"] = [np.log2(float(x)) for x in melted_df["conc"]]
+            
 
             melted_df = melted_df.dropna()
             if len(melted_df.index)<2:
@@ -328,16 +331,65 @@ class CGI_Method(base.SingleConditionMethod):
         drug_out_df = drug_out_df.replace(np.nan,1)
 
         drug_out_df["Z"] = (drug_out_df["coef conc"] - drug_out_df["coef conc"].mean())/drug_out_df["coef conc"].std()
+        drug_out_df["Siginificant Interactions"] = [0] * len(drug_out_df)
+        drug_out_df.loc[(drug_out_df["qval conc"]<0.05) & (drug_out_df["Z"]<-2),"Siginificant Interactions"]=-1
+        drug_out_df.loc[(drug_out_df["qval conc"]<0.05) & (drug_out_df["Z"]>2),"Siginificant Interactions"]=1
+        drug_out_df.insert(0, "Siginificant Interactions", drug_out_df.pop("Siginificant Interactions"))
 
-        n = len(drug_out_df[(drug_out_df["qval conc"]<0.05) & ((drug_out_df["Z"]<-2) | (drug_out_df["Z"]>2))])
+        n = len(drug_out_df[drug_out_df["Siginificant Interactions"]!=0])
         sys.stderr.write("%d Signifincant Genes"%n)
     
         drug_out_df  = drug_out_df.replace(r'\s+',np.nan,regex=True).replace('',np.nan)
-        drug_out_txt = drug_out_df.to_csv(sep="\t")
+        drug_out_txt = drug_out_df.to_csv(sep="\t", index=False)
         print(drug_out_txt)
 
+    def visualize(self,fractional_abundances_file, gene, fig_location):
+        import pandas as pd
+        import seaborn as sns
+        import matplotlib.pyplot as plt
+        import matplotlib as mpl
+        import numpy as np
+        import statsmodels.api as sm
+
+        abund_df = pd.read_csv(fractional_abundances_file,sep="\t", comment="#")
+        abund_df = abund_df[(abund_df["gene"]==gene)| (abund_df["orf"]==gene)]
+        abund_df = abund_df.reset_index(drop=True)
+        all_slopes = []
+
+        df_list = []
+        for idx,row in abund_df.iterrows():
+            sys.stderr.write("Fitting sgRNA # : %d \n"%idx)
+            raw_Y= row[5:].values
+            Y = [max(0.01,x) for x in raw_Y]
+            Y = [np.log10(x) for x in Y]
+
+            X = abund_df.columns[5:]
+            X = [float(i.split("_")[0]) for i in X]
+            min_conc = min([i for i in X if i>0])
+            X = [min_conc/2 if i==0 else i for i in X ]
+            X = [np.log2(float(x)) for x in X]
+            
+            data = pd.DataFrame({"Log (Concentration)":X, "Log (Relative Abundance)":Y})
+            X = pd.DataFrame({"log concentration":X})
+            X_in = sm.add_constant(X, has_constant='add')
+            results = sm.OLS(Y,X_in).fit()
+            all_slopes.append(results.params[1])
+            data["sgRNA strength"] = [row["extrapolated LFCs"]] * len(data)
+            data["slope"] = [results.params[1]] * len(data)
+            df_list.append(data)
 
 
+        plot_df = pd.concat(df_list)
+        plt.figure()
+        cmap =  mpl.colors.LinearSegmentedColormap.from_list("", ["#8ecae6","#219ebc","#023047","#ffb703","#fb8500"], N=len(abund_df))
+        palette = [mpl.colors.rgb2hex(cmap(i)) for i in range(cmap.N)]
+        #print("-----------", bo_palette.as_hex())
+        g = sns.lmplot(data=plot_df, x='Log (Concentration)', y='Log (Relative Abundance)', hue="sgRNA strength", palette=palette, legend=False,ci=None, scatter=False, line_kws={"lw":0.75})
+
+        sm1 = mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=plot_df['sgRNA strength'].min(), vmax=0, clip=False), cmap=cmap)
+        g.figure.colorbar(sm1, shrink=0.8, aspect=50, label="sgRNA strength")
+        g.set(ylim=(-2.5, 1.0))
+        plt.savefig(fig_location)
 ################################
 
 if __name__ == "__main__":
