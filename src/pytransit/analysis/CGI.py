@@ -244,7 +244,8 @@ class CGI_Method(base.SingleConditionMethod):
 
       no_dep_df = pd.read_csv(no_dep_abund, sep="\t", index_col=0, header=None)
       no_dep_df = no_dep_df.iloc[:,-1:]
-      no_dep_df.columns = ["uninduced ATC values"]
+      no_dep_df.columns = ["uninduced ATC values"] 
+      no_dep_df["uninduced ATC values"] = no_dep_df["uninduced ATC values"]/ no_dep_df["uninduced ATC values"].sum()
       no_dep_df["sgRNA"] = no_dep_df.index
       no_dep_df["sgRNA"]=no_dep_df["sgRNA"].str.split("_v", expand=True)[0]
       no_dep_df.set_index("sgRNA",inplace=True)
@@ -368,7 +369,7 @@ class CGI_Method(base.SingleConditionMethod):
             min_conc = min([i for i in X if i>0])
             X = [min_conc/2 if i==0 else i for i in X ]
             X = [np.log2(float(x)) for x in X]
-            
+
             data = pd.DataFrame({"Log (Concentration)":X, "Log (Relative Abundance)":Y})
             X = pd.DataFrame({"log concentration":X})
             X_in = sm.add_constant(X, has_constant='add')

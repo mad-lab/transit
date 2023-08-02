@@ -51,7 +51,7 @@ This step is to turn the barcodes extracted into relative normalized abundances.
         * You do not need equal number of replicates for all concentrations
         * see [Li, S et al. 2022, PMID: 35637331] for explanation of days_predepletion
 
-    * Example metadata: *transit/src/pytransit/data/CGI/ShuquiCGI_metadata.txt* 
+    * Example metadata: *transit/src/pytransit/data/CGI/counts_metadata.txt* 
 
 * reference condition: the condition to calculate relative abundances from as specificed in the "drug" column of the metadata file; typically an ATC-induced, no drug concentration.
 
@@ -59,7 +59,7 @@ This step is to turn the barcodes extracted into relative normalized abundances.
 
     * It can have many columns but the first must be sgRNA id (as seen in the combined counts file) and the last column must be the strength measurement of the sgRNAs (in publication, extrapolated LFCs calculated through a passaging experiment is used).
 
-* uninduced ATC file: A two column file of sgRNAs and their abundances in -ATC-induced (no ATC) with 0 drug concentration 
+* uninduced ATC file: A two column file of sgRNAs and their counts in -ATC-induced (no ATC) with 0 drug concentration 
 
 * drug : Name of the drug in the "drug" column of the metadata file passed in to be fit in the model
 
@@ -93,47 +93,38 @@ This process is fairly quick, taking less than a minute to run. This figure visu
 * output plot location : The location where to save the generated plot.
 
 
-Example
+Tutorial
 -------
+The following sample data files can be found in *transit/src/pytransit/data/CGI*.
 
-Note that the first step requires some data files.
-* ShiquiCGI_metadata.txt - describes the samples
-* Bosch21_TableS2.txt - contains betaE estimates for each sgRNA
-* Bosch21_TableS2_extended.txt - contains extrapolated LFCs for each sgRNA
-* no_depletion_abundances.txt - pre-calculated abundance for -ATC (no induction of target depletion)
+* counts_metadata.txt - describes the samples
+* sgRNA_metadata.txt - contains extrapolated LFCs for each sgRNA
+* uninduced_ATC_counts.txt - pre-calculated abundance for -ATC (no induction of target depletion)
 
-Preliminary step: download raw counts from github
-  > git clone https://github.com/rock-lab/CGI_nature_micro_2022
+**Preprocessing: Fastq to Count Files**
+Pre-processed files from fastq to counts are in the directory, where each file contains 4 columns (1st is sgRNA ids and the remaining three are three replicates)
+In this example we will be working with the VAN_D10 set of experiments. This includes a DMSO file, along with a 0.0625, 0.125 and the 0.25 concentration files.
 
-  I suggest linking this in the local (CGI) directory as follows 
-    (but I can go anywhere, and you provide the path to the data/counts/ dir on the command line for extract_abund)
+**Step 1: Combine Counts Files to a Combined Counts File**
+::
+    > python3 transit.py CGI create_combined_counts DMSO_1,DMSO_2,DMSO_3,VAN_0_0625_1,VAN_0_0625_2,VAN_0_0625_3,VAN_0_125_1,VAN_0_125_2,VAN_0_125_3,VAN_0_25_1,VAN_0_25_2,VAN_0_25_3 counts_1952_DMSO_D10.txt counts/counts_1953_VAN_0_0625X_D10.txt counts_1954_VAN_0_125X_D10.txt counts_1955_VAN_0_25X_D10.txt > combined_VAN_D10.txt 
 
-  > ln -s CGI_nature_micro_2022/data data
+**Step 2: Extract Fractional Abundances**
+::
+    > python3 transit.py CGI extract_abund combined_VAN_D10.txt counts_metadata.txt DMSO .sgRNA_metadata.txt uninduced_ATC_counts.txt VAN 10  >  VAN_D10_frac_abund.txt
 
-usage: 
-  python3 ../src/transit.py CGI extract_abund <metadata_file> <data_dir> <extrapolated_LFCs_file> <no_drug_file> <no_depletion_abundances_file> <drug> <days>  >  <output_file>
-  python3 ../src/transit.py CGI run_model <abund_file>  >  <logsigmodfit_file>
-  python3 ../src/transit.py CGI post_process <logsigmoidfit_file>  >  <results_file>
+**Step 3: Run the CRISPRi-DR model**
+::
+    > python3 transit.py CGI run_model VAN_D10_frac_abund.txt > VAN10_CRISPRi-DR_results.txt
 
-example of pipeline:
-
-> python3 ../src/transit.py CGI extract_abund ShiquiCGI_metadata.txt data/counts/ Bosch21_TableS2_extended.txt counts_1972_DMSO_D5.txt no_depletion_abundances.txt RIF 5 > frac_abund.RIF_D5.txt
-
-  gathers relevant samples (at all available concs, and DMSO representing 0xMIC)
-  calculates fractional abundances (normalized within samples, relative to no-depletion abundances, essentially fractions)
-
-
-> python3 ../src/transit.py CGI run_model frac_abund.RIF_D5.txt > logsigmoidfit.RIF_D5.txt
-
-  runs linear regressions for a log-sigmoid model (in R)
-
-> python3 ../src/transit.py CGI post_process logsigmoidfit.RIF_D5.txt > CGI_results.RIF_D5.txt
-
-  outputs statistical analysis of concentration dependence for each gene
-  can open as spreadsheet in Excel
-  genes that interact significantly with drug are those with adjusted P-val (Q-val) < 0.05
+**Visualize Specific Genes**
+::
+    > python3 transit.py CGI visualize VAN_D10_frac_abund.txt lprG ./lprG_lmplot.png  #depletion
+    > python3 transit.py CGI visualize VAN_D10_frac_abund.txt mce1D ./mce1D_lmplot.png #enriched
+    > python3 transit.py CGI visualize VAN_D10_frac_abund.txt sugC ./sugC_lmplot.png #non-interacting
 
 
+----------------------------------------------------------------------------------------------------
 
 python3 ../transit/src/transit.py CGI create_combined_counts DMSO_1,DMSO_2,DMSO_3,VAN_0_0625_1,VAN_0_0625_2,VAN_0_0625_3,VAN_0_125_1,VAN_0_125_2,VAN_0_125_3,VAN_0_25_1,VAN_0_25_2,VAN_0_25_3 CGI_nature_micro_2022/data/counts/counts_1952_DMSO_D10.txt CGI_nature_micro_2022/data/counts/counts_1953_VAN_0_0625X_D10.txt CGI_nature_micro_2022/data/counts/counts_1954_VAN_0_125X_D10.txt CGI_nature_micro_2022/data/counts/counts_1955_VAN_0_25X_D10.txt > combined_VAN_D10.txt
 
