@@ -3,7 +3,7 @@
 .. _cgi:
 
 
-CRISRi-DR
+CRISPRi-DR
 ==========
 CRISPRi-DR is designed to analyze CRISPRi libraries from CGI experiments and identify significant CGIs ie genes that affect sensitivity to the drug when depleted. 
 [REF: TBA]
@@ -21,6 +21,7 @@ Starting with fastq files, barcode counts are extracted. The user creates their 
 **Preprocessing: Fastq to Count Files**
 
 This is a longer process, taking a few minutes each. However, the number of reads processed is printed to the console to indicate progress.
+
 ::
 
     > python3 ../src/transit.py CGI extract_counts <fastq_file> <ids_file> > <counts_file>
@@ -33,6 +34,7 @@ This is a longer process, taking a few minutes each. However, the number of read
 This is a fairly fast process. It takes at most a minute for the combination of 12 files with 2 columns (sgRNA id and counts) to one large file of 13 columns (first column sgRNA id and remaining columns are counts from the files entered). 
 
 ::
+
     > python3 ../src/transit.py CGI combined_counts <comma seperated headers> <counts file 1> <counts file 2>  ... <counts_file n> > <combined counts file>
 
 * counts files : sgRNA ids as their first column, and can have any number of columns.
@@ -46,6 +48,7 @@ This is a fairly fast process. It takes at most a minute for the combination of 
  This is a relatively quick process, taking less than a minute. This step is to turn the barcodes counts into relative normalized abundances. Counts are normalized within samples and calculated relative to the abundances in the uninduced ATC file, essentially fractions. The first few lines of the output file contains information about the counts files processed.
 
 ::
+
     > python3 ../src/transit.py CGI extract_abund <combined counts file> <counts metadata file> <control condition> <sgRNA strengths file> <uninduced ATC file> <drug> <days>  >  <fractional abundance file>
 
 * counts metadata file (USER created):
