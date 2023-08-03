@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 
 
+
+## Version 3.3.0 2023-08-03
+#### Transit:
+
+Major changes:
+ - added CRISPRi-DR method for identifying chemical-genetic interactions (CGI) in CRISPRi libraries
+
+
 ## Version 3.2.8 2023-07-22
 #### TPP:
 
@@ -9,6 +17,7 @@ Small bug fixes:
  - fixed uncompression of gzipped fastq files
  - fixed error condition caused by recent versions of wxPython that require 'proportion' arg in sizers in TPP GUI to be int (not float)
  - added link in documentation to make users aware of Transit2
+
 
 ## Version 3.2.7 2022-09-22
 #### TRANSIT:
