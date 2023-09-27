@@ -55,11 +55,11 @@ def calc_prob(sat,NZmean,meanSat,stdSat,meanNZmean,stdNZmean):
 
 for line in open(sys.argv[1]):
   line = line.strip()
-  if line[0]=='#': print line; continue
+  if line[0]=='#': print (line); continue
   w = line.split('\t')
   id,Call = w[0],w[-1]
   nTA = int(w[3])
-  if nTA==0: print line,"<skip>"; continue
+  if nTA==0: print (line,"<skip>"); continue
   votes = [int(x) for x in w[4:8]]
   m = max(votes)
   consistency = m/float(nTA)
@@ -74,5 +74,5 @@ for line in open(sys.argv[1]):
   #vals = w+[nTA,m,round(consistency,3),round(prob,4)]
   vals = w+[round(consistency,3)]+[round(x,6) for x in probs]
   vals += [round(conf,4)]
-  print '\t'.join([str(x) for x in vals])
+  print ('\t'.join([str(x) for x in vals]))
 
