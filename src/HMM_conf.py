@@ -70,9 +70,14 @@ for line in open(sys.argv[1]):
     probs.append(calc_prob(float(w[-3]),float(w[-2]),meanSats[st],stdSats[st],meanNZmeans[st],stdNZmeans[st]))
   totprob = sum(probs)
   relprobs = [x/float(totprob) for x in probs]
+  flag=0
+  if max(relprobs)<0.7:
+    if (Call=="ES" or Call=="GD") and (relprobs[0]>0.25 and relprobs[1]>0.25): flag=1
+    if (Call=="GD" or Call=="NE") and  (relprobs[1]>0.25 and relprobs[2]>0.25) :flag=1
+    if (Call=="NE" or Call=="GA") and (relprobs[2]>0.25 and relprobs[3]>0.25):flag=1
   conf = relprobs[STATES.index(Call)]
   #vals = w+[nTA,m,round(consistency,3),round(prob,4)]
-  vals = w+[round(consistency,3)]+[round(x,6) for x in probs]
-  vals += [round(conf,4)]
+  vals = w+[round(consistency,3)]+[round(x,6) for x in relprobs]
+  vals += [round(conf,4),flag]
   print ('\t'.join([str(x) for x in vals]))
 
