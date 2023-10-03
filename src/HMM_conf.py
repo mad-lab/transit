@@ -59,7 +59,7 @@ for line in open(sys.argv[1]):
   w = line.split('\t')
   id,Call = w[0],w[-1]
   nTA = int(w[3])
-  if nTA==0: print (line,"<skip>"); continue
+  if nTA==0: print (line); continue
   votes = [int(x) for x in w[4:8]]
   m = max(votes)
   consistency = m/float(nTA)
@@ -70,12 +70,14 @@ for line in open(sys.argv[1]):
     probs.append(calc_prob(float(w[-3]),float(w[-2]),meanSats[st],stdSats[st],meanNZmeans[st],stdNZmeans[st]))
   totprob = sum(probs)
   relprobs = [x/float(totprob) for x in probs]
-  flag=0
-  if max(relprobs)<0.7:
-    if (Call=="ES" or Call=="GD") and (relprobs[0]>0.25 and relprobs[1]>0.25): flag=1
-    if (Call=="GD" or Call=="NE") and  (relprobs[1]>0.25 and relprobs[2]>0.25) :flag=1
-    if (Call=="NE" or Call=="GA") and (relprobs[2]>0.25 and relprobs[3]>0.25):flag=1
   conf = relprobs[STATES.index(Call)]
+  flag=""
+  if conf<0.5: flag="low-confidence"
+  if max(relprobs)<0.7:
+    if (Call=="ES" or Call=="GD") and (relprobs[0]>0.25 and relprobs[1]>0.25): flag="ambiguous"
+    if (Call=="GD" or Call=="NE") and  (relprobs[1]>0.25 and relprobs[2]>0.25) :flag="ambiguous"
+    if (Call=="NE" or Call=="GA") and (relprobs[2]>0.25 and relprobs[3]>0.25):flag="ambiguous"
+  
   #vals = w+[nTA,m,round(consistency,3),round(prob,4)]
   vals = w+[round(consistency,3)]+[round(x,6) for x in relprobs]
   vals += [round(conf,4),flag]
