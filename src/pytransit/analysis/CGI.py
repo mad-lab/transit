@@ -291,15 +291,16 @@ class CGI_Method(base.SingleConditionMethod):
         abund_df["sgRNA"] = abund_df.index.values.tolist()
         abund_df[["orf-gene","remaining"]] = abund_df["sgRNA"].str.split('_',n=1,expand=True)
         abund_df[["orf","gene"]]= abund_df["orf-gene"].str.split(':',expand=True)
-        abund_df = abund_df.drop(columns=["orf-gene","remaining","sgRNA"])
+        abund_df = abund_df.drop(columns=["orf-gene","remaining"])
         abund_df = abund_df.dropna()
         
         abund_df.insert(0, "sgRNA strength", abund_df.pop("sgRNA strength"))
         abund_df.insert(0, "uninduced ATC values", abund_df.pop("uninduced ATC values"))
         abund_df.insert(0, 'gene', abund_df.pop('gene'))
         abund_df.insert(0, 'orf', abund_df.pop('orf'))
+        abund_df.insert(0, 'orf', abund_df.pop('sgRNA'))
 
-        abund_df_text = abund_df.to_csv(sep="\t")
+        abund_df_text = abund_df.to_csv(sep="\t", index=False)
         print(abund_df_text)
 
 
