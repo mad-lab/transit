@@ -125,19 +125,25 @@ class CGI_Method(base.SingleConditionMethod):
         cmd,args,kwargs = self.cmd,self.args,self.kwargs
 
         if cmd=="extract_counts":
-            if len(args)<2: print(self.usage_string())
+            if len(args)<2: 
+                print("You have provided incorrect number of args")
+                print(self.usage_string())
             fastq_file = args[0]
             ids_file = args[1]
             self.extract_counts(fastq_file, ids_file)
         
         elif cmd=="create_combined_counts":
-            if len(args)<2: print(self.usage_string())
+            if len(args)<2: 
+                print("You have provided incorrect number of args")
+                print(self.usage_string())
             headers = args[0].split(",")
             counts_file_list = args[1:]
             self.create_combined_counts(headers,counts_file_list)
 
         elif cmd=="extract_abund":
-            if len(args)<7: print(self.usage_string())
+            if len(args)<7: 
+                print("You have provided incorrect number of args")
+                print(self.usage_string())
             combined_counts_file = args[0]
             metadata_file = args[1]
             control_condition=args[2]
@@ -147,17 +153,23 @@ class CGI_Method(base.SingleConditionMethod):
             days = args[6]
             self.extract_abund(combined_counts_file,metadata_file,control_condition,sgRNA_strength_file,no_dep_abund,drug,days)
         elif cmd == "run_model":
-            if len(args)<1: print(self.usage_string())
+            if len(args)<1: 
+                print("You have provided incorrect number of args")
+                print(self.usage_string())
             ifile_path = args[0] #example frac_abund_RIF_D5.txt
             self.run_model(ifile_path)
         elif cmd == "visualize":
-            if len(args)<3: print(self.usage_string())
+            if len(args)<3: 
+                print("You have provided incorrect number of args")
+                print(self.usage_string())
             frac_abund_file= args[0]
             gene = args[1]
             fig_location = args[2]
             self.visualize(frac_abund_file, gene, fig_location)
             
-        else: print(self.usage_string())
+        else: 
+            print("You have not entered a valid command, here are the options")
+            print(self.usage_string())
 
     def reverse_complement(self, seq):
         complement = {'A':'T','T':'A','C':'G','G':'C'}
@@ -298,7 +310,7 @@ class CGI_Method(base.SingleConditionMethod):
         abund_df.insert(0, "uninduced ATC values", abund_df.pop("uninduced ATC values"))
         abund_df.insert(0, 'gene', abund_df.pop('gene'))
         abund_df.insert(0, 'orf', abund_df.pop('orf'))
-        abund_df.insert(0, 'orf', abund_df.pop('sgRNA'))
+        abund_df.insert(0, 'sgRNA', abund_df.pop('sgRNA'))
 
         abund_df_text = abund_df.to_csv(sep="\t", index=False)
         print(abund_df_text)
