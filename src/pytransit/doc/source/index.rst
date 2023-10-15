@@ -135,6 +135,7 @@ TRANSIT offers a variety of features including:
    :caption: Code Documentation
 
    transit
+   example_scripts
 
 * :ref:`genindex`
 * :ref:`modindex`

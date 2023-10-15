@@ -1,4 +1,4 @@
-transit package
+pytransit package
 ===============
 
 |
