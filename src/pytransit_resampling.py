@@ -20,7 +20,7 @@ nA = len(wigsA)
 prot_table = sys.argv[3]
 
 (counts,sites) = transit_tools.get_validated_data(wigsA+wigsB) # data is a DxN numpy array, D=num datasets, N=num TA sites
-print(counts.shape)
+print("counts.shape =",counts.shape)
 
 print("normalizing data with TTR")
 (data, factors) = norm_tools.normalize_data(counts, "TTR")
@@ -30,7 +30,6 @@ genes = tnseq_tools.Genes(None,prot_table,data=data, position=sites)
 
 results,pvals = [],[]
 for gene in genes:
-  ii = gene.reads # coordinates of TA sites in gene
   if gene.n==0: continue # skip genes with 0 TA sites
   data1 = gene.reads[:nA] # counts at TA sites in gene for wigs for condition A
   data2 = gene.reads[nA:]
