@@ -3,14 +3,23 @@ All notable changes to this project will be documented in this file.
 
 
 
-## Version 3.3.0 2023-08-03
+## Version 3.3.1 (2023-10-18)
+#### Transit:
+
+Minor changes:
+ - changed HMM output filenames to *.sites.txt and *.genes.txt
+ - added a page on File Formats to documentation
+ - added a page on Example Scripts to documentation (for developers, to illustrate use of pytransit package)
+
+
+## Version 3.3.0 (2023-08-03)
 #### Transit:
 
 Major changes:
  - added CRISPRi-DR method for identifying chemical-genetic interactions (CGI) in CRISPRi libraries
 
 
-## Version 3.2.8 2023-07-22
+## Version 3.2.8 (2023-07-22)
 #### TPP:
 
 Small bug fixes:
@@ -19,7 +28,7 @@ Small bug fixes:
  - added link in documentation to make users aware of Transit2
 
 
-## Version 3.2.7 2022-09-22
+## Version 3.2.7 (2022-09-22)
 #### TRANSIT:
 
 Major changes:
