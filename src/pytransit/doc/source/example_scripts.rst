@@ -177,14 +177,18 @@ The important parts illustrated in this example script are:
         print("\t".join([str(x) for x in vals]))
   
 
-Here is the output of this script for data from growth of M. tuberculosis H37Rv on 
-media containing iron supplied by different vehicles (e.g. mycobactin, carboxymycobactin, hemin, hemoglobin...),
-which requires genes in different pathways for uptake
+Here is the output of this script for data from growth
+of M. tuberculosis H37Rv on media containing iron supplied by
+different vehicles (e.g. mycobactin, carboxymycobactin, hemin,
+hemoglobin...), which requires genes in different pathways for uptake
 `(Zhang et al., 2020) <https://pubmed.ncbi.nlm.nih.gov/32069330/>`_.
-The raw data (wig files, with insertion counts at TA sites) have been combined into a **combined_wig** file
-and a **metatdata** file that describes which samples belong to which condition.
-(These files can be found in the transit data directory.)
-You can also compare this to the heatmap shown on the page for :ref:`corrplot <corrplot>`.
+The raw data (wig files, with insertion counts at TA sites) have been
+combined into a **combined_wig file** and a **metatdata file** that
+describes which samples belong to which condition.  These files 
+(*iron_combined_wig4.txt* and *iron_samples_metadata.txt*) can be found in
+the transit data directory, transit/src/pytransit/data/.  You can
+also compare this to the heatmap shown on the page for :ref:`corrplot
+<corrplot>`.
 
 ::
 
@@ -221,4 +225,19 @@ You can also compare this to the heatmap shown on the page for :ref:`corrplot <c
   4:Hemin   	6:HeminMBT	77
   5:Hemoglobin	6:HeminMBT	89
 
+
+.. NOTE::
+
+  Note, in allpairs_resampling.py, the FDR correction 
+  to adjust P-values for testing all genes in parallel 
+  is applied within each pairwise comparison.
+  This correction is then repeated independently for each pair
+  of conditions analyzed.  Formally, it would be more rigorous to apply
+  the FDR correction one time at the end, to adjust P-values over all pairs and
+  over all genes (which would be G*N*(N-1)/2 probabilities, where G in
+  the number of genes in the genome, and N is the number of conditions).
+  This would likely further reduce the number of significant
+  conditionally-essential genes.  But for simplicity, this example
+  script does not do that, because it is just designed to illustrate
+  using the *pytransit* package.
 
