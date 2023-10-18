@@ -63,8 +63,8 @@ class TestMethods(TransitTestCase):
         args = [mini_wig, small_annotation, output]
         G = HMMMethod.fromargs(args)
         G.Run()
-        self.assertTrue(os.path.exists(output))
-        genes_path = output.rsplit(".", 1)[0] + "_genes." + output.rsplit(".", 1)[1]
+        self.assertTrue(os.path.exists(output+".sites.txt"))
+        genes_path = output+".genes.txt"
         self.assertTrue(os.path.exists(genes_path))
 
 
