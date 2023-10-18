@@ -246,6 +246,22 @@ wxPython 4+ can be installed using pip
 If the above command fails and you already have wxPython < 4.0 installed, you may have to manually remove it.
 See https://stackoverflow.com/questions/50688630/cannot-uninstall-wxpython-3-0-2-0-macos for details.
 
+.. NOTE::
+
+  Installing *wxPython* can be a bit finicky.  It might require installing the
+  development version of GTK first.  There are at least two versions currently, 
+  *gtk2* and *gtk3*.
+  Transit should work with both, although there can be small differences in the 
+  visual look of the GUI.  To get *wxPython* to install, you might try doing this:
+
+    > sudo apt-get install libgtk-2-dev
+
+    or
+
+    > sudo apt-get install libgtk-3-dev
+
+  depending on which version of *libgtk* you have installed.
+
 .. _transit-troubleshoot:
 
 Troubleshooting
