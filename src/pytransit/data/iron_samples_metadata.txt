@@ -1,0 +1,15 @@
+Id	Filename	Condition
+HighFeMBT	HighFeMBT.wig	HighFeMBT
+HighFeMBT2	HighFeMBT2.wig	HighFeMBT
+HighFeMBT3	HighFeMBT3.wig	HighFeMBT
+LowFeMBT	LowFeMBT.wig	LowFeMBT
+LowFeMBT2	LowFeMBT2.wig	LowFeMBT
+FeCMBT	FeCMBT.wig	FeCMBT
+FeCMBT2	FeCMBT2b.wig	FeCMBT
+Hemin	Hemin.wig	Hemin
+Hemin2	Hemin2b.wig	Hemin
+Hemin3	Hemin3b.wig	Hemin
+Hemoglobin	Hemoglobin.wig	Hemoglobin
+Hemoglobin2	Hemoglobin2b.wig	Hemoglobin
+HeminMBT	HeminMBT.wig	HeminMBT
+HeminMBT2	HeminMBT2.wig	HeminMBT
