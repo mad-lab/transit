@@ -230,12 +230,13 @@ class HMMMethod(base.SingleConditionMethod):
 
         #Get output path
         name = transit_tools.basename(ctrldata[0])
-        defaultFileName = "hmm_output.dat"
+        defaultFileName = "hmm_output_base"
         defaultDir = os.getcwd()
         output_path = wxobj.SaveFile(defaultDir, defaultFileName)
         if not output_path: return None
-        output_file = open(output_path, "w")
-
+        self.sites_fname = output_path+".sites.txt"
+        self.genes_fname = output_path+".genes.txt"
+        output_file = open(self.sites_fname, "w")
 
 
         return self(ctrldata,
@@ -255,7 +256,9 @@ class HMMMethod(base.SingleConditionMethod):
         ctrldata = args[0].split(",")
         annotationPath = args[1]
         outpath = args[2]
-        output_file = open(outpath, "w")
+        self.sites_fname = outpath+".sites.txt"
+        self.genes_fname = outpath+".genes.txt"
+        output_file = open(self.sites_fname, "w")
 
         replicates = kwargs.get("r", "Mean")
         normalization = kwargs.get("n", "TTR")
@@ -409,12 +412,12 @@ class HMMMethod(base.SingleConditionMethod):
 
         self.transit_message("") # Printing empty line to flush stdout 
         self.transit_message("Finished HMM - Sites Method")
-        self.transit_message("Adding File: %s" % (self.output.name))
+        self.transit_message("Adding File: %s" % (self.sites_fname))
         self.add_file(filetype="HMM - Sites")
         
         #Gene Files
         self.transit_message("Creating HMM Genes Level Output")
-        genes_path = ".".join(self.output.name.split(".")[:-1]) + "_genes." + self.output.name.split(".")[-1] 
+        genes_path = self.genes_fname
 
         tempObs = numpy.zeros((1,len(O)))
         tempObs[0,:] = O - 1
@@ -429,7 +432,8 @@ class HMMMethod(base.SingleConditionMethod):
 
     @classmethod
     def usage_string(self):
-        return """python3 %s hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output file>
+        return """python3 %s hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output_BASE_filename>
+        (will create 2 output files: BASE.sites.txt and BASE.genes.txt)
 
         Optional Arguments:
             -r <string>     :=  How to handle replicates. Sum, Mean. Default: -r Mean
@@ -556,8 +560,7 @@ class HMMMethod(base.SingleConditionMethod):
 
 
     def post_process_genes(self, data, position, states, output_path):
-
-        output = open(output_path, "w")
+        output = open(self.genes_fname, "w")
         pos2state = dict([(position[t],states[t]) for t in range(len(states))])
         theta = numpy.mean(data > 0)
         G = tnseq_tools.Genes(self.ctrldata, self.annotation_path, data=data, position=position, ignoreCodon=False, nterm=self.NTerminus, cterm=self.CTerminus)
@@ -610,16 +613,9 @@ class HMMMethod(base.SingleConditionMethod):
         output.close()
 
 
-
-    
-
-
-
-
 if __name__ == "__main__":
 
     (args, kwargs) = transit_tools.cleanargs(sys.argv)
-
 
     G = HMMMethod.fromargs(sys.argv[1:])
 
