@@ -79,6 +79,7 @@ TRANSIT offers a variety of features including:
    transit_install
    transit_running
    transit_features
+   file_formats
    
 .. toctree::
    :maxdepth: 3
