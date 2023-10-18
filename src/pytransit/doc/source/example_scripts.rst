@@ -84,9 +84,10 @@ The important functions illustrated in this script are:
 Example 2: src/allpairs_resampling.py
 ~~~~~~~~~~~~~~~~~~~~~
 
-While the example above shows how to read-in and process individual wig files,
-this examples shows how to work with combined_wig and metadata files.
-It does resampling between each pair of conditions, and prints out a matrix of hits 
+While the example above shows how to read-in and process individual
+wig files, this examples shows how to work with :ref:`combined_wig and
+sample metadata files <combined_wig>`.  It does resampling between 
+each pair of conditions, and prints out a matrix of hits
 (statistically-signficant conditionally-essential genes).
 
 To run this, cd into your transit/src/ directory.  It prints output to

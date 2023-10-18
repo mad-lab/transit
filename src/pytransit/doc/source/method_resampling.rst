@@ -189,11 +189,12 @@ making it difficult to make confident calls on essentiality.
 Doing resampling with a combined_wig file
 -----------------------------------------
 
-Resampling can also now take a combined_wig_ file as input (containing insertion counts
-for multiple sample), along with a samples_metadata_ file
+Resampling can also now take a **combined_wig** file as input (containing insertion counts
+for multiple sample), along with a **samples_metadata** file
 that describes the samples. This mode is indicated with a '-c' flag.
 If you want to compare more than two conditions, see :ref:`ZINB <zinb>`.
 
+See description of :ref:`combined_wig and metadata file formats <combined_wig>`.
 
 ::
 

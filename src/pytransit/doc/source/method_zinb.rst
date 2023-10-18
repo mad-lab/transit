@@ -61,55 +61,16 @@ Example
         --gene <Orf id or Gene name>:= Run method for one gene and print model output.
 
 
-.. _combined_wig:
 
-Combined wig files
-------------------
+Input Files
+-----------
 
-Transit now supports a new file format called 'combined_wig' which basically
-combines multiple wig files into one file (with multiple columns).  This is
-used for some of the new analysis methods for larger collections of datasets, like :ref:`Anova <anova>`, :ref:`ZINB <zinb>`.
-Combined_wig files can created through the Transit GUI
-(File->Export->Selected_Datasets->Combined_wig), or via the command line.
-You can specify the normalization method you want to use with a flag.
-TTR is the default, but other relevant normalization options would be 'nonorm'
-(i.e. preserve raw counts) and 'betageom' (this corrects for skew, but is slow).
+ZINB takes a **combined_wig file** and **metadata file** as input.
+The combined_wig file contains insertion counts for multiple conditions and replicates.
+The metadata file indicates which replicates go with which experimental conditions.
 
+See description of :ref:`combined_wig and metadata file formats <combined_wig>`.
 
-::
-
-  > python3 src/transit.py export combined_wig --help
-
-  usage: python3 src/transit.py export combined_wig <comma-separated .wig files> <annotation .prot_table> <output file>
-
-  > python3 ../transit/src/transit.py export combined_wig Rv_1_H37RvRef.wig,Rv_2_H37RvRef.wig,Rv_3_H37RvRef.wig H37Rv.prot_table clinicals_combined_TTR.wig -n TTR
-
-
-
-.. _samples_metadata:
-
-Samples Metadata File
----------------------
-
-Format of the *samples_metadata* file: a tab-separated file (which you
-can edit in Excel) with 3 columns: Id, Condition, and Filename (it
-must have these headers).  You can include other columns of info, but
-do not include additional rows.  Individual rows can be commented out
-by prefixing them with a '#'.  Here is an example of a samples
-metadata file: The filenames should match what is shown in the header
-of the combined_wig (including pathnames, if present).
-
-Note: the Condition column should have a unique label for each distinct condition (the same label shared only among replicates).
-If there are attributes that distinguish the conditions (such as strain, treatment, etc), they could be included as additional columns (e.g. covariates).
-
-::
-
-  ID      Condition    Filename
-  glyc1   glycerol     /Users/example_data/glycerol_rep1.wig
-  glyc2   glycerol     /Users/example_data/glycerol_rep2.wig
-  chol1   cholesterol  /Users/example_data/cholesterol_rep1.wig
-  chol2   cholesterol  /Users/example_data/cholesterol_rep2.wig
-  chol2   cholesterol  /Users/example_data/cholesterol_rep3.wig
 
 Parameters
 ----------

@@ -114,7 +114,7 @@ tags in info field of CDS records.)
 
 
 
-.. _combined_wig_link:
+.. _combined_wig:
 
 Combined_wig Files
 ------------------
