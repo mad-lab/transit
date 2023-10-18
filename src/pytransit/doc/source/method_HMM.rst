@@ -20,13 +20,15 @@ How does it work?
 |
 
 
-Example
--------
+Usage
+-----
 
 ::
 
 
-  python3 transit.py hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output file>
+  > python3 transit.py hmm <comma-separated .wig files> <annotation .prot_table or GFF3> <output_BASE_filename>
+        (will create 2 output files: BASE.sites.txt and BASE.genes.txt)
+
         Optional Arguments:
             -r <string>     :=  How to handle replicates. Sum, Mean. Default: -r Mean
             -l              :=  Perform LOESS Correction; Helps remove possible genomic position bias. Default: Off.
@@ -52,7 +54,7 @@ replicate datasets:
 Output and Diagnostics
 ----------------------
 
-| The HMM method outputs two files. The first file provides the most
+| The HMM method outputs two files. The first file (**BASE.sites.txt**) provides the most
   likely assignment of states for all the TA sites in the genome. Sites
   can belong to one of the following states: "E" (Essential), "GD"
   (Growth-Defect), "NE" (Non-Essential), or "GA" (Growth-Advantage). In
@@ -81,7 +83,7 @@ Output and Diagnostics
 +------------+-----------------------------------------------------------------------------------------------------+
 
 |
-|  The second file provides a gene-level classification for all the
+|  The second file (**BASE.genes.txt**) provides a gene-level classification for all the
   genes in the genome. Genes are classified as "E" (Essential), "GD"
   (Growth-Defect), "NE" (Non-Essential), or "GA" (Growth-Advantage)
   depending on the number of sites within the gene that belong to those
