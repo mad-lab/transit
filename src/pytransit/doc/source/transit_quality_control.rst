@@ -31,7 +31,11 @@ QC Metrics Table
 
 The Quality Control window contains a table of the datasets and metrics, similar
 to the one in the main TRANSIT interface. This table has an extended set of
-metrics to provide a better picture of the quality of the datasets:
+metrics to provide a better picture of the quality of the datasets (below).
+
+A similar table of dataset statistics can be generated at the command-line
+using the Transit :ref:`tnseq_stats <tnseq_stats>` command.
+
 
 
 =============  ==============================================  =============================================================================================================
@@ -50,6 +54,34 @@ Kurtosis       Kurtosis of the read-counts in the dataset.
 =============  ==============================================  =============================================================================================================
 
 
+Interpretation of Data Quality (Rules of Thumb)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. NOTE:: 
+
+ While there are no
+ rigid criteria for defining "bad" datasets, rules of thumb I use
+ for "good" datasets are: **density>30% (ideally >50%)** and **NZmean>10 (ideally >50)**.  
+ In addition, I look
+ at MaxReadCount and Skewness as indicators.  Typically, MaxReadCount
+ will be in the range of a few thousand to tens-of-thousands.  
+ If you see individual sites with
+ counts in the range of 10\ :sup:`5`\ -10\ :sup:`6` , it might mean you have some positive
+ selection at a site (e.g. biological, or due to PCR jackpotting), and
+ this can have the effect of reducing counts and influencing the
+ distribution at all the other sites.  If MaxReadCount<100, that could also
+ be problematic (either not enough reads, or possibly skewing).
+ Also, **skewness>30** often (but not
+ always) signals a problem.  Kurtosis doesn't seem to be very
+ meaningful.  The reason it is not easy to boil all these down to a
+ simple set of criteria is that some some of these metrics are interdepenent.
+
+ 
+If you have a "bad" or poorly-behaving or "skewed" dataset (e.g. with mostly low
+counts, dominated by a few high counts), right now the only remedy you
+can try is applying the :ref:`Beta-Geometric Correction (BGC) <BGC>`, which is 
+a non-linear normalization procedure for adjusting insertion counts.
+
 
 QC Plots
 ~~~~~~~~
@@ -64,7 +96,7 @@ Figure 1: Read-Count Distribution
 
 
 .. image:: _images/transit_quality_control_histogram.png
-   :width: 600
+   :width: 300
    :align: center
 
 
@@ -77,7 +109,7 @@ Figure 2: QQ-Plot of Read-Counts vs Geometric Distribution
 
 
 .. image:: _images/transit_quality_control_qqplot.png
-   :width: 600
+   :width: 300
    :align: center
 
 
@@ -94,74 +126,11 @@ Figure 3: Ranked plot of Read-Counts
 
 
 .. image:: _images/transit_quality_control_ranked.png
-   :width: 600
+   :width: 300
    :align: center
 
 
 
 The second plot in the Quality Control window is a plot of the read-counts in sorted order. This may be helpful in indentifying outliers that may exist in the dataset. Typically, some large counts are expected and some normalization methods, like TTR, are robust to such outliers. However, too many outliers, or one single outlier that is overhwelmingly different than the rest may indicate an issue like PCR amplification (especially in libraries constructed older protocols).
 
-
-Interpretation of Data Quality
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-It is important to be able to evaluate the quality of datasets.
-In a nutshell, we look at statistics like saturation, and mean read count,
-but also things like max count and skewness.
-
-There are two ways to do QC in Transit - via the GUI and command-line.  
-In the GUI, one can load a set of
-wig files a select "View->Quality Control" in the menu; this will
-display some plots of read-count distribution.  Ideally, you want most of
-your datasets to fall along the diagonal on a QQ-plot.  Real data will
-often deviate somewhat (I will try to be more quantitative about this in the future),
-but if a dataset skews far off from the diagonal, it could cause problems
-with analytical methods like resampling or the HMM.  
-
-.. image:: http://saclab.tamu.edu/essentiality/transit/QC_example.png
-
-You can also generate the same table to statistics as on the QC panel
-from the command-line using the :ref:`tnseq_stats <tnseq_stats>` command.  
-
-Below the plots are a table of statistics.  While there are not
-rigorous criteria for defining "bad" datasets, rules of thumb I use
-for "good" datasets are: density>30% (ideally >50%) and NZmean>10 (ideally >50).  
-In addition, I look
-at MaxReadCount and Skewness as indicators.  Typically, MaxReadCount
-will be in the range of a few thousand to tens-of-thousands.  
-If you see individual sites with
-counts in the range of 10\ :sup:`5`\ -10\ :sup:`6` , it might mean you have some positive
-selection at a site (e.g. biological, or due to PCR jackpotting), and
-this can have the effect of reducing counts and influencing the
-distribution at all the other sites.  If MaxReadCount<100, that is also
-probably problematic (either not enough reads, or possibly skewing).
-Also, skewness>30 often (but not
-always) signals a problem.  Kurtosis doesn't seem to be very
-meaningful.  The reason it is not easy to boil all these down to a
-simple set of criteria is that some some of the metrics interact with
-each other.  
-
-
-.. _BGC:
-
-Beta-Geometric Correction
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you have a "bad" or poorly-behaving or "skewed" dataset (e.g. with mostly low
-counts, dominated by a few high counts), right now the only remedy you
-can try is applying the **Beta-Geometric correction (BGC)**, which is a
-non-linear adjustment to the insertion counts in a wig file to make
-them more like an ideal Geometric distribution (`DeJesus & Ioerger, 2016 <https://www.ncbi.nlm.nih.gov/pubmed/26932272>`_). (Note, all the
-other normalizations, like TTR, are linear adjustments, and so they
-can't correct for skewing.)
-
-In the GUI, when you are looking, you can change
-the normalization (e.g. from TTR to betageom) using the drop-down.  Be aware that the Beta-Geometric
-normalization is compute-intensive and might take few minutes.
-
-If it looks like it might help (i.e. if the QQ-plot fits the diagonal better using BG
-normalization),
-you can created BG-corrected versions of individual wig files by
-exporting them using the :ref:`normalize command <normalization>` 
-on the command-line with '-n betageom' to specify normalization.
 

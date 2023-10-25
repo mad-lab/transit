@@ -78,7 +78,7 @@ TRANSIT offers a variety of features including:
    transit_overview
    transit_install
    transit_running
-   transit_features
+   transit_quality_control
    file_formats
    
 .. toctree::
@@ -91,21 +91,21 @@ TRANSIT offers a variety of features including:
    :maxdepth: 3
    :caption: TnSeq ANALYSIS METHODS
 
+   method_normalization
+   method_tnseq_stats
    method_gumbel
    method_griffin
+   method_ttnfitness
    method_tn5gaps
    method_HMM
    method_resampling
    method_Utest
-   method_GI
    method_anova
-   method_zinb
-   method_normalization
-   method_pathway_enrichment
-   method_tnseq_stats
    method_corrplot
    method_heatmap
-   method_ttnfitness
+   method_GI
+   method_zinb
+   method_pathway_enrichment
 
 .. _tutorial-link:
 
