@@ -13,9 +13,9 @@ briefly described below:
 - **TTR:**
     Trimmed Total Reads (TTR), normalized by the total
     read-counts (like totreads), but trims top and bottom 5% of
-    read-counts. **This is the recommended normalization method for most cases**
-    as it has the beneffit of normalizing for difference in
-    saturation in the context of resampling.
+    read-counts. **This is the recommended normalization method for most cases**,
+    as it has the benefit of compensating for differences in
+    saturation (which is especially important for resampling).
 
 - **nzmean:**
     Normalizes datasets to have the same mean over the
@@ -41,7 +41,8 @@ briefly described below:
     distribution is estimated as the mean across the sorted datasets
     at each site, and then the original (unsorted) datasets are
     assigned values from the empirical distribution based on their
-    quantiles.
+    quantiles.  This actually doesn't work well on TnSeq data if a large fraction
+    of TA sites have counts of 0 (ties).
 
 - **betageom:**
     Normalizes the datasets to fit an "ideal" Geometric
@@ -76,7 +77,7 @@ statistical analyses like resampling, etc by reducing noise.
 In the GUI, when you are looking at wig files loaded, you can change
 the normalization (e.g. from TTR to betageom) using the drop-down.  Be
 aware that the Beta-Geometric normalization is *computationally-intensive* and
-might take few minutes per sample.
+**might take few minutes per sample**.
 
 If it looks like it might help (i.e. if the QQ-plot fits the diagonal better using BG
 normalization),
