@@ -252,9 +252,6 @@ Note that MAB_0005 was called NE, but only has insertions at 1 out of 4 TA sites
 (sat=25%) with a mean count of only 7, so it is more consistent with ES; hence it is
 flagged as low-confidence (and one should ignore the NE call).
 
-Note!!! *The extra column headers still need to be added to HMM_conf.py: cons
-probES probGD probNE probGA conf flag.*
-
 ::
 
   # avg gene-level consistency of HMM states: 0.9894
