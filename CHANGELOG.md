@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 
 
+## Version 3.3.2 (2023-10-29)
+#### Transit:
+
+Major changes:
+ - added src/HMM_conf.py as a post-processing script for the HMM, to evaluate confidence of essentiality calls for each gene (see documentation on HMM)
+
+
 ## Version 3.3.1 (2023-10-18)
 #### Transit:
 
