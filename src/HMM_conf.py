@@ -1,6 +1,9 @@
 import sys,numpy
 import scipy.stats
 
+# first pass...
+
+headers = []
 data = []
 all = []
 Sats = {}
@@ -9,7 +12,7 @@ TAs = {}
 Calls = {}
 for line in open(sys.argv[1]):
   line = line.strip()
-  if line[0]=='#': continue
+  if line[0]=='#': headers.append(line); continue
   w = line.split('\t')
   nTA = int(w[3])
   if nTA==0: continue
@@ -53,9 +56,14 @@ def calc_prob(sat,NZmean,meanSat,stdSat,meanNZmean,stdNZmean):
 
 # second pass...
 
+for line in headers[:-1]: print(line)
+newheaders = headers[-1].split('\t') # assume last comment line is column headers
+newheaders += "consis probES probGD probNE probGA conf flag".split()
+print('\t'.join(newheaders))
+
 for line in open(sys.argv[1]):
   line = line.strip()
-  if line[0]=='#': print (line); continue
+  if line[0]=='#': continue
   w = line.split('\t')
   id,Call = w[0],w[-1]
   nTA = int(w[3])
@@ -63,7 +71,6 @@ for line in open(sys.argv[1]):
   votes = [int(x) for x in w[4:8]]
   m = max(votes)
   consistency = m/float(nTA)
-  #prob = scipy.stats.binom.cdf(m,nTA,cons)
   probs = []
   STATES = "ES GD NE GA".split()
   for st in STATES:
@@ -78,7 +85,6 @@ for line in open(sys.argv[1]):
     if (Call=="GD" or Call=="NE") and  (relprobs[1]>0.25 and relprobs[2]>0.25) :flag="ambiguous"
     if (Call=="NE" or Call=="GA") and (relprobs[2]>0.25 and relprobs[3]>0.25):flag="ambiguous"
   
-  #vals = w+[nTA,m,round(consistency,3),round(prob,4)]
   vals = w+[round(consistency,3)]+[round(x,6) for x in relprobs]
   vals += [round(conf,4),flag]
   print ('\t'.join([str(x) for x in vals]))

@@ -232,13 +232,15 @@ obviating the need for a second step.)
 
 The script adds the following columns:
 
- * **cons** - consistency (proportion of TA sites representing the majority essentiality state)
+ * **consis** - consistency (proportion of TA sites representing the majority essentiality state)
  * **probES** - conditional probability (unnormalized) of the insertions statistics (sat and mean) if the gene were essential 
  * **probGD** - conditional probability (unnormalized) of the insertions statistics (sat and mean) if the gene were growth-defect
  * **probNE** - conditional probability (unnormalized) of the insertions statistics (sat and mean) if the gene were non-essential
  * **probGA** - conditional probability (unnormalized) of the insertions statistics (sat and mean) if the gene were growth-advantaged
  * **conf** - confidence score (normalized conditional joint probability of the insertion statistics, given the actual essential call made by the HMM)
- * flag - genes that are ambiguous or have low confidence are labeled as such
+ * **flag** - genes that are ambiguous or have low confidence are labeled as such
+  * *low-confidence* means: the HMM call is inconsistent with statistics of insertion counts in gene, so the HMM call should be ignored
+  * *ambiguous* means: the HMM gives high probability to 2 adjacent essentiality states, like ES-or-GD, or GD-or-NE; these could be borderline cases where the gene could be in either category
 
 If consistency<1.0, it means not all the TA sites in the gene agree with the essentiality call, which is made by majority vote. 
 It is OK if a small fraction of TA sites in a gene are labeled otherwise.
@@ -265,7 +267,7 @@ probES probGD probNE probGA conf flag.*
   #command line: python3 ../../transit/src/transit.py hmm TnSeq-Ref-1.wig,TnSeq-Ref-2.wig,TnSeq-Ref-3.wig abscessus.prot_table HMM_Ref_sync3.txt -iN 5 -iC 5
   #summary of gene calls: ES=364, GD=146, NE=3971, GA=419, N/A=23
   #key: ES=essential, GD=insertions cause growth-defect, NE=non-essential, GA=insertions confer growth-advantage, N/A=not analyzed (genes with 0 TA sites)
-  #ORF     gene annotation                                TAs ES sites GD sites NE sites GA sites saturation   mean call cons probES  probGD   probNE   probGA   conf   flag
+  #ORF     gene annotation                                TAs ES sites GD sites NE sites GA sites saturation   mean call consis probES  probGD   probNE   probGA   conf   flag
   MAB_0001 dnaA Chromosomal replication initiator protein 24  24       0         0        0       0.0417       1.00 ES   1.0  0.22865 0.025725 0.000515 0.000169 0.8965
   MAB_0002 dnaN DNA polymerase III, beta subunit (DnaN)   13  13       0         0        0       0.0769       1.00 ES   1.0  0.13582 0.028284 0.000536 0.000175 0.8241
   MAB_0003 gnD  6-phosphogluconate dehydrogenase Gnd      19   0       0        19        0       0.9474      81.33 NE   1.0  0.00000 0.000000 0.001181 0.000329 0.7870
