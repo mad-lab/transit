@@ -46,8 +46,10 @@ for st in ["ES","GD","NE","GA"]:
   print("#  %s: genes=%s, meanSat=%s, stdSat=%s, meanNZmean=%s, stdNZmean=%s" % (st,len(sub),round(meanSat,3),round(stdSat,3),round(meanNZmean,1),round(stdNZmean,1)))
   meanSats[st] = meanSat
   meanNZmeans[st] = meanNZmean
-  stdSats[st] = meanSat
-  stdNZmeans[st] = meanNZmean
+  #stdSats[st] = meanSat # bug
+  #stdNZmeans[st] = meanNZmean # bug
+  stdSats[st] = stdSat # fixed
+  stdNZmeans[st] = stdNZmean # fixed
 
 def calc_prob(sat,NZmean,meanSat,stdSat,meanNZmean,stdNZmean):
   a = scipy.stats.norm.pdf(sat,loc=meanSat,scale=stdSat)
