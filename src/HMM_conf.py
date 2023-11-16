@@ -58,7 +58,6 @@ for st in ["ES","GD","NE","GA"]:
   sigma = 0.7413*iqrNZmeans
   sigma = max(0.01,sigma) # don't let it collapse to 0
   NZmeanParams[st] = (medNZmeans,sigma)
-  sys.stderr.write("sigma=%s\n" % sigma)
 
   # model saturation as Beta distribution, fit by method of moments:
   # https://real-statistics.com/distribution-fitting/method-of-moments/method-of-moments-beta-distribution/
