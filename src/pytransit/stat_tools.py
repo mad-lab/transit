@@ -451,7 +451,7 @@ def loess_correction(X, Y, h=10000, window=100):
 
     normalized_Y = numpy.zeros(len(Y))
     for i in range(size):
-        normalized_Y[window*i:window*(i+1)] = Y[window*i:window*(i+1)] * (ysmooth[i]/mline)
+        normalized_Y[window*i:window*(i+1)] = Y[window*i:window*(i+1)] / (ysmooth[i]/mline)
 
     return normalized_Y
 
