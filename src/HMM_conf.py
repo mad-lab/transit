@@ -57,8 +57,8 @@ for st in ["ES","GD","NE","GA"]:
   stdNZmean = numpy.std(nzmeans)
   medNZmeans = numpy.median(nzmeans)
   iqrNZmeans = scipy.stats.iqr(nzmeans)
-  meanMeans = numpy.median(means)
-  stdMeans = max(1.0,0.7314*scipy.stats.iqr(means))
+  meanMeans = -1 if len(means)==0 else numpy.median(means) # -1 if there are no GA genes, for example
+  stdMeans = max(1.0,0.7314*scipy.stats.iqr(means)) # don't let stdev collapse to 0 for ES
 
   # model NZmean with robust Normal distribution: use median and IQR
   sigma = 0.7413*iqrNZmeans
@@ -99,7 +99,7 @@ def calc_probs4(sats,nzmean):
   probs = []
   for st in STATES:
     meanMeans,stdMeans = MeanParams[st]
-    probs.append(scipy.stats.norm.pdf(sat*nzmean,loc=meanMeans,scale=stdMeans))
+    probs.append(0 if meanMeans==-1 else scipy.stats.norm.pdf(sat*nzmean,loc=meanMeans,scale=stdMeans))
   return normalize(probs)
 
 ##################################
