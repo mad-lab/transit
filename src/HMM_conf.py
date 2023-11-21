@@ -81,6 +81,7 @@ def normalize(L):
   tot = sum(L)
   return [x/float(tot) for x in L]
 
+# prob of each state is joint prob over saturation (Beta) and NZmean (Normal)
 # for all 4 states; uses globals
 
 def calc_probs3(sats,nzmean):
@@ -94,6 +95,8 @@ def calc_probs3(sats,nzmean):
   B = normalize(B)
   probs = [a*b for a,b in zip(A,B)]
   return normalize(probs)
+
+# prob of each state is based Gaussian density for Mean count for each gene (combines Sat and NZmean)
 
 def calc_probs4(sats,nzmean):
   probs = []
@@ -121,7 +124,6 @@ for line in open(sys.argv[1]):
   sat,NZmean = float(w[-3]),float(w[-2])
   PC = 0.01 # shrink range of saturation form [0,1] to [0.01,0.99] to prevent nan's from Beta
   sat = max(PC,min(1.0-PC,sat))
-  #probs = calc_probs3(sat,NZmean) # normalized
   probs = calc_probs4(sat,NZmean) # normalized
   conf = probs[STATES.index(Call)]
   flag=""
