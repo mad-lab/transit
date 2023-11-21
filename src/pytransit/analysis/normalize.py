@@ -103,7 +103,7 @@ class NormalizeMethod(base.SingleConditionMethod):
         else:
             self.infile = args[0] # only 1 input wig file
             self.outfile = args[1] # if no arg give, could print to screen
-        self.normalization = kwargs.get("n", "TTR") # check if it is a legal method name
+        self.normalization = kwargs.get("n", "TTR") # should check if it is a legal method name
         self.combined_wig = isCombinedWig
 
         return self(self.infile,self.outfile,self.normalization)

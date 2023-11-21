@@ -133,7 +133,7 @@ for line in open(sys.argv[1]):
   if flag=="ambiguous": num_ambig += 1
   if flag=="low-confidence": num_low_conf += 1
   
-  vals = w+[(sat*NZmean),round(consistency,3)]+[round(x,6) for x in probs]
+  vals = w+[round(sat*NZmean,1),round(consistency,3)]+[round(x,6) for x in probs]
   vals += [round(conf,4),flag]
   results.append(vals)
 

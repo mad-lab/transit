@@ -94,8 +94,59 @@ class TotReadsNorm(NormMethod):
         return (data, factors)
 
 
+# Quantile Matching to ideal geometric distribution
+# intended for single wig files - what to do for collection of multiple samples? post-process with TTR
+# scale them uniformly so mean is 100 (not just NZmean; scale for saturation)
+
+class QMgeomNorm(NormMethod):
+    name = "QMgeom"
+
+    # note: like many of the other methods below, ignore wigList and assume data is already read-in
+
+    @staticmethod
+    def normalize(data, wigList=[], annotationPath=""):
+      Nsamples = data.shape[0]
+      norm_data = data.copy()
+      NZmeans = []
+      for i in range(Nsamples):
+        counts = data[i]
+        adjusted,mu = QMgeomNorm.quantile_matching(counts)
+        norm_data[i] = adjusted
+        NZmeans.append(mu)
+      (norm_data, factors) = TTRNorm.normalize(norm_data)
+      return (norm_data,NZmeans)
+
+    # given a numpy array of counts, return array of adjusted counts in same order
+
+    def quantile_matching(counts):
+      counts = counts.tolist()
+      data = list(enumerate(counts)) # list of: [(index,count)]
+
+      NZsites = list(filter(lambda x: x[1]>0,data))
+      numpy.random.shuffle(NZsites)
+      NZsites = sorted(NZsites,key=lambda x: x[1])
+
+      NZcounts = [x[1] for x in NZsites]
+      mu = numpy.mean(NZcounts)
+      p = 1/float(mu)
+      #p = 1/100. # force all samples to have mean of 100 (however, will apply TTR post-hoc)
+
+      sample = scipy.stats.geom.rvs(p,size=len(NZsites))
+      sample = sorted(sample)
+
+      # both distributions start at count of 1, but have to deal with ties, e.g. if one distn has more 1's than the other
+
+      NZsites = [(coord,count,newcnt) for (coord,count),newcnt in zip(NZsites,sample)] # append adjusted counts to each site
+      Zsites = filter(lambda x: x[1]==0,data)
+      Zsites = [(coord,count,0) for coord,count in Zsites]
+
+      allsites = sorted(Zsites+NZsites)
+      newcounts = numpy.array([x[2] for x in allsites])
+      return newcounts,mu
+
+
 class TTRNorm(NormMethod):
-    name = "emphist"
+    name = "emphist" # should be "TTR"?
 
     def empirical_theta(X):
         """Calculates the observed density of the data.
@@ -550,7 +601,7 @@ methods["zinfnb"] = ZeroInflatedNBNorm
 methods["quantile"] = QuantileNorm
 methods["aBGC"] = AdaptiveBGCNorm
 methods["emphist"] = EmpHistNorm
-
+methods["QMgeom"] = QMgeomNorm
 
 #########################
 def normalize_data(data, method="nonorm", wigList=[], annotationPath=""):
