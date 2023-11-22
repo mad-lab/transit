@@ -57,7 +57,7 @@ for st in ["ES","GD","NE","GA"]:
   stdNZmean = numpy.std(nzmeans)
   medNZmeans = numpy.median(nzmeans)
   iqrNZmeans = scipy.stats.iqr(nzmeans)
-  meanMeans = -1 if len(means)==0 else numpy.median(means) # -1 if there are no GA genes, for example
+  meanMeans = -999 if len(means)==0 else numpy.median(means) # -999 if there are no GA genes, for example
   stdMeans = max(1.0,0.7314*scipy.stats.iqr(means)) # don't let stdev collapse to 0 for ES
 
   # model NZmean with robust Normal distribution: use median and IQR
@@ -102,7 +102,7 @@ def calc_probs4(sats,nzmean):
   probs = []
   for st in STATES:
     meanMeans,stdMeans = MeanParams[st]
-    probs.append(0 if meanMeans==-1 else scipy.stats.norm.pdf(sat*nzmean,loc=meanMeans,scale=stdMeans))
+    probs.append(0 if meanMeans<0 else scipy.stats.norm.pdf(sat*nzmean,loc=meanMeans,scale=stdMeans))
   return normalize(probs)
 
 ##################################
@@ -126,12 +126,18 @@ for line in open(sys.argv[1]):
   sat = max(PC,min(1.0-PC,sat))
   probs = calc_probs4(sat,NZmean) # normalized
   conf = probs[STATES.index(Call)]
+
   flag=""
-  if conf<0.5: flag="low-confidence"
-  if max(probs)<0.7:
-    if (Call=="ES" or Call=="GD") and (probs[0]>0.25 and probs[1]>0.25): flag="ambiguous"
-    if (Call=="GD" or Call=="NE") and  (probs[1]>0.25 and probs[2]>0.25): flag="ambiguous"
-    if (Call=="NE" or Call=="GA") and (probs[2]>0.25 and probs[3]>0.25): flag="ambiguous"
+
+  #if conf<0.5: flag="low-confidence"
+  #if max(probs)<0.7:
+  #  if (Call=="ES" or Call=="GD") and (probs[0]>0.25 and probs[1]>0.25): flag="ambiguous"
+  #  if (Call=="GD" or Call=="NE") and  (probs[1]>0.25 and probs[2]>0.25): flag="ambiguous"
+  #  if (Call=="NE" or Call=="GA") and (probs[2]>0.25 and probs[3]>0.25): flag="ambiguous"
+
+  if conf<0.2: flag = "low-confidence"
+  if conf>=0.2 and conf!=max(probs): flag = "ambiguous"
+
   if flag=="ambiguous": num_ambig += 1
   if flag=="low-confidence": num_low_conf += 1
   
