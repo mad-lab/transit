@@ -138,58 +138,63 @@ is that, while the formal state probabilities are calculated at
 individual TA sites, the essentiality calls at the gene level are made
 by taking a vote (the most frequent state among its TA sites), and
 this does not lend itself to such formal certainty quantification.
-However, the reviewers’ question prompted us to devise a novel
-approach to evaluating the confidence of the HMM calls for genes.  In
-the output files, we include the local saturation and mean insertion
-count for each gene, along with the gene-level call and state
-distribution.  We have sometimes noticed that short genes are
+However, we developed a novel
+approach to evaluating the confidence of the HMM calls for genes.  
+We have sometimes noticed that short genes are
 susceptible to being influenced by the essentiality of an adjacent
-region, which is evident by examining the insertion statistics.  For
+region, which is evident by examining the insertion statistics
+(saturation in gene, or percent of TA sites with insertion, and 
+mean insertion count at those sites).  For
 example, consider a hypothetical gene with just 2 TA sites that is
 labeled as ES by the HMM but has insertions at both sites.  It might
 be explained by proximity to a large essential gene or region, due to
 the “smoothing” the HMM does across the sequence of TA sites.  Thus we
 can sometimes recognize inaccurate calls by the HMM if the insertion
-statistics of a gene are not consistent with the call.
+statistics of a gene are not consistent with the call
+(i.e. a gene labeled as NE that has no insertions, or conversely,
+a gene labeled ES that has many insertion).
 
 In our paper on the HMM in Transit `(DeJesus et al, 2013)
 <https://pubmed.ncbi.nlm.nih.gov/24103077/>`_, 
-we showed a 2D plot of the posterior distribution of
-saturation and mean insertion counts (for a high-quality 
-TnSeq reference dataset) for the 4 essentiality states, which demonstrates that
-genes are nicely clustered, with ES genes having near-0 saturation and
+we showed a plot of random samples from the posterior distribution of
+saturation and mean insertion counts (at non-zero sites)
+for the 4 essentiality states, which nicely demonstrates that
+that ES genes having near-0 saturation and
 low counts at non-zero sites, NE genes have high saturation and
 counts, GD genes fall in between, and GA genes are almost fully
 saturated with excessively high counts.
 
-.. image:: _images/HMM_distributions.png
+Following this idea, 
+we now calculate the conditional distributions of insertion statistics **for each dataset** on which the HMM is run, 
+and use it to assess the confidence in each of the essentiality calls.
+Rather than modeling them as 2D distributions, we *combine* them into 1D
+(Gaussian) distributions over the *overall mean insertion count* in each gene,
+including sites with zeros.  The mean count for essential (ES) genes usually around 0,
+typically around 5-10 for growth-defect (GD) genes, around 100 for non-essential (NE) genes, and 
+>300 for growth-advantaged (GA) genes.
+
+.. image:: _images/HMM_1D_distributions.png
    :width: 400
    :align: center
 
-(Figure 5 from `(DeJesus et al, 2013) <https://pubmed.ncbi.nlm.nih.gov/24103077/>`_ ) 
-
-We now calculate the distributions of insertion statistics **for each
-dataset** on which the HMM is run, 
-and use it to assess the confidence in each of the essentiality calls.
 We start by calculating the mean and standard
 deviation of saturation and insertion count over all the genes in each
-of the 4 states (ES, GD, NE, and GA).  Then, for each gene, we compute
-the probability density of its local statistics with respect to the
-product of Normal distributions for its called state.  For example,
+of the 4 states (ES, GD, NE, and GA).  
+The empirical mean and standard
+deviation for each state are reported in the header of the output file
+(by HMM_conf.py, see below).  
+Then, for each gene, we compute
+the probability density (likelihood) of its mean count with respect to the
+Normal distribution for each of the 4 states. For example,
 suppose a gene g is called state s.  Then:
 
 ::
 
-     conf(g|s) = N(sat(g)|μ_sat(s), σ_sat(s)) * N(cnt(g)|μ_cnt(s), σ_cnt(s))
+     P(g|s) = N(cnt(g)|μ_cnt(s), σ_cnt(s))
 
-This models the joint probability of the distribution of saturation
-and insertion counts for each class (simplistically) as independent,
-effectively forming “rectangular” regions around each cluster.  We can
-then calculate the probability that the gene belongs to each state
-based on these posterior distributions, and normalize them to sum
-to 1.  Finally, the “confidence” of the HMM call for each gene is the
-normalized probability of the gene’s insertion statistics given the
-posterior distribution for that essentiality state.
+The 4 probabilities are normalized to sum up to 1.
+The confidence in the HMM call for a gene is taked to be the normalized
+probability of the called state.
 
 This confidence score nicely identifies genes of low confidence, where
 the local saturation and mean insertion count seem inconsistent with
@@ -199,19 +204,21 @@ sites as well.  Some of the former are cases where the call of a short
 gene is influenced by an adjacent region.  Some of the latter include
 ambiguous cases like multi-domain proteins, where one domain is
 essential and the other is not.  We observed that there are often
-“borderline” (or ambiguous) genes, which the HMM labels as one state,
-but which are more consistent with a similar state.  For example, in
-some cases, a low-confidence ES gene might have a higher posterior
-probability of GD, based on insertion statistics.  Other cases include
-ambiguities between NE and GD, or NE and GA, especially for genes with
-mean insertion counts on the border between the clusters (posterior
-distributions) in the 2D plot.  After identifying and removing these
-borderline genes (also now indicated in the HMM output files), we find
-that most of the low-confidence genes have confidence scores in the
-approximate range of 0 to 0.25.  The number of low-confidence genes
-can range from a few hundred up to a thousand
-(for which the predicted essentiality call should be ignored), 
-depending on the
+“borderline” (or ambiguous) genes, where the 
+called state has significant probability (>0.2), but is not the most
+probable state (i.e. another state is more likely, based on the insertions in the gene).
+
+Criteria (for gene g with called state c):
+  * genes where the called state has the highest conditional probability (most likely, given their mean count) are 'confident'
+  * genes where P(g|c)>0.2, but there is another state that has higher probability are 'ambiguous'
+  * genes with P(g|c)<0.2 are 'low-confidence'
+
+
+The 'low-confidence' and 'ambiguous' genes are now indicated in the
+'flag' field added by HMM_conf.py in the output files (see below).
+
+In genomes with thousands genes, it is not uncommon for there to be a
+few hundred low-confidence and ambiguous genes each, depending on the
 saturation of the input dataset (.wig file); less-saturated datasets
 tend to have more low-confidence genes.
 
@@ -233,14 +240,15 @@ obviating the need for a second step.)
 The script adds the following columns:
 
  * **consis** - consistency (proportion of TA sites representing the majority essentiality state)
- * **probES** - conditional probability (unnormalized) of the insertions statistics (sat and mean) if the gene were essential 
- * **probGD** - conditional probability (unnormalized) of the insertions statistics (sat and mean) if the gene were growth-defect
- * **probNE** - conditional probability (unnormalized) of the insertions statistics (sat and mean) if the gene were non-essential
- * **probGA** - conditional probability (unnormalized) of the insertions statistics (sat and mean) if the gene were growth-advantaged
+  * If consistency<1.0, it means not all the TA sites in the gene agree with the essentiality call, which is made by majority vote. It is OK if a small fraction of TA sites in a gene are labeled otherwise. If it is a large fraction (consistency close to 50%), it might be a 'domain-essential' (multi-domain gene where one domain is ES and the other is NE).
+ * **probES** - conditional probability (normalized) of the mean insertion count if the gene were essential 
+ * **probGD** - conditional probability (normalized) of the mean insertion count if the gene were growth-defect (i.e. disruption of gene causes a growth defect)
+ * **probNE** - conditional probability (normalized) of the mean insertion count if the gene were non-essential 
+ * **probGA** - conditional probability (normalized) of the mean insertion count if the gene were growth-advantaged
  * **conf** - confidence score (normalized conditional joint probability of the insertion statistics, given the actual essential call made by the HMM)
  * **flag** - genes that are ambiguous or have low confidence are labeled as such
-  * *low-confidence* means: the HMM call is inconsistent with statistics of insertion counts in gene, so the HMM call should be ignored
-  * *ambiguous* means: the HMM gives high probability to 2 adjacent essentiality states, like ES-or-GD, or GD-or-NE; these could be borderline cases where the gene could be in either category
+  * *low-confidence* means the proability of the HMM call is <0.2 based on the mean insertion counts in gene, so the HMM call should be ignored
+  * *ambiguous* means the called state has prob>0.2, but there is another state with higher probability; these could be borderline cases where the gene could be in either category
 
 If consistency<1.0, it means not all the TA sites in the gene agree with the essentiality call, which is made by majority vote. 
 It is OK if a small fraction of TA sites in a gene are labeled otherwise.
@@ -248,33 +256,32 @@ If it is a large fraction (consistency close to 50%), it might be a 'domain-esse
 (multi-domain gene where one domain is ES and the other is NE).
 
 Here is an example to show what the additional columns look like.
+The means counts for the 4 essentiality states can be seen in the header.
 Note that MAB_0005 was called NE, but only has insertions at 1 out of 4 TA sites
 (sat=25%) with a mean count of only 7, so it is more consistent with ES; hence it is
 flagged as low-confidence (and one should ignore the NE call).
 
 ::
 
-  # avg gene-level consistency of HMM states: 0.9894
-  # state posterior probability distributions:
-  #  ES: genes=364, meanSat=0.038, stdSat=0.075, meanNZmean=12.0, stdNZmean=61.1
-  #  GD: genes=146, meanSat=0.297, stdSat=0.227, meanNZmean=9.6, stdNZmean=16.0
-  #  NE: genes=3971, meanSat=0.816, stdSat=0.169, meanNZmean=147.4, stdNZmean=110.7
-  #  GA: genes=419, meanSat=0.923, stdSat=0.11, meanNZmean=393.3, stdNZmean=210.0
   #HMM - Genes
   #command line: python3 ../../transit/src/transit.py hmm TnSeq-Ref-1.wig,TnSeq-Ref-2.wig,TnSeq-Ref-3.wig abscessus.prot_table HMM_Ref_sync3.txt -iN 5 -iC 5
   #summary of gene calls: ES=364, GD=146, NE=3971, GA=419, N/A=23
   #key: ES=essential, GD=insertions cause growth-defect, NE=non-essential, GA=insertions confer growth-advantage, N/A=not analyzed (genes with 0 TA sites)
-  #ORF     gene annotation                                TAs ES sites GD sites NE sites GA sites saturation   mean call consis probES  probGD   probNE   probGA   conf   flag
-  MAB_0001 dnaA Chromosomal replication initiator protein 24  24       0         0        0       0.0417       1.00 ES   1.0  0.22865 0.025725 0.000515 0.000169 0.8965
-  MAB_0002 dnaN DNA polymerase III, beta subunit (DnaN)   13  13       0         0        0       0.0769       1.00 ES   1.0  0.13582 0.028284 0.000536 0.000175 0.8241
-  MAB_0003 gnD  6-phosphogluconate dehydrogenase Gnd      19   0       0        19        0       0.9474      81.33 NE   1.0  0.00000 0.000000 0.001181 0.000329 0.7870
-  MAB_0004 recF DNA replication and repair protein RecF   15   0       0        15        0       0.6667      80.80 NE   1.0  0.00000 0.000000 0.001175 0.000307 0.7926
-  MAB_0005 -    hypothetical protein                       4   0       0         4        0       0.2500       7.00 NE   1.0  0.00000 0.052913 0.000661 0.000207 0.0123 low-confidence
-  MAB_0006 -    DNA gyrase (subunit B) GyrB               30  30       0         0        0       0.0000       0.00 ES   1.0  0.12864 0.020461 0.000487 0.000161 0.8590
-  MAB_0007 -    Hypothetical protein                      24   0       0         0       24       0.9167     456.64 GA   1.0  0.00000 0.000000 0.000145 0.000433 0.7487
-  MAB_0008 -    Hypothetical protein                       3   0       0         0        3       0.6667     173.00 GA   1.0  0.00000 0.000000 0.780528 0.219472 0.2195 low-confidence
-  MAB_0009 -    Hypothetical protein                       6   0       0         0        6       1.0000     495.83 GA   1.0  0.00000 0.000000 0.157296 0.842704 0.8427 
-  MAB_0010c -   Hypothetical protein                      14   0       0         0       14       0.9286     390.08 GA   1.0  0.00000 0.000000 0.435214 0.564786 0.5648 ambiguous
+  # HMM confidence info:
+  # avg gene-level consistency of HMM states: 0.9894
+  # state posterior probability distributions:
+  #   Mean[ES]:   Norm(mean=0.0,stdev=1.0)
+  #   Mean[GD]:   Norm(mean=1.73,stdev=3.36)
+  #   Mean[NE]:   Norm(mean=101.64,stdev=86.89)
+  #   Mean[GA]:   Norm(mean=340.0,stdev=182.21)
+  # num low-confidence genes=463, num ambiguous genes=448
+  #ORF      gene  annotation                              TAs  ESsites  GDsites  NEsites GAsites saturation NZmean call Mean consis probES probGD probNE probGA  conf   flag
+  MAB_0001  dnaA  Chromosomal replication initiator       24     24         0        0      0      0.0417     1.00  ES   0.0   1.0  0.7878 0.2068 0.0045 0.0007  0.7878     
+  MAB_0002  dnaN  DNA polymerase III, beta subunit (DnaN) 13     13         0        0      0      0.0769     1.00  ES   0.1   1.0  0.7866 0.2080 0.0045 0.0007  0.7866     
+  MAB_0003  gnD   6-phosphogluconate dehydrogenase Gnd    19     0          0       19      0      0.9474    81.33  NE  77.1   1.0  0.0    0.0    0.8509 0.1490  0.8509     
+  MAB_0004  recF  DNA replication and repair protein RecF 15     0          0       15      0      0.6667    80.80  NE  53.9   1.0  0.0    0.0    0.8608 0.1391  0.8608     
+  MAB_0005  -     hypothetical protein                     4     0          0        4      0      0.2500     7.00  NE   1.8   1.0  0.4152 0.5714 0.0114 0.0018  0.0114 low-confidence
+  MAB_0006  -     DNA gyrase (subunit B) GyrB (DNA topoi  30     30         0        0      0      0.0000     0.00  ES   0.0   1.0  0.7889 0.2056 0.0045 0.0007  0.789     
   ...
 
 
