@@ -155,45 +155,45 @@ statistics of a gene are not consistent with the call
 a gene labeled ES that has many insertion).
 
 In our paper on the HMM in Transit `(DeJesus et al, 2013)
-<https://pubmed.ncbi.nlm.nih.gov/24103077/>`_, 
-we showed a plot of random samples from the posterior distribution of
-saturation and mean insertion counts (at non-zero sites)
-for the 4 essentiality states, which nicely demonstrates that
-that ES genes having near-0 saturation and
-low counts at non-zero sites, NE genes have high saturation and
-counts, GD genes fall in between, and GA genes are almost fully
-saturated with excessively high counts.
+<https://pubmed.ncbi.nlm.nih.gov/24103077/>`_, we showed a plot of
+random samples from the joint posterior distribution of local
+saturation and mean insertion counts (at non-zero sites) for the 4
+essentiality states, which nicely demonstrates that that ES genes have
+near-0 saturation and low counts at non-zero sites, NE genes have high
+saturation and counts, GD genes fall in between, and GA genes are
+almost fully saturated with excessively high counts.
 
-Following this idea, 
-we now calculate the conditional distributions of insertion statistics **for each dataset** on which the HMM is run, 
-and use it to assess the confidence in each of the essentiality calls.
-Rather than modeling them as 2D distributions, we *combine* them into 1D
-(Gaussian) distributions over the *overall mean insertion count* in each gene,
-including sites with zeros.  The mean count for essential (ES) genes usually around 0,
-typically around 5-10 for growth-defect (GD) genes, around 100 for non-essential (NE) genes, and 
->300 for growth-advantaged (GA) genes.
+Following this idea, we can use the
+observed insertion counts in each gene to assess the 
+confidence in each of the essentiality calls by the HMM.
+Rather than modeling them as 2D distributions, we *combine* them into
+1D (Gaussian) distributions over the *overall mean insertion count* in
+each gene, including sites with zeros.  The mean count for essential
+(ES) genes usually around 0, typically around 5-10 for growth-defect
+(GD) genes, around 100 for non-essential (NE) genes, and >300 for
+growth-advantaged (GA) genes (assuming TTR normalization, by default).
 
 .. image:: _images/HMM_1D_distributions.png
    :width: 400
    :align: center
 
-We start by calculating the mean and standard
-deviation of saturation and insertion count over all the genes in each
-of the 4 states (ES, GD, NE, and GA).  
-The empirical mean and standard
-deviation for each state are reported in the header of the output file
-(by HMM_conf.py, see below).  
-Then, for each gene, we compute
-the probability density (likelihood) of its mean count with respect to the
-Normal distribution for each of the 4 states. For example,
-suppose a gene g is called state s.  Then:
+We now calculate these conditional distributions empirically for each
+dataset on which the HMM is run, and use it to assess the confidence
+in each of the essentiality calls.  We start by calculating the mean
+and standard deviation of saturation and insertion count over all the
+genes in each of the 4 states (ES, GD, NE, and GA).  The empirical
+mean and standard deviation for each state are reported in the header
+of the output file (by HMM_conf.py, see below).  Then, for each gene,
+we compute the probability density (likelihood) of its mean count with
+respect to the Normal distribution for each of the 4 states. For
+example, suppose a gene g is called state s.  Then:
 
 ::
 
      P(g|s) = N(cnt(g)|μ_cnt(s), σ_cnt(s))
 
 The 4 probabilities are normalized to sum up to 1.
-The confidence in the HMM call for a gene is taked to be the normalized
+The confidence in the HMM call for a gene is taken to be the normalized
 probability of the called state.
 
 This confidence score nicely identifies genes of low confidence, where
@@ -240,23 +240,18 @@ obviating the need for a second step.)
 The script adds the following columns:
 
  * **consis** - consistency (proportion of TA sites representing the majority essentiality state)
-  * If consistency<1.0, it means not all the TA sites in the gene agree with the essentiality call, which is made by majority vote. It is OK if a small fraction of TA sites in a gene are labeled otherwise. If it is a large fraction (consistency close to 50%), it might be a 'domain-essential' (multi-domain gene where one domain is ES and the other is NE).
+  - If consistency<1.0, it means not all the TA sites in the gene agree with the essentiality call, which is made by majority vote. It is OK if a small fraction of TA sites in a gene are labeled otherwise. If it is a large fraction (consistency close to 50%), it might be a 'domain-essential' (multi-domain gene where one domain is ES and the other is NE). 
  * **probES** - conditional probability (normalized) of the mean insertion count if the gene were essential 
  * **probGD** - conditional probability (normalized) of the mean insertion count if the gene were growth-defect (i.e. disruption of gene causes a growth defect)
  * **probNE** - conditional probability (normalized) of the mean insertion count if the gene were non-essential 
  * **probGA** - conditional probability (normalized) of the mean insertion count if the gene were growth-advantaged
  * **conf** - confidence score (normalized conditional joint probability of the insertion statistics, given the actual essential call made by the HMM)
- * **flag** - genes that are ambiguous or have low confidence are labeled as such
-  * *low-confidence* means the proability of the HMM call is <0.2 based on the mean insertion counts in gene, so the HMM call should be ignored
-  * *ambiguous* means the called state has prob>0.2, but there is another state with higher probability; these could be borderline cases where the gene could be in either category
+ * **flag** - genes that are ambiguous or have low confidence are labeled as such:
+  - *low-confidence* means the proability of the HMM call is <0.2 based on the mean insertion counts in gene, so the HMM call should be ignored
+  - *ambiguous* means the called state has prob>0.2, but there is another state with higher probability; these could be borderline cases where the gene could be in either category
 
-If consistency<1.0, it means not all the TA sites in the gene agree with the essentiality call, which is made by majority vote. 
-It is OK if a small fraction of TA sites in a gene are labeled otherwise.
-If it is a large fraction (consistency close to 50%), it might be a 'domain-essential'
-(multi-domain gene where one domain is ES and the other is NE).
-
-Here is an example to show what the additional columns look like.
-The means counts for the 4 essentiality states can be seen in the header.
+Here is an example to show what the additional columns look like. 
+The Mean insertion counts for the 4 essentiality states can be seen in the header.
 Note that MAB_0005 was called NE, but only has insertions at 1 out of 4 TA sites
 (sat=25%) with a mean count of only 7, so it is more consistent with ES; hence it is
 flagged as low-confidence (and one should ignore the NE call).
