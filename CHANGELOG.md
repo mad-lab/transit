@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 3.3.3 (2023-11-26)
+#### Transit:
+
+Major changes:
+ - changed the calculation of HMM confidence scores in HMM_conf.py to use 1D distributions over Mean insertion counts for each gene for each essentiality state
+ - fixed bug in LOESS correction
+
 
 ## Version 3.3.2 (2023-10-29)
 #### Transit:
