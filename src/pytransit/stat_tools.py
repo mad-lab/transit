@@ -433,7 +433,7 @@ def loess(X, Y, h=10000):
         smoothed[i] = B*x + A
     return smoothed
 
-#
+# X is coords, Y is counts
 
 def loess_correction(X, Y, h=10000, window=100):
     #TODO: Write docstring
@@ -447,7 +447,6 @@ def loess_correction(X, Y, h=10000, window=100):
 
     ysmooth = loess(x_w, y_w, h)
     mline = numpy.mean(y_w)
-    y_w * (ysmooth/mline)
 
     normalized_Y = numpy.zeros(len(Y))
     for i in range(size):
