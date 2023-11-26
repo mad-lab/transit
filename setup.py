@@ -17,6 +17,7 @@ from setuptools import setup, find_packages, Command
 # To use a consistent encoding
 from codecs import open
 
+sys.path.append("src")
 import pytransit
 from pytransit.generic_tools import file_system_py as FS
 version =  pytransit.__version__[1:]
@@ -83,7 +84,7 @@ class UploadCommand(Command):
 
     def yes_or_no(self, question):
         while True:
-            reply = str(raw_input(question +' (y/n): ')).lower().strip()
+            reply = str(input(question +' (y/n): ')).lower().strip()
             if reply == 'y':
                 return True
             return False
