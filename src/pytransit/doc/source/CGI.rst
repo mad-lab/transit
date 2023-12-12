@@ -11,7 +11,7 @@ CRISPRi-DR is designed to analyze CRISPRi libraries from CGI experiments and ide
 
 Workflow
 --------
-Starting with fastq files, barcode counts are extracted. The user creates their own metadata file, for the counts. Fractional abundances are created using the counts files, the metadata file and the uninduced ATC counts file. The fractional abundances are then used to run the CRISPRi-DR model. The output of this model is a file that lists genes with their statistacal parameters and significance. 
+Starting with fastq files, barcode counts are extracted. The user creates their own metadata file, for the counts. Fractional abundances are created using the counts files, the metadata file and the uninduced ATC counts file. The fractional abundances are then used to run the CRISPRi-DR model. The output of this model is a file that lists genes with their statistacal parameters and significance. Genes with significant interactions are those with *qval of condetration dependence < 0.05* and *\|Z score of concentration dependence|>2*. However, genes can be ranked by depletion by sorting the coefficient of concentration dependence in ascending order
 
 
 .. image:: _images/CGI_workflow.png
@@ -84,13 +84,13 @@ This is a fairly fast process. It takes at most a minute for the combination of 
 
 This is a relatively quick process, taking at most 3 minutes for a dataset of ~90,000 sgRNAs . This step fits the CRISPRi-DR model (statistical analysis of concentration dependence for each gene) to each gene in the file and prints each output to the <CRISPRi-DR results file> in a tab seperated file. 
 
-Genes with significant interactions are those with *qval of condetration dependence < 0.05* and *\|Z score of concentration dependence|>2*. However, genes can be ranked by depletion by sorting the coefficient of concentration dependence in ascending order
-
 ::
 
     > python3 ../src/transit.py CGI run_model <fractional abundance file>  >  <CRISPRi-DR results file>
 
-* Siginificant interacting genes are those with adjusted P-val (Q-val) < 0.05 and \|Z slope\| > 2, these are indicated by a "-1" for depleted and "1" for enriched in in the "Significant Interactions" column
+* Siginificant interacting genes are those with *qval of concentration dependence < 0.05* and *\|Z score of concentration dependence|>2*, these are indicated by a "-1" for depleted and "1" for enriched in in the "Significant Interactions" column
+
+
 
 .. note::
     When the file is sorted on the slope of concentration dependence, the user can rank the genes based on amount of depletion.
