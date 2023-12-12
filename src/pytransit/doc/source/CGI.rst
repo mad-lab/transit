@@ -11,7 +11,7 @@ CRISPRi-DR is designed to analyze CRISPRi libraries from CGI experiments and ide
 
 Workflow
 --------
-Starting with fastq files, barcode counts are extracted. The user creates their own metadata file, for the counts. Fractional abundances are and used to run the CRISPRi-DR model. The output of this model is a file that lists genes with their statistacal parameters and significance. Genes with significant interactions are those with qval of condetration dependence < 0.05 and \|Z score of concentration dpendence|>2 on the slope coefficient. However, genes can be ranked by depletion by sorting the coefficient of concentration dependence in ascending order
+Starting with fastq files, barcode counts are extracted. The user creates their own metadata file, for the counts. Fractional abundances are created using the counts files, the metadata file and the uninduced ATC counts file. The fractional abundances are then used to run the CRISPRi-DR model. The output of this model is a file that lists genes with their statistacal parameters and significance. 
 
 
 .. image:: _images/CGI_workflow.png
@@ -45,7 +45,12 @@ This is a fairly fast process. It takes at most a minute for the combination of 
 
 **Step 2: Extract Fractional Abundances**
 
- This is a relatively quick process, taking less than a minute. This step is to turn the barcodes counts into relative normalized abundances. Counts are normalized within samples and calculated relative to the abundances in the uninduced ATC file, essentially fractions. The first few lines of the output file contains information about the counts files processed.
+ This is a relatively quick process, taking less than a minute. This step is to turn the barcodes counts into relative normalized abundances. Counts are normalized within samples and calculated relative to the abundances in the uninduced ATC file, essentially fractions. 
+
+ Each mutant has an sgRNA mapping to a target gene that can reduce its expression (when induced with ATC, anhydrotetracycline). The uninduced ATC counts files are the read counts when the sgRNAs are mapped to a target gene but have not been induced. The uninduced counts provide a starting point to compare with the ATC induced zero concentration counts as well as the ATC inducted non-zero concentration counts. 
+
+ 
+ The first few lines of the output file contains information about the counts files processed.
 
 ::
 
@@ -62,7 +67,7 @@ This is a fairly fast process. It takes at most a minute for the combination of 
         * Equal number of replicates for all concentrations are not nessessary
         * see [Li, S et al. 2022, PMID: 35637331] for explanation of days_predepletion
 
-    * Example metadata: ``transit/src/pytransit/data/CGI/counts_metadata.txt``
+    * Example metadata: ``transit/src/pytransit/data/CGI/samples_metadata.txt``
 
 * control condition: The condition to to be considered the control for these set of experiments, as specificed in the "drug" column of the metadata file; typically an atc-induced (+ ATC) with 0 drug concentration condition.
 
@@ -78,6 +83,9 @@ This is a fairly fast process. It takes at most a minute for the combination of 
 **Step 3: Run the CRISPRi-DR model**
 
 This is a relatively quick process, taking at most 3 minutes for a dataset of ~90,000 sgRNAs . This step fits the CRISPRi-DR model (statistical analysis of concentration dependence for each gene) to each gene in the file and prints each output to the <CRISPRi-DR results file> in a tab seperated file. 
+
+Genes with significant interactions are those with *qval of condetration dependence < 0.05* and *\|Z score of concentration dependence|>2*. However, genes can be ranked by depletion by sorting the coefficient of concentration dependence in ascending order
+
 ::
 
     > python3 ../src/transit.py CGI run_model <fractional abundance file>  >  <CRISPRi-DR results file>
@@ -114,42 +122,31 @@ This process is fairly quick, taking less than a minute to run. This figure visu
 
 Tutorial
 -------
-**Data : Obtain FastQ files from NCBI using the following run numbers**
 
-Fetch and process the following fastq files from NCBI using the SRA toolkit and place them in the ``transit/src/pytransit/data/CGI`` directory :
+This tutorial shows commands relative to this directory. Files in the ``transit/src/pytransit/data/CGI`` directory are: 
 
-* FastQ files for the 3 replicates of control samples in this experiment. They are in a ATC-induced 0 drug concentration DMSO library with 1 day predepletion
-
-    * SRR14827863 -> extracts SRR14827863_1.fastq
-    * SRR14827862 -> extracts SRR14827862_1.fastq
-    * SRR14827799 -> extracts SRR14827799_1.fastq 
-
-* FastQ files for 3 replicates of high concentration RIF in a 1 day pre-depletion library
-
-    * SRR14827727 -> extracts SRR14827727_1.fastq
-    * SRR14827861 -> extracts SRR14827861_1.fastq
-    * SRR14827850 -> extracts SRR14827850_1.fastq
-* FastQ files for 3 replicates of medium concentration RIF in a 1 day pre-depletion library
-
-    * SRR14827760 -> extracts SRR14827760_1.fastq
-    * SRR14827749 -> extracts SRR14827749_1.fastq
-    * SRR14827738 -> extracts SRR14827738_1.fastq
-
-* FastQ files for 3 replicates of low concentration RIF in a 1 day pre-depletion library
-
-    * SRR14827769 -> extracts SRR14827769_1.fastq
-    * SRR14827614 -> extracts SRR14827614_1.fastq
-    * SRR14827870 -> extracts SRR14827870_1.fastq
-
-This tutorial shows commands relative to this directory. Other files in the ``transit/src/pytransit/data/CGI`` directory are: 
-
-* counts_metadata.txt - describes the samples
-* sgRNA_metadata.txt - contains extrapolated LFCs for each sgRNA
+* samples_metadata.txt - describes the samples
+* sgRNA_info.txt - contains extrapolated LFCs for each sgRNA
 * uninduced_ATC_counts.txt - counts for uninduced ATC (no induction of target depletion) library
 * IDs.H37Rv.CRISPRi.lib.txt - ids of the sgRNAs that target the genes in H37Rv used in these experiments 
+* RIF_D1_combined_counts.txt - combined counts of the RIF 1 day predepletion data for uninduced ATC, zero, low, medium and high concentrations (output of data preprocessed and Step 1 completed)
+
+.. note::
+
+    If the user would like to evaluate the software, they can start with Step 2, using the *RIF_D1_combined_counts.txt* file in the ``transit/src/pytransit/data/CGI`` directory.
+
+**Raw Data : Obtain FastQ files from NCBI using the following run numbers**
+
+Fetch and process the following into fastQ files from `NCBI <https://www.ncbi.nlm.nih.gov/bioproject/PRJNA738381/>`_ using the SRA toolkit and place them in the ``transit/src/pytransit/data/CGI`` directory :
+
+* Control samples (ATC-induced 0 drug concentration DMSO library with 1 day predepletion) : SRR14827863, SRR14827862, SRR14827799
+
+* High concentration RIF in a 1 day pre-depletion library : SRR14827727, SRR14827861, SRR14827850
+
+* Medium concentration RIF in a 1 day pre-depletion library: SRR14827760, SRR14827749, SRR14827738
+
+* Low concentration RIF in a 1 day pre-depletion library: SRR14827769, SRR14827614, SRR14827870
     
-
-
 **Preprocessing: Fastq to Count Files**
 
 Create file of barcode counts from fastq files. Each fastq files reflect one replicate of a drug concentration, thus each will be converted into a file with two columns, sgNRA id and barcode counts
@@ -187,11 +184,11 @@ The resulting file will have 13 columns, where the first column is sgRNA ids and
 **Step 2: Extract Fractional Abundances**
 
 .. note::
-    As a part of this step, the *user must also generate a metadata file.* , ie. ``counts_metadata.txt``. Note the values in the conc_xMIC column is actual values (0.0625, 0.125, 0.25) and not categorical values ("low", "medium", "high") as seen in the counts file names. 
+    As a part of this step, the *user must also generate a metadata file.* , ie. ``samples_metadata.txt``. Note the values in the conc_xMIC column is actual values (0.0625, 0.125, 0.25) and not categorical values ("low", "medium", "high") as seen in the counts file names. 
 
 ::
 
-    > python3 ../../../transit.py CGI extract_abund RIF_D1_combined_counts.txt counts_metadata.txt DMSO sgRNA_metadata.txt uninduced_ATC_counts.txt RIF 1  >  RIF_D1_frac_abund.txt
+    > python3 ../../../transit.py CGI extract_abund RIF_D1_combined_counts.txt samples_metadata.txt DMSO sgRNA_info.txt uninduced_ATC_counts.txt RIF 1  >  RIF_D1_frac_abund.txt
 
 The result of this command should be a file with a set of comments at the top, detailing the libraries used (DMSO and RIF). There should be a total of 17 columns, the last 12 of which are the calculated abundances, the first is the sgRNA ids followed by the orf/gene the sgRNA is targeting, uninduced ATC values, and sgRNA strength. 
 
