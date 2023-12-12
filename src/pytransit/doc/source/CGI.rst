@@ -88,9 +88,31 @@ This is a relatively quick process, taking at most 3 minutes for a dataset of ~9
 
     > python3 ../src/transit.py CGI run_model <fractional abundance file>  >  <CRISPRi-DR results file>
 
-* Siginificant interacting genes are those with *qval of concentration dependence < 0.05* and *\|Z score of concentration dependence|>2*, these are indicated by a "-1" for depleted and "1" for enriched in in the "Significant Interactions" column
+The output columns in this file are:
 
+* Significant Interactions - Siginificant interacting genes are those with *qval of concentration dependence < 0.05* and *\|Z score of concentration dependence|>2*, these are indicated by a "-1" for depleted and "1" for enriched in in the "Significant Interactions" column
 
+* Orf - the orf id of the gene
+
+* Gene - the name of the gene
+
+* Nobs - the number of sgRNAs seen in an orf
+
+* intercept - the resulting intercept of the overall fitted regression
+
+* coefficient sgRNA_strength - coefficient of the amount sgRNA strength contributes to the decrease in abundance
+
+* coefficient concentration dependence - coefficient of the amount concentration contributes to the decrease in abundance
+
+* pval intercept - the wald test based p-value of the intercept
+
+* pval sgRNA_strength - the wald test based p-value of the coefficient sgRNA_strength
+
+* pval concentration dependence - the wald test based p-value of the coefficient of concentration dependence
+
+* qval concentration dependence - FDR corrected adjusted pvalues of of the coefficient of concentration dependence
+
+* Z score of concentration dependence - zscore of the coefficient of concentration dependence
 
 .. note::
     When the file is sorted on the slope of concentration dependence, the user can rank the genes based on amount of depletion.

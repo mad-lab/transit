@@ -361,26 +361,35 @@ class CGI_Method(base.SingleConditionMethod):
             drug_output.append([orf,gene,len(gene_df)]+coeffs.values.tolist()+pvals.values.tolist())
             sys.stderr.flush()
 
-        drug_out_df = pd.DataFrame(drug_output, columns=["Orf","Gene","Nobs", "intercept","ceofficient sgRNA_strength","ceofficient concentration dependence","pval intercept","pval pred_logFC","pval concentration dependence"])
-    
+        drug_out_df = pd.DataFrame(drug_output, columns=["Orf","Gene","Nobs", "intercept","coefficient sgRNA_strength","coefficient concentration dependence","pval intercept","pval sgRNA_strength","pval concentration dependence"])
+        drug_out_df["intercept"] = round(drug_out_df["intercept"],6)
+        drug_out_df["coefficient sgRNA_strength"] = round(drug_out_df["coefficient sgRNA_strength"],6)
+        drug_out_df["coefficient concentration dependence"] = round(drug_out_df["coefficient concentration dependence"],6)
+        drug_out_df["pval intercept"] = round(drug_out_df["pval intercept"],6)
+        drug_out_df["pval sgRNA_strength"] = round(drug_out_df["pval sgRNA_strength"],6)
+        drug_out_df["pval concentration dependence"] = round(drug_out_df["pval concentration dependence"],6)
+
+
         mask = np.isfinite(drug_out_df["pval concentration dependence"])
         pval_corrected = np.full(drug_out_df["pval concentration dependence"].shape, np.nan)
         pval_corrected[mask] = fdr_correction(drug_out_df["pval concentration dependence"][mask])[1]
         drug_out_df["qval concentration dependence"] = pval_corrected
+        drug_out_df["qval concentration dependence"] = round(drug_out_df["qval concentration dependence"] ,6)
         drug_out_df = drug_out_df.replace(np.nan,1)
 
-        drug_out_df["Z"] = (drug_out_df["ceofficient concentration dependence"] - drug_out_df["ceofficient concentration dependence"].mean())/drug_out_df["ceofficient concentration dependence"].std()
-        drug_out_df["Siginificant Interactions"] = [0] * len(drug_out_df)
-        drug_out_df.loc[(drug_out_df["qval concentration dependence"]<0.05) & (drug_out_df["Z"]<-2),"Siginificant Interactions"]=-1
-        drug_out_df.loc[(drug_out_df["qval concentration dependence"]<0.05) & (drug_out_df["Z"]>2),"Siginificant Interactions"]=1
-        drug_out_df.insert(0, "Siginificant Interactions", drug_out_df.pop("Siginificant Interactions"))
+        drug_out_df["Z score of concentration dependence"] = (drug_out_df["coefficient concentration dependence"] - drug_out_df["coefficient concentration dependence"].mean())/drug_out_df["coefficient concentration dependence"].std()
+        drug_out_df["Z score of concentration dependence"] = round(drug_out_df["Z score of concentration dependence"], 6)
+        drug_out_df["Significant Interactions"] = [0] * len(drug_out_df)
+        drug_out_df.loc[(drug_out_df["qval concentration dependence"]<0.05) & (drug_out_df["Z score of concentration dependence"]<-2),"Significant Interactions"]=-1
+        drug_out_df.loc[(drug_out_df["qval concentration dependence"]<0.05) & (drug_out_df["Z score of concentration dependence"]>2),"Significant Interactions"]=1
+        drug_out_df.insert(0, "Significant Interactions", drug_out_df.pop("Significant Interactions"))
 
-        n = len(drug_out_df[drug_out_df["Siginificant Interactions"]!=0])
-        depl_n = len(drug_out_df[drug_out_df["Siginificant Interactions"]== -1])
-        enrich_n = len(drug_out_df[drug_out_df["Siginificant Interactions"]==1])
-        sys.stderr.write("%d Total Siginificant Gene Interactions\n"%n)
-        sys.stderr.write("%d Siginificant Gene Depletions\n"%depl_n)
-        sys.stderr.write("%d Siginificant Gene Enrichments\n"%enrich_n)
+        n = len(drug_out_df[drug_out_df["Significant Interactions"]!=0])
+        depl_n = len(drug_out_df[drug_out_df["Significant Interactions"]== -1])
+        enrich_n = len(drug_out_df[drug_out_df["Significant Interactions"]==1])
+        sys.stderr.write("%d Total Significant Gene Interactions\n"%n)
+        sys.stderr.write("%d Significant Gene Depletions\n"%depl_n)
+        sys.stderr.write("%d Significant Gene Enrichments\n"%enrich_n)
     
         drug_out_df  = drug_out_df.replace(r'\s+',np.nan,regex=True).replace('',np.nan)
         drug_out_txt = drug_out_df.to_csv(sep="\t", index=False)
