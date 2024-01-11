@@ -133,28 +133,31 @@ columns in the output file and are the primary columns per gene reflecting the a
 
 The second output file is a tab-seperated file of details of the TTN Fitness method per TA Site.
 
-+---------------------------+-------------------------------------------------------------------------------+
-| Column Header             | Column Definition                                                             |
-+===========================+===============================================================================+
-| Coord                     | Coordinate of TA Site                                                         |
-+---------------------------+-------------------------------------------------------------------------------+
-| Orf                       | Gene ID                                                                       |
-+---------------------------+-------------------------------------------------------------------------------+
-| Name                      | Name of the Gene                                                              |
-+---------------------------+-------------------------------------------------------------------------------+
-| Uqstream TTN              | Nucleotides in position 1,2,3 and 4 from the TA site                          |
-+---------------------------+-------------------------------------------------------------------------------+
-| Downstream TTN            | Reverse Complement of Nucleotides in position -1,-2,-3 and -4 from the TA site|
-+---------------------------+-------------------------------------------------------------------------------+
-| TTN Fitness Assessment    | Fitness Call for the Gene                                                     |
-+---------------------------+-------------------------------------------------------------------------------+
-| Insertion Counts          | Number of Insertions at TA site                                               |
-+---------------------------+-------------------------------------------------------------------------------+
-| Local Average             | The average number of insertions +5 to -5 from the TA site                    |
-+---------------------------+-------------------------------------------------------------------------------+
-| M1 Predicted Counts       | TTN+gene based predictions at the TA site using TTN Fitness model             |
-+---------------------------+-------------------------------------------------------------------------------+
++----------------------------------+---------------------------------------------------------------------------------------+
+| Column Header                    | Column Definition                                                                     |
++==================================+=======================================================================================+
+| Coord                            | Coordinate of TA Site                                                                 |
++----------------------------------+---------------------------------------------------------------------------------------+
+| Orf                              | Gene ID                                                                               |
++----------------------------------+---------------------------------------------------------------------------------------+
+| Name                             | Name of the Gene                                                                      |
++----------------------------------+---------------------------------------------------------------------------------------+
+| Uqstream TTN                     | Nucleotides in position 1,2,3 and 4 from the TA site                                  |
++----------------------------------+---------------------------------------------------------------------------------------+
+| Downstream TTN                   | Reverse Complement of Nucleotides in position -1,-2,-3 and -4 from the TA site        |
++----------------------------------+---------------------------------------------------------------------------------------+
+| TTN Fitness Assessment           | Fitness Call for the Gene                                                             |
++----------------------------------+---------------------------------------------------------------------------------------+
+| Insertion Counts                 | Number of Insertions at TA site                                                       |
++----------------------------------+---------------------------------------------------------------------------------------+
+| Local Average                    | The average number of insertions +5 to -5 from the TA site                            |
++----------------------------------+---------------------------------------------------------------------------------------+
+| Permissiveness (STLM prediction) | The Permissiveness of a non-ES/ESB site based on the nucleotides surrounding the site |
++----------------------------------+---------------------------------------------------------------------------------------+
+| M1 Predicted Counts              | TTN+gene based predictions at the TA site using TTN Fitness model                     |
++----------------------------------+---------------------------------------------------------------------------------------+
 
+The permissiveness value of each TA site is sum of the coefficent for the upsteam TTN and the downstream TTN from the fitted model. It nicely correlates with observed log counts in non-ES and non-ESB genes.
 
 Example of running the TTN-Fitness methodology on the sample glycerol data
 --------------------------------------------------------------------------

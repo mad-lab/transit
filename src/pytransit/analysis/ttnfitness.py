@@ -396,9 +396,9 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         for ttn in ttn_vectors.columns:
             TA_sites_df.loc[TA_sites_df["Upstream TTN"]==ttn,"Upstream TTN coef"]=results1.params[ttn]
             TA_sites_df.loc[TA_sites_df["Downstream TTN"]==ttn,"Downstream TTN coef"]=results1.params[ttn]
+        TA_sites_df["Permissiveness (STLM prediction)"] = TA_sites_df["Upstream TTN coef"] + TA_sites_df["Downstream TTN coef"]
 
         gene_dict={} #dictionary to map information per gene
-        TA_sites_df["Gene Coef (M1 Coef)"] = [""]*len(TA_sites_df)
         TA_sites_df["M1 Predicted Count"] = [None]*len(TA_sites_df)
         for g in TA_sites_df["Orf"].unique():
             #ORF Name
@@ -428,7 +428,6 @@ class TTNFitnessMethod(base.SingleConditionMethod):
                 M1_coef = None
                 M1_adj_pval = None
                 modified_M1 = None
-            TA_sites_df.loc[TA_sites_df["Orf"]==g,"Gene Coef (M1 Coef)"] = M1_coef
             #States
             gumbel_bernoulli_call = gumbel_bernoulli_gene_calls[g]
             if gumbel_bernoulli_call=="E":
@@ -467,7 +466,7 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         self.output.write("#Saturation of Dataset: %s\n" % (saturation))
         self.output.write("#Assesment Counts: %s ES, %s ESB, %s GD, %s GA, %s NE, %s U \n" % (assesment_cnt["ES"],assesment_cnt["ESB"],assesment_cnt["GD"],assesment_cnt["GA"],assesment_cnt["NE"],assesment_cnt["U"]))
 
-        TA_sites_df = TA_sites_df[["Coord","Orf","Name","Upstream TTN","Downstream TTN","TTN-Fitness Assessment","Insertion Count","Local Average","Upstream TTN coef","Downstream TTN coef","Gene Coef (M1 Coef)","M1 Predicted Count"]]
+        TA_sites_df = TA_sites_df[["Coord","Orf","Name","Upstream TTN","Downstream TTN","TTN-Fitness Assessment","Insertion Count","Local Average","Permissiveness (STLM prediction)","M1 Predicted Count"]]
 
         output2_data = TA_sites_df.to_csv(header=True,sep='\t' ,index=False).split('\n')
         vals = '\n'.join(output2_data)
