@@ -467,12 +467,15 @@ class TTNFitnessMethod(base.SingleConditionMethod):
         self.output.write("#Assesment Counts: %s ES, %s ESB, %s GD, %s GA, %s NE, %s U \n" % (assesment_cnt["ES"],assesment_cnt["ESB"],assesment_cnt["GD"],assesment_cnt["GA"],assesment_cnt["NE"],assesment_cnt["U"]))
 
         TA_sites_df = TA_sites_df[["Coord","Orf","Name","Upstream TTN","Downstream TTN","TTN-Fitness Assessment","Insertion Count","Local Average","Permissiveness (STLM prediction)","M1 Predicted Count"]]
+        TA_sites_df[["Local Average","Permissiveness (STLM prediction)","M1 Predicted Count"]] = TA_sites_df[["Local Average","Permissiveness (STLM prediction)","M1 Predicted Count"]].astype(float).round(1)
 
         output2_data = TA_sites_df.to_csv(header=True,sep='\t' ,index=False).split('\n')
         vals = '\n'.join(output2_data)
         self.output2_file.write(vals)
         self.output2_file.close()
 
+
+        output_df = output_df.round(1)
         output_data = output_df.to_csv(header=True, sep="\t", index=False).split('\n')
         vals = '\n'.join(output_data)
         self.output.write(vals)
