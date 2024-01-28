@@ -276,7 +276,7 @@ class ZinbMethod(base.MultiConditionMethod):
                 nbMod0,
                 DEBUG = F
             ) {
-              print("Starting ZINB in R")
+              #print("Starting ZINB in R")
               suppressMessages(require(pscl))
               suppressMessages(require(MASS))
               melted = df
@@ -354,7 +354,7 @@ class ZinbMethod(base.MultiConditionMethod):
               # this gives same answer, but I would need to extract the Pvalue...
               #require(lmtest)
               #print(lrtest(mod1,mod0))
-              print("Finished ZINB in R")
+              #print("Finished ZINB in R")
               return (c(pval, status))
             }
         """)
@@ -460,11 +460,11 @@ class ZinbMethod(base.MultiConditionMethod):
                     # r_args = [IntVector(readCounts), StrVector(condition), melted, map(lambda x: StrVector(x), covars), FloatVector(NZmean), FloatVector(logitZPerc)] + [True]
                     debugFlag = True if DEBUG or GENE else False
                     #print(f'''melted =''', str(melted))
-                    print("zinbMod1", str(zinbMod1))
-                    print("zinbMod0", str(zinbMod0))
-                    print("nbMod1", str(nbMod1))
-                    print("nbMod0", str(nbMod0))
-                    print("debugFlag", str(debugFlag))
+                    #print("zinbMod1", str(zinbMod1))
+                    #print("zinbMod0", str(zinbMod0))
+                    #print("nbMod1", str(nbMod1))
+                    #print("nbMod0", str(nbMod0))
+                    #print("debugFlag", str(debugFlag))
                     pval, msg = r_zinb_signif(melted, zinbMod1, zinbMod0, nbMod1, nbMod0, debugFlag)
                     status.append(msg)
                     pvals.append(float(pval))
