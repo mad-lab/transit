@@ -393,6 +393,9 @@ class CGI_Method(base.SingleConditionMethod):
     
         drug_out_df  = drug_out_df.replace(r'\s+',np.nan,regex=True).replace('',np.nan)
         drug_out_txt = drug_out_df.to_csv(sep="\t", index=False)
+        print("# Total Significant Gene Interactions : ", n)
+        print("# Significant Gene Depletions : ", depl_n)
+        print("# Significant Gene Enrichments : ", enrich_n)
         print(drug_out_txt)
 
     def visualize(self,fractional_abundances_file, gene, fig_location):
