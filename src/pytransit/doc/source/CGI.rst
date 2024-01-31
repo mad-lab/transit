@@ -54,7 +54,7 @@ This is a fairly fast process. It takes at most a minute for the combination of 
 
 ::
 
-    > python3 ../src/transit.py CGI extract_abund <combined counts file> <counts metadata file> <control condition> <sgRNA strengths file> <uninduced ATC file> <drug> <days>  >  <fractional abundance file>
+    > python3 ../src/transit.py CGI extract_abund <combined counts file> <counts metadata file> <control condition> <sgRNA efficiencies file> <uninduced ATC file> <drug> <days>  >  <fractional abundance file>
 
 * counts metadata file (USER created):
 
@@ -71,7 +71,7 @@ This is a fairly fast process. It takes at most a minute for the combination of 
 
 * control condition: The condition to to be considered the control for these set of experiments, as specificed in the "drug" column of the metadata file; typically an atc-induced (+ ATC) with 0 drug concentration condition.
 
-* sgRNA strengths file: A file that contains metadata for each sgRNA in the combined counts file, where the first column must be sgRNA id (as seen in the combined counts file) and the last column must be the strength measurement of the sgRNAs (in publication of this method, sgRNA strength is measurement as extrapolated LFCs calculated through a passaging experiment).
+* sgRNA efficiencies file: A file that contains metadata for each sgRNA in the combined counts file, where the first column must be sgRNA id (as seen in the combined counts file) and the last column must be the efficiency measurement of the sgRNAs (in publication of this method, sgRNA efficiency is measurement as extrapolated LFCs calculated through a passaging experiment).
 
 * uninduced ATC file: A two column file of sgRNAs and their counts in uninduced ATC (no ATC) with 0 drug concentration 
 
@@ -100,13 +100,13 @@ The output columns in this file are:
 
 * intercept - the resulting intercept of the overall fitted regression
 
-* coefficient sgRNA_strength - coefficient of the amount sgRNA strength contributes to the decrease in abundance
+* coefficient sgRNA_efficiency - coefficient of the amount sgRNA efficiency contributes to the decrease in abundance
 
 * coefficient concentration dependence - coefficient of the amount concentration contributes to the decrease in abundance
 
 * pval intercept - the wald test based p-value of the intercept
 
-* pval sgRNA_strength - the wald test based p-value of the coefficient sgRNA_strength
+* pval sgRNA_efficiency - the wald test based p-value of the coefficient sgRNA_efficiency
 
 * pval concentration dependence - the wald test based p-value of the coefficient of concentration dependence
 
@@ -133,13 +133,13 @@ This process is fairly quick, taking less than a minute to run. This figure visu
 * fractional abundance file : Fractional abundance file as created in Step 2. 
 
     .. warning::
-        This visualization assumes the columns are in increasing order of concentration, with the first three abundance columns (after the column "sgRNA strength"), as the control. This order depends on the order of columns during the creation of the combined counts file in Step 1.
+        This visualization assumes the columns are in increasing order of concentration, with the first three abundance columns (after the column "sgRNA efficiency"), as the control. This order depends on the order of columns during the creation of the combined counts file in Step 1.
 
 * gene : select a gene to visualize. Use orf or gene name
 * output plot location : The location where to save the generated plot.
 
 .. note::
-    If comparing plots from different genes, note the scale of sgRNA strength shown in the plots.
+    If comparing plots from different genes, note the scale of sgRNA efficiency shown in the plots.
 
 
 Tutorial
@@ -212,7 +212,7 @@ The resulting file will have 13 columns, where the first column is sgRNA ids and
 
     > python3 ../../../transit.py CGI extract_abund RIF_D1_combined_counts.txt samples_metadata.txt DMSO sgRNA_info.txt uninduced_ATC_counts.txt RIF 1  >  RIF_D1_frac_abund.txt
 
-The result of this command should be a file with a set of comments at the top, detailing the libraries used (DMSO and RIF). There should be a total of 17 columns, the last 12 of which are the calculated abundances, the first is the sgRNA ids followed by the orf/gene the sgRNA is targeting, uninduced ATC values, and sgRNA strength. 
+The result of this command should be a file with a set of comments at the top, detailing the libraries used (DMSO and RIF). There should be a total of 17 columns, the last 12 of which are the calculated abundances, the first is the sgRNA ids followed by the orf/gene the sgRNA is targeting, uninduced ATC values, and sgRNA efficiency. 
 
 **Step 3: Run the CRISPRi-DR model**
 ::
@@ -226,11 +226,11 @@ There should be a total of 184 significant gene interactions, where 111 are sign
 
 **Visualize Specific Genes**
 
-Here are a few samples of the interactions visualized at the sgRNA level for this experiment. Note the difference in sgRNA strength scales shown.
+Here are a few samples of the interactions visualized at the sgRNA level for this experiment. Note the difference in sgRNA efficiency scales shown.
 
 *Significantly depleted gene : RVBD3645*
 
-*RVBD3645* is one of the significantly depleted genes in this experiment. In this plot, notice how most of the slopes are negative but the amount of depletion varies, where the more blue slopes (higher sgRNA strength) are steeper than orange sgRNA slopes (lower sgRNA strength)
+*RVBD3645* is one of the significantly depleted genes in this experiment. In this plot, notice how most of the slopes are negative but the amount of depletion varies, where the more blue slopes (higher sgRNA efficiency) are steeper than orange sgRNA slopes (lower sgRNA efficiency)
 
 .. image:: _images/RVBD3645_lmplot.png
   :width: 400
@@ -242,7 +242,7 @@ Here are a few samples of the interactions visualized at the sgRNA level for thi
 
 *Significantly enriched gene : ndh*
 
-*ndh* is one of the signifincantly enriched genes in this experiment. In its plot, notice how sgRNAs of high strength (blue green ones) show a strong upwards trend but those will lower strength (the orange ones) do not. In fact there a few sgRNAs that show almost no change in fractional abundace as concentration increases.
+*ndh* is one of the signifincantly enriched genes in this experiment. In its plot, notice how sgRNAs of high efficiency (blue green ones) show a strong upwards trend but those will lower efficiency (the orange ones) do not. In fact there a few sgRNAs that show almost no change in fractional abundace as concentration increases.
 
 .. image:: _images/ndh_lmplot.png
   :width: 400

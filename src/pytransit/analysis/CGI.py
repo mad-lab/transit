@@ -100,7 +100,7 @@ class CGI_Method(base.SingleConditionMethod):
         return """usage (6 sub-commands):
     python3 ../src/transit.py CGI extract_counts <fastq file> <ids file> > <counts file>
     python3 ../src/transit.py CGI create_combined_counts <comma seperated headers> <counts file 1> <counts file 2> ... <counts file n> > <combined counts file>
-    python3 ../src/transit.py CGI extract_abund <combined counts file> <metadata file> <control condition> <sgRNA strength file> <uninduced ATC file> <drug> <days>  >  <fractional abundundance file>
+    python3 ../src/transit.py CGI extract_abund <combined counts file> <metadata file> <control condition> <sgRNA efficiency file> <uninduced ATC file> <drug> <days>  >  <fractional abundundance file>
     python3 ../src/transit.py CGI run_model <fractional abundundance file>  >  <CRISPRi DR results file>
     python3 ../src/transit.py CGI visualize <fractional abundance> <gene> <output figure location>
     note: redirect output from stdout to output files as shown above"""
@@ -147,11 +147,11 @@ class CGI_Method(base.SingleConditionMethod):
             combined_counts_file = args[0]
             metadata_file = args[1]
             control_condition=args[2]
-            sgRNA_strength_file = args[3]
+            sgRNA_efficiency_file = args[3]
             no_dep_abund = args[4]
             drug = args[5]
             days = args[6]
-            self.extract_abund(combined_counts_file,metadata_file,control_condition,sgRNA_strength_file,no_dep_abund,drug,days)
+            self.extract_abund(combined_counts_file,metadata_file,control_condition,sgRNA_efficiency_file,no_dep_abund,drug,days)
         elif cmd == "run_model":
             if len(args)<1: 
                 print("You have provided incorrect number of args")
@@ -240,7 +240,7 @@ class CGI_Method(base.SingleConditionMethod):
         print(combined_df_text)
 
 
-    def extract_abund(self,combined_counts_file,metadata_file,control_condition,sgRNA_strength_file,no_dep_abund,drug,days,PC=1e-8):  
+    def extract_abund(self,combined_counts_file,metadata_file,control_condition,sgRNA_efficiency_file,no_dep_abund,drug,days,PC=1e-8):  
         import pandas as pd
         
         metadata = pd.read_csv(metadata_file, sep="\t")
@@ -272,12 +272,12 @@ class CGI_Method(base.SingleConditionMethod):
         elif(len(combined_counts_df.columns)<len(metadata)):
             sys.stderr.write("WARNING: Not all of the samples from the metadata based on this criteron have a column in the combined counts file")
       
-        sgRNA_strength = pd.read_csv(sgRNA_strength_file,sep="\t", index_col=0)
-        sgRNA_strength = sgRNA_strength.iloc[:,-1:]
-        sgRNA_strength.columns = ["sgRNA strength"]
-        sgRNA_strength["sgRNA"] = sgRNA_strength.index
-        sgRNA_strength["sgRNA"]=sgRNA_strength["sgRNA"].str.split("_v", expand=True)[0]
-        sgRNA_strength.set_index("sgRNA",inplace=True)
+        sgRNA_efficiency = pd.read_csv(sgRNA_efficiency_file,sep="\t", index_col=0)
+        sgRNA_efficiency = sgRNA_efficiency.iloc[:,-1:]
+        sgRNA_efficiency.columns = ["sgRNA efficiency"]
+        sgRNA_efficiency["sgRNA"] = sgRNA_efficiency.index
+        sgRNA_efficiency["sgRNA"]=sgRNA_efficiency["sgRNA"].str.split("_v", expand=True)[0]
+        sgRNA_efficiency.set_index("sgRNA",inplace=True)
 
         no_dep_df = pd.read_csv(no_dep_abund, sep="\t", index_col=0, header=None)
         no_dep_df = no_dep_df.iloc[:,-1:]
@@ -287,12 +287,12 @@ class CGI_Method(base.SingleConditionMethod):
         no_dep_df["sgRNA"]=no_dep_df["sgRNA"].str.split("_v", expand=True)[0]
         no_dep_df.set_index("sgRNA",inplace=True)
 
-        abund_df = pd.concat([sgRNA_strength, no_dep_df,combined_counts_df], axis=1)
+        abund_df = pd.concat([sgRNA_efficiency, no_dep_df,combined_counts_df], axis=1)
         abund_df= abund_df[~(abund_df.index.str.contains("Negative") | abund_df.index.str.contains("Empty"))]
         sys.stderr.write("Disregarding Empty or Negative sgRNAs\n")
-        sys.stderr.write("%d sgRNAs are all of the following files : sgRNA strength metadata, uninduced ATC counts file, combined counts file\n"%len(abund_df))
+        sys.stderr.write("%d sgRNAs are all of the following files : sgRNA efficiency metadata, uninduced ATC counts file, combined counts file\n"%len(abund_df))
 
-        headers = ["sgRNA strength","uninduced ATC values"]
+        headers = ["sgRNA efficiency","uninduced ATC values"]
         for i,col in enumerate(column_names):
             abund_df[col] = abund_df[col]/abund_df[col].sum()
             abund_df[col] = (abund_df[col]+PC)/(abund_df["uninduced ATC values"]+PC)
@@ -306,7 +306,7 @@ class CGI_Method(base.SingleConditionMethod):
         abund_df = abund_df.drop(columns=["orf-gene","remaining"])
         abund_df = abund_df.dropna()
         
-        abund_df.insert(0, "sgRNA strength", abund_df.pop("sgRNA strength"))
+        abund_df.insert(0, "sgRNA efficiency", abund_df.pop("sgRNA efficiency"))
         abund_df.insert(0, "uninduced ATC values", abund_df.pop("uninduced ATC values"))
         abund_df.insert(0, 'gene', abund_df.pop('gene'))
         abund_df.insert(0, 'orf', abund_df.pop('orf'))
@@ -337,7 +337,7 @@ class CGI_Method(base.SingleConditionMethod):
             orf = gene_df["orf"].iloc[0]
             gene_df = gene_df.drop(columns=["orf","gene","uninduced ATC values"])
 
-            melted_df = gene_df.melt(id_vars=["sgRNA","sgRNA strength"],var_name="conc",value_name="abund")
+            melted_df = gene_df.melt(id_vars=["sgRNA","sgRNA efficiency"],var_name="conc",value_name="abund")
             melted_df["conc"] = melted_df["conc"].str.split("_", expand=True)[0].astype(float)
             min_conc = min(melted_df[melted_df["conc"]>0]["conc"])
             melted_df.loc[melted_df["conc"]==0,"conc"] = min_conc/2
@@ -361,12 +361,12 @@ class CGI_Method(base.SingleConditionMethod):
             drug_output.append([orf,gene,len(gene_df)]+coeffs.values.tolist()+pvals.values.tolist())
             sys.stderr.flush()
 
-        drug_out_df = pd.DataFrame(drug_output, columns=["Orf","Gene","Nobs", "intercept","coefficient sgRNA_strength","coefficient concentration dependence","pval intercept","pval sgRNA_strength","pval concentration dependence"])
+        drug_out_df = pd.DataFrame(drug_output, columns=["Orf","Gene","Nobs", "intercept","coefficient sgRNA_efficiency","coefficient concentration dependence","pval intercept","pval sgRNA_efficiency","pval concentration dependence"])
         drug_out_df["intercept"] = round(drug_out_df["intercept"],6)
-        drug_out_df["coefficient sgRNA_strength"] = round(drug_out_df["coefficient sgRNA_strength"],6)
+        drug_out_df["coefficient sgRNA_efficiency"] = round(drug_out_df["coefficient sgRNA_efficiency"],6)
         drug_out_df["coefficient concentration dependence"] = round(drug_out_df["coefficient concentration dependence"],6)
         drug_out_df["pval intercept"] = round(drug_out_df["pval intercept"],6)
-        drug_out_df["pval sgRNA_strength"] = round(drug_out_df["pval sgRNA_strength"],6)
+        drug_out_df["pval sgRNA_efficiency"] = round(drug_out_df["pval sgRNA_efficiency"],6)
         drug_out_df["pval concentration dependence"] = round(drug_out_df["pval concentration dependence"],6)
 
 
@@ -436,7 +436,7 @@ class CGI_Method(base.SingleConditionMethod):
             X_in = sm.add_constant(X, has_constant='add')
             results = sm.OLS(Y,X_in).fit()
             all_slopes.append(results.params[1])
-            data["sgRNA strength"] = [row["sgRNA strength"]] * len(data)
+            data["sgRNA efficiency"] = [row["sgRNA efficiency"]] * len(data)
             data["slope"] = [results.params[1]] * len(data)
             df_list.append(data)
 
@@ -446,10 +446,10 @@ class CGI_Method(base.SingleConditionMethod):
         cmap =  mpl.colors.LinearSegmentedColormap.from_list("", ["#8ecae6","#219ebc","#023047","#ffb703","#fb8500"], N=len(abund_df))
         palette = [mpl.colors.rgb2hex(cmap(i)) for i in range(cmap.N)]
         #print("-----------", bo_palette.as_hex())
-        g = sns.lmplot(data=plot_df, x='Log (Concentration)', y='Log (Relative Abundance)', hue="sgRNA strength", palette=palette, legend=False,ci=None, scatter=False, line_kws={"lw":0.75})
+        g = sns.lmplot(data=plot_df, x='Log (Concentration)', y='Log (Relative Abundance)', hue="sgRNA efficiency", palette=palette, legend=False,ci=None, scatter=False, line_kws={"lw":0.75})
 
-        sm1 = mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=plot_df['sgRNA strength'].min(), vmax=0, clip=False), cmap=cmap)
-        g.figure.colorbar(sm1, shrink=0.8, aspect=50, label="sgRNA strength")
+        sm1 = mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=plot_df['sgRNA efficiency'].min(), vmax=0, clip=False), cmap=cmap)
+        g.figure.colorbar(sm1, shrink=0.8, aspect=50, label="sgRNA efficiency")
         g.set(ylim=(-2.5, 1.0))
         plt.gca().set_title(gene+"\n"+condition, wrap=True)
         plt.tight_layout()
