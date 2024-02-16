@@ -83,12 +83,6 @@ TRANSIT offers a variety of features including:
    
 .. toctree::
    :maxdepth: 3
-   :caption: [** NEW **] CRISRPi ANALYSIS METHODS 
-
-   CGI
-
-.. toctree::
-   :maxdepth: 3
    :caption: TnSeq ANALYSIS METHODS
 
    method_normalization
