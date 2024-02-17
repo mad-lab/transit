@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 3.3.4 (2024-02-16)
+#### Transit:
+
+Minor changes:
+ - some improvements to ttnfitness
+
+
 ## Version 3.3.3 (2023-11-26)
 #### Transit:
 
