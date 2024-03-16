@@ -122,6 +122,8 @@ class CGI_Method(base.SingleConditionMethod):
         return self()
 
     def Run(self):
+        print("Note: CRISPRi-DR (CGI) has been migrated to Transit2.  Please use Transit2 for this.")
+        sys.exit(-1)
         cmd,args,kwargs = self.cmd,self.args,self.kwargs
 
         if cmd=="extract_counts":
