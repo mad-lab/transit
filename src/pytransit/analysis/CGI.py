@@ -223,6 +223,7 @@ class CGI_Method(base.SingleConditionMethod):
         for id in IDs:
             vals = [id,counts.get(id,0)]
             print('\t'.join([str(x) for x in vals]))
+            print("\n")
        
 
     def create_combined_counts(self,headers, counts_list):
