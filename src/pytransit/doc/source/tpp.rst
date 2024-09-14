@@ -207,10 +207,9 @@ The main fields to fill out in the GUI are...
   using the Sassetti protocol, i.e. near the beginning of reads, with some small
   random shifts)
 
--  **BWA executable** - you'll have to find the path to where the executable is installed
+- **BWA executable** - you'll have to find the path to where the executable is installed
 
-- **BWA algorithm** - there are 2 options: 'aln' and 'mem'.  'aln' was originally used in Transit,
-  but the default has now been switched to 'mem', which should be able to map more reads
+- **BWA algorithm** - there are 2 options: 'aln' and 'mem'.  The default is 'aln'.  'mem' can map a few more reads (increasing NZmean <5%), but is not faster, and doesn't work on Windows machines (mem required shared memory, but Windows gives a '/dev/shm' error message)
 
 - **BWA flags** - if you want to pass through options to BWA
 
@@ -270,7 +269,8 @@ The input arguments and file types are as follows:
 +======================+==================================================+======================================================+
 | -bwa                 | path executable                                  |                                                      |
 +----------------------+--------------------------------------------------+------------------------------------------------------+
-| -bwa-alg             | 'mem' (default) or 'aln' (the old way)           |                                                      |
+| -bwa-alg             | 'aln' (default) or 'mem'                         | 'mem' might increase NZmean slightly (<5%),          |
+|                      |                                                  | but doesn't work on Windows machines                 |
 +----------------------+--------------------------------------------------+------------------------------------------------------+
 | -flag                | parameters to pass to BWA                        |                                                      |
 +----------------------+--------------------------------------------------+------------------------------------------------------+
