@@ -246,7 +246,7 @@ The Mme1 protocol generally assumes reads do NOT include the primer prefix, and 
 
             self.bwa_alg = wx.ComboBox(panel,choices=["use algorithm 'aln'", "use algorithm 'mem'"],size=(200,30))
             if vars.bwa_alg=='aln': self.bwa_alg.SetSelection(0)
-            else: self.bwa_alg.SetSelection(1) # default
+            else: self.bwa_alg.SetSelection(1) 
             sizer0.Add(self.bwa_alg, proportion=2, flag=wx.EXPAND|wx.ALL, border=5) ## 
             self.bwa_alg.Bind(wx.EVT_COMBOBOX, self.OnBwaAlgSelection, id=self.bwa_alg.GetId())
             sizer0.Add(TPPIcon(panel, wx.ID_ANY, bmp, "'mem' is considered to do a better job at mapping reads, but 'aln' is available as an alternative."), flag=wx.CENTER, border=0)
