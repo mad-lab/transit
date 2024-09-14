@@ -98,9 +98,9 @@ def read_samples_metadata(metadata_file, covarsToRead = [], interactionsToRead =
                 for i, c in enumerate(lines[0].split())
                 if c.lower() == h.lower()]
 
-        for line in lines[1:]:
+        for line in lines[1:]: # skip header row
             if line[0]=='#': continue
-            vals = line.split()
+            vals = line.rstrip().split('\t') # allow spaces in filenames
             [condition, wfile] = vals[headIndexes[0]], vals[headIndexes[1]]
             conditionsByFile[wfile] = condition
             orderingMetadata['condition'].append(condition)
