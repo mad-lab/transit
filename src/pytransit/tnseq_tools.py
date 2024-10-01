@@ -81,9 +81,10 @@ def read_samples_metadata(metadata_file, covarsToRead = [], interactionsToRead =
     headersToRead = [condition_name.lower(), "filename"]
     orderingMetadata = { 'condition': [], 'interaction': [] }
     lines = []
-    for line in open(metadata_file):
-      if len(line)<=2 or line.startswith("#"): continue
-      lines.append(line)
+    with open(metadata_file) as f:
+        for line in f:
+            if len(line)<=2 or line.startswith("#"): continue
+            lines.append(line)
     if True:
         headIndexes = [i
                 for h in headersToRead
@@ -121,17 +122,18 @@ def read_genes(fname,descriptions=False):
       Gene :: {start, end, rv, gene, strand}
     """
     genes = []
-    for line in open(fname):
-        w = line.rstrip().split('\t')
-        data = {
-                "start": int(w[1]),
-                "end": int(w[2]),
-                "rv": w[8],
-                "gene": w[7],
-                "strand": w[3]
-                }
-        if descriptions==True: data.append(w[0])
-        genes.append(data)
+    with open(fname) as f:
+        for line in f:
+            w = line.rstrip().split('\t')
+            data = {
+                    "start": int(w[1]),
+                    "end": int(w[2]),
+                    "rv": w[8],
+                    "gene": w[7],
+                    "strand": w[3]
+                    }
+            if descriptions==True: data.append(w[0])
+            genes.append(data)
     return genes
 
 @total_ordering
@@ -518,26 +520,27 @@ class Genes:
                 orf2posindex[gene].append(i)
 
         count = 0
-        for line in open(self.annotation):
-            if line.startswith("#"): continue
-            tmp = line.split("\t")
+        with open(self.annotation) as f:
+            for line in f:
+                if line.startswith("#"): continue
+                tmp = line.split("\t")
 
-            if isProt:
-                gene = tmp[8].strip()
-                name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
-            else:
-                features = dict([tuple(f.split("=",1)) for f in filter(lambda x: "=" in x, tmp[8].split(";"))])
-                gene = features["ID"]
-                name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
-            posindex = orf2posindex.get(gene, [])
-            if posindex:
-                pos_start = orf2posindex[gene][0]
-                pos_end = orf2posindex[gene][-1]
-                self.genes.append(Gene(gene, name, desc, data[:, pos_start:pos_end+1], position[pos_start:pos_end+1], start, end, strand))
-            else:
-                self.genes.append(Gene(gene, name, desc, numpy.array([[]]), numpy.array([]), start, end, strand))
-            self.orf2index[gene] = count
-            count += 1
+                if isProt:
+                    gene = tmp[8].strip()
+                    name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
+                else:
+                    features = dict([tuple(f.split("=",1)) for f in filter(lambda x: "=" in x, tmp[8].split(";"))])
+                    gene = features["ID"]
+                    name,desc,start,end,strand = orf2info.get(gene, ["", "", 0, 0, "+"])
+                posindex = orf2posindex.get(gene, [])
+                if posindex:
+                    pos_start = orf2posindex[gene][0]
+                    pos_end = orf2posindex[gene][-1]
+                    self.genes.append(Gene(gene, name, desc, data[:, pos_start:pos_end+1], position[pos_start:pos_end+1], start, end, strand))
+                else:
+                    self.genes.append(Gene(gene, name, desc, numpy.array([[]]), numpy.array([]), start, end, strand))
+                self.orf2index[gene] = count
+                count += 1
 
 #
 
@@ -910,9 +913,10 @@ def get_data(wig_list):
     size_list = []
     for j,path in enumerate(wig_list):
         T = 0
-        for line in open(path):
-            if line[0] not in "0123456789": continue
-            T+=1
+        with open(path) as f:
+            for line in f:
+                if line[0] not in "0123456789": continue
+                T+=1
         size_list.append(T)
 
     # If it doesn't match, report an error and quit
@@ -927,22 +931,23 @@ def get_data(wig_list):
         reads = []
         i = 0
         prev_pos = 0
-        for line in open(path):
-            if line[0] not in "0123456789": continue
-            tmp = line.split()
-            pos = int(tmp[0])
-            rd = float(tmp[1])
-            prev_pos = pos
+        with open(path) as f:
+            for line in f:
+                if line[0] not in "0123456789": continue
+                tmp = line.split()
+                pos = int(tmp[0])
+                rd = float(tmp[1])
+                prev_pos = pos
 
-            try:
-                data[j,i] = rd
-            except Exception as e:
-                print("Error: %s" % e)
-                print("")
-                print("Make sure that all wig files have the same number of TA sites (i.e. same strain)")
-                sys.exit()
-            position[i] = pos
-            i+=1
+                try:
+                    data[j,i] = rd
+                except Exception as e:
+                    print("Error: %s" % e)
+                    print("")
+                    print("Make sure that all wig files have the same number of TA sites (i.e. same strain)")
+                    sys.exit()
+                position[i] = pos
+                i+=1
     return (data, position)
 
 #
@@ -968,9 +973,10 @@ def get_data_zero_fill(wig_list):
     #       over all the replicates. This might be an area to attempt to optimize.
     last_line = ''
     for wig_name in wig_list:
-        for line in open(wig_name):
-            if line[0] not in "0123456789": continue
-            last_line = line
+        with open(wig_name) as f:
+            for line in f:
+                if line[0] not in "0123456789": continue
+                last_line = line
         pos = int(last_line.split()[0])
         T = max(T,pos)
 
@@ -982,14 +988,15 @@ def get_data_zero_fill(wig_list):
     for j,path in enumerate(wig_list):
         reads = []
         i = 0
-        for line in open(path):
-            if line[0] not in "0123456789": continue
-            tmp = line.split()
-            pos = int(tmp[0])
-            rd = float(tmp[1])
-            prev_pos = pos
-            data[j,pos-1] = rd
-            i+=1
+        with open(path) as f:
+            for line in f:
+                if line[0] not in "0123456789": continue
+                tmp = line.split()
+                pos = int(tmp[0])
+                rd = float(tmp[1])
+                prev_pos = pos
+                data[j,pos-1] = rd
+                i+=1
     return (data, position)
 
 
@@ -1012,16 +1019,17 @@ def get_data_w_genome(wig_list, genome):
     K = len(wig_list)
     data = numpy.zeros((K,T))
     for j,path in enumerate(wig_list):
-        for line in open(path):
-            if line[0] not in "0123456789": continue
-            tmp = line.split()
-            pos = int(tmp[0])
-            rd = float(tmp[1])
-            if pos in pos2index:
-                index = pos2index[pos]
-                data[j,index] = rd
-            else:
-                print("Warning: Coordinate %d did not match a TA site in the genome. Ignoring counts." %(pos))
+        with open(path) as f:
+            for line in f:
+                if line[0] not in "0123456789": continue
+                tmp = line.split()
+                pos = int(tmp[0])
+                rd = float(tmp[1])
+                if pos in pos2index:
+                    index = pos2index[pos]
+                    data[j,index] = rd
+                else:
+                    print("Warning: Coordinate %d did not match a TA site in the genome. Ignoring counts." %(pos))
     return (data, positions)
 
 #
@@ -1098,14 +1106,15 @@ def get_extended_pos_hash_pt(path, N=None):
     hash = {}
     maxcoord = float("-inf")
     data = []
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.split("\t")
-        orf = tmp[8]
-        start = int(tmp[1])
-        end = int(tmp[2])
-        maxcoord = max(maxcoord, start, end)
-        data.append((orf, start, end))
+    with open(path) as f:
+        for line in f:
+            if line.startswith("#"): continue
+            tmp = line.split("\t")
+            orf = tmp[8]
+            start = int(tmp[1])
+            end = int(tmp[2])
+            maxcoord = max(maxcoord, start, end)
+            data.append((orf, start, end))
 
     genome_start = 1
     if N:
@@ -1149,18 +1158,19 @@ def get_extended_pos_hash_gff(path, N=None):
     hash = {}
     maxcoord = float("-inf")
     data = []
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
-        if "ID" not in features: continue
-        orf = features["ID"]
-        chr = tmp[0]
-        type = tmp[2]
-        start = int(tmp[3])
-        end = int(tmp[4])
-        maxcoord = max(maxcoord, start, end)
-        data.append((orf,start,end))
+    with open(path) as f:
+        for line in f:
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            features = dict([tuple(f.split("=")) for f in tmp[8].split(";")])
+            if "ID" not in features: continue
+            orf = features["ID"]
+            chr = tmp[0]
+            type = tmp[2]
+            start = int(tmp[3])
+            end = int(tmp[4])
+            maxcoord = max(maxcoord, start, end)
+            data.append((orf,start,end))
 
     genome_start = 1
     if N:
@@ -1214,15 +1224,16 @@ def get_pos_hash_pt(path):
         dict: Dictionary of position to list of genes that share that position.
     """
     hash = {}
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        orf = tmp[8]
-        start = int(tmp[1])
-        end = int(tmp[2])
-        for pos in range(start, end+1):
-            if pos not in hash: hash[pos] = []
-            hash[pos].append(orf)
+    with open(path) as f:
+        for line in f:
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            orf = tmp[8]
+            start = int(tmp[1])
+            end = int(tmp[2])
+            for pos in range(start, end+1):
+                if pos not in hash: hash[pos] = []
+                hash[pos].append(orf)
     return hash
 
 #
@@ -1237,19 +1248,20 @@ def get_pos_hash_gff(path):
         dict: Dictionary of position to list of genes that share that position.
     """
     hash = {}
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        features = dict([tuple(f.split("=",1)) for f in filter(lambda x: "=" in x, tmp[8].split(";"))])
-        if "ID" not in features: continue
-        orf = features["ID"]
-        chr = tmp[0]
-        type = tmp[2]
-        start = int(tmp[3])
-        end = int(tmp[4])
-        for pos in range(start, end+1):
-            if pos not in hash: hash[pos] = []
-            hash[pos].append(orf)
+    with open(path) as f:
+        for line in f:
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            features = dict([tuple(f.split("=",1)) for f in filter(lambda x: "=" in x, tmp[8].split(";"))])
+            if "ID" not in features: continue
+            orf = features["ID"]
+            chr = tmp[0]
+            type = tmp[2]
+            start = int(tmp[3])
+            end = int(tmp[4])
+            for pos in range(start, end+1):
+                if pos not in hash: hash[pos] = []
+                hash[pos].append(orf)
     return hash
 
 #
@@ -1287,16 +1299,17 @@ def get_gene_info_pt(path):
 
     """
     orf2info = {}
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        orf = tmp[8]
-        name = tmp[7]
-        desc = tmp[0]
-        start = int(tmp[1])
-        end = int(tmp[2])
-        strand = tmp[3]
-        orf2info[orf] = (name, desc, start, end, strand)
+    with open(path) as f:
+        for line in f:
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            orf = tmp[8]
+            name = tmp[7]
+            desc = tmp[0]
+            start = int(tmp[1])
+            end = int(tmp[2])
+            strand = tmp[3]
+            orf2info[orf] = (name, desc, start, end, strand)
     return orf2info
 
 #
@@ -1317,28 +1330,29 @@ def get_gene_info_gff(path):
 
     """
     orf2info = {}
-    for line in open(path):
-        if line.startswith("#"): continue
-        tmp = line.strip().split("\t")
-        chr = tmp[0]
-        type = tmp[2]
-        start = int(tmp[3])
-        end = int(tmp[4])
-        length = ((end-start+1)/3)-1
-        strand = tmp[6]
-        features = dict([tuple(f.split("=",1)) for f in filter(lambda x: "=" in x, tmp[8].split(";"))])
-        if "ID" not in features: continue
-        orf = features["ID"]
-        name = features.get("Name", "-")
-        if name == "-": name = features.get("name", "-")
+    with open(path) as f:
+        for line in f:
+            if line.startswith("#"): continue
+            tmp = line.strip().split("\t")
+            chr = tmp[0]
+            type = tmp[2]
+            start = int(tmp[3])
+            end = int(tmp[4])
+            length = ((end-start+1)/3)-1
+            strand = tmp[6]
+            features = dict([tuple(f.split("=",1)) for f in filter(lambda x: "=" in x, tmp[8].split(";"))])
+            if "ID" not in features: continue
+            orf = features["ID"]
+            name = features.get("Name", "-")
+            if name == "-": name = features.get("name", "-")
 
-        desc = features.get("Description", "-")
-        if desc == "-": desc = features.get("description", "-")
-        if desc == "-": desc = features.get("Desc", "-")
-        if desc == "-": desc = features.get("desc", "-")
-        if desc == "-": desc = features.get("product", "-")
+            desc = features.get("Description", "-")
+            if desc == "-": desc = features.get("description", "-")
+            if desc == "-": desc = features.get("Desc", "-")
+            if desc == "-": desc = features.get("desc", "-")
+            if desc == "-": desc = features.get("product", "-")
 
-        orf2info[orf] = (name, desc, start, end, strand)
+            orf2info[orf] = (name, desc, start, end, strand)
     return orf2info
 
 #
@@ -1377,29 +1391,30 @@ def get_coordinate_map(galign_path, reverse=False):
         dict: Dictionary of coordinate in one file to another file.
     """
     c1Toc2 = {}
-    for line in open(galign_path):
-        if line.startswith("#"): continue
-        tmp = line.split()
-        star = line.strip().endswith("*")
-        leftempty = tmp[0].startswith("-")
-        rightempty = tmp[1].endswith("-")
-        if leftempty:
-            left = -1
-        else:
-            left = int(tmp[0])
-        if rightempty:
-            right = -1
-        elif leftempty:
-            right = int(tmp[1])
-        else:
-             right = int(tmp[2])
+    with open(galign_path) as f:
+        for line in f:
+            if line.startswith("#"): continue
+            tmp = line.split()
+            star = line.strip().endswith("*")
+            leftempty = tmp[0].startswith("-")
+            rightempty = tmp[1].endswith("-")
+            if leftempty:
+                left = -1
+            else:
+                left = int(tmp[0])
+            if rightempty:
+                right = -1
+            elif leftempty:
+                right = int(tmp[1])
+            else:
+                right = int(tmp[2])
 
-        if not reverse:
-            if not leftempty:
-                c1Toc2[left] = right
-        else:
-            if not rightempty:
-                 c1Toc2[right] = left
+            if not reverse:
+                if not leftempty:
+                    c1Toc2[left] = right
+            else:
+                if not rightempty:
+                    c1Toc2[right] = left
     return c1Toc2
 
 #
@@ -1414,9 +1429,10 @@ def read_genome(path):
         string: String with the genomic sequence.
     """
     seq = ""
-    for line in open(path):
-        if line.startswith(">"): continue
-        seq += line.strip()
+    with open(path) as f:
+        for line in f:
+            if line.startswith(">"): continue
+            seq += line.strip()
     return seq
 
 #
@@ -1663,5 +1679,4 @@ if __name__ == "__main__":
         pos = gene.position
         exprun, pval = griffin_results[i][-2:]
         print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%1.1f\t%1.5f" % (gene.orf, gene.name, gene.k, gene.n, gene.r, gene.s, gene.t, exprun, pval))
-
 
