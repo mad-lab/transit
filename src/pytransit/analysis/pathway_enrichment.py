@@ -79,7 +79,7 @@ class PathwayGUI(base.AnalysisGUI):
 
 class PathwayMethod(base.AnalysisMethod):
 
-  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,Nperm=10000,p=0,ranking="SLPV",Pval_col=-2,Qval_col=-1,LFC_col=6): # default cols are for resampling files
+  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,Nperm=10000,p=0,ranking="SLPV",Pval_col=-2,Qval_col=-1,LFC_col=6, focusLFC="all"): # default cols are for resampling files
     base.AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, open(outputFile,"w"), None) # no annotation file
     self.resamplingFile = resamplingFile
     self.associationsFile = associationsFile
@@ -91,6 +91,7 @@ class PathwayMethod(base.AnalysisMethod):
     self.Qval_col = Qval_col
     self.LFC_col = LFC_col
     self.PC = PC # for FET
+    self.focusLFC = focusLFC # for FET
     self.Nperm = Nperm # for GSEA
     self.p = p # for GSEA
     self.ranking = ranking # for GSEA
@@ -111,6 +112,7 @@ class PathwayMethod(base.AnalysisMethod):
     Qval_col = int(kwargs.get("Qval_col","-1"))
     LFC_col = int(kwargs.get("LFC_col","6"))
     PC = int(kwargs.get("PC","2")) # for FET
+    focusLFC = kwargs.get("focusLFC", "all")# for FET
     Nperm = int(kwargs.get("Nperm", "10000")) # for GSEA
     p = float(kwargs.get("p","0")) # for GSEA
     ranking = kwargs.get("ranking","SLPV") # for GSEA
@@ -120,7 +122,12 @@ class PathwayMethod(base.AnalysisMethod):
       print(self.usage_string()); 
       sys.exit(0)
 
-    return self(resamplingFile,associations,pathways,output,method,PC=PC,Nperm=Nperm,p=p,ranking=ranking,Pval_col=Pval_col,Qval_col=Qval_col,LFC_col=LFC_col)
+    if focusLFC not in "pos neg all".split(): 
+      print("error: focusLFC value %s not recognized" % focusLFC)
+      print(self.usage_string()); 
+      sys.exit(0)
+
+    return self(resamplingFile,associations,pathways,output,method,PC=PC,Nperm=Nperm,p=p,ranking=ranking,Pval_col=Pval_col,Qval_col=Qval_col,LFC_col=LFC_col, focusLFC=focusLFC)
 
   @classmethod
   def usage_string(self):
@@ -137,6 +144,7 @@ Optional parameters:
  -Nperm <int>       : number of permutations to simulate for null distribution to determine p-value (default=10000)
  for FET...
  -PC <int>          :  pseudo-counts to use in calculating p-value based on hypergeometric distribution (default=2)
+ -focusLFC pos|neg  :  filter the output to focus on results with positive (pos) or negative (neg) LFCs (default=all, no filtering)
 """ % (sys.argv[0])
 
   def Run(self):
@@ -352,6 +360,14 @@ Optional parameters:
     # how many genes in associations are not listed in resampling file?
     # do all associations have a definition in pathways?
     # how many pathways have >1 gene? (out of total?) what is max?
+
+    if self.focusLFC == "pos":
+      genes = list(filter(lambda w: float(w[self.LFC_col]) > 0, genes))
+      hits = list(set([w[0] for w in genes]) & set(hits)) # filter the hits to only include positive LFCs by doing an intersection between the newly filtered orfs and the hits (that include all LFCs)
+                                                          # by turning both lists into sets and intersecting (&) them, seemed to be the fastest way without adding too much more to MEM space
+    elif self.focusLFC == "neg":
+      genes = list(filter(lambda w: float(w[self.LFC_col]) < 0, genes))
+      hits = list(set([w[0] for w in genes]) & set(hits))
 
     genes_with_associations = 0
     for gene in genes: 
