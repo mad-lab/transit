@@ -35,7 +35,7 @@ def normalize(X, old_min, old_max, new_min, new_max):
 
 
 script_directory = os.path.dirname(os.path.realpath(__file__))
-font = ImageFont.truetype("%s/src/pytransit/DejaVuSans.ttf" % script_directory,size=12)
+font = ImageFont.truetype("%s/DejaVuSans.ttf" % script_directory,size=12) # should be in transit/src/pytransit/
 
 # linuxFonts = []
 # linuxFonts.append("DejaVuSans.ttf")
