@@ -17,11 +17,7 @@ import pytpp.__main__
 tppMain = pytpp.__main__.main
 
 def get_bwa():
-    if (os.path.exists("/usr/bin/bwa")):
-        return "/usr/bin/bwa"
-    elif (os.path.exists("/usr/local/bin/bwa")):
-        return "/usr/local/bin/bwa"
-    return ""
+    return shutil.which("bwa") if not None else None
 
 bwa_path = get_bwa()
 
