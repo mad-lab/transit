@@ -2,6 +2,7 @@ include MANIFEST.in
 include README.md
 include LICENSE.md
 include VERSION
+include src/pytransit/DejaVuSans.ttf
 recursive-include src/pytransit/data *
 recursive-include src/pytransit/genomes *
 recursive-include src/pytransit/doc/build/html *.html
