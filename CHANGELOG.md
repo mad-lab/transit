@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 3.3.7 (2024-10-16)
+#### Transit:
+
+Minor changes:
+ - updated manifest to include font file in PyPi package
+
+
 ## Version 3.3.6 (2024-10-14)
 #### Transit:
 
