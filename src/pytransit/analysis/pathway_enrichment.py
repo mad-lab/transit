@@ -361,16 +361,17 @@ Optional parameters:
     # do all associations have a definition in pathways?
     # how many pathways have >1 gene? (out of total?) what is max?
 
+    focus_genes = genes
     if self.focusLFC == "pos":
-      genes = list(filter(lambda w: float(w[self.LFC_col]) > 0, genes))
-      hits = list(set([w[0] for w in genes]) & set(hits)) # filter the hits to only include positive LFCs by doing an intersection between the newly filtered orfs and the hits (that include all LFCs)
+      focus_genes = list(filter(lambda w: float(w[self.LFC_col]) > 0, genes))
+      hits = list(set([w[0] for w in focus_genes]) & set(hits)) # filter the hits to only include positive LFCs by doing an intersection between the newly filtered orfs and the hits (that include all LFCs)
                                                           # by turning both lists into sets and intersecting (&) them, seemed to be the fastest way without adding too much more to MEM space
     elif self.focusLFC == "neg":
-      genes = list(filter(lambda w: float(w[self.LFC_col]) < 0, genes))
-      hits = list(set([w[0] for w in genes]) & set(hits))
+      focus_genes = list(filter(lambda w: float(w[self.LFC_col]) < 0, genes))
+      hits = list(set([w[0] for w in focus_genes]) & set(hits))
 
     genes_with_associations = 0
-    for gene in genes: 
+    for gene in focus_genes: 
       orf = gene[0]
       if orf in associations: genes_with_associations += 1
     self.write("# method=FET, PC=%s" % self.PC)
