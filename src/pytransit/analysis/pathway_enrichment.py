@@ -147,16 +147,16 @@ Optional parameters:
  -Pval_col <int>    : indicate column with *raw* P-values (starting with 0; can also be negative, i.e. -1 means last col) (used for sorting) (default: -2)
  -Qval_col <int>    : indicate column with *adjusted* P-values (starting with 0; can also be negative, i.e. -1 means last col) (used for significant cutoff) (default: -1)
  for GSEA...
- -ranking SLPV|LFC  : SLPV is signed-log-p-value (default); LFC is log2-fold-change from resampling 
- -LFC_col <int>     : indicate column with log2FC (starting with 0; can also be negative, i.e. -1 means last col) (used for ranking genes by SLPV or LFC) (default: 6)
- -p <float>         : exponent to use in calculating enrichment score; recommend trying 0 or 1 (as in Subramaniam et al, 2005)
- -Nperm <int>       : number of permutations to simulate for null distribution to determine p-value (default=10000)
+   -ranking SLPV|LFC  : SLPV is signed-log-p-value (default); LFC is log2-fold-change from resampling 
+   -LFC_col <int>     : indicate column with log2FC (starting with 0; can also be negative, i.e. -1 means last col) (used for ranking genes by SLPV or LFC) (default: 6)
+   -p <float>         : exponent to use in calculating enrichment score; recommend trying 0 or 1 (as in Subramaniam et al, 2005)
+   -Nperm <int>       : number of permutations to simulate for null distribution to determine p-value (default=10000)
  for FET...
- -PC <int>          :  pseudo-counts to use in calculating p-value based on hypergeometric distribution (default=2)
- -focusLFC pos|neg  :  filter the output to focus on results with positive (pos) or negative (neg) LFCs (default: "all", no filtering)
- -minLFC <float>    :  filter the output to exclude any genes that has an LFC less than the absolute magnitude/value specified (default: 0)
- -qval <float>      :  filter the output to exclude any genes that has qval greater than to the value specified (default: 1, nothing is excluded)
- -topk <int>        :  filter the output to select top k genes ranked by significance (qval) [Overwrites any specified -qval] (default: -1)
+   -focusLFC pos|neg  :  filter the output to focus on results with positive (pos) or negative (neg) LFCs (default: "all", no filtering)
+   -minLFC <float>    :  filter the output to include only genes that have a megnitude of LFC greater than the specified value (default: 0) (e.g. '-minLFC 1' means analyze only genes with 2-fold change or greater)
+   -qval <float>      :  filter the output to include only genes that have Qval less than to the value specified (default: 0.05)
+   -topk <int>        :  calculate enrichment among top k genes ranked by significance (Qval) regardless of cutoff (can combine with -focusLFC)
+   -PC <int>          :  pseudo-counts to use in calculating p-value based on hypergeometric distribution (default=2)
 """ % (sys.argv[0])
 
   def Run(self):
