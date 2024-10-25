@@ -153,7 +153,7 @@ Optional parameters:
    -Nperm <int>       : number of permutations to simulate for null distribution to determine p-value (default=10000)
  for FET...
    -focusLFC pos|neg  :  filter the output to focus on results with positive (pos) or negative (neg) LFCs (default: "all", no filtering)
-   -minLFC <float>    :  filter the output to include only genes that have a megnitude of LFC greater than the specified value (default: 0) (e.g. '-minLFC 1' means analyze only genes with 2-fold change or greater)
+   -minLFC <float>    :  filter the output to include only genes that have a magnitude of LFC greater than the specified value (default: 0) (e.g. '-minLFC 1' means analyze only genes with 2-fold change or greater)
    -qval <float>      :  filter the output to include only genes that have Qval less than to the value specified (default: 0.05)
    -topk <int>        :  calculate enrichment among top k genes ranked by significance (Qval) regardless of cutoff (can combine with -focusLFC)
    -PC <int>          :  pseudo-counts to use in calculating p-value based on hypergeometric distribution (default=2)
