@@ -46,7 +46,7 @@ Usage
 
 ::
 
-  > python3 ../../transit.py pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FET|GSEA|GO>] [-PC <int>] [-ranking SLPV|LFC] [-p <float>] [-Nperm <int>] [-Pval_col <int>] [-Qval_col <int>]  [-LFC_col <int>]
+  > python3 ../../transit.py pathway_enrichment <resampling_file> <associations> <pathways> <output_file> [-M <FET|GSEA|GO>] [optional paramters...]
 
   Optional parameters:
      -M FET|GSEA|ONT:     method to use, FET for Fisher's Exact Test (default), GSEA for Gene Set Enrichment Analysis (Subramaniam et al, 2005), or ONT for Ontologizer (Grossman et al, 2007)
@@ -58,6 +58,10 @@ Usage
      -p <float>         : exponent to use in calculating enrichment score; recommend trying 0 or 1 (as in Subramaniam et al, 2005)
      -Nperm <int>       : number of permutations to simulate for null distribution to determine p-value (default=10000)
  for FET...
+     -focusLFC pos|neg  :  filter the output to focus on results with positive (pos) or negative (neg) LFCs (default: "all", no filtering)
+     -minLFC <float>    :  filter the output to include only genes that have a megnitude of LFC greater than the specified value (default: 0) (e.g. '-minLFC 1' means analyze only genes with 2-fold change or greater)
+     -qval <float>      :  filter the output to include only genes that have Qval less than to the value specified (default: 0.05)
+     -topk <int>        :  calculate enrichment among top k genes ranked by significance (Qval) regardless of cutoff (can combine with -focusLFC)
      -PC <int>          :  pseudo-counts to use in calculating p-value based on hypergeometric distribution (default=2)
 
 |
@@ -114,7 +118,12 @@ Parameters
 
     Additional flags for FET:
 
-    - **-PC <int>**: Pseudocounts used in calculating the enrichment score and p-value by hypergeometic distribution. Default: PC=2.
+    - **-focusLFC pos|neg**  : filter the output to focus on genes with positive (pos) or negative (neg) LFCs (default: "all", no filtering)
+    - **-minLFC <float>**    : filter the output to include only genes that have |LFC| (magnitude of log2-fold change) >= the specified value (default: 0; e.g. '-minLFC 1' means restriction to genes with 2-fold change or greater)
+    - **-qval <float>**      : set Q-value cutoff (analyze genes with Qval<cutoff)  (default: 0.05)
+    - **-topk <int>**        : analyze enrichment in top K genes sorted by significance (Qval), regardless of Qval cutoff (can combine with -focusLFC)
+    - **-PC <int>**          : Pseudocounts used in calculating the enrichment score and p-value by hypergeometric distribution. Default: PC=2.
+
 
   **-M GSEA**
     Gene Set Enrichment Analysis. GSEA assess the significance of a pathway by looking at how the members fall in the ranking of all genes.  The genes are first ranked by significance from resampling.  Specifically, they are sorted by signed-log-p-value, SLPV=sign(LFC)*(log(pval)), which puts them in order so that the most significant genes with negative LFC are at the top, the most significant with positive LFC are at the bottom, and insignificant genes fall in the middle.  Roughly, GSEA computes the mean rank of pathway members, and evaluates significance based on a simulated a null distribution.  p-values are again adjusted at the end by BH.

@@ -79,7 +79,8 @@ class PathwayGUI(base.AnalysisGUI):
 
 class PathwayMethod(base.AnalysisMethod):
 
-  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,Nperm=10000,p=0,ranking="SLPV",Pval_col=-2,Qval_col=-1,LFC_col=6): # default cols are for resampling files
+  def __init__(self,resamplingFile,associationsFile,pathwaysFile,outputFile,method,PC=0,Nperm=10000,p=0,ranking="SLPV",Pval_col=-2,Qval_col=-1,LFC_col=6, 
+               focusLFC="all", minLFC=0, qvalCutoff=1, topk=-1): # default cols are for resampling files
     base.AnalysisMethod.__init__(self, short_name, long_name, short_desc, long_desc, open(outputFile,"w"), None) # no annotation file
     self.resamplingFile = resamplingFile
     self.associationsFile = associationsFile
@@ -91,6 +92,10 @@ class PathwayMethod(base.AnalysisMethod):
     self.Qval_col = Qval_col
     self.LFC_col = LFC_col
     self.PC = PC # for FET
+    self.focusLFC = focusLFC # for FET
+    self.minLFC = minLFC # for FET
+    self.qvalCutoff = qvalCutoff # for FET
+    self.topk = topk # for FET
     self.Nperm = Nperm # for GSEA
     self.p = p # for GSEA
     self.ranking = ranking # for GSEA
@@ -111,6 +116,11 @@ class PathwayMethod(base.AnalysisMethod):
     Qval_col = int(kwargs.get("Qval_col","-1"))
     LFC_col = int(kwargs.get("LFC_col","6"))
     PC = int(kwargs.get("PC","2")) # for FET
+    focusLFC = kwargs.get("focusLFC", "all")# for FET
+    minLFC = float(kwargs.get("minLFC", "0"))# for FET
+    #Don't forget to add to the return line or the init function header
+    topk = int(kwargs.get("topk", "-1"))# for FET
+    qvalCutoff = float(kwargs.get("qval", "1"))# for FET
     Nperm = int(kwargs.get("Nperm", "10000")) # for GSEA
     p = float(kwargs.get("p","0")) # for GSEA
     ranking = kwargs.get("ranking","SLPV") # for GSEA
@@ -120,7 +130,13 @@ class PathwayMethod(base.AnalysisMethod):
       print(self.usage_string()); 
       sys.exit(0)
 
-    return self(resamplingFile,associations,pathways,output,method,PC=PC,Nperm=Nperm,p=p,ranking=ranking,Pval_col=Pval_col,Qval_col=Qval_col,LFC_col=LFC_col)
+    if focusLFC not in "pos neg all".split(): 
+      print("error: focusLFC value %s not recognized" % focusLFC)
+      print(self.usage_string()); 
+      sys.exit(0)
+
+    return self(resamplingFile,associations,pathways,output,method,PC=PC,Nperm=Nperm,p=p,ranking=ranking,Pval_col=Pval_col,Qval_col=Qval_col,LFC_col=LFC_col, 
+                focusLFC=focusLFC, minLFC=minLFC, qvalCutoff=qvalCutoff, topk=topk)
 
   @classmethod
   def usage_string(self):
@@ -131,12 +147,16 @@ Optional parameters:
  -Pval_col <int>    : indicate column with *raw* P-values (starting with 0; can also be negative, i.e. -1 means last col) (used for sorting) (default: -2)
  -Qval_col <int>    : indicate column with *adjusted* P-values (starting with 0; can also be negative, i.e. -1 means last col) (used for significant cutoff) (default: -1)
  for GSEA...
- -ranking SLPV|LFC  : SLPV is signed-log-p-value (default); LFC is log2-fold-change from resampling 
- -LFC_col <int>     : indicate column with log2FC (starting with 0; can also be negative, i.e. -1 means last col) (used for ranking genes by SLPV or LFC) (default: 6)
- -p <float>         : exponent to use in calculating enrichment score; recommend trying 0 or 1 (as in Subramaniam et al, 2005)
- -Nperm <int>       : number of permutations to simulate for null distribution to determine p-value (default=10000)
+   -ranking SLPV|LFC  : SLPV is signed-log-p-value (default); LFC is log2-fold-change from resampling 
+   -LFC_col <int>     : indicate column with log2FC (starting with 0; can also be negative, i.e. -1 means last col) (used for ranking genes by SLPV or LFC) (default: 6)
+   -p <float>         : exponent to use in calculating enrichment score; recommend trying 0 or 1 (as in Subramaniam et al, 2005)
+   -Nperm <int>       : number of permutations to simulate for null distribution to determine p-value (default=10000)
  for FET...
- -PC <int>          :  pseudo-counts to use in calculating p-value based on hypergeometric distribution (default=2)
+   -focusLFC pos|neg  :  filter the output to focus on results with positive (pos) or negative (neg) LFCs (default: "all", no filtering)
+   -minLFC <float>    :  filter the output to include only genes that have a magnitude of LFC greater than the specified value (default: 0) (e.g. '-minLFC 1' means analyze only genes with 2-fold change or greater)
+   -qval <float>      :  filter the output to include only genes that have Qval less than to the value specified (default: 0.05)
+   -topk <int>        :  calculate enrichment among top k genes ranked by significance (Qval) regardless of cutoff (can combine with -focusLFC)
+   -PC <int>          :  pseudo-counts to use in calculating p-value based on hypergeometric distribution (default=2)
 """ % (sys.argv[0])
 
   def Run(self):
@@ -344,6 +364,20 @@ Optional parameters:
     return hypergeom.sf(k,M,n,N)
 
   def fisher_exact_test(self):
+
+      #DONE: add -qval cut-off flag and the topk flag from heatmap.py
+      # Keep in mind how should these flags should interact with each other (eg. focusLFC should have prioirty, then topk subsets the subset)
+
+      #DONE: add LFC cutoff flag (ignore genes that have too small of LFC, eg MIN absolute value or min magnitude)
+      # should default to zero, eg. -minLFC 1 [meaning magnitude(abs) >= 1]
+
+      #TODO: learn how add these as checkboxes in GUI [for transit 2] 
+
+
+      # Hiearchy of flags:     
+      #  
+      #  START: qval (OPTIONAL) / topk [Mutually Exclusive, topk changes filter of qval] -> focusLFC -> minLFC [END]
+      #
     genes,hits,headers = self.read_resampling_file(self.resamplingFile) # use self.Qval_col to determine hits
     associations = self.read_associations(self.associationsFile)
     pathways = self.read_pathways(self.pathwaysFile)
@@ -353,13 +387,55 @@ Optional parameters:
     # do all associations have a definition in pathways?
     # how many pathways have >1 gene? (out of total?) what is max?
 
+    focus_genes = genes
+
+    # Filter by only returning the top k genes (by q-value)
+    if self.topk != -1:
+      # should this account if there are mulitple genes with qval == 0 ??
+
+        k_list = [(w[0], w[-1]) for w in focus_genes] # get a list of tuples, where it's just (orf, q-value)
+        k_list = sorted(k_list, key=lambda tup: tup[1]) # sort
+        k_list = k_list[:self.topk] # get top k genes
+
+        k_list = [k[0] for k in k_list] # remove the q-values, getting just the orfs
+
+        focus_genes = list(filter(lambda w: w[0] in k_list, focus_genes)) # then get all data points that are in our top-k subset
+        hits = list(set([w[0] for w in focus_genes]) & set(hits)) 
+
+    # Q-value filtering
+    if self.qvalCutoff != 1 and self.topk == -1:# don't run the qvalCutoff filter if it's the default value and if topk is default (not being used)
+      focus_genes = list(filter(lambda w: float(w[self.Qval_col]) <= self.qvalCutoff, focus_genes))
+      hits = list(set([w[0] for w in focus_genes]) & set(hits)) 
+
+    # Sign-based log-fold-change filtering
+    if self.focusLFC == "pos":
+      focus_genes = list(filter(lambda w: float(w[self.LFC_col]) > 0, focus_genes))
+      hits = list(set([w[0] for w in focus_genes]) & set(hits)) # filter the hits to only include positive LFCs by doing an intersection between the newly filtered orfs and the hits (that include all LFCs)
+                                                          # by turning both lists into sets and intersecting (&) them, seemed to be the fastest way without adding too much more to MEM space
+    elif self.focusLFC == "neg":
+      focus_genes = list(filter(lambda w: float(w[self.LFC_col]) < 0, focus_genes))
+      hits = list(set([w[0] for w in focus_genes]) & set(hits))
+
+    # Minimum log-fold change filtering
+    if self.minLFC != 0: # don't run the minLFC filter if it's the default value
+      focus_genes = list(filter(lambda w: abs(float(w[self.LFC_col])) >= self.minLFC, focus_genes)) # we only want to keep values that are greater or equal to than the flag value
+                                                                                                   # This is done intentionally after the focusLFC filter and uses its results
+      hits = list(set([w[0] for w in focus_genes]) & set(hits))
+
     genes_with_associations = 0
-    for gene in genes: 
+    for gene in focus_genes: # uses the fitlered subset
       orf = gene[0]
       if orf in associations: genes_with_associations += 1
-    self.write("# method=FET, PC=%s" % self.PC)
-    self.write("# genes with associations=%s out of %s total" % (genes_with_associations,len(genes)))
-    self.write("# significant genes (qval<0.05): %s" % (len(hits)))
+    self.write("# method=FET, PC=%s, focusLFC=%s, minLFC=%s, qval=%s, topk=%s" % (self.PC, self.focusLFC, self.minLFC, self.qvalCutoff, self.topk))
+
+    # Added a subsetted-total to the print-out because it's confusing to see the length of the entire gene-set when the associations are only over the filtered subset
+    if self.focusLFC != "all" or self.minLFC != 0 or self.qvalCutoff != 1: #only do the subset printout when one flag isn't default
+      self.write("# genes with associations=%s out of %s total, %s out of %s subsetted-total" % (genes_with_associations,len(genes), genes_with_associations,len(focus_genes)))
+      self.write("# significant genes (qval<%s): %s" % (self.qvalCutoff, len(hits)))
+    else:
+      self.write("# genes with associations=%s out of %s total" % (genes_with_associations,len(genes)))
+      self.write("# significant genes (qval<0.05): %s" % (len(hits)))
+
 
     terms = list(pathways.keys())
     terms.sort()
