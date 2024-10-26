@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 3.3.8 (2024-10-26)
+#### Transit:
+
+Minor changes:
+ - added flags to pathway_enrichment, such as:
+   -focusLFC pos|neg : to restrict pathway analysis of significant genes to only those with positive or negative LFCs
+   -minLFC : to specify a minimum magnitude for LFCs (e.g. '-minLFC 1' means analyze genes with at least a 2-fold change, up or down)
+   -qval : to change the threshold for significance from the default value of 0.05
+   -topk : to analyze the top K genes ranked by significance (Qval), regardless of cutoff
+
+
 ## Version 3.3.7 (2024-10-16)
 #### Transit:
 
