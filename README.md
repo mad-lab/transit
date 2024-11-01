@@ -13,7 +13,7 @@ It provides an easy to use graphical interface and access to three different ana
 
 TRANSIT Home page: http://saclab.tamu.edu/essentiality/transit/index.html
 
-TRANSIT Documentation: https://transit.readthedocs.io/en/latest/transit_overview.html
+TRANSIT Documentation: https://transit.readthedocs.io/en/stable/transit_overview.html
 
 [Changelog](https://github.com/mad-lab/transit/blob/master/CHANGELOG.md)
 
@@ -49,7 +49,7 @@ For any questions or comments, please contact Dr. Thomas Ioerger, ioerger@cs.tam
 For full instructions on how to install and run TRANSIT (and the optional pre-processor, TPP), please see the documentation included in this distribution ("src/pytransit/doc" folder) or visit the following web page:
 
 
-https://transit.readthedocs.io/en/latest/
+https://transit.readthedocs.io/en/stable/
 
 
 ## Datasets
