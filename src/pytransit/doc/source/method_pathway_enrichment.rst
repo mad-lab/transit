@@ -21,13 +21,15 @@ and evaluated for overlap with functional categories of genes.
 The GSEA methods use the whole list of genes, ranked in order of statistical significance
 (without requiring a cutoff), to calculate enrichment.
 
-Three systems of categories are provided for (but you can add your own):
+Four systems of categories are provided for (but you can add your own):
 the Sanger functional categories of genes determined in the
 original annotation of the H37Rv genome (`Cole et al, 1998 <https://www.ncbi.nlm.nih.gov/pubmed/9634230>`_,
 with subsequent updates),
-COG categories (`Clusters of Orthologous Genes <https://www.ncbi.nlm.nih.gov/pubmed/25428365>`_) and
-also GO terms (Gene Ontology).  The supporting files for *M. tuberculosis*
-H37Rv are in the src/pytransit/data/ directory.
+COG categories (`Clusters of Orthologous Genes <https://www.ncbi.nlm.nih.gov/pubmed/25428365>`_),
+also GO terms (Gene Ontology), and `KEGG <https://www.genome.jp/kegg/>`_.
+Pre-formatted annotation files for *M. tuberculosis* H37Rv and several other mycobacteria can be found in
+`pathways.html <https://orca1.tamu.edu/essentiality/transit/pathways.html>`_.
+
 
 For other organisms, it might be possible to download COG categories from
 `http://www.ncbi.nlm.nih.gov/COG/ <http://www.ncbi.nlm.nih.gov/COG/>`_
@@ -38,7 +40,7 @@ the *associations* file format described below. (The *pathways* files for COG ca
 in the Transit data directory should still work, because they just encode pathways names for all terms/ids.)
 
 At present, pathway enrichment analysis is only implemented as a command-line function,
-and is not available in the Transit GUI.
+and is not available in the Transit GUI (for Transit1).
 
 
 Usage
