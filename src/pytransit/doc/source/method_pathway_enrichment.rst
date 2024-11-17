@@ -170,13 +170,15 @@ Parameters
   2. the relative abundance of genes with this GO term compared to those with a parent GO term   in the whole genome
 
 
-Auxilliary Pathway Files in Transit Data Directory
---------------------------------------------------
+Pathway Association Files
+------------------------
 
 ::
 
-These files for pathway analysis are distributed in the Transit data directory
-(e.g. transit/src/pytransit/data/).
+Pathway association files for several mycobacterial species (*M. tuberculosis,
+M. smegmatis, M. abscessus*, etc.) can be downloaded from our 
+`pathways.html <https://orca1.tamu.edu/essentiality/transit/pathways.html>`_ web page.
+The pathway annotations include COG, KEGG, Sanger, and GO terms.
 
 Note: The "Sanger" roles are custom pathway associations for
 *M. tuberculosis* defined in the original Nature paper on
@@ -188,34 +190,11 @@ Uniprot, or geneontology.org) and COG roles (from
 https://ftp.ncbi.nih.gov/pub/COG/COG2020/data/, `(Galerpin et al, 2021)
 <https://academic.oup.com/nar/article/49/D1/D274/5964069>`_ ).
 
-Pathway association files for *M. smegmatis* mc2 155 are also provided in the table below.
-
-
-+----------+----------+--------------------+--------------------------------------+------------------------------------+
-| system   | num roles| applicable methods | associations of genes with roles     | pathway definitions/role names     |
-+==========+==========+====================+======================================+====================================+
-| COG      | 25       | FET*, GSEA         | H37Rv_COG_roles.dat;                 | COG_roles.dat                      |
-|          |          |                    | smeg_COG_roles.dat                   |                                    |
-+----------+----------+--------------------+--------------------------------------+------------------------------------+
-| Sanger   | 153      | FET*, GSEA*        | H37Rv_sanger_roles.dat               | sanger_roles.dat                   |
-+----------+----------+--------------------+--------------------------------------+------------------------------------+
-| GO       | 2545     | ONT*               | H37Rv_GO_terms.txt;                  | gene_ontology.1_2.3-11-18.obo      |
-|          |          |                    | smeg_GO_terms.txt                    |                                    |
-+----------+----------+--------------------+--------------------------------------+------------------------------------+
-|          |          | FET, GSEA          | H37Rv_GO_terms.txt;                  | GO_term_names.dat                  |
-|          |          |                    | smeg_GO_terms.txt                    |                                    |
-+----------+----------+--------------------+--------------------------------------+------------------------------------+
-
-'\*' means *recommended* combination of method with system of functional categories
-
-
-Current Recommendations
------------------------
 
 Here are the recommended combinations of pathway methods to use for different systems of functional categories:
 
  * For COG, use '-M FET'
- * For Sanger roles, try both FET and GSEA
+ * For KEGG and Sanger pathways, try both FET and GSEA
  * For GO terms, use 'M -ONT'
 
 
