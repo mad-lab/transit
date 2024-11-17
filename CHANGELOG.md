@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 3.3.9 (2024-11-17)
+#### Transit:
+
+Minor changes:
+  - updated doc on pathway enrichment to refer to pathways.html for association files
+
+
 ## Version 3.3.8 (2024-10-26)
 #### Transit:
 
