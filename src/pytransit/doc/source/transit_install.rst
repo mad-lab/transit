@@ -33,12 +33,47 @@ If you encounter problems, please :ref:`contact us <developers>` or head to the 
 Requirements
 ------------
 
-TRANSIT runs on both python2.7 and python3. But the dependencies vary slightly.
-
 Starting with release v3.0, TRANSIT now requires python3. 
+
+TRANSIT runs on both python2.7 and python3. But the dependencies vary slightly.
 
 To use TRANSIT with python2, use a TRANSIT release prior to 3.0 (e.g. v2.5.2)
 
+.. NOTE::
+  **Note about Python3.12**: The update to Python3.12 made changes in the setuptools package that 
+  disrupted the installation of Transit as well as other python packages (including some Transit
+  dependencies, like wxPython).
+  
+  We are working on fixing these problems caused by 3.12.  In the meantime,
+  if you have difficulty installing Transit with Python3.12, we recommend trying it with Python3.11, with
+  which Transit should work fine.
+
+|
+
+
+Python 3:
+-----------
+
+The following libraries/modules are required to run TRANSIT:
+
++ `Python 3+ <http://www.python.org>`_
++ `Numpy <http://www.numpy.org/>`_ (tested on 1.16.0)
++ `Statsmodels <https://pypi.org/project/statsmodels/>`_ (tested on 0.9.0)
++ `Scipy <http://www.scipy.org/>`_ (tested on 1.2)
++ `matplotlib <http://matplotlib.org/users/installing.html>`_ (tested on 3.0)
++ `Pillow 6.0 <https://github.com/python-pillow/Pillow>`_
++ `wxpython 4+ <http://www.wxpython.org/>`_
++ `PyPubSub 4+ <https://pypi.org/project/PyPubSub/>`_ (tested on 4.0.3)
+
+All of these dependencies can be installed using the following command.
+
+::
+
+   pip3 install numpy scipy pillow pypubsub matplotlib statsmodels wxPython
+
+Pip and Python are usually preinstalled in most modern operating systems.
+
+|
 
 Python 2.7:
 -----------
@@ -64,29 +99,6 @@ Pip and Python are usually preinstalled in most modern operating systems.
 
 |
 
-Python 3:
------------
-
-The following libraries/modules are required to run TRANSIT:
-
-+ `Python 3+ <http://www.python.org>`_
-+ `Numpy <http://www.numpy.org/>`_ (tested on 1.16.0)
-+ `Statsmodels <https://pypi.org/project/statsmodels/>`_ (tested on 0.9.0)
-+ `Scipy <http://www.scipy.org/>`_ (tested on 1.2)
-+ `matplotlib <http://matplotlib.org/users/installing.html>`_ (tested on 3.0)
-+ `Pillow 6.0 <https://github.com/python-pillow/Pillow>`_
-+ `wxpython 4+ <http://www.wxpython.org/>`_
-+ `PyPubSub 4+ <https://pypi.org/project/PyPubSub/>`_ (tested on 4.0.3)
-
-All of these dependencies can be installed using the following command.
-
-::
-
-   pip3 install numpy scipy pillow pypubsub matplotlib statsmodels wxPython
-
-Pip and Python are usually preinstalled in most modern operating systems.
-
-|
 .. _install-zinb:
 
 Additional Requirements: R (statistical analysis package)
