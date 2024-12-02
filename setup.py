@@ -195,7 +195,7 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     # 'pypubsub<4.0' and 'wxPython' are needed for GUI only, but go ahead and install them
     # the reason for restriction on pypubsub is that version>=4.0 does not work with python2 - I can probably get rid of this restriction, since everybody must be using python3 by now
-    install_requires=['setuptools', 'numpy~=1.16', 'scipy~=1.2', 'matplotlib~=3.0', 'pillow', 'scikit-learn', 'statsmodels~=0.9', 'pypubsub', 'wxPython'],
+    install_requires=['wheel','setuptools', 'numpy~=1.16', 'scipy~=1.2', 'matplotlib~=3.0', 'pillow', 'scikit-learn', 'statsmodels~=0.9', 'pypubsub', 'wxPython'],
 
     #dependency_links = [
     #	"git+https://github.com/wxWidgets/wxPython.git#egg=wxPython"
