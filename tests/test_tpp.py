@@ -122,33 +122,35 @@ def verify_stats(stats_file, expected):
 
 class TestTPP(TransitTestCase):
 
+    # since I changed default BWA mode from 'mem' back to 'aln', specify mem to make the output shown above (TRI, 12/2/24)
+
     @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_noflag_primer(self):
-        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-protocol", "sassetti"])
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-protocol", "sassetti" , "-bwa-alg", "mem"])
         tppMain(*args, **kwargs)
         self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), NOFLAG_PRIMER))
 
     @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_flag_primer(self):
-        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-himar1", "-flags", "-k 1"])
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-himar1", "-flags", "-k 1" , "-bwa-alg", "mem"])
         tppMain(*args, **kwargs)
         self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), FLAG_PRIMER))
 
     @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_protocol_mme1(self):
-        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-protocol", "Mme1"])
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", h37fna, "-reads1", reads1, "-output", tpp_output_base, "-protocol", "Mme1", "-bwa-alg", "mem"])
         tppMain(*args, **kwargs)
         self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), MME1_PROTOCOL))
 
     @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_multicontig_empty_prefix(self):
-        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", test_multicontig, "-reads1", test_multicontig_reads1, "reads2", test_multicontig_reads2, "-output", tpp_output_base, "-replicon-ids", "a,b,c", "-maxreads", "10000", "-primer", ""])
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", test_multicontig, "-reads1", test_multicontig_reads1, "reads2", test_multicontig_reads2, "-output", tpp_output_base, "-replicon-ids", "a,b,c", "-maxreads", "10000", "-primer", "" , "-bwa-alg", "mem"])
         tppMain(*args, **kwargs)
         self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), MULTICONTIG))
 
     @unittest.skipUnless(len(bwa_path) > 0, "requires BWA")
     def test_tpp_multicontig_auto_replicon_ids(self):
-        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", test_multicontig, "-reads1", test_multicontig_reads1, "reads2", test_multicontig_reads2, "-output", tpp_output_base, "-replicon-ids", "auto", "-maxreads", "10000", "-primer", ""])
+        (args, kwargs) = cleanargs(["-bwa", bwa_path, "-ref", test_multicontig, "-reads1", test_multicontig_reads1, "reads2", test_multicontig_reads2, "-output", tpp_output_base, "-replicon-ids", "auto", "-maxreads", "10000", "-primer", "" , "-bwa-alg", "mem"])
         tppMain(*args, **kwargs)
         self.assertTrue(verify_stats("{0}.tn_stats".format(tpp_output_base), MULTICONTIG_AUTO_IDS))
 
