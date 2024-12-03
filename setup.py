@@ -108,7 +108,8 @@ class UploadCommand(Command):
             sys.exit()
 
         self.status('Building Source and Wheel (universal) distribution...')
-        os.system('{0} setup.py sdist bdist_wheel'.format(sys.executable))
+        #os.system('{0} setup.py sdist bdist_wheel'.format(sys.executable))
+        os.system('{0} -m build'.format(sys.executable))
 
         if self.yes_or_no("Add tag and push to public github? tag:v{0}".format(version)):
             self.status('Adding and pushing git tags to origin and public...')
