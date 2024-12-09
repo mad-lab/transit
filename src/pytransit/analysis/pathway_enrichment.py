@@ -219,7 +219,8 @@ Optional parameters:
     index = {}
     for i in range(len(lst)): index[lst[i]] = i
     return index
-    
+
+  # A is list of hits (genes)    
   # based on GSEA paper (Subramanian et al, 2005, PNAS)
   # ranks and scores are hashes from genes into ranks and SLPV
   # when p=0, ES(S) reduces to the standard K-S statistic; p=1 is used in PNAS paper
@@ -235,13 +236,15 @@ Optional parameters:
     NR = sum(powers)
     if NR==0: return 0 # special case
     Nmiss = n-len(A) # totalGenes-hits
-    powersum,best = 0,-1
+    powersum,best = 0,0
     for i in range(len(powers)):
       powersum += powers[i]    
       Phit = powersum/float(NR)
       Pmiss = (Aranks[i]-i)/float(Nmiss)
-      es = abs(Phit-Pmiss) # looking for max deviation
-      if es>best: best = es
+      #es = abs(Phit-Pmiss) # looking for max deviation
+      #if es>best: best = es
+      es = Phit-Pmiss # looking for max deviation
+      if abs(es)>abs(best): best = es
     return best
     
   def mean_rank(self,A,orfs2ranks): 
@@ -269,17 +272,20 @@ Optional parameters:
     self.write("# ranking genes by %s" % self.ranking)
     self.write("# total genes: %s, mean rank: %s" % (len(data),n2))
 
-    # rank by SLPV=sign(LFC)*log10(pval)
-    # note: genes with lowest p-val AND negative LFC have highest scores (like positive correlation)
-    # there could be lots of ties with pval=0 or 1, but so be it (there are probably fewer such ties than with Qvals) (randomize order below) 
     pairs = [] # pair are: rv and score (SLPV)
     for w in data:
       orf = w[0]
       if self.ranking=="SLPV": 
+        # the old way: rank by SLPV=sign(LFC)*log10(pval)
+        #   note: genes with lowest p-val AND negative LFC have highest scores (like positive correlation)
+        #   there could be lots of ties with pval=0 or 1, but so be it (there are probably fewer such ties than with Qvals) (randomize order below) 
+        # 12/9/24 (TRI):
+        #   I am changing this to SLPV=sign(LFC)*(-log10(pval)), so now genes with pos LFC are ranked at top
+
         #Pval_col = headers.index("p-value")
         Pval = float(w[self.Pval_col])
         LFC = float(w[self.LFC_col])
-        SLPV = (-1 if LFC<0 else 1)*math.log(Pval+0.000001,10)
+        SLPV = (-1 if LFC<0 else 1)*(-1*math.log(Pval+0.000001,10)) # changing to sgn*(-log10(Pval))
         pairs.append((orf,SLPV))
       elif self.ranking=="LFC": 
         #LFC_col = headers.index("log2FC")
@@ -291,7 +297,7 @@ Optional parameters:
     indexes = numpy.random.permutation(indexes).tolist() 
     pairs = [pairs[i] for i in indexes]
 
-    pairs.sort(key=lambda x: x[1],reverse=True) # emulate ranking genes with *higher* correlation at top
+    pairs.sort(key=lambda x: x[1],reverse=True) # emulate ranking genes with *higher* correlation (expression, pos LFC) at top
     orfs2rank,orfs2score = {},{}
     for i,(orf,score) in enumerate(pairs): 
       orfs2score[orf] = score
