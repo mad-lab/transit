@@ -311,14 +311,14 @@ Optional parameters:
       num_genes_in_pathway = len(orfs)
       if num_genes_in_pathway<2: continue # skip pathways with less than 2 genes
       mr = self.mean_rank(orfs,orfs2rank)
-      es = self.enrichment_score(orfs,orfs2rank,orfs2score,p=self.p) # always positive, even if negative deviation, since I take abs
-      higher = 0
+      es = self.enrichment_score(orfs,orfs2rank,orfs2score,p=self.p) # could be pos or neg
+      larger = 0
       for n in range(Nperm):
         perm = random.sample(allgenes,num_genes_in_pathway) # compare to enrichment score for random sets of genes of same size
         e2 = self.enrichment_score(perm,orfs2rank,orfs2score,p=self.p)
-        if e2>es: higher += 1
-        if n>100 and higher>10: break # adaptive: can stop after seeing 10 events (permutations with higher ES)
-      pval = higher/float(n)
+        if abs(e2)>abs(es): larger += 1
+        if n>100 and larger>10: break # adaptive: can stop after seeing 10 events (permutations with larger ES)
+      pval = larger/float(n)
       vals = ['#',term,num_genes_in_pathway,mr,es,pval,ontology.get(term,"?")]
       #sys.stderr.write(' '.join([str(x) for x in vals])+'\n')
       pctg=(100.0*i)/Total
