@@ -220,6 +220,12 @@ Optional parameters:
     for i in range(len(lst)): index[lst[i]] = i
     return index
 
+  # for a gene set of size n, what is the expected mean of the null distribution?
+
+  def calc_NES(self,es,null_dist):
+    if es>0: return es/numpy.mean(list(filter(lambda x: x>0,null_dist)))
+    else: return -es/numpy.mean(list(filter(lambda x: x<=0,null_dist)))
+
   # A is list of hits (genes)    
   # based on GSEA paper (Subramanian et al, 2005, PNAS)
   # ranks and scores are hashes from genes into ranks and SLPV
@@ -313,20 +319,24 @@ Optional parameters:
       mr = self.mean_rank(orfs,orfs2rank)
       es = self.enrichment_score(orfs,orfs2rank,orfs2score,p=self.p) # could be pos or neg
       larger = 0
+      null_dist = []
       for n in range(Nperm):
         perm = random.sample(allgenes,num_genes_in_pathway) # compare to enrichment score for random sets of genes of same size
         e2 = self.enrichment_score(perm,orfs2rank,orfs2score,p=self.p)
+        null_dist.append(e2)
         if abs(e2)>abs(es): larger += 1
         if n>100 and larger>10: break # adaptive: can stop after seeing 10 events (permutations with larger ES)
+      NES = self.calc_NES(es,null_dist)
       pval = larger/float(n)
+      #print("pathway=%s (%s), ES=%s, NES=%s, pval=%s" % (term,len(orfs),es,NES,pval))
       vals = ['#',term,num_genes_in_pathway,mr,es,pval,ontology.get(term,"?")]
       #sys.stderr.write(' '.join([str(x) for x in vals])+'\n')
       pctg=(100.0*i)/Total
       text = "Running Pathway Enrichment Method... %5.1f%%" % (pctg)
       self.progress_update(text, i)      
-      results.append((term,mr,es,pval))
+      results.append((term,mr,NES,pval))
     
-    results.sort(key=lambda x: x[1]) # sort on mean rank
+    results.sort(key=lambda x: x[2],reverse=True) # sort on NES
     pvals = [x[-1] for x in results]
     rej,qvals = multitest.fdrcorrection(pvals)
     results = [tuple(list(res)+[q]) for res,q in zip(results,qvals)]
@@ -346,7 +356,7 @@ Optional parameters:
       if qval<0.05 and mr>n2: self.write("#   %s %s (mean_rank=%s)" % (term,ontology.get(term,"?"),mr))
     self.write("# pathways sorted by mean_rank")
 
-    self.output.write('\t'.join("#pathway description num_genes mean_rank GSEA_score pval qval genes".split())+'\n')
+    self.output.write('\t'.join("#pathway description num_genes mean_rank GSEA_NES(normalized_enrichment_score) pval qval genes".split())+'\n')
     for term,mr,es,pval,qval in results:
       rvs = terms2orfs[term]
       rvinfo = [(x,genenames.get(x,"?"),orfs2rank.get(x,n2)) for x in rvs]
