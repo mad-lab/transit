@@ -27,8 +27,9 @@ original annotation of the H37Rv genome (`Cole et al, 1998 <https://www.ncbi.nlm
 with subsequent updates),
 COG categories (`Clusters of Orthologous Genes <https://www.ncbi.nlm.nih.gov/pubmed/25428365>`_),
 also GO terms (Gene Ontology), and `KEGG <https://www.genome.jp/kegg/>`_.
-Pre-formatted annotation files for *M. tuberculosis* H37Rv and several other mycobacteria can be found in
-`pathways.html <https://orca1.tamu.edu/essentiality/transit/pathways.html>`_.
+
+.. NOTE:
+  Pre-formatted annotation files for *M. tuberculosis* H37Rv and several other mycobacteria can be found in `pathways.html <https://orca1.tamu.edu/essentiality/transit/pathways.html>`_.
 
 
 For other organisms, it might be possible to download COG categories from
@@ -222,6 +223,50 @@ Examples
 
 The $DATA environment variable in these examples refers to the Transit data directory, e.g. src/pytransit/data/.
 
+
+Output File Formats
+-------------------
+
+*Pathway_enrichment* methods generates output files in the form of tab-separated spreadsheets, which you can load into and view in Excel.
+The files include various information in the header (lines prefixed by '#'), including the command that
+was executed (with flags), overall number of genes, and a summary of significant pathways.
+
+For **GSEA** analysis, the columns in the output file are:
+
+ * **pathway id**
+ * **description** - pathway name
+ * **num_genes** - number of genes in the pathway
+ * **mean_rank** - average rank of pathway genes (with 1 being most positive LFC or most significant, depending on whether sorting on LFC or SLPV) among all genes in genome
+ * **GSEA_NES** - normalized_enrichment_score; enrichment scores are calculated and then normalized as described in `(Subramaniam et al., 2005) <http://www.pnas.org/content/102/43/15545.short>`_
+ * **pval** - P-value calculated using permutations, as described in `(Subramaniam et al., 2005) <http://www.pnas.org/content/102/43/15545.short>`_
+ * **qval** - P-value adjusted using Benjamini-Hochberg correction for multiple tests
+ * **genes** - list of genes in the pathway sorted by rank, with their ranks in parentheses
+
+The output file is sorted by NES, from pathways with most positive enrichment to most negative.
+
+The criterion for statistical significance is genes with **'qval<0.05'**.
+
+Note that while the genes with the most extreme NES are usually the most significant,
+the correlation is not perfect, because significance also depends on the gene set size.
+
+
+For **FET** analysis, the columns in the output file are:
+
+ * **pathway id**
+ * **total_genes(M)** - number of genes in genome
+ * **genes_in_path(n)** - number of genes in the pathway
+ * **significant_genes(N)** - total significant genes (usually determined from input file as 'qval<0.05'; can be adjusted using flags)
+ * **signif_genes_in_path(k)** - subset of significant genes that are in the pathway (intersection)
+ * **expected** - expected number of signfican genes in the pathway based on genome-wide proportions
+ * **k+PC** - significant genes in pathway, adjusted by adding pseudo-count
+ * **n_adj_by_PC** - total genes in pathway, adjusted by adding pseudo-count
+ * **enrichment** - log2 of ratio of observed to expected number of significant genes in pathway (calculated with pseudocounts)
+ * **pval** - P-value (significance of enrichment) based on hypergeometric distribution (based on k, n, M, and N) 
+ * **qval** - P-value adjusted using Benjamini-Hochberg correction for multiple tests
+ * **description** - pathway name
+ * **genes** - list of genes in the pathway sorted by rank, with their ranks in parentheses
+
+|
 
 .. rst-class:: transit_sectionend
 ------
