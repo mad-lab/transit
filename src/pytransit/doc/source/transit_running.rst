@@ -90,51 +90,27 @@ See example usages of supported methods in :ref:`Analysis Methods <analysis_meth
 
 |
 
-Prot_tables (Annotations)
--------------------------
+Use as a Python Package
+-----------------------------------------------------
 
-Most of the methods in Transit use a custom format for genome annotations called a '.prot_table'.
-It is a simple tab-separated text file with specific columns, as originally defined for genomes
-in Genbank many years ago.
 
-The required columns are:
-
-1. gene function description
-2. start coordinate
-3. end coordinate
-4. strand
-5. length of protein product (in amino acids)
-6. don't care
-7. don't care
-8. gene name (like "dnaA")
-9. ORF id (like Rv0001)
-
-It is crucial to use the same .prot_table corresponding to the genome sequence that was
-used to generate the wig file (count insertions) by TPP.  This is because the
-coordinates of TA sites in the wig file and the coordinates of ORF boundaries
-must use the same coordinate system (which can be thrown out of register by indels).
-
-Suppose you have a .prot_table for genome A, and you want to map reads to 
-another genome B which is closely related, but for which you do not have an annotation.
-You can use the following web-app ( `Prot_table Adjustment Tool <http://saclab.tamu.edu/cgi-bin/iutils/app.cgi>`_ ) 
-to convert the annotation for A to B
-by adjusting all the coordinates of ORFs from A to B according to a genome alignment.
-For example, you could use this to map known ORFs in H37Rv to sequences of other strains, like HN878 or CDC1551.
-(Even though they have their own annotations, it might be helpful to use the genes as defined in H37Rv)
-
-While some Transit methods can also work with .gff (or .gff3) files,
-the flexibility of the .gff format makes it difficult to anticipate all possible encoding schemes.
-Therefore, to simplify things, we recommend you convert your .gff file to .prot_table format
-once at the beginning and then use that for all work with Transit,
-which can be done through the GUI (under 'Convert' in menu), or on the command-line as follows:
-
+TRANSIT can be (optionally) installed as a python package. This can simplify the installation process as it will automatically install most of the requirements. In addition, it will allow users to use some of transit functions in their own scripts if they desire. Below is a brief example of importing transit functions into python. In this example, pair of .wig files are parsed into their read-counts (data) and genomic positions (position), and then normalization factors are calculated. See the documentation of the package for further examples:
 
 ::
 
-  > python transit.py convert gff_to_prot_table <.gff> <.prot_table>
+        >>> import pytransit.norm_tools as norm_tools
+        >>> import pytransit.tnseq_tools as tnseq_tools
+        >>> (data, position) = tnseq_tools.get_data(["transit/data/glycerol_H37Rv_rep1.wig", "transit/data/glycerol_H37Rv_rep2.wig"])
+        >>> print(data)
+        array([[ 0.,  0.,  0., ...,  0.,  0.,  0.],
+               [ 0.,  0.,  0., ...,  0.,  0.,  0.]])
+        >>> factors = norm_tools.TTR_factors(data)
+        >>> print(factors)
+        array([[ 1.        ],
+               [ 0.62862886]])
+
 
 |
-
 
 .. _tn5-main-overview:
 
