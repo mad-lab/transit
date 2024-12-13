@@ -2,7 +2,14 @@
 All notable changes to this project will be documented in this file.
 
 
-## Version 3.3.11 (2024-12-013)
+## Version 3.3.12 (2024-12-13)
+#### Transit:
+
+Minor changes:
+  - Tiny adjustment of packages in setup.py
+
+
+## Version 3.3.11 (2024-12-13)
 #### Transit:
 
 Minor changes:
