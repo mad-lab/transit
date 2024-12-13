@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 3.3.11 (2024-12-013)
+#### Transit:
+
+Minor changes:
+  - Added NES (normalized enrichment score) for GSEA method in pathway_enrichment analysis
+  - changed package name on PyPi from 'tnseq-transit' to 'transit1'; updated Installation documentation
+
+
 ## Version 3.3.10 (2024-12-02)
 #### Transit:
 
