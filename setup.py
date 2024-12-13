@@ -181,7 +181,8 @@ setup(
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     #packages = find_packages('src', exclude=['contrib', 'tests']), # any subdir in src/ with __init__.py
-    packages = ['pytransit.specific_tools', 'pytpp', 'pytransit', 'pytransit.methods'],
+    #packages = ['pytransit.specific_tools', 'pytpp', 'pytransit', 'pytransit.methods'],
+    packages = ['pytransit.generic_tools', 'pytpp', 'pytransit', 'pytransit.methods'],
     package_dir = {'pytransit': 'src/pytransit',  'pytpp': 'src/pytpp'},
     include_package_data=True,
     #py_modules = ['tpp'],
