@@ -500,9 +500,17 @@ def template_counts(ref,sam,bcfile,vars):
       if code[6]=="1" and code[2]=="0": vars.r1 += 1
       if code[6]=="1" and code[3]=="0": vars.r2 += 1
       if bc=="XXXXXXXXXX": continue
-      #if int(w[1]) in [0,16,81,83,97,99]: # allow improperly-mapped reads
-      if code[6]=="1" and code[1]=="1": # both reads map properly (83 or 99) and has legit barcode
+      # bit 6 means this is read 1; bit 1 means properly mapped pair
+      #if code[6]=="1" and code[1]=="1": # both reads map properly (83 or 99) and has legit barcode
+      #if (code[6]=="1" and code[1]=="1") or (vars.allow_improper and intcode in [0,16,81,83,97,99]):
+      intcode = int(w[1])
+      if intcode in [0,16,81,83,97,99]: # allow improperly-mapped reads
+        if intcode in [83,99]: vars.proper_read_pairs += 1 # code[6]==1 and code[1]==1; does not include 0 or 16 for single-read
+        if intcode in [81,97]:
+          vars.improper_read_pairs += 1
+          if vars.allow_improper==False: continue
         vars.mapped += 1
+
         readlen = len(w[9])
         pos,size = int(w[3]),int(w[8]) # note: size could be negative
         strand,delta = 'F',-2
@@ -653,10 +661,10 @@ def driver(vars):
   vars.num_replicons = total_num_records
 
   if vars.num_replicons != len(vars.replicon_ids):
-    if vars.num_replicons is 1:
+    if vars.num_replicons == 1:
       vars.replicon_ids = ['']
     # Autogenerate ids if 'auto' flag present
-    elif len(vars.replicon_ids) is 1 and vars.replicon_ids[0].strip() == 'auto':
+    elif len(vars.replicon_ids) == 1 and vars.replicon_ids[0].strip() == 'auto':
       message("Autogenerating replicon_ids...")
       vars.replicon_ids = [str(i) for i in range(1, vars.num_replicons + 1)]
     else:
@@ -1137,6 +1145,8 @@ def generate_output(vars):
   output.write("# trimmed_reads (reads with valid Tn prefix, and insert size>20bp): %s\n" % vars.tot_tgtta)
   output.write("# reads1_mapped: %s\n" % vars.r1)
   output.write("# reads2_mapped: %s\n" % vars.r2)
+  output.write("# properly_mapped_read_pairs: %s\n" % vars.proper_read_pairs)
+  output.write("# improperly_mapped_read_pairs: %s\n" % vars.improper_read_pairs)
   output.write("# mapped_reads (both R1 and R2 map into genome, and R2 has a proper barcode): %s \n" % vars.mapped)
 
   if vars.num_replicons>1:
@@ -1339,6 +1349,9 @@ def initialize_globals(vars, args=[], kwargs={}):
     vars.primer_start_window = 0,20
     vars.window = None
     vars.bwa_alg = "aln" # changing from mem back to aln because of /dev/shm error on Windows machines [TRI,9/14/24]
+    vars.allow_improper = False # allow improperly-mapped read-pairs
+    vars.improper_read_pairs = 0
+    vars.proper_read_pairs = 0
     
     # Update defaults
     protocol = kwargs.get("protocol", "").lower()
@@ -1374,10 +1387,14 @@ def initialize_globals(vars, args=[], kwargs={}):
         vars.base = kwargs["output"]
     if "mismatches" in kwargs:
         vars.mm1 = int(kwargs["mismatches"])
+    if "allow-improperly-mapped-read-pairs" in kwargs:
+        vars.allow_improper = True
+
     if "barseq_catalog_in" in kwargs:
         vars.barseq_catalog_in = kwargs["barseq_catalog_in"]
     if "barseq_catalog_out" in kwargs:
         vars.barseq_catalog_out = kwargs["barseq_catalog_out"]
+
     if "flags" in kwargs:
         vars.flags = kwargs["flags"]
 
