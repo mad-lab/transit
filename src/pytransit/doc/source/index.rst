@@ -5,7 +5,7 @@ Welcome to TRANSIT's documentation!
 ===================================
 
 .. image:: https://img.shields.io/github/tag/mad-lab/transit.svg
-    :target: https://github.com/mad-lab/transit
+    :target: https://github.com/ioerger/transit
     :alt: GitHub last tag
 
 Transit is python-based software for analyzing TnSeq data
