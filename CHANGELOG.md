@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 3.3.20 (2025-12-23)
+#### Transit1-TPP
+
+Minor changes:
+  - added new flag '-allow-improperly-mapped-read-pairs' to TPP, and report statistics in *.tn_stats output file
+
+
+
+#########################################################
 ## Version 3.3.19 (2025-02-06)
 #### Transit1:
 
@@ -9,13 +18,14 @@ Minor changes:
   - switching back to transit1; remove migration message
 
 
-## Version 3.3.10.post1 (2025-02-06)
+## Version 3.3.19.post1 (2025-02-06)
 #### tnseq-transit:
 
 Note: This is the Final Release for the 'tnseq-transit' package on PyPi.
 
 Minor changes:
   - just changing the tag name from b2 to post1 so this will be treated as a post-release on PyPi
+#########################################################
 
 
 ## Version 3.3.18 (2025-02-06)
